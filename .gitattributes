@@ -1,0 +1,21 @@
+.git* text eol=lf
+Makefile text eol=lf
+*.txt text eol=lf
+*.md text eol=lf
+*.hpp text eol=lf
+*.cpp text eol=lf
+*.asm text eol=lf
+*.h text eol=lf
+*.inc text eol=lf
+*.c text eol=lf
+*.sh text eol=lf
+*.aps binary
+*.exe binary
+*.dll binary
+*.lib binary
+*.o binary
+*.gif binary
+*.jpg binary
+*.tiff binary
+*.ico binary
+*.png binary

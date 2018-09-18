@@ -1,0 +1,15 @@
+.vs
+.DS_Store
+*~
+*.vcxproj.user
+*.VC.db
+*.sd
+*.obj
+*.log
+*.idb
+*.pdb
+*.tlog
+*.lastbuildstate
+Debug
+Release
+Quake2
