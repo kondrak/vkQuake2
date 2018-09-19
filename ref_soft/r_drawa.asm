@@ -98,7 +98,7 @@ Lcliploop:
  mov eax,ds:dword ptr[Ld0]	
  mov ecx,ds:dword ptr[Ld1]	
  or ecx,eax	
- js Lp2	
+ js LP200	
 
 ; both points are unclipped
 
@@ -467,9 +467,9 @@ Ldone:
 
 ; at least one point is clipped
 
-Lp2:	
+LP200:	
  test eax,eax	
- jns Lp1	
+ jns LP100	
 
 ;			else
 ;			{
@@ -500,7 +500,7 @@ Lp2:
 
 ;				}
 
-Lp1:	
+LP100:	
 
 ;			// point 0 is unclipped
 ;				if (d1 >= 0)

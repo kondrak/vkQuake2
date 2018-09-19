@@ -55,6 +55,10 @@ void R_Alias_clip_z (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out)
 	out->s =	pfv0->s + (pfv1->s - pfv0->s) * scale;
 	out->t =	pfv0->t + (pfv1->t - pfv0->t) * scale;
 	out->l =	pfv0->l + (pfv1->l - pfv0->l) * scale;
+//qb: colored lighting from leilei
+	out->lr =	pfv0->lr + (pfv1->lr - pfv0->lr) * scale;
+	out->lg =	pfv0->lg + (pfv1->lg - pfv0->lg) * scale;
+	out->lb =	pfv0->lb + (pfv1->lb - pfv0->lb) * scale;
 
 	R_AliasProjectAndClipTestFinalVert (out);
 }
@@ -76,6 +80,11 @@ void R_Alias_clip_left (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out)
 		out->t  = pfv0->t  + ( pfv1->t  - pfv0->t ) * scale + 0.5;
 		out->l  = pfv0->l  + ( pfv1->l  - pfv0->l ) * scale + 0.5;
 		out->zi = pfv0->zi + ( pfv1->zi - pfv0->zi) * scale + 0.5;
+#ifdef COLMODEL
+		out->lr  = pfv0->lr  + ( pfv1->lr  - pfv0->lr ) * scale + 0.5;
+		out->lg  = pfv0->lg  + ( pfv1->lg  - pfv0->lg ) * scale + 0.5;
+		out->lb  = pfv0->lb  + ( pfv1->lb  - pfv0->lb ) * scale + 0.5;
+#endif
 	}
 	else
 	{
@@ -87,6 +96,11 @@ void R_Alias_clip_left (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out)
 		out->t  = pfv1->t  + ( pfv0->t  - pfv1->t ) * scale + 0.5;
 		out->l  = pfv1->l  + ( pfv0->l  - pfv1->l ) * scale + 0.5;
 		out->zi = pfv1->zi + ( pfv0->zi - pfv1->zi) * scale + 0.5;
+#ifdef COLMODEL
+		out->lr  = pfv1->lr  + ( pfv0->lr  - pfv1->lr ) * scale + 0.5;
+		out->lg  = pfv1->lg  + ( pfv0->lg  - pfv1->lg ) * scale + 0.5;
+		out->lb  = pfv1->lb  + ( pfv0->lb  - pfv1->lb ) * scale + 0.5;
+#endif
 	}
 }
 
@@ -105,6 +119,11 @@ void R_Alias_clip_right (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out)
 		out->t  = pfv0->t  + ( pfv1->t  - pfv0->t ) * scale + 0.5;
 		out->l  = pfv0->l  + ( pfv1->l  - pfv0->l ) * scale + 0.5;
 		out->zi = pfv0->zi + ( pfv1->zi - pfv0->zi) * scale + 0.5;
+#ifdef COLMODEL
+		out->lr  = pfv0->lr  + ( pfv1->lr  - pfv0->lr ) * scale + 0.5;
+		out->lg  = pfv0->lg  + ( pfv1->lg  - pfv0->lg ) * scale + 0.5;
+		out->lb  = pfv0->lb  + ( pfv1->lb  - pfv0->lb ) * scale + 0.5;
+#endif
 	}
 	else
 	{
@@ -116,6 +135,11 @@ void R_Alias_clip_right (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out)
 		out->t  = pfv1->t  + ( pfv0->t  - pfv1->t ) * scale + 0.5;
 		out->l  = pfv1->l  + ( pfv0->l  - pfv1->l ) * scale + 0.5;
 		out->zi = pfv1->zi + ( pfv0->zi - pfv1->zi) * scale + 0.5;
+#ifdef COLMODEL
+		out->lr  = pfv1->lr  + ( pfv0->lr  - pfv1->lr ) * scale + 0.5;
+		out->lg  = pfv1->lg  + ( pfv0->lg  - pfv1->lg ) * scale + 0.5;
+		out->lb  = pfv1->lb  + ( pfv0->lb  - pfv1->lb ) * scale + 0.5;
+#endif
 	}
 }
 
@@ -134,6 +158,11 @@ void R_Alias_clip_top (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out)
 		out->t  = pfv0->t  + ( pfv1->t  - pfv0->t ) * scale + 0.5;
 		out->l  = pfv0->l  + ( pfv1->l  - pfv0->l ) * scale + 0.5;
 		out->zi = pfv0->zi + ( pfv1->zi - pfv0->zi) * scale + 0.5;
+#ifdef COLMODEL
+		out->lr  = pfv0->lr  + ( pfv1->lr  - pfv0->lr ) * scale + 0.5;
+		out->lg  = pfv0->lg  + ( pfv1->lg  - pfv0->lg ) * scale + 0.5;
+		out->lb  = pfv0->lb  + ( pfv1->lb  - pfv0->lb ) * scale + 0.5;
+#endif
 	}
 	else
 	{
@@ -145,6 +174,11 @@ void R_Alias_clip_top (finalvert_t *pfv0, finalvert_t *pfv1, finalvert_t *out)
 		out->t  = pfv1->t  + ( pfv0->t  - pfv1->t ) * scale + 0.5;
 		out->l  = pfv1->l  + ( pfv0->l  - pfv1->l ) * scale + 0.5;
 		out->zi = pfv1->zi + ( pfv0->zi - pfv1->zi) * scale + 0.5;
+#ifdef COLMODEL
+		out->lr  = pfv1->lr  + ( pfv0->lr  - pfv1->lr ) * scale + 0.5;
+		out->lg  = pfv1->lg  + ( pfv0->lg  - pfv1->lg ) * scale + 0.5;
+		out->lb  = pfv1->lb  + ( pfv0->lb  - pfv1->lb ) * scale + 0.5;
+#endif
 	}
 }
 
@@ -165,6 +199,9 @@ void R_Alias_clip_bottom (finalvert_t *pfv0, finalvert_t *pfv1,
 		out->t  = pfv0->t  + ( pfv1->t  - pfv0->t ) * scale + 0.5;
 		out->l  = pfv0->l  + ( pfv1->l  - pfv0->l ) * scale + 0.5;
 		out->zi = pfv0->zi + ( pfv1->zi - pfv0->zi) * scale + 0.5;
+		out->lr  = pfv0->lr  + ( pfv1->lr  - pfv0->lr ) * scale + 0.5;
+		out->lg  = pfv0->lg  + ( pfv1->lg  - pfv0->lg ) * scale + 0.5;
+		out->lb  = pfv0->lb  + ( pfv1->lb  - pfv0->lb ) * scale + 0.5;
 	}
 	else
 	{
@@ -177,6 +214,9 @@ void R_Alias_clip_bottom (finalvert_t *pfv0, finalvert_t *pfv1,
 		out->t  = pfv1->t  + ( pfv0->t  - pfv1->t ) * scale + 0.5;
 		out->l  = pfv1->l  + ( pfv0->l  - pfv1->l ) * scale + 0.5;
 		out->zi = pfv1->zi + ( pfv0->zi - pfv1->zi) * scale + 0.5;
+		out->lr  = pfv1->lr  + ( pfv0->lr  - pfv1->lr ) * scale + 0.5;
+		out->lg  = pfv1->lg  + ( pfv0->lg  - pfv1->lg ) * scale + 0.5;
+		out->lb  = pfv1->lb  + ( pfv0->lb  - pfv1->lb ) * scale + 0.5;
 	}
 }
 
@@ -321,3 +361,103 @@ void R_AliasClipTriangle (finalvert_t *index0, finalvert_t *index1, finalvert_t 
 	}
 }
 
+
+
+
+/*
+================
+R_AliasClipTriangleRGB
+================
+*/
+void R_AliasClipTriangleRGB (finalvert_t *index0, finalvert_t *index1, finalvert_t *index2)
+{
+	int				i, k, pingpong;
+	unsigned		clipflags;
+
+// copy vertexes and fix seam texture coordinates
+	fv[0][0] = *index0;
+	fv[0][1] = *index1;
+	fv[0][2] = *index2;
+
+// clip
+	clipflags = fv[0][0].flags | fv[0][1].flags | fv[0][2].flags;
+
+	if (clipflags & ALIAS_Z_CLIP)
+	{
+		k = R_AliasClip (fv[0], fv[1], ALIAS_Z_CLIP, 3, R_Alias_clip_z);
+		if (k == 0)
+			return;
+
+		pingpong = 1;
+		clipflags = fv[1][0].flags | fv[1][1].flags | fv[1][2].flags;
+	}
+	else
+	{
+		pingpong = 0;
+		k = 3;
+	}
+
+	if (clipflags & ALIAS_LEFT_CLIP)
+	{
+		k = R_AliasClip (fv[pingpong], fv[pingpong ^ 1],
+							ALIAS_LEFT_CLIP, k, R_Alias_clip_left);
+		if (k == 0)
+			return;
+
+		pingpong ^= 1;
+	}
+
+	if (clipflags & ALIAS_RIGHT_CLIP)
+	{
+		k = R_AliasClip (fv[pingpong], fv[pingpong ^ 1],
+							ALIAS_RIGHT_CLIP, k, R_Alias_clip_right);
+		if (k == 0)
+			return;
+
+		pingpong ^= 1;
+	}
+
+	if (clipflags & ALIAS_BOTTOM_CLIP)
+	{
+		k = R_AliasClip (fv[pingpong], fv[pingpong ^ 1],
+							ALIAS_BOTTOM_CLIP, k, R_Alias_clip_bottom);
+		if (k == 0)
+			return;
+
+		pingpong ^= 1;
+	}
+
+	if (clipflags & ALIAS_TOP_CLIP)
+	{
+		k = R_AliasClip (fv[pingpong], fv[pingpong ^ 1],
+							ALIAS_TOP_CLIP, k, R_Alias_clip_top);
+		if (k == 0)
+			return;
+
+		pingpong ^= 1;
+	}
+
+	for (i=0 ; i<k ; i++)
+	{
+		if (fv[pingpong][i].u < r_refdef.aliasvrect.x)
+			fv[pingpong][i].u = r_refdef.aliasvrect.x;
+		else if (fv[pingpong][i].u > r_refdef.aliasvrectright)
+			fv[pingpong][i].u = r_refdef.aliasvrectright;
+
+		if (fv[pingpong][i].v < r_refdef.aliasvrect.y)
+			fv[pingpong][i].v = r_refdef.aliasvrect.y;
+		else if (fv[pingpong][i].v > r_refdef.aliasvrectbottom)
+			fv[pingpong][i].v = r_refdef.aliasvrectbottom;
+
+		fv[pingpong][i].flags = 0;
+	}
+
+// draw triangles
+	for (i=1 ; i<k-1 ; i++)
+	{
+		aliastriangleparms.a = &fv[pingpong][0];
+		aliastriangleparms.b = &fv[pingpong][i];
+		aliastriangleparms.c = &fv[pingpong][i+1];
+		R_DrawTriangle();
+	}
+}

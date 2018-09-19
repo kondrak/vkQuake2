@@ -30,7 +30,8 @@ unsigned		blockdivmask;
 void			*prowdestbase;
 unsigned char	*pbasesource;
 int				surfrowbytes;	// used by ASM files
-unsigned		*r_lightptr;
+//unsigned		*r_lightptr;
+int				*r_lightptr; // leilei - colored lighting
 int				r_stepback;
 int				r_lightwidth;
 int				r_numhblocks, r_numvblocks;
@@ -48,8 +49,62 @@ static void	(*surfmiptable[4])(void) = {
 	R_DrawSurfaceBlock8_mip3
 };
 
+
+
+// leilei - Colored Lights - Begin
+
+// leilei - Colored Lights
+
+
+int		lightlefta[3], sourcesstep, blocksize, sourcetstep;
+int		lightdelta, lightdeltastep;
+int		lightrighta[3], lightleftstepa[3], lightrightstepa[3], blockdivshift;
+
+// Macros
+
+// Macros for initiating the RGB light deltas.
+#define MakeLightDelta() { light[0] =  lightrighta[0];	light[1] =  lightrighta[1];	light[2] =  lightrighta[2];};
+#define PushLightDelta() { light[0] += lightdelta[0];	light[1] += lightdelta[1];	light[2] += lightdelta[2]; };
+#define FinishLightDelta() { psource += sourcetstep; lightrighta[0] += lightrightstepa[0];lightlefta[0] += lightleftstepa[0];lightdelta[0] += lightdeltastep[0]; lightrighta[1] += lightrightstepa[1];lightlefta[1] += lightleftstepa[1];lightdelta[1] += lightdeltastep[1]; lightrighta[2] += lightrightstepa[2];lightlefta[2] += lightleftstepa[2];lightdelta[2] += lightdeltastep[2]; prowdest += surfrowbytes;}
+
+// High Colored Light Quality //qb: preserve alphatest
+#define MIP8RGBX(i) {  	pix = psource[i]; if(pix == 255) prowdest[i] = 255; else{pix24 = (unsigned char *)&d_8to24table[pix];   \
+	trans[0] = (pix24[0] * (light[0])) >> 17; trans[1] = (pix24[1] * (light[1])) >> 17; trans[2] = (pix24[2] * (light[2])) >> 17; \
+if (trans[0] & ~63) trans[0] = 63; if (trans[1] & ~63) trans[1] = 63; if (trans[2] & ~63) trans[2] = 63; prowdest[i] = palmap2[trans[0]][trans[1]][trans[2]]; }}
+
+#define Mip0Stuff(i) { MakeLightDelta(); i(15); PushLightDelta(); i(14); PushLightDelta(); PushLightDelta(); i(13); PushLightDelta(); i(12); PushLightDelta(); i(11); PushLightDelta(); i(10); PushLightDelta(); i(9); PushLightDelta(); i(8); PushLightDelta(); i(7); PushLightDelta(); i(6); PushLightDelta(); i(5); PushLightDelta(); i(4); PushLightDelta(); i(3); PushLightDelta(); i(2); PushLightDelta(); i(1); PushLightDelta(); i(0);  FinishLightDelta();}
+#define Mip1Stuff(i) { MakeLightDelta(); i(7); PushLightDelta(); i(6); PushLightDelta(); i(5); PushLightDelta(); i(4); PushLightDelta(); i(3); PushLightDelta(); i(2); PushLightDelta(); i(1); PushLightDelta(); i(0); FinishLightDelta();}
+#define Mip2Stuff(i) { MakeLightDelta();i(3); PushLightDelta(); i(2); PushLightDelta(); i(1); PushLightDelta(); i(0); FinishLightDelta();}
+#define Mip3Stuff(i) { MakeLightDelta(); i(1); PushLightDelta(); i(0); FinishLightDelta();}
+
+// o^_^o
+
+static void R_DrawSurfaceBlock8RGBX_mip0(void);
+static void R_DrawSurfaceBlock8RGBX_mip1(void);
+static void R_DrawSurfaceBlock8RGBX_mip2(void);
+static void R_DrawSurfaceBlock8RGBX_mip3(void);
+
+
+static void	(*surfmiptable8RGB[4])(void) =
+{
+	R_DrawSurfaceBlock8RGBX_mip0,
+	R_DrawSurfaceBlock8RGBX_mip1,
+	R_DrawSurfaceBlock8RGBX_mip2,
+	R_DrawSurfaceBlock8RGBX_mip3
+};
+
+//extern	int			host_fullbrights;   // for preserving fullbrights in color operations
+//extern byte		*lmmap;
+extern byte	palmap2[64][64][64];		//  Colored Lighting Lookup Table
+
+
+
+// leilei - Colored Lights - End
+
 void R_BuildLightMap (void);
-extern	unsigned		blocklights[1024];	// allow some very large lightmaps
+//extern	unsigned		blocklights[1024];	// allow some very large lightmaps
+//extern	unsigned		blocklights[1024*3];	// leilei - colored lights
+extern	unsigned		blocklights[18*18*3];	// leilei - colored lights
 
 float           surfscale;
 qboolean        r_cache_thrash;         // set if surface cache is thrashing
@@ -119,8 +174,11 @@ void R_DrawSurface (void)
 	r_numvblocks = r_drawsurf.surfheight >> blockdivshift;
 
 //==============================
+	if (coloredlights)
+		pblockdrawer = surfmiptable8RGB[r_drawsurf.surfmip];	// leilei - colored lights
+	else
+		pblockdrawer = surfmiptable[r_drawsurf.surfmip];
 
-	pblockdrawer = surfmiptable[r_drawsurf.surfmip];
 // TODO: only needs to be set when there is a display settings change
 	horzblockstep = blocksize;
 
@@ -144,7 +202,12 @@ void R_DrawSurface (void)
 
 	for (u=0 ; u<r_numhblocks; u++)
 	{
-		r_lightptr = blocklights + u;
+			// leilei - colored lights
+		if (coloredlights)
+			r_lightptr = (int*)blocklights + u * 3;
+		else
+			// o^_^o
+			r_lightptr = (int*)blocklights + u;
 
 		prowdestbase = pcolumndest;
 
@@ -566,7 +629,7 @@ int D_log2 (int num)
 }
 
 //=============================================================================
-
+void R_BuildLightMapRGB (void);
 /*
 ================
 D_CacheSurface
@@ -640,12 +703,251 @@ surfcache_t *D_CacheSurface (msurface_t *surface, int miplevel)
 	c_surf++;
 
 	// calculate the lightings
-	R_BuildLightMap ();
+	if (coloredlights)
+		R_BuildLightMapRGB();	// leilei - colored lights
+	else
+		R_BuildLightMap();
 	
 	// rasterize the surface into the cache
 	R_DrawSurface ();
 
 	return cache;
 }
+
+
+
+
+// leilei
+// here it comes
+
+
+void R_DrawSurfaceBlock8RGBX_mip0()
+{
+	unsigned int				v, i; 
+	unsigned int light[3];
+	unsigned int lightdelta[3], lightdeltastep[3];
+	unsigned char	pix, *psource, *prowdest;
+	unsigned char *pix24;
+	unsigned trans[3];
+	psource = pbasesource;
+	prowdest = prowdestbase;
+
+#pragma loop(hint_parallel(8)) //qb: try this
+	for (v=0 ; v<r_numvblocks ; v++)
+	{
+		lightlefta[0] = r_lightptr[0];
+		lightrighta[0] = r_lightptr[3];
+		lightlefta[1] = r_lightptr[0+1];
+		lightrighta[1] = r_lightptr[3+1];
+		lightlefta[2] = r_lightptr[0+2];
+		lightrighta[2] = r_lightptr[3+2];
+
+		lightdelta[0] = (lightlefta[0] - lightrighta[0])  >> 4; 
+		lightdelta[1] = (lightlefta[1] - lightrighta[1])  >> 4;  
+		lightdelta[2] = (lightlefta[2] - lightrighta[2])  >> 4; 
+
+
+		r_lightptr += r_lightwidth * 3;
+
+		lightleftstepa[0] = (r_lightptr[0] - lightlefta[0]) >> 4;
+		lightrightstepa[0] = (r_lightptr[3] - lightrighta[0]) >> 4;
+
+		lightleftstepa[1] = (r_lightptr[0+1] - lightlefta[1]) >> 4;
+		lightrightstepa[1] = (r_lightptr[3+1] - lightrighta[1]) >> 4;
+
+		lightleftstepa[2] = (r_lightptr[0+2] - lightlefta[2]) >> 4;
+		lightrightstepa[2] = (r_lightptr[3+2] - lightrighta[2]) >> 4;
+
+		lightdeltastep[0] = (lightleftstepa[0] - lightrightstepa[0]) >> 4;
+		lightdeltastep[1] = (lightleftstepa[1] - lightrightstepa[1]) >> 4;
+		lightdeltastep[2] = (lightleftstepa[2] - lightrightstepa[2]) >> 4;
+
+
+		for (i=0 ; i<16 ; i++)
+		{
+			Mip0Stuff(MIP8RGBX);
+		
+		}
+
+		if (psource >= r_sourcemax)
+			psource -= r_stepback;
+		
+	}
+}
+
+
+
+
+void R_DrawSurfaceBlock8RGBX_mip1()
+{
+	unsigned int				v, i; 
+	unsigned int light[3];
+	unsigned int lightdelta[3], lightdeltastep[3];
+	unsigned char	pix, *psource, *prowdest;
+	unsigned char *pix24;
+	unsigned trans[3];
+	psource = pbasesource;
+	
+	prowdest = prowdestbase;
+
+#pragma loop(hint_parallel(8)) //qb: try this
+	for (v=0 ; v<r_numvblocks ; v++)
+	{
+		lightlefta[0] = r_lightptr[0];
+		lightrighta[0] = r_lightptr[3];
+		lightlefta[1] = r_lightptr[0+1];
+		lightrighta[1] = r_lightptr[3+1];
+		lightlefta[2] = r_lightptr[0+2];
+		lightrighta[2] = r_lightptr[3+2];
+
+		lightdelta[0] = (lightlefta[0] - lightrighta[0])  >> 3; 
+		lightdelta[1] = (lightlefta[1] - lightrighta[1])  >> 3;  
+		lightdelta[2] = (lightlefta[2] - lightrighta[2])  >> 3; 
+
+
+		r_lightptr += r_lightwidth * 3;
+
+		lightleftstepa[0] = (r_lightptr[0] - lightlefta[0]) >> 3;
+		lightrightstepa[0] = (r_lightptr[3] - lightrighta[0]) >> 3;
+
+		lightleftstepa[1] = (r_lightptr[0+1] - lightlefta[1]) >> 3;
+		lightrightstepa[1] = (r_lightptr[3+1] - lightrighta[1]) >> 3;
+
+		lightleftstepa[2] = (r_lightptr[0+2] - lightlefta[2]) >> 3;
+		lightrightstepa[2] = (r_lightptr[3+2] - lightrighta[2]) >> 3;
+
+		lightdeltastep[0] = (lightleftstepa[0] - lightrightstepa[0]) >> 3;
+		lightdeltastep[1] = (lightleftstepa[1] - lightrightstepa[1]) >> 3;
+		lightdeltastep[2] = (lightleftstepa[2] - lightrightstepa[2]) >> 3;
+
+		for (i=0 ; i<8 ; i++)
+		{
+			Mip1Stuff(MIP8RGBX);
+
+
+		}
+
+		if (psource >= r_sourcemax)
+			psource -= r_stepback;
+		
+	}
+}
+
+
+
+void R_DrawSurfaceBlock8RGBX_mip2()
+{
+	unsigned int				v, i; 
+	unsigned int light[3];
+	unsigned int lightdelta[3], lightdeltastep[3];
+	unsigned char	pix, *psource, *prowdest;
+	unsigned char *pix24;
+	unsigned trans[3];
+	psource = pbasesource;
+	
+	prowdest = prowdestbase;
+
+#pragma loop(hint_parallel(8)) //qb: try this
+	for (v=0 ; v<r_numvblocks ; v++)
+	{
+		lightlefta[0] = r_lightptr[0];
+		lightrighta[0] = r_lightptr[3];
+		lightlefta[1] = r_lightptr[0+1];
+		lightrighta[1] = r_lightptr[3+1];
+		lightlefta[2] = r_lightptr[0+2];
+		lightrighta[2] = r_lightptr[3+2];
+
+		lightdelta[0] = (lightlefta[0] - lightrighta[0])  >> 2; 
+		lightdelta[1] = (lightlefta[1] - lightrighta[1])  >> 2;  
+		lightdelta[2] = (lightlefta[2] - lightrighta[2])  >> 2; 
+
+
+		r_lightptr += r_lightwidth * 3;
+
+		lightleftstepa[0] = (r_lightptr[0] - lightlefta[0]) >> 2;
+		lightrightstepa[0] = (r_lightptr[3] - lightrighta[0]) >> 2;
+
+		lightleftstepa[1] = (r_lightptr[0+1] - lightlefta[1]) >> 2;
+		lightrightstepa[1] = (r_lightptr[3+1] - lightrighta[1]) >> 2;
+
+		lightleftstepa[2] = (r_lightptr[0+2] - lightlefta[2]) >> 2;
+		lightrightstepa[2] = (r_lightptr[3+2] - lightrighta[2]) >> 2;
+
+		lightdeltastep[0] = (lightleftstepa[0] - lightrightstepa[0]) >> 2;
+		lightdeltastep[1] = (lightleftstepa[1] - lightrightstepa[1]) >> 2;
+		lightdeltastep[2] = (lightleftstepa[2] - lightrightstepa[2]) >> 2;
+
+		for (i=0 ; i<4 ; i++)
+		{
+			Mip2Stuff(MIP8RGBX);
+
+
+		}
+
+		if (psource >= r_sourcemax)
+			psource -= r_stepback;
+		
+	}
+}
+
+
+void R_DrawSurfaceBlock8RGBX_mip3()
+{
+	unsigned int				v, i; 
+	unsigned int  light[3];
+	unsigned int lightdelta[3], lightdeltastep[3];
+	unsigned char	pix, *psource, *prowdest;
+	unsigned char *pix24;
+	unsigned trans[3];
+	psource = pbasesource;
+	
+	prowdest = prowdestbase;
+
+#pragma loop(hint_parallel(8)) //qb: try this
+	for (v=0 ; v<r_numvblocks ; v++)
+	{
+		lightlefta[0] = r_lightptr[0];
+		lightrighta[0] = r_lightptr[3];
+		lightlefta[1] = r_lightptr[0+1];
+		lightrighta[1] = r_lightptr[3+1];
+		lightlefta[2] = r_lightptr[0+2];
+		lightrighta[2] = r_lightptr[3+2];
+
+		lightdelta[0] = (lightlefta[0] - lightrighta[0])  >> 1; 
+		lightdelta[1] = (lightlefta[1] - lightrighta[1])  >> 1;  
+		lightdelta[2] = (lightlefta[2] - lightrighta[2])  >> 1; 
+
+
+		r_lightptr += r_lightwidth * 3;
+
+		lightleftstepa[0] = (r_lightptr[0] - lightlefta[0]) >> 1;
+		lightrightstepa[0] = (r_lightptr[3] - lightrighta[0]) >> 1;
+
+		lightleftstepa[1] = (r_lightptr[0+1] - lightlefta[1]) >> 1;
+		lightrightstepa[1] = (r_lightptr[3+1] - lightrighta[1]) >> 1;
+
+		lightleftstepa[2] = (r_lightptr[0+2] - lightlefta[2]) >> 1;
+		lightrightstepa[2] = (r_lightptr[3+2] - lightrighta[2]) >> 1;
+
+		lightdeltastep[0] = (lightleftstepa[0] - lightrightstepa[0]) >> 1;
+		lightdeltastep[1] = (lightleftstepa[1] - lightrightstepa[1]) >> 1;
+		lightdeltastep[2] = (lightleftstepa[2] - lightrightstepa[2]) >> 1;
+
+		for (i=0 ; i<2 ; i++)
+		{
+			Mip3Stuff(MIP8RGBX);
+
+	
+		}
+
+		if (psource >= r_sourcemax)
+			psource -= r_stepback;
+		
+	}
+}
+
+
+
+
 
 

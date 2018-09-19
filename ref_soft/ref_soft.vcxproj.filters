@@ -116,35 +116,11 @@
     <ClInclude Include="..\win32\winquake.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="r_dither.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="r_aclipa.asm">
-      <Filter>Source Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="r_draw16.asm">
-      <Filter>Source Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="r_drawa.asm">
-      <Filter>Source Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="r_edgea.asm">
-      <Filter>Source Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="r_polysa.asm">
-      <Filter>Source Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="r_scana.asm">
-      <Filter>Source Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="r_spr8.asm">
-      <Filter>Source Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="r_surf8.asm">
-      <Filter>Source Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="r_varsa.asm">
-      <Filter>Source Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="ref_soft.def">
       <Filter>Resource Files</Filter>
     </CustomBuild>

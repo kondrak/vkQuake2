@@ -58,8 +58,9 @@ pspans	equ		4+8
  public _D_PolysetAff8Start	
 _D_PolysetAff8Start:	
 
- public _R_PolysetDrawSpans8_Opaque 
-_R_PolysetDrawSpans8_Opaque:
+;qb: only works for mono (non-colored) light
+public _R_PolysetDrawSpans8_Opaque_Monolight 
+_R_PolysetDrawSpans8_Opaque_Monolight :
 
  push esi	; preserve register variables
  push ebx	

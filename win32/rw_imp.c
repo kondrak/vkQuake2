@@ -127,13 +127,12 @@ int SWimp_Init( void *hInstance, void *wndProc )
 ** SWimp_InitGraphics
 **
 ** This initializes the software refresh's implementation specific
-** graphics subsystem.  In the case of Windows it creates DIB or
-** DDRAW surfaces.
+** graphics subsystem.  In the case of Windows it creates DIB surfaces.
 **
 ** The necessary width and height parameters are grabbed from
 ** vid.width and vid.height.
 */
-static qboolean SWimp_InitGraphics( qboolean fullscreen )
+static qboolean SWimp_InitGraphics(void)
 {
 	// free resources in use
 	SWimp_Shutdown ();
@@ -142,25 +141,14 @@ static qboolean SWimp_InitGraphics( qboolean fullscreen )
 	VID_CreateWindow (vid.width, vid.height, WINDOW_STYLE);
 
 	// initialize the appropriate subsystem
-	if ( !fullscreen )
-	{
-		if ( !DIB_Init( &vid.buffer, &vid.rowbytes ) )
-		{
-			vid.buffer = 0;
-			vid.rowbytes = 0;
+	//qb: nuke ddraw
 
-			return false;
-		}
-	}
-	else
+	if (!DIB_Init(&vid.buffer, &vid.rowbytes))
 	{
-		if ( !DDRAW_Init( &vid.buffer, &vid.rowbytes ) )
-		{
-			vid.buffer = 0;
-			vid.rowbytes = 0;
+		vid.buffer = 0;
+		vid.rowbytes = 0;
 
-			return false;
-		}
+		return false;
 	}
 
 	return true;
@@ -170,100 +158,35 @@ static qboolean SWimp_InitGraphics( qboolean fullscreen )
 ** SWimp_EndFrame
 **
 ** This does an implementation specific copy from the backbuffer to the
-** front buffer.  In the Win32 case it uses BitBlt or BltFast depending
-** on whether we're using DIB sections/GDI or DDRAW.
+** front buffer.  In the Win32 case it uses BitBlt 
 */
 void SWimp_EndFrame (void)
 {
-	if ( !sw_state.fullscreen )
+
+	if (sww_state.palettized)
 	{
-		if ( sww_state.palettized )
-		{
-//			holdpal = SelectPalette(hdcScreen, hpalDIB, FALSE);
-//			RealizePalette(hdcScreen);
-		}
-
-	    
-		BitBlt( sww_state.hDC,
-			    0, 0,
-				vid.width,
-				vid.height,
-				sww_state.hdcDIBSection,
-				0, 0,
-				SRCCOPY );
-
-		if ( sww_state.palettized )
-		{
-//			SelectPalette(hdcScreen, holdpal, FALSE);
-		}
+		//			holdpal = SelectPalette(hdcScreen, hpalDIB, FALSE);
+		//			RealizePalette(hdcScreen);
 	}
-	else
+
+	BitBlt(sww_state.hDC,
+		0, 0,
+		vid.width,
+		vid.height,
+		sww_state.hdcDIBSection,
+		0, 0,
+		SRCCOPY);
+
+	if (sww_state.palettized)
 	{
-		RECT r;
-		HRESULT rval;
-		DDSURFACEDESC ddsd;
-
-		r.left = 0;
-		r.top = 0;
-		r.right = vid.width;
-		r.bottom = vid.height;
-
-		sww_state.lpddsOffScreenBuffer->lpVtbl->Unlock( sww_state.lpddsOffScreenBuffer, vid.buffer );
-
-		if ( sww_state.modex )
-		{
-			if ( ( rval = sww_state.lpddsBackBuffer->lpVtbl->BltFast( sww_state.lpddsBackBuffer,
-																	0, 0,
-																	sww_state.lpddsOffScreenBuffer, 
-																	&r, 
-																	DDBLTFAST_WAIT ) ) == DDERR_SURFACELOST )
-			{
-				sww_state.lpddsBackBuffer->lpVtbl->Restore( sww_state.lpddsBackBuffer );
-				sww_state.lpddsBackBuffer->lpVtbl->BltFast( sww_state.lpddsBackBuffer,
-															0, 0,
-															sww_state.lpddsOffScreenBuffer, 
-															&r, 
-															DDBLTFAST_WAIT );
-			}
-
-			if ( ( rval = sww_state.lpddsFrontBuffer->lpVtbl->Flip( sww_state.lpddsFrontBuffer,
-															 NULL, DDFLIP_WAIT ) ) == DDERR_SURFACELOST )
-			{
-				sww_state.lpddsFrontBuffer->lpVtbl->Restore( sww_state.lpddsFrontBuffer );
-				sww_state.lpddsFrontBuffer->lpVtbl->Flip( sww_state.lpddsFrontBuffer, NULL, DDFLIP_WAIT );
-			}
-		}
-		else
-		{
-			if ( ( rval = sww_state.lpddsBackBuffer->lpVtbl->BltFast( sww_state.lpddsFrontBuffer,
-																	0, 0,
-																	sww_state.lpddsOffScreenBuffer, 
-																	&r, 
-																	DDBLTFAST_WAIT ) ) == DDERR_SURFACELOST )
-			{
-				sww_state.lpddsBackBuffer->lpVtbl->Restore( sww_state.lpddsFrontBuffer );
-				sww_state.lpddsBackBuffer->lpVtbl->BltFast( sww_state.lpddsFrontBuffer,
-															0, 0,
-															sww_state.lpddsOffScreenBuffer, 
-															&r, 
-															DDBLTFAST_WAIT );
-			}
-		}
-
-		memset( &ddsd, 0, sizeof( ddsd ) );
-		ddsd.dwSize = sizeof( ddsd );
-	
-		sww_state.lpddsOffScreenBuffer->lpVtbl->Lock( sww_state.lpddsOffScreenBuffer, NULL, &ddsd, DDLOCK_WAIT, NULL );
-
-		vid.buffer = ddsd.lpSurface;
-		vid.rowbytes = ddsd.lPitch;
+		//			SelectPalette(hdcScreen, holdpal, FALSE);
 	}
 }
 
 /*
 ** SWimp_SetMode
 */
-rserr_t SWimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
+rserr_t SWimp_SetMode(int *pwidth, int *pheight, int mode, qboolean fullscreen)
 {
 	const char *win_fs[] = { "W", "FS" };
 	rserr_t retval = rserr_ok;
@@ -276,17 +199,18 @@ rserr_t SWimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen 
 		return rserr_invalid_mode;
 	}
 
-	ri.Con_Printf( PRINT_ALL, " %d %d %s\n", *pwidth, *pheight, win_fs[fullscreen] );
+	ri.Con_Printf(PRINT_ALL, " %d %d %s\n", *pwidth, *pheight, win_fs[fullscreen]);
 
 	sww_state.initializing = true;
-	if ( fullscreen )
+	if (fullscreen) //qb: get rid of 'fullscreen'.
 	{
-		if ( !SWimp_InitGraphics( 1 ) )
+		if (!SWimp_InitGraphics())
 		{
-			if ( SWimp_InitGraphics( 0 ) )
+			ri.Cvar_SetValue("vid_fullscreen", !fullscreen);  //qb: added
+			vid_fullscreen->modified = true;
+			if (SWimp_InitGraphics())
 			{
 				// mode is legal but not as fullscreen
-				fullscreen = 0;
 				retval = rserr_invalid_fullscreen;
 			}
 			else
@@ -299,7 +223,7 @@ rserr_t SWimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen 
 	else
 	{
 		// failure to set a valid mode in windowed mode
-		if ( !SWimp_InitGraphics( fullscreen ) )
+		if (!SWimp_InitGraphics())
 		{
 			sww_state.initializing = true;
 			return rserr_unknown;
@@ -339,28 +263,18 @@ void SWimp_SetPalette( const unsigned char *palette )
 
 	if ( !palette )
 		palette = ( const unsigned char * ) sw_state.currentpalette;
-
-	if ( !sw_state.fullscreen )
-	{
-		DIB_SetPalette( ( const unsigned char * ) palette );
-	}
-	else
-	{
-		DDRAW_SetPalette( ( const unsigned char * ) palette );
-	}
+	DIB_SetPalette((const unsigned char *)palette);
 }
 
 /*
 ** SWimp_Shutdown
 **
-** System specific graphics subsystem shutdown routine.  Destroys
-** DIBs or DDRAW surfaces as appropriate.
+** System specific graphics subsystem shutdown routine.  Destroys DIBs
 */
 void SWimp_Shutdown( void )
 {
 	ri.Con_Printf( PRINT_ALL, "Shutting down SW imp\n" );
 	DIB_Shutdown();
-	DDRAW_Shutdown();
 
 	if ( sww_state.hWnd )
 	{

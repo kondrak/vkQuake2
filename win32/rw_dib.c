@@ -89,6 +89,7 @@ qboolean DIB_Init( unsigned char **ppbuffer, int *ppitch )
 {
 	dibinfo_t   dibheader;
 	BITMAPINFO *pbmiDIB = ( BITMAPINFO * ) &dibheader;
+	DEVMODE	gdevmode;  //qb: for fullscreen
 	int i;
 
 	memset( &dibheader, 0, sizeof( dibheader ) );
@@ -120,6 +121,8 @@ qboolean DIB_Init( unsigned char **ppbuffer, int *ppitch )
 	{
 		sww_state.palettized = false;
 	}
+
+	vid.width = (int)(vid.width / 4) * 4; //qb: multiple of 4 required for DIB
 
 	/*
 	** fill in the BITMAPINFO struct
@@ -175,10 +178,53 @@ qboolean DIB_Init( unsigned char **ppbuffer, int *ppitch )
 		*ppitch		= vid.width;
     }
 
+	ChangeDisplaySettings(NULL, 0);
+
+	if (vid_fullscreen->value) //qb: fullscreen dib
+	{
+
+		RECT		WindowRect;
+		DWORD		WindowStyle, ExWindowStyle;
+
+		WindowRect.top = WindowRect.left = 0;
+
+		WindowRect.right = vid.width;
+		WindowRect.bottom = vid.height;
+		gdevmode.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT;
+		gdevmode.dmPelsWidth = vid.width;
+		gdevmode.dmPelsHeight = vid.height;
+		gdevmode.dmSize = sizeof (gdevmode);
+
+		if (ChangeDisplaySettings(&gdevmode, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
+		{
+			//ri.Sys_Error(ERR_FATAL, "Couldn't set fullscreen DIB mode");
+			goto fail; //qb: don't panic
+		}
+
+		if (!SetWindowPos(sww_state.hWnd,
+			NULL,
+			0, 0,
+			WindowRect.right - WindowRect.left,
+			WindowRect.bottom - WindowRect.top,
+			SWP_NOCOPYBITS | SWP_NOZORDER))
+		{
+			//ri.Sys_Error(ERR_FATAL, "Couldn't resize DIB window");
+			goto fail; //qb: don't panic
+		}
+
+		WindowStyle = WS_POPUP | WS_SYSMENU | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+		ExWindowStyle = 0;
+
+		AdjustWindowRectEx(&WindowRect, WindowStyle, FALSE, 0);
+
+		SetWindowLong(sww_state.hWnd, GWL_STYLE, WindowStyle | WS_VISIBLE);
+		SetWindowLong(sww_state.hWnd, GWL_EXSTYLE, ExWindowStyle);
+	}
+
 	/*
 	** clear the DIB memory buffer
 	*/
-	memset( sww_state.pDIBBase, 0xff, vid.width * vid.height );
+	memset(sww_state.pDIBBase, 0x00, vid.width * vid.height);  //qb: do black, was 0xff
 
 	if ( ( sww_state.hdcDIBSection = CreateCompatibleDC( sww_state.hDC ) ) == NULL )
 	{

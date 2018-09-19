@@ -34,7 +34,7 @@ typedef struct
 
 static partparms_t partparms;
 
-#if id386 && !defined __linux__
+#if id386 && !defined __linux__ && !defined __FreeBSD__
 
 static unsigned s_prefetch_address;
 
@@ -464,17 +464,19 @@ static byte BlendParticle100( int pcolor, int dstcolor )
 ** function pointer route.  This exacts some overhead, but
 ** it pays off in clean and easy to understand code.
 */
+
+static vec3_t	local, transformed;
+static float	zi;
+static byte		*pdest;
+static short	*pz;
+static int		i, izi, pix, count, u, v;
+static byte(*blendparticle)(int, int);
+
 void R_DrawParticle( void )
 {
 	particle_t *pparticle = partparms.particle;
-	int         level     = partparms.level;
-	vec3_t	local, transformed;
-	float	zi;
-	byte	*pdest;
-	short	*pz;
+	int         level = partparms.level;
 	int      color = pparticle->color;
-	int		i, izi, pix, count, u, v;
-	byte  (*blendparticle)( int, int );
 
 	/*
 	** transform the particle
@@ -597,13 +599,16 @@ void R_DrawParticles (void)
 {
 	particle_t *p;
 	int         i;
+
+#if !defined __linux__ && !defined __FreeBSD__
 	extern unsigned long fpu_sp24_cw, fpu_chop_cw;
+#endif
 
 	VectorScale( vright, xscaleshrink, r_pright );
 	VectorScale( vup, yscaleshrink, r_pup );
 	VectorCopy( vpn, r_ppn );
 
-#if id386 && !defined __linux__
+#if id386 && !defined __linux__ && !defined __FreeBSD__
 	__asm fldcw word ptr [fpu_sp24_cw]
 #endif
 
@@ -620,7 +625,7 @@ void R_DrawParticles (void)
 		partparms.particle = p;
 		partparms.color    = p->color;
 
-#if id386 && !defined __linux__
+#if id386 && !defined __linux__ && !defined __FreeBSD__
 		if ( i < r_newrefdef.num_particles-1 )
 			s_prefetch_address = ( unsigned int ) ( p + 1 );
 		else
@@ -630,7 +635,7 @@ void R_DrawParticles (void)
 		R_DrawParticle();
 	}
 
-#if id386 && !defined __linux__
+#if id386 && !defined __linux__ && !defined __FreeBSD__
 	__asm fldcw word ptr [fpu_chop_cw]
 #endif
 
