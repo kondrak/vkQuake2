@@ -112,7 +112,7 @@ DLL GLUE
 ==========================================================================
 */
 
-#define	MAXPRINTMSG	8172
+#define	MAXPRINTMSG	8192
 void VID_Printf (int print_level, char *fmt, ...)
 {
 	va_list		argptr;
