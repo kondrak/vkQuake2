@@ -1,5 +1,6 @@
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
+Copyright (C) 2018 Krzysztof Kondrak
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -18,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 // Main windowed and fullscreen graphics interface module. This module
-// is used for both the software and OpenGL rendering versions of the
+// is used for both the software and OpenGL/Vulkan rendering versions of the
 // Quake refresh engine.
 #include <assert.h>
 #include <float.h>
@@ -619,6 +620,8 @@ qboolean VID_LoadRefresh( char *name )
 	{
 		if(!strcmp (vid_ref->string, "gl"))
 			vidref_val = VIDREF_GL;
+		else if (!strcmp(vid_ref->string, "vk"))
+			vidref_val = VIDREF_VK;
 		else if(!strcmp(vid_ref->string, "soft"))
 			vidref_val = VIDREF_SOFT;
 	}

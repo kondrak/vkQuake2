@@ -1,5 +1,6 @@
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
+Copyright (C) 2018 Krzysztof Kondrak
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -1191,9 +1192,10 @@ typedef struct
 
 // ==================
 // PGM 
-#define VIDREF_GL		1
-#define VIDREF_SOFT		2
-#define VIDREF_OTHER	3
+#define VIDREF_VK		1
+#define VIDREF_GL		2
+#define VIDREF_SOFT		3
+#define VIDREF_OTHER	4
 
 extern int vidref_val;
 // PGM

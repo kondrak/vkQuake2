@@ -1,5 +1,6 @@
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
+Copyright (C) 2018 Krzysztof Kondrak
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -22,9 +23,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define REF_SOFT	0
 #define REF_OPENGL	1
-#define REF_3DFX	2
-#define REF_POWERVR	3
-#define REF_VERITE	4
+#define REF_VULKAN	2
+#define REF_3DFX	3
+#define REF_POWERVR	4
+#define REF_VERITE	5
 
 extern cvar_t *vid_ref;
 extern cvar_t *vid_fullscreen;
@@ -40,6 +42,8 @@ static cvar_t *gl_finish;
 static cvar_t *sw_mode;
 static cvar_t *sw_stipplealpha;
 
+static cvar_t *vk_mode;
+
 extern void M_ForceMenuOff( void );
 
 /*
@@ -51,39 +55,48 @@ MENU INTERACTION
 */
 #define SOFTWARE_MENU 0
 #define OPENGL_MENU   1
+#define VULKAN_MENU   2
 
 static menuframework_s  s_software_menu;
 static menuframework_s	s_opengl_menu;
+static menuframework_s  s_vulkan_menu;
 static menuframework_s *s_current_menu;
 static int				s_current_menu_index;
 
-static menulist_s		s_mode_list[2];
-static menulist_s		s_ref_list[2];
+static menulist_s		s_mode_list[3];
+static menulist_s		s_ref_list[3];
 static menuslider_s		s_tq_slider;
-static menuslider_s		s_screensize_slider[2];
-static menuslider_s		s_brightness_slider[2];
-static menulist_s  		s_fs_box[2];
+static menuslider_s		s_screensize_slider[3];
+static menuslider_s		s_brightness_slider[3];
+static menulist_s  		s_fs_box[3];
 static menulist_s  		s_stipple_box;
 static menulist_s  		s_paletted_texture_box;
 static menulist_s  		s_finish_box;
-static menuaction_s		s_cancel_action[2];
-static menuaction_s		s_defaults_action[2];
+static menuaction_s		s_cancel_action[3];
+static menuaction_s		s_defaults_action[3];
 
 static void DriverCallback( void *unused )
 {
-	s_ref_list[!s_current_menu_index].curvalue = s_ref_list[s_current_menu_index].curvalue;
+	int curr_value = s_ref_list[s_current_menu_index].curvalue;
+	s_ref_list[0].curvalue = curr_value;
+	s_ref_list[1].curvalue = curr_value;
+	s_ref_list[2].curvalue = curr_value;
 
 	if ( s_ref_list[s_current_menu_index].curvalue == 0 )
 	{
 		s_current_menu = &s_software_menu;
 		s_current_menu_index = 0;
 	}
+	else if ( s_ref_list[s_current_menu_index].curvalue == 2 )
+	{
+		s_current_menu = &s_vulkan_menu;
+		s_current_menu_index = 2;
+	}
 	else
 	{
 		s_current_menu = &s_opengl_menu;
 		s_current_menu_index = 1;
 	}
-
 }
 
 static void ScreenSizeCallback( void *s )
@@ -96,11 +109,12 @@ static void ScreenSizeCallback( void *s )
 static void BrightnessCallback( void *s )
 {
 	menuslider_s *slider = ( menuslider_s * ) s;
+	int i;
 
-	if ( s_current_menu_index == SOFTWARE_MENU )
-		s_brightness_slider[1].curvalue = s_brightness_slider[0].curvalue;
-	else
-		s_brightness_slider[0].curvalue = s_brightness_slider[1].curvalue;
+	for ( i = 0; i < 3; i++ )
+	{
+		s_brightness_slider[i].curvalue = s_brightness_slider[s_current_menu_index].curvalue;
+	}
 
 	if ( stricmp( vid_ref->string, "soft" ) == 0 )
 	{
@@ -118,13 +132,17 @@ static void ResetDefaults( void *unused )
 static void ApplyChanges( void *unused )
 {
 	float gamma;
+	int i;
 
 	/*
 	** make values consistent
 	*/
-	s_fs_box[!s_current_menu_index].curvalue = s_fs_box[s_current_menu_index].curvalue;
-	s_brightness_slider[!s_current_menu_index].curvalue = s_brightness_slider[s_current_menu_index].curvalue;
-	s_ref_list[!s_current_menu_index].curvalue = s_ref_list[s_current_menu_index].curvalue;
+	for ( i = 0; i < 3; i++ )
+	{
+		s_fs_box[i].curvalue = s_fs_box[s_current_menu_index].curvalue;
+		s_brightness_slider[i].curvalue = s_brightness_slider[s_current_menu_index].curvalue;
+		s_ref_list[i].curvalue = s_ref_list[s_current_menu_index].curvalue;
+	}
 
 	/*
 	** invert sense so greater = brighter, and scale to a range of 0.5 to 1.3
@@ -139,6 +157,7 @@ static void ApplyChanges( void *unused )
 	Cvar_SetValue( "gl_finish", s_finish_box.curvalue );
 	Cvar_SetValue( "sw_mode", s_mode_list[SOFTWARE_MENU].curvalue );
 	Cvar_SetValue( "gl_mode", s_mode_list[OPENGL_MENU].curvalue );
+	Cvar_SetValue( "vk_mode", s_mode_list[VULKAN_MENU].curvalue );
 
 	switch ( s_ref_list[s_current_menu_index].curvalue )
 	{
@@ -148,6 +167,9 @@ static void ApplyChanges( void *unused )
 	case REF_OPENGL:
 		Cvar_Set( "vid_ref", "gl" );
 		Cvar_Set( "gl_driver", "opengl32" );
+		break;
+	case REF_VULKAN:
+		Cvar_Set( "vid_ref", "vk" );
 		break;
 	case REF_3DFX:
 		Cvar_Set( "vid_ref", "gl" );
@@ -226,6 +248,7 @@ void VID_MenuInit( void )
 	{
 		"[software      ]",
 		"[default OpenGL]",
+		"[Vulkan        ]",
 		"[3Dfx OpenGL   ]",
 		"[PowerVR OpenGL]",
 //		"[Rendition OpenGL]",
@@ -247,6 +270,8 @@ void VID_MenuInit( void )
 		gl_mode = Cvar_Get( "gl_mode", "3", 0 );
 	if ( !sw_mode )
 		sw_mode = Cvar_Get( "sw_mode", "0", 0 );
+	if ( !vk_mode )
+		vk_mode = Cvar_Get( "vk_mode", "6", 0 );
 	if ( !gl_ext_palettedtexture )
 		gl_ext_palettedtexture = Cvar_Get( "gl_ext_palettedtexture", "1", CVAR_ARCHIVE );
 	if ( !gl_finish )
@@ -257,17 +282,24 @@ void VID_MenuInit( void )
 
 	s_mode_list[SOFTWARE_MENU].curvalue = sw_mode->value;
 	s_mode_list[OPENGL_MENU].curvalue = gl_mode->value;
+	s_mode_list[VULKAN_MENU].curvalue = vk_mode->value;
 
 	if ( !scr_viewsize )
 		scr_viewsize = Cvar_Get ("viewsize", "100", CVAR_ARCHIVE);
 
 	s_screensize_slider[SOFTWARE_MENU].curvalue = scr_viewsize->value/10;
 	s_screensize_slider[OPENGL_MENU].curvalue = scr_viewsize->value/10;
+	s_screensize_slider[VULKAN_MENU].curvalue = scr_viewsize->value/10;
 
 	if ( strcmp( vid_ref->string, "soft" ) == 0 )
 	{
 		s_current_menu_index = SOFTWARE_MENU;
 		s_ref_list[0].curvalue = s_ref_list[1].curvalue = REF_SOFT;
+	}
+	else if ( strcmp(vid_ref->string, "vk") == 0 )
+	{
+		s_current_menu_index = VULKAN_MENU;
+		s_ref_list[s_current_menu_index].curvalue = REF_VULKAN;
 	}
 	else if ( strcmp( vid_ref->string, "gl" ) == 0 )
 	{
@@ -287,8 +319,10 @@ void VID_MenuInit( void )
 	s_software_menu.nitems = 0;
 	s_opengl_menu.x = viddef.width * 0.50;
 	s_opengl_menu.nitems = 0;
+	s_vulkan_menu.x = viddef.width * 0.50;
+	s_vulkan_menu.nitems = 0;
 
-	for ( i = 0; i < 2; i++ )
+	for ( i = 0; i < 3; i++ )
 	{
 		s_ref_list[i].generic.type = MTYPE_SPINCONTROL;
 		s_ref_list[i].generic.name = "driver";
@@ -385,15 +419,28 @@ void VID_MenuInit( void )
 	Menu_AddItem( &s_opengl_menu, ( void * ) &s_paletted_texture_box );
 	Menu_AddItem( &s_opengl_menu, ( void * ) &s_finish_box );
 
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_ref_list[VULKAN_MENU]);
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_mode_list[VULKAN_MENU]);
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_screensize_slider[VULKAN_MENU]);
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_brightness_slider[VULKAN_MENU]);
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_fs_box[VULKAN_MENU]);
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_tq_slider);
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_paletted_texture_box);
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_finish_box);
+
 	Menu_AddItem( &s_software_menu, ( void * ) &s_defaults_action[SOFTWARE_MENU] );
 	Menu_AddItem( &s_software_menu, ( void * ) &s_cancel_action[SOFTWARE_MENU] );
 	Menu_AddItem( &s_opengl_menu, ( void * ) &s_defaults_action[OPENGL_MENU] );
 	Menu_AddItem( &s_opengl_menu, ( void * ) &s_cancel_action[OPENGL_MENU] );
+	Menu_AddItem( &s_vulkan_menu, (void * ) &s_defaults_action[VULKAN_MENU]);
+	Menu_AddItem( &s_vulkan_menu, (void * ) &s_cancel_action[VULKAN_MENU]);
 
 	Menu_Center( &s_software_menu );
 	Menu_Center( &s_opengl_menu );
+	Menu_Center( &s_vulkan_menu );
 	s_opengl_menu.x -= 8;
 	s_software_menu.x -= 8;
+	s_vulkan_menu.x -= 8;
 }
 
 /*
@@ -407,6 +454,8 @@ void VID_MenuDraw (void)
 
 	if ( s_current_menu_index == 0 )
 		s_current_menu = &s_software_menu;
+	else if (s_current_menu_index == 2)
+		s_current_menu = &s_vulkan_menu;
 	else
 		s_current_menu = &s_opengl_menu;
 
