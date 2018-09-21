@@ -602,7 +602,7 @@ qboolean VID_LoadRefresh( char *name )
 		Com_Error (ERR_FATAL, "%s has incompatible api_version", name);
 	}
 
-	if ( re.Init( global_hInstance, MainWndProc ) == -1 )
+	if ( re.Init( global_hInstance, MainWndProc ) == false )
 	{
 		re.Shutdown();
 		VID_FreeReflib ();

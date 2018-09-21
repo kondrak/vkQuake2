@@ -1100,7 +1100,7 @@ qboolean R_SetMode (void)
 R_Init
 ===============
 */
-int R_Init( void *hinstance, void *hWnd )
+qboolean R_Init( void *hinstance, void *hWnd )
 {	
 	char renderer_buffer[1000];
 	char vendor_buffer[1000];
@@ -1124,14 +1124,14 @@ int R_Init( void *hinstance, void *hWnd )
 	{
 		QGL_Shutdown();
         ri.Con_Printf (PRINT_ALL, "ref_gl::R_Init() - could not load \"%s\"\n", gl_driver->string );
-		return -1;
+		return false;
 	}
 
 	// initialize OS-specific parts of OpenGL
 	if ( !GLimp_Init( hinstance, hWnd ) )
 	{
 		QGL_Shutdown();
-		return -1;
+		return false;
 	}
 
 	// set our "safe" modes
@@ -1142,7 +1142,7 @@ int R_Init( void *hinstance, void *hWnd )
 	{
 		QGL_Shutdown();
         ri.Con_Printf (PRINT_ALL, "ref_gl::R_Init() - could not R_SetMode()\n" );
-		return -1;
+		return false;
 	}
 
 	ri.Vid_MenuInit();
@@ -1338,6 +1338,8 @@ int R_Init( void *hinstance, void *hWnd )
 	err = qglGetError();
 	if ( err != GL_NO_ERROR )
 		ri.Con_Printf (PRINT_ALL, "glGetError() = 0x%x\n", err);
+
+    return true;
 }
 
 /*

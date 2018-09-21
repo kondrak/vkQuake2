@@ -3577,6 +3577,8 @@ static qboolean PlayerConfig_ScanDirectories( void )
 	}
 	if ( dirnames )
 		FreeFileList( dirnames, ndirs );
+
+    return true;
 }
 
 static int pmicmpfnc( const void *_a, const void *_b )
