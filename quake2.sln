@@ -5,6 +5,7 @@ VisualStudioVersion = 15.0.27703.2000
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "quake2", "quake2.vcxproj", "{311C3C36-E612-47A7-B4E8-443ABF32CBA6}"
 	ProjectSection(ProjectDependencies) = postProject
+		{A3FC275F-39B9-4FFD-AFE2-D132CA644A4F} = {A3FC275F-39B9-4FFD-AFE2-D132CA644A4F}
 		{3CFEFC8B-F59F-4194-97D7-43737A33199C} = {3CFEFC8B-F59F-4194-97D7-43737A33199C}
 		{089318CF-012D-4723-BCAC-036EEF68344E} = {089318CF-012D-4723-BCAC-036EEF68344E}
 		{B21C65E1-7AE4-43DD-A648-F8920414B75D} = {B21C65E1-7AE4-43DD-A648-F8920414B75D}
@@ -17,6 +18,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ref_soft", "ref_soft\ref_soft.vcxproj", "{3CFEFC8B-F59F-4194-97D7-43737A33199C}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ref_vk", "ref_vk\ref_vk.vcxproj", "{A3FC275F-39B9-4FFD-AFE2-D132CA644A4F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ctf", "ctf\ctf.vcxproj", "{54712CE2-B963-4D26-AD0F-D8BB8C1DF809}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -44,6 +47,8 @@ Global
 		{A3FC275F-39B9-4FFD-AFE2-D132CA644A4F}.Debug|Win32.Build.0 = Debug|Win32
 		{A3FC275F-39B9-4FFD-AFE2-D132CA644A4F}.Release|Win32.ActiveCfg = Release|Win32
 		{A3FC275F-39B9-4FFD-AFE2-D132CA644A4F}.Release|Win32.Build.0 = Release|Win32
+		{54712CE2-B963-4D26-AD0F-D8BB8C1DF809}.Debug|Win32.ActiveCfg = Debug|Win32
+		{54712CE2-B963-4D26-AD0F-D8BB8C1DF809}.Release|Win32.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
