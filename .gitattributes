@@ -9,6 +9,7 @@ Makefile text eol=lf
 *.inc text eol=lf
 *.c text eol=lf
 *.sh text eol=lf
+*.vcxproj text eol=crlf
 *.aps binary
 *.exe binary
 *.dll binary
