@@ -1,5 +1,6 @@
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
+Copyright (C) 2018 Krzysztof Kondrak
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -316,6 +317,12 @@ void CL_ClampPitch (void)
 	pitch = SHORT2ANGLE(cl.frame.playerstate.pmove.delta_angles[PITCH]);
 	if (pitch > 180)
 		pitch -= 360;
+
+	if (cl.viewangles[PITCH] + pitch < -360)
+		cl.viewangles[PITCH] += 360; // wrapped
+	if (cl.viewangles[PITCH] + pitch > 360)
+		cl.viewangles[PITCH] -= 360; // wrapped
+
 	if (cl.viewangles[PITCH] + pitch > 89)
 		cl.viewangles[PITCH] = 89 - pitch;
 	if (cl.viewangles[PITCH] + pitch < -89)

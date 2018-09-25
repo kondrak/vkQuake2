@@ -1,5 +1,6 @@
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
+Copyright (C) 2018 Krzysztof Kondrak
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -785,7 +786,8 @@ void Key_Event (int key, qboolean down, unsigned time)
 	}
 
 	// any key during the attract mode will bring up the menu
-	if (cl.attractloop && cls.key_dest != key_menu)
+	if (cl.attractloop && cls.key_dest != key_menu &&
+		!(key >= K_F1 && key <= K_F12))
 		key = K_ESCAPE;
 
 	// menu key is hardcoded, so the user can never unbind it

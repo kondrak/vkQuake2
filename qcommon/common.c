@@ -1,5 +1,6 @@
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
+Copyright (C) 2018 Krzysztof Kondrak
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -131,7 +132,10 @@ void Com_Printf (char *fmt, ...)
 		if (!logfile)
 		{
 			Com_sprintf (name, sizeof(name), "%s/qconsole.log", FS_Gamedir ());
-			logfile = fopen (name, "w");
+			if (logfile_active->value > 2)
+				logfile = fopen (name, "a");
+			else
+				logfile = fopen (name, "w");
 		}
 		if (logfile)
 			fprintf (logfile, "%s", msg);

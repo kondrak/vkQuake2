@@ -1,5 +1,6 @@
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
+Copyright (C) 2018 Krzysztof Kondrak
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -25,6 +26,8 @@ void R_Clear (void);
 viddef_t	vid;
 
 refimport_t	ri;
+
+int GL_TEXTURE0, GL_TEXTURE1;
 
 model_t		*r_worldmodel;
 
@@ -1217,6 +1220,10 @@ qboolean R_Init( void *hinstance, void *hWnd )
 		ri.Cvar_Set( "scr_drawall", "0" );
 	}
 
+#ifdef __linux__
+	ri.Cvar_SetValue( "gl_finish", 1 );
+#endif
+
 	// MCD has buffering issues
 	if ( gl_config.renderer == GL_RENDERER_MCD )
 	{
@@ -1243,7 +1250,6 @@ qboolean R_Init( void *hinstance, void *hWnd )
 	/*
 	** grab extensions
 	*/
-#ifdef WIN32
 	if ( strstr( gl_config.extensions_string, "GL_EXT_compiled_vertex_array" ) || 
 		 strstr( gl_config.extensions_string, "GL_SGI_compiled_vertex_array" ) )
 	{
@@ -1256,6 +1262,7 @@ qboolean R_Init( void *hinstance, void *hWnd )
 		ri.Con_Printf( PRINT_ALL, "...GL_EXT_compiled_vertex_array not found\n" );
 	}
 
+#ifdef _WIN32
 	if ( strstr( gl_config.extensions_string, "WGL_EXT_swap_control" ) )
 	{
 		qwglSwapIntervalEXT = ( BOOL (WINAPI *)(int)) qwglGetProcAddress( "wglSwapIntervalEXT" );
@@ -1265,6 +1272,7 @@ qboolean R_Init( void *hinstance, void *hWnd )
 	{
 		ri.Con_Printf( PRINT_ALL, "...WGL_EXT_swap_control not found\n" );
 	}
+#endif
 
 	if ( strstr( gl_config.extensions_string, "GL_EXT_point_parameters" ) )
 	{
@@ -1284,8 +1292,29 @@ qboolean R_Init( void *hinstance, void *hWnd )
 		ri.Con_Printf( PRINT_ALL, "...GL_EXT_point_parameters not found\n" );
 	}
 
-	if ( strstr( gl_config.extensions_string, "GL_EXT_paletted_texture" ) && 
-		 strstr( gl_config.extensions_string, "GL_EXT_shared_texture_palette" ) )
+#ifdef __linux__
+	if ( strstr( gl_config.extensions_string, "3DFX_set_global_palette" ))
+	{
+		if ( gl_ext_palettedtexture->value )
+		{
+			ri.Con_Printf( PRINT_ALL, "...using 3DFX_set_global_palette\n" );
+			qgl3DfxSetPaletteEXT = ( void ( APIENTRY * ) (GLuint *) )qwglGetProcAddress( "gl3DfxSetPaletteEXT" );
+			qglColorTableEXT = Fake_glColorTableEXT;
+		}
+		else
+		{
+			ri.Con_Printf( PRINT_ALL, "...ignoring 3DFX_set_global_palette\n" );
+		}
+	}
+	else
+	{
+		ri.Con_Printf( PRINT_ALL, "...3DFX_set_global_palette not found\n" );
+	}
+#endif
+
+	if ( !qglColorTableEXT &&
+		strstr( gl_config.extensions_string, "GL_EXT_paletted_texture" ) && 
+		strstr( gl_config.extensions_string, "GL_EXT_shared_texture_palette" ) )
 	{
 		if ( gl_ext_palettedtexture->value )
 		{
@@ -1302,13 +1331,40 @@ qboolean R_Init( void *hinstance, void *hWnd )
 		ri.Con_Printf( PRINT_ALL, "...GL_EXT_shared_texture_palette not found\n" );
 	}
 
-	if ( strstr( gl_config.extensions_string, "GL_SGIS_multitexture" ) )
+	if ( strstr( gl_config.extensions_string, "GL_ARB_multitexture" ) )
 	{
 		if ( gl_ext_multitexture->value )
+		{
+			ri.Con_Printf( PRINT_ALL, "...using GL_ARB_multitexture\n" );
+			qglMTexCoord2fSGIS = ( void * ) qwglGetProcAddress( "glMultiTexCoord2fARB" );
+			qglActiveTextureARB = ( void * ) qwglGetProcAddress( "glActiveTextureARB" );
+			qglClientActiveTextureARB = ( void * ) qwglGetProcAddress( "glClientActiveTextureARB" );
+			GL_TEXTURE0 = GL_TEXTURE0_ARB;
+			GL_TEXTURE1 = GL_TEXTURE1_ARB;
+		}
+		else
+		{
+			ri.Con_Printf( PRINT_ALL, "...ignoring GL_ARB_multitexture\n" );
+		}
+	}
+	else
+	{
+		ri.Con_Printf( PRINT_ALL, "...GL_ARB_multitexture not found\n" );
+	}
+
+	if ( strstr( gl_config.extensions_string, "GL_SGIS_multitexture" ) )
+	{
+		if ( qglActiveTextureARB )
+		{
+			ri.Con_Printf( PRINT_ALL, "...GL_SGIS_multitexture deprecated in favor of ARB_multitexture\n" );
+		}
+		else if ( gl_ext_multitexture->value )
 		{
 			ri.Con_Printf( PRINT_ALL, "...using GL_SGIS_multitexture\n" );
 			qglMTexCoord2fSGIS = ( void * ) qwglGetProcAddress( "glMTexCoord2fSGIS" );
 			qglSelectTextureSGIS = ( void * ) qwglGetProcAddress( "glSelectTextureSGIS" );
+			GL_TEXTURE0 = GL_TEXTURE0_SGIS;
+			GL_TEXTURE1 = GL_TEXTURE1_SGIS;
 		}
 		else
 		{
@@ -1319,7 +1375,6 @@ qboolean R_Init( void *hinstance, void *hWnd )
 	{
 		ri.Con_Printf( PRINT_ALL, "...GL_SGIS_multitexture not found\n" );
 	}
-#endif
 
 	GL_SetDefaultState();
 
