@@ -1,5 +1,6 @@
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
+Copyright (C) 2018 Krzysztof Kondrak
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -251,6 +252,14 @@ void Sys_Init (void)
 		// let QHOST hook in
 		InitConProc (argc, argv);
 	}
+#ifdef WIN_DEBUG_CONSOLE
+	else
+	{
+		AllocConsole();
+		SetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), 0x07);
+		freopen("CONOUT$", "w", stderr);
+	}
+#endif
 }
 
 
@@ -348,7 +357,13 @@ void Sys_ConsoleOutput (char *string)
 	char	text[256];
 
 	if (!dedicated || !dedicated->value)
+	{
+#ifdef WIN_DEBUG_CONSOLE
+		fputs(string, stderr);
+		OutputDebugString(string);
+#endif
 		return;
+	}
 
 	if (console_textlen)
 	{
