@@ -20,14 +20,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // disable data conversion warnings
 
-#if 0
-#pragma warning(disable : 4244)     // MIPS
-#pragma warning(disable : 4136)     // X86
-#pragma warning(disable : 4051)     // ALPHA
-#endif
-
 #ifdef _WIN32
 #  include <windows.h>
+#  define VK_USE_PLATFORM_WIN32_KHR
 #endif
 
 #include <stdio.h>
@@ -40,6 +35,19 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "qvk.h"
 
 #define	REF_VERSION	"Vulkan 1.1"
+
+// verify if VkResult is VK_SUCCESS
+#ifdef _DEBUG
+#define VK_VERIFY(x) { \
+		VkResult res = (x); \
+		if(res != VK_SUCCESS) { \
+			ri.Con_Printf(PRINT_ALL, "VkResult verification failed: %s in %s:%d\n", QVk_GetError(res), __FILE__, __LINE__); \
+			assert(res == VK_SUCCESS && "VkResult verification failed!"); \
+		} \
+}
+#else
+#	define VK_VERIFY(x) (void)(x)
+#endif
 
 // up / down
 #define	PITCH	0
@@ -390,7 +398,8 @@ void		Vkimp_BeginFrame( float camera_separation );
 void		Vkimp_EndFrame( void );
 int 		Vkimp_Init( void *hinstance, void *hWnd );
 void		Vkimp_Shutdown( void );
-int     	Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen );
+int			Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen );
 void		Vkimp_AppActivate( qboolean active );
-void		Vkimp_EnableLogging( qboolean enable );
+void		Vkimp_GetSurfaceExtensions(char **extensions, uint32_t *extCount);
+VkResult	Vkimp_CreateSurface();
 void		Vkimp_LogNewFrame( void );

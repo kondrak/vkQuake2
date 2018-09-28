@@ -338,8 +338,17 @@ R_Init
 ===============
 */
 qboolean R_Init( void *hinstance, void *hWnd )
-{	
-    return false;
+{
+	ri.Con_Printf(PRINT_ALL, "ref_vk version: "REF_VERSION"\n");
+
+	if (!QVk_Init())
+	{
+		QVk_Shutdown();
+		ri.Con_Printf(PRINT_ALL, "ref_vk::R_Init() - could not initialize Vulkan!\n");
+		return false;
+	}
+
+	return true;
 }
 
 /*

@@ -103,6 +103,7 @@
     <ClCompile Include="vk_mem_alloc.cpp" />
     <ClCompile Include="vk_model.c" />
     <ClCompile Include="vk_rmain.c" />
+    <ClCompile Include="vk_validation.c" />
     <ClCompile Include="vk_warp.c" />
   </ItemGroup>
   <ItemGroup>

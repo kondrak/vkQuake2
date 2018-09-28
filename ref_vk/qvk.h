@@ -30,12 +30,22 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 
 #include <vulkan/vulkan.h>
+#include "vk_mem_alloc.h"
 
-qboolean QVk_Init( const char *dllname );
-void     QVk_Shutdown( void );
+// Vulkan instance
+extern VkInstance vk_instance;
+// Vulkan surface
+extern VkSurfaceKHR vk_surface;
+// Vulkan memory allocator
+extern VmaAllocator vk_malloc;
 
-#ifndef APIENTRY
-#  define APIENTRY
-#endif
+// function pointers
+extern PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;
+extern PFN_vkDestroyDebugUtilsMessengerEXT qvkDestroyDebugUtilsMessengerEXT;
 
+qboolean	QVk_Init();
+void		QVk_Shutdown( void );
+void		QVk_CreateValidationLayers();
+void		QVk_DestroyValidationLayers();
+const char *QVk_GetError(VkResult errorCode);
 #endif

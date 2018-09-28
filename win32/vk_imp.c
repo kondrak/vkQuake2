@@ -38,15 +38,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 qboolean Vkimp_InitVulkan (void);
 
-glwstate_t glw_state;
+vkwstate_t vkw_state;
 
 extern cvar_t *vid_fullscreen;
 extern cvar_t *vid_ref;
-
-static qboolean VerifyDriver( void )
-{
-	return true;
-}
 
 /*
 ** VID_CreateWindow
@@ -64,10 +59,10 @@ qboolean VID_CreateWindow( int width, int height, qboolean fullscreen )
 
 	/* Register the frame class */
     wc.style         = 0;
-    wc.lpfnWndProc   = (WNDPROC)glw_state.wndproc;
+    wc.lpfnWndProc   = (WNDPROC)vkw_state.wndproc;
     wc.cbClsExtra    = 0;
     wc.cbWndExtra    = 0;
-    wc.hInstance     = glw_state.hInstance;
+    wc.hInstance     = vkw_state.hInstance;
     wc.hIcon         = 0;
     wc.hCursor       = LoadCursor (NULL,IDC_ARROW);
 	wc.hbrBackground = (void *)COLOR_GRAYTEXT;
@@ -111,7 +106,7 @@ qboolean VID_CreateWindow( int width, int height, qboolean fullscreen )
 		y = vid_ypos->value;
 	}
 
-	glw_state.hWnd = CreateWindowEx (
+	vkw_state.hWnd = CreateWindowEx (
 		 exstyle, 
 		 WINDOW_CLASS_NAME,
 		 "Quake 2",
@@ -119,14 +114,14 @@ qboolean VID_CreateWindow( int width, int height, qboolean fullscreen )
 		 x, y, w, h,
 		 NULL,
 		 NULL,
-		 glw_state.hInstance,
+		 vkw_state.hInstance,
 		 NULL);
 
-	if (!glw_state.hWnd)
+	if (!vkw_state.hWnd)
 		ri.Sys_Error (ERR_FATAL, "Couldn't create window");
 	
-	ShowWindow( glw_state.hWnd, SW_SHOW );
-	UpdateWindow( glw_state.hWnd );
+	ShowWindow( vkw_state.hWnd, SW_SHOW );
+	UpdateWindow( vkw_state.hWnd );
 
 	// init all the gl stuff for the window
 	if (!Vkimp_InitVulkan ())
@@ -135,8 +130,8 @@ qboolean VID_CreateWindow( int width, int height, qboolean fullscreen )
 		return false;
 	}
 
-	SetForegroundWindow( glw_state.hWnd );
-	SetFocus( glw_state.hWnd );
+	SetForegroundWindow( vkw_state.hWnd );
+	SetFocus( vkw_state.hWnd );
 
 	// let the sound and input subsystems know about the new window
 	ri.Vid_NewWindow (width, height);
@@ -144,6 +139,28 @@ qboolean VID_CreateWindow( int width, int height, qboolean fullscreen )
 	return true;
 }
 
+void Vkimp_GetSurfaceExtensions(char **extensions, uint32_t *extCount)
+{
+	if (extensions)
+	{
+		extensions[0] = VK_KHR_SURFACE_EXTENSION_NAME;
+		extensions[1] = VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
+	}
+
+	if (extCount)
+		*extCount = 2;
+}
+
+VkResult Vkimp_CreateSurface()
+{
+	VkWin32SurfaceCreateInfoKHR surfaceCreateInfo = {
+		.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
+		.hwnd = vkw_state.hWnd,
+		.hinstance = GetModuleHandle(NULL)
+	};
+
+	return vkCreateWin32SurfaceKHR(vk_instance, &surfaceCreateInfo, NULL, &vk_surface);
+}
 
 /*
 ** Vkimp_SetMode
@@ -166,7 +183,7 @@ rserr_t Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen 
 	ri.Con_Printf( PRINT_ALL, " %d %d %s\n", width, height, win_fs[fullscreen] );
 
 	// destroy the existing window
-	if (glw_state.hWnd)
+	if (vkw_state.hWnd)
 	{
 		Vkimp_Shutdown ();
 	}
@@ -293,7 +310,31 @@ rserr_t Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen 
 */
 void Vkimp_Shutdown( void )
 {
+	if (vkw_state.hDC)
+	{
+		if (!ReleaseDC(vkw_state.hWnd, vkw_state.hDC))
+			ri.Con_Printf(PRINT_ALL, "ref_gl::R_Shutdown() - ReleaseDC failed\n");
+		vkw_state.hDC = NULL;
+	}
+	if (vkw_state.hWnd)
+	{
+		DestroyWindow(vkw_state.hWnd);
+		vkw_state.hWnd = NULL;
+	}
 
+	if (vkw_state.log_fp)
+	{
+		fclose(vkw_state.log_fp);
+		vkw_state.log_fp = 0;
+	}
+
+	UnregisterClass(WINDOW_CLASS_NAME, vkw_state.hInstance);
+
+	if (gl_state.fullscreen)
+	{
+		ChangeDisplaySettings(0, 0);
+		gl_state.fullscreen = false;
+	}
 }
 
 
@@ -312,25 +353,25 @@ qboolean Vkimp_Init( void *hinstance, void *wndproc )
 
 	vinfo.dwOSVersionInfoSize = sizeof(vinfo);
 
-	glw_state.allowdisplaydepthchange = false;
+	vkw_state.allowdisplaydepthchange = false;
 
 	if ( GetVersionEx( &vinfo) )
 	{
 		if ( vinfo.dwMajorVersion > 4 )
 		{
-			glw_state.allowdisplaydepthchange = true;
+			vkw_state.allowdisplaydepthchange = true;
 		}
 		else if ( vinfo.dwMajorVersion == 4 )
 		{
 			if ( vinfo.dwPlatformId == VER_PLATFORM_WIN32_NT )
 			{
-				glw_state.allowdisplaydepthchange = true;
+				vkw_state.allowdisplaydepthchange = true;
 			}
 			else if ( vinfo.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS )
 			{
 				if ( LOWORD( vinfo.dwBuildNumber ) >= OSR2_BUILD_NUMBER )
 				{
-					glw_state.allowdisplaydepthchange = true;
+					vkw_state.allowdisplaydepthchange = true;
 				}
 			}
 		}
@@ -341,8 +382,8 @@ qboolean Vkimp_Init( void *hinstance, void *wndproc )
 		return false;
 	}
 
-	glw_state.hInstance = ( HINSTANCE ) hinstance;
-	glw_state.wndproc = wndproc;
+	vkw_state.hInstance = ( HINSTANCE ) hinstance;
+	vkw_state.wndproc = wndproc;
 
 	return true;
 }
@@ -377,12 +418,12 @@ void Vkimp_AppActivate( qboolean active )
 {
 	if ( active )
 	{
-		SetForegroundWindow( glw_state.hWnd );
-		ShowWindow( glw_state.hWnd, SW_RESTORE );
+		SetForegroundWindow( vkw_state.hWnd );
+		ShowWindow( vkw_state.hWnd, SW_RESTORE );
 	}
 	else
 	{
 		if ( vid_fullscreen->value )
-			ShowWindow( glw_state.hWnd, SW_MINIMIZE );
+			ShowWindow( vkw_state.hWnd, SW_MINIMIZE );
 	}
 }
