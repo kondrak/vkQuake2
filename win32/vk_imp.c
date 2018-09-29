@@ -36,8 +36,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "vk_win.h"
 #include "winquake.h"
 
-qboolean Vkimp_InitVulkan (void);
-
 vkwstate_t vkw_state;
 
 extern cvar_t *vid_fullscreen;
@@ -122,14 +120,6 @@ qboolean VID_CreateWindow( int width, int height, qboolean fullscreen )
 	
 	ShowWindow( vkw_state.hWnd, SW_SHOW );
 	UpdateWindow( vkw_state.hWnd );
-
-	// init all the gl stuff for the window
-	if (!Vkimp_InitVulkan ())
-	{
-		ri.Con_Printf( PRINT_ALL, "VID_CreateWindow() - Vkimp_InitVulkan failed\n");
-		return false;
-	}
-
 	SetForegroundWindow( vkw_state.hWnd );
 	SetFocus( vkw_state.hWnd );
 
@@ -302,10 +292,7 @@ rserr_t Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen 
 /*
 ** Vkimp_Shutdown
 **
-** This routine does all OS specific shutdown procedures for the Vulkan
-** subsystem.  Under Vulkan this means NULLing out the current DC and
-** HGLRC, deleting the rendering context, and releasing the DC acquired
-** for the window.  The state structure is also nulled out.
+** For Vulkan, the OS-specific part here is only destroying the window.
 **
 */
 void Vkimp_Shutdown( void )
@@ -313,7 +300,7 @@ void Vkimp_Shutdown( void )
 	if (vkw_state.hDC)
 	{
 		if (!ReleaseDC(vkw_state.hWnd, vkw_state.hDC))
-			ri.Con_Printf(PRINT_ALL, "ref_gl::R_Shutdown() - ReleaseDC failed\n");
+			ri.Con_Printf(PRINT_ALL, "ref_vk::R_Shutdown() - ReleaseDC failed\n");
 		vkw_state.hDC = NULL;
 	}
 	if (vkw_state.hWnd)
@@ -342,8 +329,7 @@ void Vkimp_Shutdown( void )
 ** Vkimp_Init
 **
 ** This routine is responsible for initializing the OS specific portions
-** of Vulkan. Under Win32 this means dealing with the pixelformats and
-** doing the wgl interface stuff.
+** of Vulkan. 
 */
 qboolean Vkimp_Init( void *hinstance, void *wndproc )
 {
@@ -386,11 +372,6 @@ qboolean Vkimp_Init( void *hinstance, void *wndproc )
 	vkw_state.wndproc = wndproc;
 
 	return true;
-}
-
-qboolean Vkimp_InitVulkan (void)
-{
-    return true;
 }
 
 /*

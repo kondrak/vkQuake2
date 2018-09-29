@@ -325,6 +325,11 @@ void R_Register( void )
 #else
 	vk_validation = ri.Cvar_Get("vk_validation", "0", CVAR_NOSET);
 #endif
+	vk_mode = ri.Cvar_Get("vk_mode", "3", CVAR_ARCHIVE);
+
+	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
+	vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
+	vid_ref = ri.Cvar_Get("vid_ref", "soft", CVAR_ARCHIVE);
 }
 
 /*
@@ -384,15 +389,28 @@ qboolean R_Init( void *hinstance, void *hWnd )
 
 	R_Register();
 
+	// create the window (OS-specific)
+	if (!Vkimp_Init(hinstance, hWnd))
+	{
+		return false;
+	}
+
+	// set our "safe" modes
+	vk_state.prev_mode = 3;
+	// set video mode/screen resolution
+	if (!R_SetMode())
+	{
+		ri.Con_Printf(PRINT_ALL, "ref_vk::R_Init() - could not R_SetMode()\n");
+		return false;
+	}
+
+	// window is ready, initialize Vulkan now
 	if (!QVk_Init())
 	{
 		QVk_Shutdown();
 		ri.Con_Printf(PRINT_ALL, "ref_vk::R_Init() - could not initialize Vulkan!\n");
 		return false;
 	}
-
-	// set our "safe" modes
-	vk_state.prev_mode = 3;
 
 	return true;
 }
@@ -403,8 +421,8 @@ R_Shutdown
 ===============
 */
 void R_Shutdown (void)
-{	
-	QVk_Shutdown();
+{
+	Vkimp_Shutdown();
 }
 
 

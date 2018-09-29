@@ -82,8 +82,6 @@ void QVk_Shutdown( void )
 */
 qboolean QVk_Init()
 {
-	ri.Con_Printf(PRINT_ALL, "Initializing Vulkan display\n");
-
 	VkApplicationInfo appInfo = {
 		.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
 		.pApplicationName = "Quake 2",
@@ -137,7 +135,7 @@ qboolean QVk_Init()
 		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan instance: %s\n", QVk_GetError(res));
 		return false;
 	}
-	ri.Con_Printf(PRINT_ALL, "...Successfully created Vulkan instance\n");
+	ri.Con_Printf(PRINT_ALL, "...created Vulkan instance\n");
 
 	// initialize function pointers
 	qvkCreateDebugUtilsMessengerEXT  = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vk_instance, "vkCreateDebugUtilsMessengerEXT");
@@ -152,7 +150,7 @@ qboolean QVk_Init()
 		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan surface: %s\n", QVk_GetError(res));
 		return false;
 	}
-	ri.Con_Printf(PRINT_ALL, "...Successfully created Vulkan surface\n");
+	ri.Con_Printf(PRINT_ALL, "...created Vulkan surface\n");
 
 	// create Vulkan device
 	QVk_CreateDevice();
@@ -168,7 +166,7 @@ qboolean QVk_Init()
 		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan memory allocator: %s\n", QVk_GetError(res));
 		return false;
 	}
-	ri.Con_Printf(PRINT_ALL, "...Successfully created Vulkan memory allocator\n");
+	ri.Con_Printf(PRINT_ALL, "...created Vulkan memory allocator\n");
 
 	return false;
 }
