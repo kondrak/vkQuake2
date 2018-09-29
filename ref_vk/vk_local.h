@@ -49,10 +49,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #	define VK_VERIFY(x) (void)(x)
 #endif
 
-#ifdef _DEBUG
-#	define VALIDATION_LAYERS_ON
-#endif
-
 // up / down
 #define	PITCH	0
 
@@ -194,6 +190,7 @@ extern	cvar_t	*r_lerpmodels;
 
 extern	cvar_t	*r_lightlevel;	// FIXME: This is a HACK to get the client's light level
 
+extern cvar_t	*vk_validation;
 extern cvar_t	*gl_vertex_arrays;
 
 extern cvar_t	*gl_ext_swapinterval;

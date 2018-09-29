@@ -49,7 +49,6 @@ qvkdevice_t	 vk_device = {
 PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;
 PFN_vkDestroyDebugUtilsMessengerEXT qvkDestroyDebugUtilsMessengerEXT;
 
-
 /*
 ** QVk_Shutdown
 **
@@ -60,13 +59,16 @@ void QVk_Shutdown( void )
 	if (vk_instance != VK_NULL_HANDLE)
 	{
 		ri.Con_Printf(PRINT_ALL, "Shutting down Vulkan\n");
+		vkDeviceWaitIdle(vk_device.logical);
+
 		vmaDestroyAllocator(vk_malloc);
 		vkDestroyDevice(vk_device.logical, NULL);
 		vkDestroySurfaceKHR(vk_instance, vk_surface, NULL);
-#ifdef VALIDATION_LAYERS_ON
-		QVk_DestroyValidationLayers();
-#endif
+		if (vk_validation->value)
+			QVk_DestroyValidationLayers();
 		vkDestroyInstance(vk_instance, NULL);
+
+		vk_instance = VK_NULL_HANDLE;
 	}
 }
 
@@ -96,16 +98,14 @@ qboolean QVk_Init()
 
 	Vkimp_GetSurfaceExtensions(NULL, &extCount);
 
-#ifdef VALIDATION_LAYERS_ON
-	extCount++;
-#endif
+	if(vk_validation->value)
+		extCount++;
 
 	wantedExtensions = (char **)malloc(extCount * sizeof(const char *));
 	Vkimp_GetSurfaceExtensions(wantedExtensions, NULL);
 
-#ifdef VALIDATION_LAYERS_ON
-	wantedExtensions[extCount-1] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
-#endif
+	if (vk_validation->value)
+		wantedExtensions[extCount-1] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
 
 	ri.Con_Printf(PRINT_ALL, "Vulkan extensions: ");
 	for (int i = 0; i < extCount; i++)
@@ -122,11 +122,13 @@ qboolean QVk_Init()
 		.ppEnabledExtensionNames = wantedExtensions
 	};
 
-#ifdef VALIDATION_LAYERS_ON
-	const char *validationLayers[] = { "VK_LAYER_LUNARG_standard_validation" };
-	createInfo.enabledLayerCount = 1;
-	createInfo.ppEnabledLayerNames = validationLayers;
-#endif
+	if (vk_validation->value)
+	{
+		const char *validationLayers[] = { "VK_LAYER_LUNARG_standard_validation" };
+		createInfo.enabledLayerCount = sizeof(validationLayers)/sizeof(validationLayers[0]);
+		createInfo.ppEnabledLayerNames = validationLayers;
+	}
+
 	VkResult res = vkCreateInstance(&createInfo, NULL, &vk_instance);
 	free(wantedExtensions);
 
@@ -141,9 +143,8 @@ qboolean QVk_Init()
 	qvkCreateDebugUtilsMessengerEXT  = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vk_instance, "vkCreateDebugUtilsMessengerEXT");
 	qvkDestroyDebugUtilsMessengerEXT = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vk_instance, "vkDestroyDebugUtilsMessengerEXT");
 
-#ifdef VALIDATION_LAYERS_ON
-	QVk_CreateValidationLayers();
-#endif
+	if (vk_validation->value)
+		QVk_CreateValidationLayers();
 
 	res = Vkimp_CreateSurface();
 	if (res != VK_SUCCESS)

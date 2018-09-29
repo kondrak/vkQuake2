@@ -79,6 +79,7 @@ cvar_t	*r_lefthand;
 
 cvar_t	*r_lightlevel;	// FIXME: This is a HACK to get the client's light level
 
+cvar_t	*vk_validation;
 cvar_t	*gl_nosubimage;
 cvar_t	*gl_allow_software;
 
@@ -319,7 +320,11 @@ void R_RenderFrame (refdef_t *fd)
 
 void R_Register( void )
 {
-
+#ifdef _DEBUG
+	vk_validation = ri.Cvar_Get("vk_validation", "1", CVAR_NOSET);
+#else
+	vk_validation = ri.Cvar_Get("vk_validation", "0", CVAR_NOSET);
+#endif
 }
 
 /*
@@ -341,6 +346,8 @@ qboolean R_Init( void *hinstance, void *hWnd )
 {
 	ri.Con_Printf(PRINT_ALL, "ref_vk version: "REF_VERSION"\n");
 
+	R_Register();
+
 	if (!QVk_Init())
 	{
 		QVk_Shutdown();
@@ -358,7 +365,7 @@ R_Shutdown
 */
 void R_Shutdown (void)
 {	
-
+	QVk_Shutdown();
 }
 
 

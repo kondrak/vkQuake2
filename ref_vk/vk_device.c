@@ -211,17 +211,19 @@ static VkResult createLogicalDevice()
 		.pEnabledFeatures = &wantedDeviceFeatures,
 		.ppEnabledExtensionNames = devExtensions,
 		.enabledExtensionCount = (uint32_t)(sizeof(devExtensions) / sizeof(devExtensions[0])),
+		.enabledLayerCount = 0,
+		.ppEnabledLayerNames = NULL,
 		.queueCreateInfoCount = numQueues,
 		.pQueueCreateInfos = queueCreateInfo
 	};
 
-#ifdef VALIDATION_LAYERS_ON
-	const char *validationLayers[] = { "VK_LAYER_LUNARG_standard_validation" };
-	deviceCreateInfo.enabledLayerCount = 1;
-	deviceCreateInfo.ppEnabledLayerNames = validationLayers;
-#else
-	deviceCreateInfo.enabledLayerCount = 0;
-#endif
+	if (vk_validation->value)
+	{
+		const char *validationLayers[] = { "VK_LAYER_LUNARG_standard_validation" };
+		deviceCreateInfo.enabledLayerCount = sizeof(validationLayers)/sizeof(validationLayers[0]);
+		deviceCreateInfo.ppEnabledLayerNames = validationLayers;
+	}
+
 	return vkCreateDevice(vk_device.physical, &deviceCreateInfo, NULL, &vk_device.logical);
 }
 
@@ -249,10 +251,12 @@ qboolean QVk_CreateDevice()
 	ri.Con_Printf(PRINT_ALL, "   apiVersion: %d\n"
 							 "   deviceID: %d\n"
 							 "   deviceName: %s\n"
-							 "   deviceType: %s\n", vk_device.properties.apiVersion,
-													vk_device.properties.deviceID,
-													vk_device.properties.deviceName,
-													deviceType(vk_device.properties.deviceType));
+							 "   deviceType: %s\n"
+							 "   gfx/present/transfer: %d/%d/%d\n", vk_device.properties.apiVersion,
+																	vk_device.properties.deviceID,
+																	vk_device.properties.deviceName,
+																	deviceType(vk_device.properties.deviceType),
+																	vk_device.gfxFamilyIndex, vk_device.presentFamilyIndex, vk_device.transferFamilyIndex);
 	VkResult res = createLogicalDevice();
 	if (res != VK_SUCCESS)
 	{
