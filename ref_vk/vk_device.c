@@ -20,10 +20,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "vk_local.h"
 
-extern VkInstance vk_instance;
-extern VkSurfaceKHR vk_surface;
-extern qvkdevice_t vk_device;
-
 static const char *devExtensions[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
 static qboolean deviceExtensionsSupported(const VkPhysicalDevice *physicalDevice, const char **requested, size_t count)
@@ -145,7 +141,7 @@ qboolean selectPhysicalDevice()
 		return false;
 	}
 
-	ri.Con_Printf(PRINT_ALL, "...Found %d Vulkan-capable device(s)\n", physicalDeviceCount);
+	ri.Con_Printf(PRINT_ALL, "...found %d Vulkan-capable device(s)\n", physicalDeviceCount);
 
 	VkPhysicalDevice *physicalDevices = (VkPhysicalDevice *)malloc(physicalDeviceCount * sizeof(VkPhysicalDevice));
 	VK_VERIFY(vkEnumeratePhysicalDevices(vk_instance, &physicalDeviceCount, physicalDevices));
@@ -227,7 +223,7 @@ static VkResult createLogicalDevice()
 	return vkCreateDevice(vk_device.physical, &deviceCreateInfo, NULL, &vk_device.logical);
 }
 
-static const char *deviceType(VkPhysicalDeviceType dType)
+static const char *deviceTypeString(VkPhysicalDeviceType dType)
 {
 #define DEVTYPESTR(r) case VK_ ##r: return "VK_"#r
 	switch (dType)
@@ -255,7 +251,7 @@ qboolean QVk_CreateDevice()
 							 "   gfx/present/transfer: %d/%d/%d\n", vk_device.properties.apiVersion,
 																	vk_device.properties.deviceID,
 																	vk_device.properties.deviceName,
-																	deviceType(vk_device.properties.deviceType),
+																	deviceTypeString(vk_device.properties.deviceType),
 																	vk_device.gfxFamilyIndex, vk_device.presentFamilyIndex, vk_device.transferFamilyIndex);
 	VkResult res = createLogicalDevice();
 	if (res != VK_SUCCESS)

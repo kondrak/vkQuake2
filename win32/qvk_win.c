@@ -45,6 +45,12 @@ qvkdevice_t	 vk_device = {
 	.presentFamilyIndex = -1,
 	.transferFamilyIndex = -1
 };
+qvkswapchain_t vk_swapchain = {
+	.swapchain = VK_NULL_HANDLE,
+	.format = VK_FORMAT_UNDEFINED,
+	.presentMode = VK_PRESENT_MODE_MAILBOX_KHR,
+	.images = NULL
+};
 
 PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;
 PFN_vkDestroyDebugUtilsMessengerEXT qvkDestroyDebugUtilsMessengerEXT;
@@ -61,6 +67,8 @@ void QVk_Shutdown( void )
 		ri.Con_Printf(PRINT_ALL, "Shutting down Vulkan\n");
 		vkDeviceWaitIdle(vk_device.logical);
 
+		vkDestroySwapchainKHR(vk_device.logical, vk_swapchain.swapchain, NULL);
+		free(vk_swapchain.images);
 		vmaDestroyAllocator(vk_malloc);
 		vkDestroyDevice(vk_device.logical, NULL);
 		vkDestroySurfaceKHR(vk_instance, vk_surface, NULL);
@@ -168,6 +176,15 @@ qboolean QVk_Init()
 	}
 	ri.Con_Printf(PRINT_ALL, "...created Vulkan memory allocator\n");
 
+	// setup swapchain
+	res = QVk_CreateSwapchain();
+	if (res != VK_SUCCESS)
+	{
+		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan swapchain: %s\n", QVk_GetError(res));
+		return false;
+	}
+
+	ri.Con_Printf(PRINT_ALL, "...created Vulkan swapchain\n");
 	return false;
 }
 

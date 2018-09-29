@@ -46,12 +46,22 @@ typedef struct
 	int transferFamilyIndex;
 } qvkdevice_t;
 
+typedef struct
+{
+	VkSwapchainKHR swapchain;
+	VkFormat format;
+	VkPresentModeKHR presentMode;
+	VkImage *images;
+} qvkswapchain_t;
+
 // Vulkan instance
 extern VkInstance vk_instance;
 // Vulkan surface
 extern VkSurfaceKHR vk_surface;
 // Vulkan device
 extern qvkdevice_t vk_device;
+// Vulkan swapchain
+extern qvkswapchain_t vk_swapchain;
 // Vulkan memory allocator
 extern VmaAllocator vk_malloc;
 
@@ -64,5 +74,6 @@ void		QVk_Shutdown( void );
 void		QVk_CreateValidationLayers();
 void		QVk_DestroyValidationLayers();
 qboolean	QVk_CreateDevice();
+VkResult	QVk_CreateSwapchain();
 const char *QVk_GetError(VkResult errorCode);
 #endif

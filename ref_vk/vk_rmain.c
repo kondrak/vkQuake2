@@ -408,7 +408,6 @@ qboolean R_Init( void *hinstance, void *hWnd )
 	// window is ready, initialize Vulkan now
 	if (!QVk_Init())
 	{
-		QVk_Shutdown();
 		ri.Con_Printf(PRINT_ALL, "ref_vk::R_Init() - could not initialize Vulkan!\n");
 		return false;
 	}
@@ -423,6 +422,7 @@ R_Shutdown
 */
 void R_Shutdown (void)
 {
+	QVk_Shutdown();
 	Vkimp_Shutdown();
 }
 
