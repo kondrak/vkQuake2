@@ -32,7 +32,7 @@ model_t		*r_worldmodel;
 float		gldepthmin, gldepthmax;
 
 glconfig_t gl_config;
-glstate_t  gl_state;
+vkstate_t  vk_state;
 
 image_t		*r_notexture;		// use for bad textures
 image_t		*r_particletexture;	// little dot for particles
@@ -80,6 +80,7 @@ cvar_t	*r_lefthand;
 cvar_t	*r_lightlevel;	// FIXME: This is a HACK to get the client's light level
 
 cvar_t	*vk_validation;
+cvar_t	*vk_mode;
 cvar_t	*gl_nosubimage;
 cvar_t	*gl_allow_software;
 
@@ -104,7 +105,6 @@ cvar_t	*gl_drawbuffer;
 cvar_t  *gl_driver;
 cvar_t	*gl_lightmap;
 cvar_t	*gl_shadows;
-cvar_t	*gl_mode;
 cvar_t	*gl_dynamic;
 cvar_t  *gl_monolightmap;
 cvar_t	*gl_modulate;
@@ -334,7 +334,43 @@ R_SetMode
 */
 qboolean R_SetMode (void)
 {
-	return false;
+	rserr_t err;
+	qboolean fullscreen;
+
+	fullscreen = vid_fullscreen->value;
+
+	vid_fullscreen->modified = false;
+	vk_mode->modified = false;
+
+	if ((err = Vkimp_SetMode(&vid.width, &vid.height, vk_mode->value, fullscreen)) == rserr_ok)
+	{
+		vk_state.prev_mode = vk_mode->value;
+	}
+	else
+	{
+		if (err == rserr_invalid_fullscreen)
+		{
+			ri.Cvar_SetValue("vid_fullscreen", 0);
+			vid_fullscreen->modified = false;
+			ri.Con_Printf(PRINT_ALL, "ref_gl::R_SetMode() - fullscreen unavailable in this mode\n");
+			if ((err = Vkimp_SetMode(&vid.width, &vid.height, vk_mode->value, false)) == rserr_ok)
+				return true;
+		}
+		else if (err == rserr_invalid_mode)
+		{
+			ri.Cvar_SetValue("vk_mode", vk_state.prev_mode);
+			vk_mode->modified = false;
+			ri.Con_Printf(PRINT_ALL, "ref_vk::R_SetMode() - invalid mode\n");
+		}
+
+		// try setting it back to something safe
+		if ((err = Vkimp_SetMode(&vid.width, &vid.height, vk_state.prev_mode, false)) != rserr_ok)
+		{
+			ri.Con_Printf(PRINT_ALL, "ref_gl::R_SetMode() - could not revert to safe mode\n");
+			return false;
+		}
+	}
+	return true;
 }
 
 /*
@@ -354,6 +390,9 @@ qboolean R_Init( void *hinstance, void *hWnd )
 		ri.Con_Printf(PRINT_ALL, "ref_vk::R_Init() - could not initialize Vulkan!\n");
 		return false;
 	}
+
+	// set our "safe" modes
+	vk_state.prev_mode = 3;
 
 	return true;
 }

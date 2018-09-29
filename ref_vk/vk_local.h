@@ -191,6 +191,7 @@ extern	cvar_t	*r_lerpmodels;
 extern	cvar_t	*r_lightlevel;	// FIXME: This is a HACK to get the client's light level
 
 extern cvar_t	*vk_validation;
+extern	cvar_t	*vk_mode;
 extern cvar_t	*gl_vertex_arrays;
 
 extern cvar_t	*gl_ext_swapinterval;
@@ -208,7 +209,6 @@ extern cvar_t	*gl_particle_att_c;
 
 extern	cvar_t	*gl_nosubimage;
 extern	cvar_t	*gl_bitdepth;
-extern	cvar_t	*gl_mode;
 extern	cvar_t	*gl_log;
 extern	cvar_t	*gl_lightmap;
 extern	cvar_t	*gl_shadows;
@@ -371,10 +371,10 @@ typedef struct
 	unsigned char originalRedGammaTable[256];
 	unsigned char originalGreenGammaTable[256];
 	unsigned char originalBlueGammaTable[256];
-} glstate_t;
+} vkstate_t;
 
 extern glconfig_t  gl_config;
-extern glstate_t   gl_state;
+extern vkstate_t   vk_state;
 
 /*
 ====================================================================

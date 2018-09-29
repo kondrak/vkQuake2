@@ -225,7 +225,7 @@ rserr_t Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen 
 			*pwidth = width;
 			*pheight = height;
 
-			gl_state.fullscreen = true;
+			vk_state.fullscreen = true;
 
 			ri.Con_Printf( PRINT_ALL, "ok\n" );
 
@@ -267,7 +267,7 @@ rserr_t Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen 
 
 				*pwidth = width;
 				*pheight = height;
-				gl_state.fullscreen = false;
+				vk_state.fullscreen = false;
 				if ( !VID_CreateWindow (width, height, false) )
 					return rserr_invalid_mode;
 				return rserr_invalid_fullscreen;
@@ -278,7 +278,7 @@ rserr_t Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen 
 				if ( !VID_CreateWindow (width, height, true) )
 					return rserr_invalid_mode;
 
-				gl_state.fullscreen = true;
+				vk_state.fullscreen = true;
 				return rserr_ok;
 			}
 		}
@@ -291,7 +291,7 @@ rserr_t Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen 
 
 		*pwidth = width;
 		*pheight = height;
-		gl_state.fullscreen = false;
+		vk_state.fullscreen = false;
 		if ( !VID_CreateWindow (width, height, false) )
 			return rserr_invalid_mode;
 	}
@@ -330,10 +330,10 @@ void Vkimp_Shutdown( void )
 
 	UnregisterClass(WINDOW_CLASS_NAME, vkw_state.hInstance);
 
-	if (gl_state.fullscreen)
+	if (vk_state.fullscreen)
 	{
 		ChangeDisplaySettings(0, 0);
-		gl_state.fullscreen = false;
+		vk_state.fullscreen = false;
 	}
 }
 

@@ -750,7 +750,7 @@ void GL_BuildPalettedTexture( unsigned char *paletted_texture, unsigned char *sc
 
 		c = r | ( g << 5 ) | ( b << 11 );
 
-		paletted_texture[i] = gl_state.d_16to8table[c];
+		paletted_texture[i] = vk_state.d_16to8table[c];
 
 		scaled += 4;
 	}
