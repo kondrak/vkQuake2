@@ -403,6 +403,7 @@ qboolean R_Init( void *hinstance, void *hWnd )
 		ri.Con_Printf(PRINT_ALL, "ref_vk::R_Init() - could not R_SetMode()\n");
 		return false;
 	}
+	ri.Vid_MenuInit();
 
 	// window is ready, initialize Vulkan now
 	if (!QVk_Init())
