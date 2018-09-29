@@ -140,6 +140,7 @@ VkResult QVk_CreateSwapchain()
 		extent.width = max(surfaceCaps.minImageExtent.width, min(surfaceCaps.maxImageExtent.width, vid.width));
 		extent.height = max(surfaceCaps.minImageExtent.height, min(surfaceCaps.maxImageExtent.width, vid.height));
 	}
+	ri.Con_Printf(PRINT_ALL, "...trying swapchain extent: %dx%d\n", extent.width, extent.height);
 
 	uint32_t imageCount = surfaceCaps.minImageCount;
 	if (swapPresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
