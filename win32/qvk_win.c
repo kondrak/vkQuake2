@@ -32,13 +32,19 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "../ref_vk/vk_local.h"
 #include "vk_win.h"
 
-#ifdef _DEBUG
-#	define VALIDATION_LAYERS_ON
-#endif
-
 VkInstance	 vk_instance = VK_NULL_HANDLE;
 VkSurfaceKHR vk_surface = VK_NULL_HANDLE;
 VmaAllocator vk_malloc  = VK_NULL_HANDLE;
+qvkdevice_t	 vk_device = {
+	.physical = VK_NULL_HANDLE,
+	.logical = VK_NULL_HANDLE,
+	.gfxQueue = VK_NULL_HANDLE,
+	.presentQueue = VK_NULL_HANDLE,
+	.transferQueue = VK_NULL_HANDLE,
+	.gfxFamilyIndex = -1,
+	.presentFamilyIndex = -1,
+	.transferFamilyIndex = -1
+};
 
 PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;
 PFN_vkDestroyDebugUtilsMessengerEXT qvkDestroyDebugUtilsMessengerEXT;
@@ -54,6 +60,8 @@ void QVk_Shutdown( void )
 	if (vk_instance != VK_NULL_HANDLE)
 	{
 		ri.Con_Printf(PRINT_ALL, "Shutting down Vulkan\n");
+		vmaDestroyAllocator(vk_malloc);
+		vkDestroyDevice(vk_device.logical, NULL);
 		vkDestroySurfaceKHR(vk_instance, vk_surface, NULL);
 #ifdef VALIDATION_LAYERS_ON
 		QVk_DestroyValidationLayers();
@@ -144,6 +152,22 @@ qboolean QVk_Init()
 		return false;
 	}
 	ri.Con_Printf(PRINT_ALL, "...Successfully created Vulkan surface\n");
+
+	// create Vulkan device
+	QVk_CreateDevice();
+	// create memory allocator
+	VmaAllocatorCreateInfo allocInfo = {
+		.physicalDevice = vk_device.physical,
+		.device = vk_device.logical
+	};
+
+	res = vmaCreateAllocator(&allocInfo, &vk_malloc);
+	if (res != VK_SUCCESS)
+	{
+		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan memory allocator: %s\n", QVk_GetError(res));
+		return false;
+	}
+	ri.Con_Printf(PRINT_ALL, "...Successfully created Vulkan memory allocator\n");
 
 	return false;
 }

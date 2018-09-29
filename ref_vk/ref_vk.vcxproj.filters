@@ -48,6 +48,9 @@
     <ClCompile Include="vk_validation.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="vk_device.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="ref_vk.def">

@@ -32,10 +32,26 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <vulkan/vulkan.h>
 #include "vk_mem_alloc.h"
 
+typedef struct
+{
+	VkPhysicalDevice physical;
+	VkDevice		 logical;
+	VkPhysicalDeviceProperties properties;
+	VkPhysicalDeviceFeatures   features;
+	VkQueue gfxQueue;
+	VkQueue presentQueue;
+	VkQueue transferQueue;
+	int gfxFamilyIndex;
+	int presentFamilyIndex;
+	int transferFamilyIndex;
+} qvkdevice_t;
+
 // Vulkan instance
 extern VkInstance vk_instance;
 // Vulkan surface
 extern VkSurfaceKHR vk_surface;
+// Vulkan device
+extern qvkdevice_t vk_device;
 // Vulkan memory allocator
 extern VmaAllocator vk_malloc;
 
@@ -47,5 +63,6 @@ qboolean	QVk_Init();
 void		QVk_Shutdown( void );
 void		QVk_CreateValidationLayers();
 void		QVk_DestroyValidationLayers();
+qboolean	QVk_CreateDevice();
 const char *QVk_GetError(VkResult errorCode);
 #endif

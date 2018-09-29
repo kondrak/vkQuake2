@@ -49,6 +49,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #	define VK_VERIFY(x) (void)(x)
 #endif
 
+#ifdef _DEBUG
+#	define VALIDATION_LAYERS_ON
+#endif
+
 // up / down
 #define	PITCH	0
 
