@@ -46,14 +46,169 @@ qvkdevice_t	 vk_device = {
 	.transferFamilyIndex = -1
 };
 qvkswapchain_t vk_swapchain = {
-	.swapchain = VK_NULL_HANDLE,
+	.sc = VK_NULL_HANDLE,
 	.format = VK_FORMAT_UNDEFINED,
 	.presentMode = VK_PRESENT_MODE_MAILBOX_KHR,
-	.images = NULL
+	.extent = { 0, 0 },
+	.images = NULL,
+	.imageCount = 0
 };
+
+qvkrenderpass_t vk_renderpasses[RT_COUNT] = { 
+	{
+		.rp = VK_NULL_HANDLE,
+		.colorLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+		.sampleCount = VK_SAMPLE_COUNT_1_BIT
+	},
+	{
+		.rp = VK_NULL_HANDLE,
+		.colorLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+		.sampleCount = VK_SAMPLE_COUNT_8_BIT
+	} 
+};
+
+VkCommandPool vk_commandPool = VK_NULL_HANDLE;
+VkCommandPool vk_transferCommandPool = VK_NULL_HANDLE;
+
+// Vulkan image views
+VkImageView *vk_imageviews = NULL;
+// Vulkan framebuffers
+VkFramebuffer *vk_framebuffers[RT_COUNT];
+// depth buffer
+qvktexture_t vk_depthbuffer = QVVKTEXTURE_INIT;
+// render targets for MSAA
+qvktexture_t vk_msaaColorbuffer = QVVKTEXTURE_INIT;
+qvktexture_t vk_msaaDepthbuffer = QVVKTEXTURE_INIT;
 
 PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;
 PFN_vkDestroyDebugUtilsMessengerEXT qvkDestroyDebugUtilsMessengerEXT;
+
+VkFormat QVk_FindDepthFormat()
+{
+	VkFormat depthFormats[] = {
+		VK_FORMAT_D32_SFLOAT_S8_UINT,
+		VK_FORMAT_D32_SFLOAT,
+		VK_FORMAT_D24_UNORM_S8_UINT,
+		VK_FORMAT_D16_UNORM_S8_UINT,
+		VK_FORMAT_D16_UNORM
+	};
+
+	for (int i = 0; i < 5; ++i)
+	{
+		VkFormatProperties formatProps;
+		vkGetPhysicalDeviceFormatProperties(vk_device.physical, depthFormats[i], &formatProps);
+
+		if (formatProps.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)
+			return depthFormats[i];
+	}
+
+	return VK_FORMAT_D16_UNORM;
+}
+
+// internal helpers
+void DestroyImageViews()
+{
+	for (int i = 0; i < vk_swapchain.imageCount; i++)
+		vkDestroyImageView(vk_device.logical, vk_imageviews[i], NULL);
+	free(vk_imageviews);
+	vk_imageviews = NULL;
+}
+
+VkResult CreateImageViews()
+{
+	VkResult res = VK_SUCCESS;
+	vk_imageviews = (VkImageView *)malloc(vk_swapchain.imageCount * sizeof(VkImageView));
+
+	for (size_t i = 0; i < vk_swapchain.imageCount; ++i)
+	{
+		VkResult res = QVk_CreateImageView(&vk_swapchain.images[i], VK_IMAGE_ASPECT_COLOR_BIT, &vk_imageviews[i], vk_swapchain.format, 1);
+
+		if (res != VK_SUCCESS)
+		{
+			DestroyImageViews();
+			return res;
+		}
+	}
+
+	return res;
+}
+
+void DestroyFramebuffers()
+{
+	for (int f = 0; f < RT_COUNT; f++)
+	{
+		if (vk_framebuffers[f])
+		{
+			for (int i = 0; i < vk_swapchain.imageCount; ++i)
+			{
+				vkDestroyFramebuffer(vk_device.logical, vk_framebuffers[f][i], NULL);
+			}
+
+			free(vk_framebuffers[f]);
+			vk_framebuffers[f] = NULL;
+		}
+	}
+}
+
+VkResult CreateFramebuffers(const qvkrenderpass_t *renderpass, qvkrendertype_t framebufferType)
+{
+	VkResult res = VK_SUCCESS;
+	vk_framebuffers[framebufferType] = (VkFramebuffer *)malloc(vk_swapchain.imageCount * sizeof(VkFramebuffer));
+
+	VkFramebufferCreateInfo fbCreateInfo = {
+		.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+		.renderPass = renderpass->rp,
+		.attachmentCount = (renderpass->sampleCount != VK_SAMPLE_COUNT_1_BIT) ? 3 : 2,
+		.width = vk_swapchain.extent.width,
+		.height = vk_swapchain.extent.height,
+		.layers = 1
+	};
+
+	for (size_t i = 0; i < vk_swapchain.imageCount; ++i)
+	{
+		VkImageView attachments[] = { vk_imageviews[i], vk_depthbuffer.imageView };
+		VkImageView attachmentsMSAA[] = { vk_msaaColorbuffer.imageView, vk_msaaDepthbuffer.imageView, vk_imageviews[i] };
+
+		fbCreateInfo.pAttachments = (renderpass->sampleCount != VK_SAMPLE_COUNT_1_BIT) ? attachmentsMSAA : attachments;
+		VkResult result = vkCreateFramebuffer(vk_device.logical, &fbCreateInfo, NULL, &vk_framebuffers[framebufferType][i]);
+
+		if (result != VK_SUCCESS)
+		{
+			DestroyFramebuffers();
+			return res;
+		}
+	}
+
+	return res;
+}
+
+void CreateDrawBuffers()
+{
+	QVk_CreateDepthBuffer(vk_renderpasses[RT_STANDARD].sampleCount, &vk_depthbuffer);
+	ri.Con_Printf(PRINT_ALL, "...created depth buffer\n");
+	QVk_CreateDepthBuffer(vk_renderpasses[RT_MSAA].sampleCount, &vk_msaaDepthbuffer);
+	ri.Con_Printf(PRINT_ALL, "...created MSAA depth buffer\n");
+	QVk_CreateColorBuffer(vk_renderpasses[RT_MSAA].sampleCount, &vk_msaaColorbuffer);
+	ri.Con_Printf(PRINT_ALL, "...created MSAA color buffer\n");
+}
+
+void DestroyDrawBuffer(qvktexture_t *drawBuffer)
+{
+	if (drawBuffer->image != VK_NULL_HANDLE)
+	{
+		vmaDestroyImage(vk_malloc, drawBuffer->image, drawBuffer->allocation);
+		vkDestroyImageView(vk_device.logical, drawBuffer->imageView, NULL);
+		drawBuffer->image = VK_NULL_HANDLE;
+		drawBuffer->imageView = VK_NULL_HANDLE;
+	}
+}
+
+void DestroyDrawBuffers()
+{
+	DestroyDrawBuffer(&vk_depthbuffer);
+	DestroyDrawBuffer(&vk_msaaDepthbuffer);
+	DestroyDrawBuffer(&vk_msaaColorbuffer);
+}
 
 /*
 ** QVk_Shutdown
@@ -67,15 +222,36 @@ void QVk_Shutdown( void )
 		ri.Con_Printf(PRINT_ALL, "Shutting down Vulkan\n");
 		vkDeviceWaitIdle(vk_device.logical);
 
-		vkDestroySwapchainKHR(vk_device.logical, vk_swapchain.swapchain, NULL);
-		free(vk_swapchain.images);
-		vmaDestroyAllocator(vk_malloc);
-		vkDestroyDevice(vk_device.logical, NULL);
-		vkDestroySurfaceKHR(vk_instance, vk_surface, NULL);
+		for (int i = 0; i < RT_COUNT; i++)
+		{
+			if (vk_renderpasses[i].rp != VK_NULL_HANDLE)
+				vkDestroyRenderPass(vk_device.logical, vk_renderpasses[i].rp, NULL);
+			vk_renderpasses[i].rp = VK_NULL_HANDLE;
+		}
+		if (vk_commandPool != VK_NULL_HANDLE)
+			vkDestroyCommandPool(vk_device.logical, vk_commandPool, NULL);
+		if (vk_transferCommandPool != VK_NULL_HANDLE)
+			vkDestroyCommandPool(vk_device.logical, vk_transferCommandPool, NULL);
+		DestroyFramebuffers();
+		DestroyImageViews();
+		DestroyDrawBuffers();
+		if (vk_swapchain.sc != VK_NULL_HANDLE)
+		{
+			vkDestroySwapchainKHR(vk_device.logical, vk_swapchain.sc, NULL);
+			free(vk_swapchain.images);
+			vk_swapchain.images = NULL;
+			vk_swapchain.imageCount = 0;
+		}
+		if (vk_malloc != VK_NULL_HANDLE)
+			vmaDestroyAllocator(vk_malloc);
+		if (vk_device.logical != VK_NULL_HANDLE)
+			vkDestroyDevice(vk_device.logical, NULL);
+		if(vk_surface != VK_NULL_HANDLE)
+			vkDestroySurfaceKHR(vk_instance, vk_surface, NULL);
 		if (vk_validation->value)
 			QVk_DestroyValidationLayers();
-		vkDestroyInstance(vk_instance, NULL);
 
+		vkDestroyInstance(vk_instance, NULL);
 		vk_instance = VK_NULL_HANDLE;
 	}
 }
@@ -183,8 +359,67 @@ qboolean QVk_Init()
 		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan swapchain: %s\n", QVk_GetError(res));
 		return false;
 	}
-
 	ri.Con_Printf(PRINT_ALL, "...created Vulkan swapchain\n");
+
+	// setup render passes
+	res = QVk_CreateRenderpass(&vk_renderpasses[0]);
+	if (res != VK_SUCCESS)
+	{
+		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan renderpass: %s\n", QVk_GetError(res));
+		return false;
+	}
+	ri.Con_Printf(PRINT_ALL, "...created Vulkan renderpass\n");
+	res = QVk_CreateRenderpass(&vk_renderpasses[1]);
+	if (res != VK_SUCCESS)
+	{
+		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan MSAA renderpass: %s\n", QVk_GetError(res));
+		return false;
+	}
+	ri.Con_Printf(PRINT_ALL, "...created Vulkan MSAA renderpass\n");
+
+	// setup command pools
+	res = QVk_CreateCommandPool(&vk_commandPool, vk_device.gfxFamilyIndex);
+	if (res != VK_SUCCESS)
+	{
+		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan command pool for graphics: %s\n", QVk_GetError(res));
+		return false;
+	}
+	res = QVk_CreateCommandPool(&vk_transferCommandPool, vk_device.transferFamilyIndex);
+	if (res != VK_SUCCESS)
+	{
+		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan command pool for transfer: %s\n", QVk_GetError(res));
+		return false;
+	}
+	ri.Con_Printf(PRINT_ALL, "...created Vulkan command pools\n");
+
+	// setup draw buffers
+	CreateDrawBuffers();
+
+	// setup image views
+	res = CreateImageViews();
+	if (res != VK_SUCCESS)
+	{
+		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan image views: %s\n", QVk_GetError(res));
+		return false;
+	}
+	ri.Con_Printf(PRINT_ALL, "...created %d Vulkan image view(s)\n", vk_swapchain.imageCount);
+
+	// setup framebuffers
+	res = CreateFramebuffers(&vk_renderpasses[RT_STANDARD], RT_STANDARD);
+	if (res != VK_SUCCESS)
+	{
+		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan framebuffers: %s\n", QVk_GetError(res));
+		return false;
+	}
+	ri.Con_Printf(PRINT_ALL, "...created Vulkan framebuffers\n");
+	res = CreateFramebuffers(&vk_renderpasses[RT_MSAA], RT_MSAA);
+	if (res != VK_SUCCESS)
+	{
+		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan MSAA framebuffers: %s\n", QVk_GetError(res));
+		return false;
+	}
+	ri.Con_Printf(PRINT_ALL, "...created Vulkan MSAA framebuffers\n");
+
 	return false;
 }
 

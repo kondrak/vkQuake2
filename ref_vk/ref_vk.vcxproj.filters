@@ -54,6 +54,12 @@
     <ClCompile Include="vk_swapchain.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="vk_renderpass.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vk_cmd.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="ref_vk.def">

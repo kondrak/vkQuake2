@@ -45,6 +45,208 @@ int		gl_tex_alpha_format = 4;
 int		gl_filter_min = VK_FILTER_NEAREST; // GL_LINEAR_MIPMAP_NEAREST;
 int		gl_filter_max = VK_FILTER_LINEAR; // GL_LINEAR;
 
+static VkImageAspectFlags getDepthStencilAspect(VkFormat depthFormat)
+{
+	switch (depthFormat)
+	{
+	case VK_FORMAT_D32_SFLOAT_S8_UINT:
+	case VK_FORMAT_D24_UNORM_S8_UINT:
+	case VK_FORMAT_D16_UNORM_S8_UINT:
+		return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+	default:
+		return VK_IMAGE_ASPECT_DEPTH_BIT;
+	}
+}
+
+static void transitionImageLayout(const VkCommandBuffer *cmdBuffer, const VkQueue *queue, const qvktexture_t *texture, const VkImageLayout oldLayout, const VkImageLayout newLayout)
+{
+	VkPipelineStageFlags srcStage;
+	VkPipelineStageFlags dstStage;
+
+	VkImageMemoryBarrier imgBarrier = {
+		.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+		.oldLayout = oldLayout,
+		.newLayout = newLayout,
+		.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+		.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+		.image = texture->image,
+		.subresourceRange.baseMipLevel = 0, // no mip mapping levels
+		.subresourceRange.baseArrayLayer = 0,
+		.subresourceRange.layerCount = 1,
+		.subresourceRange.levelCount = texture->mipLevels
+	};
+
+	if (newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+	{
+		imgBarrier.subresourceRange.aspectMask = getDepthStencilAspect(texture->format);
+	}
+	else
+	{
+		imgBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	}
+
+	if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+	{
+		imgBarrier.srcAccessMask = 0;
+		imgBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+	}
+	else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+	{
+		if (vk_device.transferQueue == vk_device.gfxQueue)
+		{
+			imgBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		}
+		else
+		{
+			if (vk_device.transferQueue == *queue)
+			{
+				// if the image is exclusively shared, start queue ownership transfer process (release) - only for VK_SHARING_MODE_EXCLUSIVE
+				imgBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+				imgBarrier.dstAccessMask = 0;
+				imgBarrier.srcQueueFamilyIndex = vk_device.transferFamilyIndex;
+				imgBarrier.dstQueueFamilyIndex = vk_device.gfxFamilyIndex;
+				srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+				dstStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+			}
+			else
+			{
+				// continuing queue transfer (acquisition) - this will only happen for VK_SHARING_MODE_EXCLUSIVE images
+				if (texture->sharingMode == VK_SHARING_MODE_EXCLUSIVE)
+				{
+					imgBarrier.srcAccessMask = 0;
+					imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+					imgBarrier.srcQueueFamilyIndex = vk_device.transferFamilyIndex;
+					imgBarrier.dstQueueFamilyIndex = vk_device.gfxFamilyIndex;
+					srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+					dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+				}
+				else
+				{
+					imgBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+					imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+					srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+					dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+				}
+			}
+		}
+	}
+	else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+	{
+		imgBarrier.srcAccessMask = 0;
+		imgBarrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		dstStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+	}
+	else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+	{
+		imgBarrier.srcAccessMask = 0;
+		imgBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	}
+	else
+	{
+		assert(0 && !"Invalid image stage!");
+	}
+
+	vkCmdPipelineBarrier(*cmdBuffer, srcStage, dstStage, 0, 0, NULL, 0, NULL, 1, &imgBarrier);
+}
+
+VkResult QVk_CreateImageView(const VkImage *image, VkImageAspectFlags aspectFlags, VkImageView *imageView, VkFormat format, uint32_t mipLevels)
+{
+	VkImageViewCreateInfo ivCreateInfo = {
+		.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+		.pNext = NULL,
+		.flags = 0,
+		.image = *image,
+		.viewType = VK_IMAGE_VIEW_TYPE_2D,
+		.format = format,
+		.components.r = VK_COMPONENT_SWIZZLE_IDENTITY,
+		.components.g = VK_COMPONENT_SWIZZLE_IDENTITY,
+		.components.b = VK_COMPONENT_SWIZZLE_IDENTITY,
+		.components.a = VK_COMPONENT_SWIZZLE_IDENTITY,
+		.subresourceRange.aspectMask = aspectFlags,
+		.subresourceRange.baseArrayLayer = 0,
+		.subresourceRange.baseMipLevel = 0,
+		.subresourceRange.layerCount = 1,
+		.subresourceRange.levelCount = mipLevels
+	};
+
+	return vkCreateImageView(vk_device.logical, &ivCreateInfo, NULL, imageView);
+}
+
+VkResult QVk_CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VmaMemoryUsage memUsage, qvktexture_t *texture)
+{
+	VkImageCreateInfo imageInfo = {
+		.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+		.imageType = VK_IMAGE_TYPE_2D,
+		.extent.width = width,
+		.extent.height = height,
+		.extent.depth = 1,
+		.mipLevels = texture->mipLevels,
+		.arrayLayers = 1,
+		.format = format,
+		.tiling = tiling,
+		.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+		.usage = usage,
+		.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+		.samples = texture->sampleCount,
+		.flags = 0
+	};
+
+	if (vk_device.gfxFamilyIndex != vk_device.transferFamilyIndex)
+	{
+		uint32_t queueFamilies[] = { (uint32_t)vk_device.gfxFamilyIndex, (uint32_t)vk_device.transferFamilyIndex };
+		imageInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+		imageInfo.queueFamilyIndexCount = 2;
+		imageInfo.pQueueFamilyIndices = queueFamilies;
+	}
+
+	VmaAllocationCreateInfo vmallocInfo = {
+		// make sure memory regions for loaded images do not overlap
+		.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
+		.usage = memUsage
+	};
+
+	texture->sharingMode = imageInfo.sharingMode;
+	return vmaCreateImage(vk_malloc, &imageInfo, &vmallocInfo, &texture->image, &texture->allocation, NULL);
+}
+
+void QVk_CreateDepthBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *depthBuffer)
+{
+	depthBuffer->format = QVk_FindDepthFormat();
+	depthBuffer->sampleCount = sampleCount;
+
+	VK_VERIFY(QVk_CreateImage(vk_swapchain.extent.width, vk_swapchain.extent.height, depthBuffer->format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VMA_MEMORY_USAGE_GPU_ONLY, depthBuffer));
+	VK_VERIFY(QVk_CreateImageView(&depthBuffer->image, getDepthStencilAspect(depthBuffer->format), &depthBuffer->imageView, depthBuffer->format, depthBuffer->mipLevels));
+
+	VkCommandBuffer cmdBuffer = QVk_CreateCommandBuffer(&vk_commandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+	QVk_BeginCommand(&cmdBuffer);
+	transitionImageLayout(&cmdBuffer, &vk_device.gfxQueue, depthBuffer, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+	QVk_SubmitCommand(&cmdBuffer, &vk_device.gfxQueue);
+	vkFreeCommandBuffers(vk_device.logical, vk_commandPool, 1, &cmdBuffer);
+}
+
+void QVk_CreateColorBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *colorBuffer)
+{
+	colorBuffer->format = vk_swapchain.format;
+	colorBuffer->sampleCount = sampleCount;
+
+	VK_VERIFY(QVk_CreateImage(vk_swapchain.extent.width, vk_swapchain.extent.height, colorBuffer->format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VMA_MEMORY_USAGE_GPU_ONLY, colorBuffer));
+	VK_VERIFY(QVk_CreateImageView(&colorBuffer->image, VK_IMAGE_ASPECT_COLOR_BIT, &colorBuffer->imageView, colorBuffer->format, colorBuffer->mipLevels));
+
+	VkCommandBuffer cmdBuffer = QVk_CreateCommandBuffer(&vk_commandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+	QVk_BeginCommand(&cmdBuffer);
+	transitionImageLayout(&cmdBuffer, &vk_device.gfxQueue, colorBuffer, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+	QVk_SubmitCommand(&cmdBuffer, &vk_device.gfxQueue);
+	vkFreeCommandBuffers(vk_device.logical, vk_commandPool, 1, &cmdBuffer);
+}
+
 void Vk_SetTexturePalette( unsigned palette[256] )
 {
 

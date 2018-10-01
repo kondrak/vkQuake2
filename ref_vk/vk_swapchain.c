@@ -140,13 +140,12 @@ VkResult QVk_CreateSwapchain()
 		extent.width = max(surfaceCaps.minImageExtent.width, min(surfaceCaps.maxImageExtent.width, vid.width));
 		extent.height = max(surfaceCaps.minImageExtent.height, min(surfaceCaps.maxImageExtent.width, vid.height));
 	}
-	ri.Con_Printf(PRINT_ALL, "...trying swapchain extent: %dx%d\n", extent.width, extent.height);
 
 	uint32_t imageCount = surfaceCaps.minImageCount;
 	if (swapPresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
 		imageCount++;
 
-	VkSwapchainKHR oldSwapchain = vk_swapchain.swapchain;
+	VkSwapchainKHR oldSwapchain = vk_swapchain.sc;
 	VkSwapchainCreateInfoKHR scCreateInfo = {
 		.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
 		.surface = vk_surface,
@@ -174,13 +173,19 @@ VkResult QVk_CreateSwapchain()
 		scCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
 	}
 
-	VkResult res = vkCreateSwapchainKHR(vk_device.logical, &scCreateInfo, NULL, &vk_swapchain.swapchain);
+	vk_swapchain.format = swapSurfaceFormat.format;
+	vk_swapchain.extent = extent;
+	ri.Con_Printf(PRINT_ALL, "...trying swapchain extent: %dx%d\n", vk_swapchain.extent.width, vk_swapchain.extent.height);
+	ri.Con_Printf(PRINT_ALL, "...trying swapchain image format: %d\n", vk_swapchain.format);
+
+	VkResult res = vkCreateSwapchainKHR(vk_device.logical, &scCreateInfo, NULL, &vk_swapchain.sc);
 	if (res != VK_SUCCESS)
 		return res;
 
-	vkGetSwapchainImagesKHR(vk_device.logical, vk_swapchain.swapchain, &imageCount, NULL);
+	vkGetSwapchainImagesKHR(vk_device.logical, vk_swapchain.sc, &imageCount, NULL);
 	vk_swapchain.images = (VkImage *)malloc(imageCount * sizeof(VkImage));
-	res = vkGetSwapchainImagesKHR(vk_device.logical, vk_swapchain.swapchain, &imageCount, vk_swapchain.images);
+	vk_swapchain.imageCount = imageCount;
+	res = vkGetSwapchainImagesKHR(vk_device.logical, vk_swapchain.sc, &imageCount, vk_swapchain.images);
 
 	if (oldSwapchain != VK_NULL_HANDLE)
 		vkDestroySwapchainKHR(vk_device.logical, oldSwapchain, NULL);
