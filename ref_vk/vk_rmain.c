@@ -321,9 +321,9 @@ void R_RenderFrame (refdef_t *fd)
 void R_Register( void )
 {
 #ifdef _DEBUG
-	vk_validation = ri.Cvar_Get("vk_validation", "1", CVAR_NOSET);
+	vk_validation = ri.Cvar_Get("vk_validation", "1", 0);
 #else
-	vk_validation = ri.Cvar_Get("vk_validation", "0", CVAR_NOSET);
+	vk_validation = ri.Cvar_Get("vk_validation", "0", 0);
 #endif
 	vk_mode = ri.Cvar_Get("vk_mode", "3", CVAR_ARCHIVE);
 

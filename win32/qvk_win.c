@@ -248,8 +248,7 @@ void QVk_Shutdown( void )
 			vkDestroyDevice(vk_device.logical, NULL);
 		if(vk_surface != VK_NULL_HANDLE)
 			vkDestroySurfaceKHR(vk_instance, vk_surface, NULL);
-		if (vk_validation->value)
-			QVk_DestroyValidationLayers();
+		QVk_DestroyValidationLayers();
 
 		vkDestroyInstance(vk_instance, NULL);
 		vk_instance = VK_NULL_HANDLE;

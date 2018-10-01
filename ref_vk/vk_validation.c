@@ -82,6 +82,9 @@ void QVk_CreateValidationLayers()
 
 void QVk_DestroyValidationLayers()
 {
-	if (validationMessenger != VK_NULL_HANDLE)
-		qvkDestroyDebugUtilsMessengerEXT(vk_instance, validationMessenger, NULL);
+	if( validationMessenger != VK_NULL_HANDLE )
+	{
+		qvkDestroyDebugUtilsMessengerEXT( vk_instance, validationMessenger, NULL );
+		validationMessenger = VK_NULL_HANDLE;
+	}
 }
