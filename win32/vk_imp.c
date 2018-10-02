@@ -107,7 +107,7 @@ qboolean VID_CreateWindow( int width, int height, qboolean fullscreen )
 	vkw_state.hWnd = CreateWindowEx (
 		 exstyle, 
 		 WINDOW_CLASS_NAME,
-		 "Quake 2",
+		 "Quake 2 (Vulkan)",
 		 stylebits,
 		 x, y, w, h,
 		 NULL,

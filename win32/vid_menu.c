@@ -35,6 +35,7 @@ extern cvar_t *scr_viewsize;
 
 static cvar_t *gl_mode;
 static cvar_t *gl_driver;
+static cvar_t *vk_driver;
 static cvar_t *gl_picmip;
 static cvar_t *gl_ext_palettedtexture;
 static cvar_t *gl_finish;
@@ -170,6 +171,7 @@ static void ApplyChanges( void *unused )
 		break;
 	case REF_VULKAN:
 		Cvar_Set( "vid_ref", "vk" );
+		Cvar_Set( "vk_driver", "vulkan" );
 		break;
 	case REF_3DFX:
 		Cvar_Set( "vid_ref", "gl" );
@@ -212,6 +214,11 @@ static void ApplyChanges( void *unused )
 		}
 
 		if ( gl_driver->modified )
+			vid_ref->modified = true;
+	}
+	else if ( stricmp( vid_ref->string, "vk" ) == 0 )
+	{
+		if ( vk_driver->modified )
 			vid_ref->modified = true;
 	}
 
@@ -265,6 +272,8 @@ void VID_MenuInit( void )
 
 	if ( !gl_driver )
 		gl_driver = Cvar_Get( "gl_driver", "opengl32", 0 );
+	if ( !vk_driver )
+		vk_driver = Cvar_Get( "vk_driver", "vulkan", 0 );
 	if ( !gl_picmip )
 		gl_picmip = Cvar_Get( "gl_picmip", "0", 0 );
 	if ( !gl_mode )

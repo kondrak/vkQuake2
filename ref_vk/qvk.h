@@ -145,4 +145,7 @@ VkResult	QVk_BeginCommand(const VkCommandBuffer *commandBuffer);
 void		QVk_SubmitCommand(const VkCommandBuffer *commandBuffer, const VkQueue *queue);
 VkCommandBuffer QVk_CreateCommandBuffer(const VkCommandPool *commandPool, VkCommandBufferLevel level);
 const char *QVk_GetError(VkResult errorCode);
+VkResult	QVk_BeginFrame();
+VkResult	QVk_EndFrame();
+void		QVk_RecreateSwapchain();
 #endif

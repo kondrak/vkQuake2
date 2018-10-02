@@ -310,7 +310,7 @@ void	Draw_FadeScreen (void);
 void	Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data);
 
 void	R_BeginFrame( float camera_separation );
-void	R_SwapBuffers( int );
+void	R_EndFrame( void );
 void	R_SetPalette ( const unsigned char *palette);
 
 int		Draw_GetPalette (void);

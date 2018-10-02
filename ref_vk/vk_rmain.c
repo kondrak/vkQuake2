@@ -435,7 +435,17 @@ R_BeginFrame
 */
 void R_BeginFrame( float camera_separation )
 {
+	QVk_BeginFrame();
+}
 
+/*
+@@@@@@@@@@@@@@@@@@@@@
+R_EndFrame
+@@@@@@@@@@@@@@@@@@@@@
+*/
+void R_EndFrame( void )
+{
+	QVk_EndFrame();
 }
 
 /*
@@ -515,7 +525,7 @@ refexport_t GetRefAPI (refimport_t rimp )
 
 	re.CinematicSetPalette = R_SetPalette;
 	re.BeginFrame = R_BeginFrame;
-	re.EndFrame = Vkimp_EndFrame;
+	re.EndFrame = R_EndFrame;
 
 	re.AppActivate = Vkimp_AppActivate;
 

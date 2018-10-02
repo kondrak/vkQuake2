@@ -79,6 +79,27 @@ qvktexture_t vk_depthbuffer = QVVKTEXTURE_INIT;
 // render targets for MSAA
 qvktexture_t vk_msaaColorbuffer = QVVKTEXTURE_INIT;
 qvktexture_t vk_msaaDepthbuffer = QVVKTEXTURE_INIT;
+// viewport and scissor
+VkViewport vk_viewport = { .0f, .0f, .0f, .0f, .0f, .0f };
+VkRect2D vk_scissor = { { 0, 0 }, { 0, 0 } };
+
+#define NUM_CMDBUFFERS 2
+// Vulkan command buffers
+VkCommandBuffer *vk_commandbuffers = NULL;
+// command buffer double buffering fences
+VkFence vk_fences[NUM_CMDBUFFERS];
+// semaphore: signal when next image is available for rendering
+VkSemaphore vk_imageAvailableSemaphores[NUM_CMDBUFFERS];
+// semaphore: signal when rendering to current command buffer is complete
+VkSemaphore vk_renderFinishedSemaphores[NUM_CMDBUFFERS];
+// tracker variables
+qvkrenderpass_t vk_activeRenderpass;
+VkFramebuffer   vk_activeFramebuffer = VK_NULL_HANDLE;
+VkCommandBuffer vk_activeCmdbuffer = VK_NULL_HANDLE;
+// index of active command buffer
+int vk_activeBufferIdx = 0;
+// index of currently acquired image
+int vk_imageIndex = 0;
 
 PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;
 PFN_vkDestroyDebugUtilsMessengerEXT qvkDestroyDebugUtilsMessengerEXT;
@@ -228,6 +249,12 @@ void QVk_Shutdown( void )
 				vkDestroyRenderPass(vk_device.logical, vk_renderpasses[i].rp, NULL);
 			vk_renderpasses[i].rp = VK_NULL_HANDLE;
 		}
+		if (vk_commandbuffers)
+		{
+			vkFreeCommandBuffers(vk_device.logical, vk_commandPool, NUM_CMDBUFFERS, vk_commandbuffers);
+			free(vk_commandbuffers);
+			vk_commandbuffers = NULL;
+		}
 		if (vk_commandPool != VK_NULL_HANDLE)
 			vkDestroyCommandPool(vk_device.logical, vk_commandPool, NULL);
 		if (vk_transferCommandPool != VK_NULL_HANDLE)
@@ -242,6 +269,12 @@ void QVk_Shutdown( void )
 			vk_swapchain.images = NULL;
 			vk_swapchain.imageCount = 0;
 		}
+		for (int i = 0; i < NUM_CMDBUFFERS; ++i)
+		{
+			vkDestroySemaphore(vk_device.logical, vk_imageAvailableSemaphores[i], NULL);
+			vkDestroySemaphore(vk_device.logical, vk_renderFinishedSemaphores[i], NULL);
+			vkDestroyFence(vk_device.logical, vk_fences[i], NULL);
+		}
 		if (vk_malloc != VK_NULL_HANDLE)
 			vmaDestroyAllocator(vk_malloc);
 		if (vk_device.logical != VK_NULL_HANDLE)
@@ -252,6 +285,10 @@ void QVk_Shutdown( void )
 
 		vkDestroyInstance(vk_instance, NULL);
 		vk_instance = VK_NULL_HANDLE;
+		vk_activeFramebuffer = VK_NULL_HANDLE;
+		vk_activeCmdbuffer = VK_NULL_HANDLE;
+		vk_activeBufferIdx = 0;
+		vk_imageIndex = 0;
 	}
 }
 
@@ -360,6 +397,33 @@ qboolean QVk_Init()
 	}
 	ri.Con_Printf(PRINT_ALL, "...created Vulkan swapchain\n");
 
+	// set viewport and scissor
+	vk_viewport.x = 0.f;
+	vk_viewport.y = 0.f;
+	vk_viewport.minDepth = 0.f;
+	vk_viewport.maxDepth = 1.f;
+	vk_viewport.width = (float)vk_swapchain.extent.width;
+	vk_viewport.height = (float)vk_swapchain.extent.height;
+	vk_scissor.offset.x = 0;
+	vk_scissor.offset.y = 0;
+	vk_scissor.extent = vk_swapchain.extent;
+
+	// setup fences and semaphores
+	VkFenceCreateInfo fCreateInfo = {
+		.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+		.flags = VK_FENCE_CREATE_SIGNALED_BIT
+	};
+	VkSemaphoreCreateInfo sCreateInfo = { 
+		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO 
+	};
+	for (int i = 0; i < NUM_CMDBUFFERS; ++i)
+	{
+		VK_VERIFY(vkCreateFence(vk_device.logical, &fCreateInfo, NULL, &vk_fences[i]));
+		VK_VERIFY(vkCreateSemaphore(vk_device.logical, &sCreateInfo, NULL, &vk_imageAvailableSemaphores[i]));
+		VK_VERIFY(vkCreateSemaphore(vk_device.logical, &sCreateInfo, NULL, &vk_renderFinishedSemaphores[i]));
+	}
+	ri.Con_Printf(PRINT_ALL, "...created synchronization objects\n");
+
 	// setup render passes
 	res = QVk_CreateRenderpass(&vk_renderpasses[0]);
 	if (res != VK_SUCCESS)
@@ -410,16 +474,145 @@ qboolean QVk_Init()
 		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan framebuffers: %s\n", QVk_GetError(res));
 		return false;
 	}
-	ri.Con_Printf(PRINT_ALL, "...created Vulkan framebuffers\n");
+	ri.Con_Printf(PRINT_ALL, "...created %d Vulkan framebuffers\n", vk_swapchain.imageCount);
 	res = CreateFramebuffers(&vk_renderpasses[RT_MSAA], RT_MSAA);
 	if (res != VK_SUCCESS)
 	{
 		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan MSAA framebuffers: %s\n", QVk_GetError(res));
 		return false;
 	}
-	ri.Con_Printf(PRINT_ALL, "...created Vulkan MSAA framebuffers\n");
+	ri.Con_Printf(PRINT_ALL, "...created %d Vulkan MSAA framebuffers\n", vk_swapchain.imageCount);
 
-	return false;
+	// setup command buffers (double buffering)
+	vk_commandbuffers = (VkCommandBuffer *)malloc(NUM_CMDBUFFERS * sizeof(VkCommandBuffer));
+
+	VkCommandBufferAllocateInfo cbInfo = {
+		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+		.commandPool = vk_commandPool,
+		.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+		.commandBufferCount = NUM_CMDBUFFERS
+	};
+
+	res = vkAllocateCommandBuffers(vk_device.logical, &cbInfo, vk_commandbuffers);
+	if (res != VK_SUCCESS)
+	{
+		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan commandbuffers: %s\n", QVk_GetError(res));
+		free(vk_commandbuffers);
+		vk_commandbuffers = NULL;
+		return false;
+	}
+	ri.Con_Printf(PRINT_ALL, "...created %d Vulkan commandbuffers\n", NUM_CMDBUFFERS);
+
+	// initialize tracker variables
+	vk_activeRenderpass = vk_renderpasses[RT_STANDARD];
+	vk_activeFramebuffer = vk_framebuffers[RT_STANDARD];
+	vk_activeCmdbuffer = vk_commandbuffers[vk_activeBufferIdx];
+
+	return true;
+}
+
+VkResult QVk_BeginFrame()
+{
+	VkResult result = vkAcquireNextImageKHR(vk_device.logical, vk_swapchain.sc, UINT32_MAX, vk_imageAvailableSemaphores[vk_activeBufferIdx], VK_NULL_HANDLE, &vk_imageIndex);
+	vk_activeCmdbuffer = vk_commandbuffers[vk_activeBufferIdx];
+	vk_activeFramebuffer = (vk_activeRenderpass.sampleCount == VK_SAMPLE_COUNT_1_BIT) ? vk_framebuffers[RT_STANDARD][vk_imageIndex] : vk_framebuffers[RT_MSAA][vk_imageIndex];
+
+	// swapchain has become incompatible - need to recreate it
+	if (result == VK_ERROR_OUT_OF_DATE_KHR)
+	{
+		ri.Con_Printf(PRINT_ALL, "Vulkan swapchain incompatible after vkAcquireNextImageKHR - rebuilding!");
+		QVk_RecreateSwapchain();
+		return result;
+	}
+
+	VK_VERIFY(vkWaitForFences(vk_device.logical, 1, &vk_fences[vk_activeBufferIdx], VK_TRUE, UINT32_MAX));
+	VK_VERIFY(vkResetFences(vk_device.logical, 1, &vk_fences[vk_activeBufferIdx]));
+
+	assert((result == VK_SUCCESS || result == VK_SUBOPTIMAL_KHR) && "Could not acquire swapchain image!");
+
+	// setup command buffers and render pass for drawing
+	VkCommandBufferBeginInfo beginInfo = {
+		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+		.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+		.pInheritanceInfo = NULL
+	};
+
+	VK_VERIFY(vkBeginCommandBuffer(vk_commandbuffers[vk_activeBufferIdx], &beginInfo));
+
+	VkClearValue clearColors[2] = {
+		{ .color = { .3f, .3f, .3f, 1.f } },
+		{ .depthStencil = { 1.f, 0 } }
+	};
+	VkRenderPassBeginInfo renderBeginInfo = {
+		.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+		.renderPass = vk_activeRenderpass.rp,
+		.framebuffer = vk_activeFramebuffer,
+		.renderArea.offset = { 0, 0 },
+		.renderArea.extent = vk_swapchain.extent,
+		.clearValueCount = 2,
+		.pClearValues = clearColors
+	};
+
+#if 0
+	vkCmdBeginRenderPass(vk_commandbuffers[vk_activeBufferIdx], &renderBeginInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
+#else
+	vkCmdBeginRenderPass(vk_commandbuffers[vk_activeBufferIdx], &renderBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+	vkCmdSetViewport(vk_commandbuffers[vk_activeBufferIdx], 0, 1, &vk_viewport);
+	vkCmdSetScissor(vk_commandbuffers[vk_activeBufferIdx], 0, 1, &vk_scissor);
+#endif
+
+	return VK_SUCCESS;
+}
+
+VkResult QVk_EndFrame()
+{
+	// submit
+	vkCmdEndRenderPass(vk_commandbuffers[vk_activeBufferIdx]);
+	VK_VERIFY(vkEndCommandBuffer(vk_commandbuffers[vk_activeBufferIdx]));
+
+	VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+	VkSubmitInfo submitInfo = {
+		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+		.waitSemaphoreCount = 1,
+		.pWaitSemaphores = &vk_imageAvailableSemaphores[vk_activeBufferIdx],
+		.signalSemaphoreCount = 1,
+		.pSignalSemaphores = &vk_renderFinishedSemaphores[vk_activeBufferIdx],
+		.pWaitDstStageMask = waitStages,
+		.commandBufferCount = 1,
+		.pCommandBuffers = &vk_commandbuffers[vk_activeBufferIdx]
+	};
+
+	VK_VERIFY(vkQueueSubmit(vk_device.gfxQueue, 1, &submitInfo, vk_fences[vk_activeBufferIdx]));
+
+	// present
+	VkSwapchainKHR swapChains[] = { vk_swapchain.sc };
+	VkPresentInfoKHR presentInfo = {
+		.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+		.waitSemaphoreCount = 1,
+		.pWaitSemaphores = &vk_renderFinishedSemaphores[vk_activeBufferIdx],
+		.swapchainCount = 1,
+		.pSwapchains = swapChains,
+		.pImageIndices = &vk_imageIndex,
+		.pResults = NULL
+	};
+
+	VkResult renderResult = vkQueuePresentKHR(vk_device.presentQueue, &presentInfo);
+
+	// recreate swapchain if it's out of date
+	if (renderResult == VK_ERROR_OUT_OF_DATE_KHR || renderResult == VK_SUBOPTIMAL_KHR)
+	{
+		ri.Con_Printf(PRINT_ALL, "Vulkan swapchain out of date/suboptimal after vkQueuePresentKHR - rebuilding!");
+		QVk_RecreateSwapchain();
+	}
+
+	vk_activeBufferIdx = (vk_activeBufferIdx + 1) % NUM_CMDBUFFERS;
+
+	return renderResult;
+}
+
+void QVk_RecreateSwapchain()
+{
+	ri.Con_Printf(PRINT_ALL, "QVk_RecreateSwapchain()");
 }
 
 const char *QVk_GetError(VkResult errorCode)
