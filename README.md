@@ -13,4 +13,4 @@ Features:
 - added custom debug console for debug builds
 - updated with Knightmare software renderer with color
 - fixed original compiler warnings
-- vk_validation command to enable layers
+- vk_validation command to enable layers (0 - off, 1 - warnings and errors, 2 - full validation, defaults to 2 in debug builds and 0 in release)
