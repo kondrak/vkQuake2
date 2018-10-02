@@ -35,7 +35,6 @@ extern cvar_t *scr_viewsize;
 
 static cvar_t *gl_mode;
 static cvar_t *gl_driver;
-static cvar_t *vk_driver;
 static cvar_t *gl_picmip;
 static cvar_t *gl_ext_palettedtexture;
 static cvar_t *gl_finish;
@@ -44,6 +43,7 @@ static cvar_t *sw_mode;
 static cvar_t *sw_stipplealpha;
 
 static cvar_t *vk_mode;
+static cvar_t *vk_driver;
 
 extern void M_ForceMenuOff( void );
 
@@ -272,16 +272,12 @@ void VID_MenuInit( void )
 
 	if ( !gl_driver )
 		gl_driver = Cvar_Get( "gl_driver", "opengl32", 0 );
-	if ( !vk_driver )
-		vk_driver = Cvar_Get( "vk_driver", "vulkan", 0 );
 	if ( !gl_picmip )
 		gl_picmip = Cvar_Get( "gl_picmip", "0", 0 );
 	if ( !gl_mode )
 		gl_mode = Cvar_Get( "gl_mode", "3", 0 );
 	if ( !sw_mode )
 		sw_mode = Cvar_Get( "sw_mode", "0", 0 );
-	if ( !vk_mode )
-		vk_mode = Cvar_Get( "vk_mode", "6", 0 );
 	if ( !gl_ext_palettedtexture )
 		gl_ext_palettedtexture = Cvar_Get( "gl_ext_palettedtexture", "1", CVAR_ARCHIVE );
 	if ( !gl_finish )
@@ -289,6 +285,11 @@ void VID_MenuInit( void )
 
 	if ( !sw_stipplealpha )
 		sw_stipplealpha = Cvar_Get( "sw_stipplealpha", "0", CVAR_ARCHIVE );
+
+	if( !vk_mode )
+		vk_mode = Cvar_Get( "vk_mode", "6", 0 );
+	if( !vk_driver )
+		vk_driver = Cvar_Get( "vk_driver", "vulkan", 0 );
 
 	s_mode_list[SOFTWARE_MENU].curvalue = sw_mode->value;
 	s_mode_list[OPENGL_MENU].curvalue = gl_mode->value;
