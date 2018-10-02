@@ -520,7 +520,7 @@ VkResult QVk_BeginFrame()
 	// swapchain has become incompatible - need to recreate it
 	if (result == VK_ERROR_OUT_OF_DATE_KHR)
 	{
-		ri.Con_Printf(PRINT_ALL, "Vulkan swapchain incompatible after vkAcquireNextImageKHR - rebuilding!");
+		ri.Con_Printf(PRINT_ALL, "Vulkan swapchain incompatible after vkAcquireNextImageKHR - rebuilding!\n");
 		QVk_RecreateSwapchain();
 		return result;
 	}
@@ -601,7 +601,7 @@ VkResult QVk_EndFrame()
 	// recreate swapchain if it's out of date
 	if (renderResult == VK_ERROR_OUT_OF_DATE_KHR || renderResult == VK_SUBOPTIMAL_KHR)
 	{
-		ri.Con_Printf(PRINT_ALL, "Vulkan swapchain out of date/suboptimal after vkQueuePresentKHR - rebuilding!");
+		ri.Con_Printf(PRINT_ALL, "Vulkan swapchain out of date/suboptimal after vkQueuePresentKHR - rebuilding!\n");
 		QVk_RecreateSwapchain();
 	}
 
@@ -612,7 +612,18 @@ VkResult QVk_EndFrame()
 
 void QVk_RecreateSwapchain()
 {
-	ri.Con_Printf(PRINT_ALL, "QVk_RecreateSwapchain()");
+	vkDeviceWaitIdle( vk_device.logical );
+	DestroyFramebuffers();
+	DestroyImageViews();
+	VK_VERIFY( QVk_CreateSwapchain() );
+	vk_viewport.width = vk_swapchain.extent.width;
+	vk_viewport.height = vk_swapchain.extent.height;
+	vk_scissor.extent = vk_swapchain.extent;
+	DestroyDrawBuffers();
+	CreateDrawBuffers();
+	VK_VERIFY( CreateImageViews() );
+	VK_VERIFY( CreateFramebuffers( &vk_renderpasses[RT_STANDARD], RT_STANDARD ) );
+	VK_VERIFY( CreateFramebuffers( &vk_renderpasses[RT_MSAA], RT_MSAA ) );
 }
 
 const char *QVk_GetError(VkResult errorCode)
