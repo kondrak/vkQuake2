@@ -297,12 +297,6 @@ rserr_t Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen 
 */
 void Vkimp_Shutdown( void )
 {
-	if (vkw_state.hDC)
-	{
-		if (!ReleaseDC(vkw_state.hWnd, vkw_state.hDC))
-			ri.Con_Printf(PRINT_ALL, "ref_vk::R_Shutdown() - ReleaseDC failed\n");
-		vkw_state.hDC = NULL;
-	}
 	if (vkw_state.hWnd)
 	{
 		DestroyWindow(vkw_state.hWnd);

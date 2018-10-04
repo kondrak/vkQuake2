@@ -96,7 +96,6 @@ cvar_t	*gl_ext_palettedtexture;
 cvar_t	*gl_ext_pointparameters;
 cvar_t	*gl_ext_compiled_vertex_array;
 
-cvar_t	*gl_drawbuffer;
 cvar_t	*gl_lightmap;
 cvar_t	*gl_shadows;
 cvar_t	*gl_dynamic;
@@ -107,7 +106,6 @@ cvar_t	*gl_round_down;
 cvar_t	*gl_picmip;
 cvar_t	*gl_skymip;
 cvar_t	*gl_showtris;
-cvar_t	*gl_finish;
 cvar_t	*gl_cull;
 cvar_t	*gl_polyblend;
 cvar_t	*gl_flashblend;
