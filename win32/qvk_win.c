@@ -32,6 +32,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "../ref_vk/vk_local.h"
 #include "vk_win.h"
 
+FILE *vk_logfp = NULL;
+
 VkInstance	 vk_instance = VK_NULL_HANDLE;
 VkSurfaceKHR vk_surface = VK_NULL_HANDLE;
 VmaAllocator vk_malloc  = VK_NULL_HANDLE;
@@ -657,6 +659,34 @@ const char *QVk_GetError(VkResult errorCode)
 	}
 #undef ERRSTR
 	return "UNKNOWN ERROR";
+}
+
+void Vkimp_EnableLogging(qboolean enable)
+{
+	if (enable)
+	{
+		if (!vkw_state.log_fp)
+		{
+			struct tm *newtime;
+			time_t aclock;
+			char buffer[1024];
+
+			time(&aclock);
+			newtime = localtime(&aclock);
+
+			asctime(newtime);
+
+			Com_sprintf(buffer, sizeof(buffer), "%s/vk.log", ri.FS_Gamedir());
+			vkw_state.log_fp = fopen(buffer, "wt");
+
+			fprintf(vkw_state.log_fp, "%s\n", asctime(newtime));
+		}
+		vk_logfp = vkw_state.log_fp;
+	}
+	else
+	{
+		vk_logfp = NULL;
+	}
 }
 
 void Vkimp_LogNewFrame( void )

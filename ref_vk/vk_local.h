@@ -191,12 +191,12 @@ extern	cvar_t	*r_lerpmodels;
 extern	cvar_t	*r_lightlevel;	// FIXME: This is a HACK to get the client's light level
 
 extern cvar_t	*vk_validation;
-extern	cvar_t	*vk_mode;
-extern cvar_t	*gl_vertex_arrays;
+extern cvar_t	*vk_mode;
+extern cvar_t	*vk_bitdepth;
+extern cvar_t	*vk_log;
 
 extern cvar_t	*gl_ext_swapinterval;
 extern cvar_t	*gl_ext_palettedtexture;
-extern cvar_t	*gl_ext_multitexture;
 extern cvar_t	*gl_ext_pointparameters;
 extern cvar_t	*gl_ext_compiled_vertex_array;
 
@@ -207,9 +207,6 @@ extern cvar_t	*gl_particle_att_a;
 extern cvar_t	*gl_particle_att_b;
 extern cvar_t	*gl_particle_att_c;
 
-extern	cvar_t	*gl_nosubimage;
-extern	cvar_t	*gl_bitdepth;
-extern	cvar_t	*gl_log;
 extern	cvar_t	*gl_lightmap;
 extern	cvar_t	*gl_shadows;
 extern	cvar_t	*gl_dynamic;
@@ -220,8 +217,6 @@ extern	cvar_t	*gl_picmip;
 extern	cvar_t	*gl_skymip;
 extern	cvar_t	*gl_showtris;
 extern	cvar_t	*gl_finish;
-extern	cvar_t	*gl_ztrick;
-extern	cvar_t	*gl_clear;
 extern	cvar_t	*gl_cull;
 extern	cvar_t	*gl_poly;
 extern	cvar_t	*gl_texsort;
@@ -231,8 +226,6 @@ extern	cvar_t	*gl_lightmaptype;
 extern	cvar_t	*gl_modulate;
 extern	cvar_t	*gl_playermip;
 extern	cvar_t	*gl_drawbuffer;
-extern	cvar_t	*gl_3dlabs_broken;
-extern  cvar_t  *gl_driver;
 extern	cvar_t	*gl_swapinterval;
 extern	cvar_t	*gl_texturemode;
 extern	cvar_t	*gl_texturealphamode;
@@ -401,6 +394,7 @@ int 		Vkimp_Init( void *hinstance, void *hWnd );
 void		Vkimp_Shutdown( void );
 int			Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen );
 void		Vkimp_AppActivate( qboolean active );
+void		Vkimp_EnableLogging( qboolean enable );
+void		Vkimp_LogNewFrame( void );
 void		Vkimp_GetSurfaceExtensions(char **extensions, uint32_t *extCount);
 VkResult	Vkimp_CreateSurface();
-void		Vkimp_LogNewFrame( void );

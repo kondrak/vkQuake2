@@ -81,10 +81,8 @@ cvar_t	*r_lightlevel;	// FIXME: This is a HACK to get the client's light level
 
 cvar_t	*vk_validation;
 cvar_t	*vk_mode;
-cvar_t	*gl_nosubimage;
-cvar_t	*gl_allow_software;
-
-cvar_t	*gl_vertex_arrays;
+cvar_t	*vk_bitdepth;
+cvar_t	*vk_log;
 
 cvar_t	*gl_particle_min_size;
 cvar_t	*gl_particle_max_size;
@@ -95,14 +93,10 @@ cvar_t	*gl_particle_att_c;
 
 cvar_t	*gl_ext_swapinterval;
 cvar_t	*gl_ext_palettedtexture;
-cvar_t	*gl_ext_multitexture;
 cvar_t	*gl_ext_pointparameters;
 cvar_t	*gl_ext_compiled_vertex_array;
 
-cvar_t	*gl_log;
-cvar_t	*gl_bitdepth;
 cvar_t	*gl_drawbuffer;
-cvar_t  *gl_driver;
 cvar_t	*gl_lightmap;
 cvar_t	*gl_shadows;
 cvar_t	*gl_dynamic;
@@ -113,9 +107,7 @@ cvar_t	*gl_round_down;
 cvar_t	*gl_picmip;
 cvar_t	*gl_skymip;
 cvar_t	*gl_showtris;
-cvar_t	*gl_ztrick;
 cvar_t	*gl_finish;
-cvar_t	*gl_clear;
 cvar_t	*gl_cull;
 cvar_t	*gl_polyblend;
 cvar_t	*gl_flashblend;
@@ -126,8 +118,6 @@ cvar_t	*gl_texturemode;
 cvar_t	*gl_texturealphamode;
 cvar_t	*gl_texturesolidmode;
 cvar_t	*gl_lockpvs;
-
-cvar_t	*gl_3dlabs_broken;
 
 cvar_t	*vid_fullscreen;
 cvar_t	*vid_gamma;
@@ -326,6 +316,8 @@ void R_Register( void )
 	vk_validation = ri.Cvar_Get("vk_validation", "0", 0);
 #endif
 	vk_mode = ri.Cvar_Get("vk_mode", "3", CVAR_ARCHIVE);
+	vk_bitdepth = ri.Cvar_Get("vk_bitdepth", "0", 0);
+	vk_log = ri.Cvar_Get("vk_log", "0", 0);
 
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
@@ -357,7 +349,7 @@ qboolean R_SetMode (void)
 		{
 			ri.Cvar_SetValue("vid_fullscreen", 0);
 			vid_fullscreen->modified = false;
-			ri.Con_Printf(PRINT_ALL, "ref_gl::R_SetMode() - fullscreen unavailable in this mode\n");
+			ri.Con_Printf(PRINT_ALL, "ref_vk::R_SetMode() - fullscreen unavailable in this mode\n");
 			if ((err = Vkimp_SetMode(&vid.width, &vid.height, vk_mode->value, false)) == rserr_ok)
 				return true;
 		}
@@ -371,7 +363,7 @@ qboolean R_SetMode (void)
 		// try setting it back to something safe
 		if ((err = Vkimp_SetMode(&vid.width, &vid.height, vk_state.prev_mode, false)) != rserr_ok)
 		{
-			ri.Con_Printf(PRINT_ALL, "ref_gl::R_SetMode() - could not revert to safe mode\n");
+			ri.Con_Printf(PRINT_ALL, "ref_vk::R_SetMode() - could not revert to safe mode\n");
 			return false;
 		}
 	}
@@ -435,6 +427,27 @@ R_BeginFrame
 */
 void R_BeginFrame( float camera_separation )
 {
+	/*
+	** change modes if necessary
+	*/
+	if (vk_mode->modified || vid_fullscreen->modified)
+	{
+		cvar_t	*ref = ri.Cvar_Get("vid_ref", "vk", 0);
+		ref->modified = true;
+	}
+
+	if (vk_log->modified)
+	{
+		Vkimp_EnableLogging(vk_log->value);
+		vk_log->modified = false;
+	}
+
+	if (vk_log->value)
+	{
+		Vkimp_LogNewFrame();
+	}
+
+	Vkimp_BeginFrame(camera_separation);
 	QVk_BeginFrame();
 }
 

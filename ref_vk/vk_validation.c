@@ -21,6 +21,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "vk_local.h"
 
 static VkDebugUtilsMessengerEXT validationMessenger = VK_NULL_HANDLE;
+extern FILE *vk_logfp;
+
+#define VK_FILELOG(msg, ...) if(vk_log->value && vk_logfp) { \
+	fprintf(vk_logfp, msg, __VA_ARGS__); \
+}
 
 static const char* msgToString(VkDebugUtilsMessageTypeFlagsEXT type)
 {
@@ -45,17 +50,21 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsCallback(VkDebugUtilsMessageSeve
 	switch (msgSeverity)
 	{
 	case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-		ri.Con_Printf(PRINT_ALL, "VK_INFO: %s %s\n", callbackData->pMessage, msgToString(msgType)); 
+		ri.Con_Printf(PRINT_ALL, "VK_INFO: %s %s\n", callbackData->pMessage, msgToString(msgType));
+		VK_FILELOG("VK_INFO: %s %s\n", callbackData->pMessage, msgToString(msgType));
 		break;
 	case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
 		ri.Con_Printf(PRINT_ALL, "VK_VERBOSE: %s %s\n", callbackData->pMessage, msgToString(msgType));
+		VK_FILELOG("VK_VERBOSE: %s %s\n", callbackData->pMessage, msgToString(msgType));
 		break;
 	case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
 		ri.Con_Printf(PRINT_ALL, "VK_WARNING: %s %s\n", callbackData->pMessage, msgToString(msgType));
+		VK_FILELOG("VK_WARNING: %s %s\n", callbackData->pMessage, msgToString(msgType));
 		assert(!"Vulkan warning occured!");
 		break;
 	default:
 		ri.Con_Printf(PRINT_ALL, "VK_ERROR: %s %s\n", callbackData->pMessage, msgToString(msgType));
+		VK_FILELOG("VK_ERROR: %s %s\n", callbackData->pMessage, msgToString(msgType));
 		assert(!"Vulkan error occured!");
 	}
 	return VK_FALSE;

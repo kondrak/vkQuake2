@@ -193,11 +193,11 @@ rserr_t Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen 
 		dm.dmPelsHeight = height;
 		dm.dmFields     = DM_PELSWIDTH | DM_PELSHEIGHT;
 
-		if ( gl_bitdepth->value != 0 )
+		if ( vk_bitdepth->value != 0 )
 		{
-			dm.dmBitsPerPel = gl_bitdepth->value;
+			dm.dmBitsPerPel = vk_bitdepth->value;
 			dm.dmFields |= DM_BITSPERPEL;
-			ri.Con_Printf( PRINT_ALL, "...using gl_bitdepth of %d\n", ( int ) gl_bitdepth->value );
+			ri.Con_Printf( PRINT_ALL, "...using vk_bitdepth of %d\n", ( int ) vk_bitdepth->value );
 		}
 		else
 		{
@@ -237,9 +237,9 @@ rserr_t Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen 
 			dm.dmPelsHeight = height;
 			dm.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT;
 
-			if ( gl_bitdepth->value != 0 )
+			if ( vk_bitdepth->value != 0 )
 			{
-				dm.dmBitsPerPel = gl_bitdepth->value;
+				dm.dmBitsPerPel = vk_bitdepth->value;
 				dm.dmFields |= DM_BITSPERPEL;
 			}
 
@@ -379,7 +379,15 @@ qboolean Vkimp_Init( void *hinstance, void *wndproc )
 */
 void Vkimp_BeginFrame( float camera_separation )
 {
-
+	if (vk_bitdepth->modified)
+	{
+		if (vk_bitdepth->value != 0 && !vkw_state.allowdisplaydepthchange)
+		{
+			ri.Cvar_SetValue("vk_bitdepth", 0);
+			ri.Con_Printf(PRINT_ALL, "gl_bitdepth requires Win95 OSR2.x or WinNT 4.x\n");
+		}
+		vk_bitdepth->modified = false;
+	}
 }
 
 /*
