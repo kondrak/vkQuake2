@@ -99,6 +99,20 @@ typedef struct
 	VkSampleCountFlagBits sampleCount;
 } qvkrenderpass_t;
 
+typedef struct
+{
+	VkBuffer buffer;
+	VmaAllocation allocation;
+} qvkbuffer_t;
+
+typedef struct
+{
+	VkBufferUsageFlags usage;
+	VkMemoryPropertyFlags memFlags;
+	VmaMemoryUsage vmaUsage;
+	VmaAllocationCreateFlags vmaFlags;
+} qvkbufferopts_t;
+
 typedef enum
 {
 	RT_STANDARD = 0,
@@ -148,4 +162,9 @@ const char *QVk_GetError(VkResult errorCode);
 VkResult	QVk_BeginFrame();
 VkResult	QVk_EndFrame();
 void		QVk_RecreateSwapchain();
+void		QVk_FreeBuffer(qvkbuffer_t *buffer);
+VkResult	QVk_CreateStagingBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer);
+VkResult	QVk_CreateUniformBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer);
+void		QVK_CreateVertexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, qvkbuffer_t *stagingBuffer);
+void		QVK_CreateIndexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, qvkbuffer_t *stagingBuffer);
 #endif

@@ -98,12 +98,14 @@
     <ClCompile Include="..\win32\qvk_win.c" />
     <ClCompile Include="..\win32\q_shwin.c" />
     <ClCompile Include="..\win32\vk_imp.c" />
+    <ClCompile Include="vk_buffer.c" />
     <ClCompile Include="vk_cmd.c" />
     <ClCompile Include="vk_device.c" />
     <ClCompile Include="vk_draw.c" />
     <ClCompile Include="vk_image.c" />
     <ClCompile Include="vk_mem_alloc.cpp" />
     <ClCompile Include="vk_model.c" />
+    <ClCompile Include="vk_pipeline.c" />
     <ClCompile Include="vk_renderpass.c" />
     <ClCompile Include="vk_rmain.c" />
     <ClCompile Include="vk_swapchain.c" />
