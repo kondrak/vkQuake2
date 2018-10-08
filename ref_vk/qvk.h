@@ -113,6 +113,41 @@ typedef struct
 	VmaAllocationCreateFlags vmaFlags;
 } qvkbufferopts_t;
 
+typedef struct
+{
+	VkPipelineLayout layout;
+	VkPipeline pipeline;
+	VkPipeline basePipelineHandle;
+	VkPipelineCache cache;
+	VkPipelineCreateFlags flags;
+	VkPolygonMode mode;
+	VkCullModeFlags cullMode;
+	VkPrimitiveTopology topology;
+	VkBlendFactor blendMode;
+	VkBool32 depthTestEnable;
+	float minSampleShading; // sample shading minimum fraction - >= 0 to enable
+} qvkpipeline_t;
+
+typedef struct
+{
+	VkPipelineShaderStageCreateInfo createInfo;
+	VkShaderModule module;
+} qvkshader_t;
+
+#define QVKPIPELINE_INIT { \
+	.layout = VK_NULL_HANDLE, \
+	.pipeline = VK_NULL_HANDLE, \
+	.basePipelineHandle = VK_NULL_HANDLE, \
+	.cache = VK_NULL_HANDLE, \
+	.flags = 0, \
+	.mode = VK_POLYGON_MODE_FILL, \
+	.cullMode = VK_CULL_MODE_BACK_BIT, \
+	.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, \
+	.blendMode = VK_BLEND_FACTOR_ZERO, \
+	.depthTestEnable = VK_TRUE, \
+	.minSampleShading = -1.f \
+}
+
 typedef enum
 {
 	RT_STANDARD = 0,
@@ -130,10 +165,8 @@ extern qvkdevice_t vk_device;
 extern VmaAllocator vk_malloc;
 // Vulkan swapchain
 extern qvkswapchain_t vk_swapchain;
-// Vulkan renderpasses (standard and MSAA)
-extern qvkrenderpass_t vk_renderpasses[RT_COUNT];
-// Vulkan MSAA renderpass
-extern qvkrenderpass_t vk_msaaRenderpass;
+// Vulkan renderpass currently in use (standard or MSAA)
+extern qvkrenderpass_t vk_activeRenderpass;
 // Vulkan command pools
 extern VkCommandPool vk_commandPool;
 extern VkCommandPool vk_transferCommandPool;
@@ -167,4 +200,6 @@ VkResult	QVk_CreateStagingBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer);
 VkResult	QVk_CreateUniformBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer);
 void		QVK_CreateVertexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, qvkbuffer_t *stagingBuffer);
 void		QVK_CreateIndexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, qvkbuffer_t *stagingBuffer);
+qvkshader_t QVk_CreateShader(const uint32_t *shaderSrc, size_t shaderCodeSize, VkShaderStageFlagBits shaderStage);
+void		QVk_CreatePipeline(const VkDescriptorSetLayout descriptorLayout, const VkPipelineVertexInputStateCreateInfo *vertexInputInfo, qvkpipeline_t *pipeline, const qvkshader_t *shaders, uint32_t shaderCount);
 #endif

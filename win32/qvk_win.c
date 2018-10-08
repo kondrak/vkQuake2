@@ -56,6 +56,7 @@ qvkswapchain_t vk_swapchain = {
 	.imageCount = 0
 };
 
+// Vulkan renderpasses (standard and MSAA)
 qvkrenderpass_t vk_renderpasses[RT_COUNT] = { 
 	{
 		.rp = VK_NULL_HANDLE,

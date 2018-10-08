@@ -402,6 +402,7 @@ qboolean R_Init( void *hinstance, void *hWnd )
 		return false;
 	}
 
+	ri.Con_Printf(PRINT_ALL, "Successfully initialized Vulkan!\n");
 	return true;
 }
 
