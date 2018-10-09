@@ -107,6 +107,23 @@ int vk_imageIndex = 0;
 PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;
 PFN_vkDestroyDebugUtilsMessengerEXT qvkDestroyDebugUtilsMessengerEXT;
 
+qvkpipeline_t vk_console_pipeline = QVKPIPELINE_INIT;
+
+#define VK_INPUTBIND_DESC(s) { \
+	.binding = 0, \
+	.stride = s, \
+	.inputRate = VK_VERTEX_INPUT_RATE_VERTEX \
+};
+
+#define VK_INPUTATTR_DESC(l, f, o) { \
+	.binding = 0, \
+	.location = l, \
+	.format = f, \
+	.offset = o \
+}
+qvkbuffer_t vertexBuffer;
+qvkshader_t shaders[2];
+
 VkFormat QVk_FindDepthFormat()
 {
 	VkFormat depthFormats[] = {
@@ -245,6 +262,9 @@ void QVk_Shutdown( void )
 	{
 		ri.Con_Printf(PRINT_ALL, "Shutting down Vulkan\n");
 		vkDeviceWaitIdle(vk_device.logical);
+
+		QVk_DestroyPipeline(&vk_console_pipeline);
+		QVk_FreeBuffer(&vertexBuffer);
 
 		for (int i = 0; i < RT_COUNT; i++)
 		{
@@ -510,6 +530,35 @@ qboolean QVk_Init()
 	vk_activeRenderpass = vk_renderpasses[RT_STANDARD];
 	vk_activeFramebuffer = vk_framebuffers[RT_STANDARD];
 	vk_activeCmdbuffer = vk_commandbuffers[vk_activeBufferIdx];
+
+	// init console pipeline
+	VkVertexInputBindingDescription bindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 3); 
+	VkVertexInputAttributeDescription attributeDesc = VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0);
+
+	const float verts[9] = { 0.0, -0.5, 0.0,
+							 0.5, 0.5, 0.0,
+							 -0.5, 0.5, 0.0 };
+
+	QVk_CreateVertexBuffer(verts, sizeof(float) * 9, &vertexBuffer, NULL);
+
+	VkPipelineVertexInputStateCreateInfo vertexInputInfo = {
+		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+		.pNext = NULL,
+		.flags = 0,
+		.vertexBindingDescriptionCount = 1,
+		.pVertexBindingDescriptions = &bindingDesc,
+		.vertexAttributeDescriptionCount = 1,
+		.pVertexAttributeDescriptions = &attributeDesc
+	};
+
+	shaders[0] = QVk_CreateShader(basic_vert_spv, basic_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
+	shaders[1] = QVk_CreateShader(basic_frag_spv, basic_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
+
+	vk_console_pipeline.depthTestEnable = VK_FALSE;
+	QVk_CreatePipeline(NULL, 0, &vertexInputInfo, &vk_console_pipeline, shaders, 2);
+	
+	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
+	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
 
 	return true;
 }

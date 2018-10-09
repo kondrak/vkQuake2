@@ -91,8 +91,17 @@ void Draw_GetPicSize (int *w, int *h, char *pic)
 Draw_StretchPic
 =============
 */
+
+extern qvkbuffer_t vertexBuffer;
+
 void Draw_StretchPic (int x, int y, int w, int h, char *pic)
 {
+	vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_console_pipeline.pl);
+
+	VkDeviceSize offsets[] = { 0 };
+	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vertexBuffer.buffer, offsets);
+	vkCmdDraw(vk_activeCmdbuffer, 3, 1, 0, 0);
+
 	image_t *vk;
 
 	vk = Draw_FindPic(pic);

@@ -49,7 +49,7 @@ qvkshader_t QVk_CreateShader(const uint32_t *shaderSrc, size_t shaderCodeSize, V
 }
 
 
-void QVk_CreatePipeline(const VkDescriptorSetLayout descriptorLayout, const VkPipelineVertexInputStateCreateInfo *vertexInputInfo,
+void QVk_CreatePipeline(const VkDescriptorSetLayout *descriptorLayout, const uint32_t descLayoutCount, const VkPipelineVertexInputStateCreateInfo *vertexInputInfo,
 						qvkpipeline_t *pipeline, const qvkshader_t *shaders, uint32_t shaderCount)
 {
 	VkPipelineShaderStageCreateInfo *ssCreateInfos = (VkPipelineShaderStageCreateInfo *)malloc(shaderCount * sizeof(VkPipelineShaderStageCreateInfo));
@@ -172,8 +172,8 @@ void QVk_CreatePipeline(const VkDescriptorSetLayout descriptorLayout, const VkPi
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
 		.pNext = NULL,
 		.flags = 0,
-		.setLayoutCount = 1,
-		.pSetLayouts = &descriptorLayout,
+		.setLayoutCount = descLayoutCount,
+		.pSetLayouts = descriptorLayout,
 		.pushConstantRangeCount = 0,
 		.pPushConstantRanges = NULL
 	};
@@ -204,11 +204,6 @@ void QVk_CreatePipeline(const VkDescriptorSetLayout descriptorLayout, const VkPi
 	};
 
 	VK_VERIFY(vkCreateGraphicsPipelines(vk_device.logical, pipeline->cache, 1, &pCreateInfo, NULL, &pipeline->pl));
-
-	for (int i = 0; i < shaderCount; i++)
-	{
-		vkDestroyShaderModule(vk_device.logical, shaders[i].module, NULL);
-	}
 	free(ssCreateInfos);
 }
 
