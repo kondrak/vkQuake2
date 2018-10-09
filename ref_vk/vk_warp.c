@@ -62,7 +62,7 @@ void SubdividePolygon (int numverts, float *verts)
 	int		f, b;
 	float	dist[64];
 	float	frac;
-	glpoly_t	*poly;
+	vkpoly_t	*poly;
 	float	s, t;
 	vec3_t	total;
 	float	total_s, total_t;
@@ -124,7 +124,7 @@ void SubdividePolygon (int numverts, float *verts)
 	}
 
 	// add a point in the center to help keep warp valid
-	poly = Hunk_Alloc (sizeof(glpoly_t) + ((numverts-4)+2) * VERTEXSIZE*sizeof(float));
+	poly = Hunk_Alloc (sizeof(vkpoly_t) + ((numverts-4)+2) * VERTEXSIZE*sizeof(float));
 	poly->next = warpface->polys;
 	warpface->polys = poly;
 	poly->numverts = numverts+2;
@@ -438,7 +438,7 @@ void R_AddSkySurface (msurface_t *fa)
 {
 	int			i;
 	vec3_t		verts[MAX_CLIP_VERTS];
-	glpoly_t	*p;
+	vkpoly_t	*p;
 
 	// calculate vertex values for sky box
 	for (p=fa->polys ; p ; p=p->next)

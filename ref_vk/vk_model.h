@@ -84,14 +84,14 @@ typedef struct mtexinfo_s
 
 #define	VERTEXSIZE	7
 
-typedef struct glpoly_s
+typedef struct vkpoly_s
 {
-	struct	glpoly_s	*next;
-	struct	glpoly_s	*chain;
+	struct	vkpoly_s	*next;
+	struct	vkpoly_s	*chain;
 	int		numverts;
 	int		flags;			// for SURF_UNDERWATER (not needed anymore?)
 	float	verts[4][VERTEXSIZE];	// variable sized (xyz s1t1 s2t2)
-} glpoly_t;
+} vkpoly_t;
 
 typedef struct msurface_s
 {
@@ -109,7 +109,7 @@ typedef struct msurface_s
 	int			light_s, light_t;	// gl lightmap coordinates
 	int			dlight_s, dlight_t; // gl lightmap coordinates for dynamic lightmaps
 
-	glpoly_t	*polys;				// multiple if warped
+	vkpoly_t	*polys;				// multiple if warped
 	struct	msurface_s	*texturechain;
 	struct  msurface_s	*lightmapchain;
 

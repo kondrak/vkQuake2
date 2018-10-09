@@ -995,10 +995,10 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 
 /*
 ================
-GL_LoadWal
+Vk_LoadWal
 ================
 */
-image_t *GL_LoadWal (char *name)
+image_t *Vk_LoadWal (char *name)
 {
 	miptex_t	*mt;
 	int			width, height, ofs;
@@ -1066,7 +1066,7 @@ image_t	*Vk_FindImage (char *name, imagetype_t type)
 	}
 	else if (!strcmp(name+len-4, ".wal"))
 	{
-		image = GL_LoadWal (name);
+		image = Vk_LoadWal (name);
 	}
 	else if (!strcmp(name+len-4, ".tga"))
 	{

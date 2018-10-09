@@ -62,7 +62,18 @@ Draw_FindPic
 */
 image_t	*Draw_FindPic (char *name)
 {
-    return NULL;
+	image_t *vk;
+	char	fullname[MAX_QPATH];
+
+	if (name[0] != '/' && name[0] != '\\')
+	{
+		Com_sprintf(fullname, sizeof(fullname), "pics/%s.pcx", name);
+		vk = Vk_FindImage(fullname, it_pic);
+	}
+	else
+		vk = Vk_FindImage(name + 1, it_pic);
+
+	return vk;
 }
 
 /*
@@ -82,7 +93,36 @@ Draw_StretchPic
 */
 void Draw_StretchPic (int x, int y, int w, int h, char *pic)
 {
+	image_t *vk;
 
+	vk = Draw_FindPic(pic);
+	if (!vk)
+	{
+		ri.Con_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
+		return;
+	}
+
+/*	if (scrap_dirty)
+		Scrap_Upload();
+
+	if (((gl_config.renderer == GL_RENDERER_MCD) || (gl_config.renderer & GL_RENDERER_RENDITION)) && !gl->has_alpha)
+		qglDisable(GL_ALPHA_TEST);
+
+	GL_Bind(gl->texnum);
+	qglBegin(GL_QUADS);
+	qglTexCoord2f(gl->sl, gl->tl);
+	qglVertex2f(x, y);
+	qglTexCoord2f(gl->sh, gl->tl);
+	qglVertex2f(x + w, y);
+	qglTexCoord2f(gl->sh, gl->th);
+	qglVertex2f(x + w, y + h);
+	qglTexCoord2f(gl->sl, gl->th);
+	qglVertex2f(x, y + h);
+	qglEnd();
+
+	if (((gl_config.renderer == GL_RENDERER_MCD) || (gl_config.renderer & GL_RENDERER_RENDITION)) && !gl->has_alpha)
+		qglEnable(GL_ALPHA_TEST);
+		*/
 }
 
 
