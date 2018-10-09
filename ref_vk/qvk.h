@@ -137,7 +137,7 @@ typedef struct
 
 #define QVKPIPELINE_INIT { \
 	.layout = VK_NULL_HANDLE, \
-	.pipeline = VK_NULL_HANDLE, \
+	.pl = VK_NULL_HANDLE, \
 	.basePipelineHandle = VK_NULL_HANDLE, \
 	.cache = VK_NULL_HANDLE, \
 	.flags = 0, \
@@ -199,8 +199,8 @@ void		QVk_RecreateSwapchain();
 void		QVk_FreeBuffer(qvkbuffer_t *buffer);
 VkResult	QVk_CreateStagingBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer);
 VkResult	QVk_CreateUniformBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer);
-void		QVK_CreateVertexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, qvkbuffer_t *stagingBuffer);
-void		QVK_CreateIndexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, qvkbuffer_t *stagingBuffer);
+void		QVk_CreateVertexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, qvkbuffer_t *stagingBuffer);
+void		QVk_CreateIndexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, qvkbuffer_t *stagingBuffer);
 qvkshader_t QVk_CreateShader(const uint32_t *shaderSrc, size_t shaderCodeSize, VkShaderStageFlagBits shaderStage);
 void		QVk_CreatePipeline(const VkDescriptorSetLayout descriptorLayout, const VkPipelineVertexInputStateCreateInfo *vertexInputInfo, qvkpipeline_t *pipeline, const qvkshader_t *shaders, uint32_t shaderCount);
 void		QVk_DestroyPipeline(qvkpipeline_t *pipeline);
