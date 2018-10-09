@@ -31,6 +31,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <vulkan/vulkan.h>
 #include "vk_mem_alloc.h"
+#include "vk_shaders.h"
 
 typedef struct
 {
@@ -116,7 +117,7 @@ typedef struct
 typedef struct
 {
 	VkPipelineLayout layout;
-	VkPipeline pipeline;
+	VkPipeline pl;
 	VkPipeline basePipelineHandle;
 	VkPipelineCache cache;
 	VkPipelineCreateFlags flags;
@@ -202,4 +203,5 @@ void		QVK_CreateVertexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *d
 void		QVK_CreateIndexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, qvkbuffer_t *stagingBuffer);
 qvkshader_t QVk_CreateShader(const uint32_t *shaderSrc, size_t shaderCodeSize, VkShaderStageFlagBits shaderStage);
 void		QVk_CreatePipeline(const VkDescriptorSetLayout descriptorLayout, const VkPipelineVertexInputStateCreateInfo *vertexInputInfo, qvkpipeline_t *pipeline, const qvkshader_t *shaders, uint32_t shaderCount);
+void		QVk_DestroyPipeline(qvkpipeline_t *pipeline);
 #endif

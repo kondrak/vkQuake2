@@ -1,6 +1,8 @@
 .editorconfig text eol=lf
 .git* text eol=lf
 Makefile text eol=lf
+*.vert text eol=lf
+*.frag text eol=lf
 *.txt text eol=lf
 *.md text eol=lf
 *.hpp text eol=lf

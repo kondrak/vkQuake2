@@ -66,6 +66,9 @@
     <ClCompile Include="vk_pipeline.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="vk_shaders.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="ref_vk.def">
@@ -107,6 +110,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="qvk.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vk_shaders.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

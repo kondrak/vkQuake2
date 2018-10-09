@@ -203,11 +203,22 @@ void QVk_CreatePipeline(const VkDescriptorSetLayout descriptorLayout, const VkPi
 		.basePipelineIndex = -1
 	};
 
-	VK_VERIFY(vkCreateGraphicsPipelines(vk_device.logical, pipeline->cache, 1, &pCreateInfo, NULL, &pipeline->pipeline));
+	VK_VERIFY(vkCreateGraphicsPipelines(vk_device.logical, pipeline->cache, 1, &pCreateInfo, NULL, &pipeline->pl));
 
 	for (int i = 0; i < shaderCount; i++)
 	{
 		vkDestroyShaderModule(vk_device.logical, shaders[i].module, NULL);
 	}
 	free(ssCreateInfos);
+}
+
+void QVk_DestroyPipeline(qvkpipeline_t *pipeline)
+{
+	if (pipeline->layout != VK_NULL_HANDLE)
+		vkDestroyPipelineLayout(vk_device.logical, pipeline->layout, NULL);
+	if (pipeline->pl != VK_NULL_HANDLE)
+		vkDestroyPipeline(vk_device.logical, pipeline->pl, NULL);
+
+	pipeline->layout = VK_NULL_HANDLE;
+	pipeline->pl = VK_NULL_HANDLE;
 }
