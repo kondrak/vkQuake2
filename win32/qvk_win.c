@@ -543,14 +543,14 @@ qboolean QVk_Init()
 
 	// init console pipeline
 	VkVertexInputBindingDescription bindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 2);
-	VkVertexInputAttributeDescription attributeDesc = VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0);
+	VkVertexInputAttributeDescription attributeDesc = VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32_SFLOAT, 0);
 
-	const float verts[8] = { -1., -1.,
-							  1.,  1.,
-							 -1.,  1.,
-							  1., -1. };
+	const float verts[] = { -1., -1.,
+							 1.,  1.,
+							-1.,  1.,
+							 1., -1. };
 
-	const uint32_t indices[6] = { 0, 1, 2, 0, 3, 1 };
+	const uint32_t indices[] = { 0, 1, 2, 0, 3, 1 };
 
 	QVk_CreateVertexBuffer(verts, sizeof(verts), &vertexBuffer, NULL);
 	QVk_CreateIndexBuffer(indices, sizeof(indices), &indexBuffer, NULL);
