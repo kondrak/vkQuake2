@@ -93,23 +93,35 @@ Draw_StretchPic
 */
 
 extern qvkbuffer_t vertexBuffer;
+extern qvkbuffer_t indexBuffer;
+extern qvkbuffer_t uniformBuffer;
+extern VkDescriptorSet  descriptorSet;
 
 void Draw_StretchPic (int x, int y, int w, int h, char *pic)
 {
-	vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_console_pipeline.pl);
-
-	VkDeviceSize offsets[] = { 0 };
-	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vertexBuffer.buffer, offsets);
-	vkCmdDraw(vk_activeCmdbuffer, 3, 1, 0, 0);
-
 	image_t *vk;
 
 	vk = Draw_FindPic(pic);
 	if (!vk)
 	{
 		ri.Con_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
-		return;
+		//return;
 	}
+
+	float imgTransform[] = { (float)x / vid.width, (float)y / vid.height,
+							 (float)w / vid.width, (float)h / vid.height };
+	void *data;
+	vmaMapMemory(vk_malloc, uniformBuffer.allocation, &data);
+	memcpy(data, &imgTransform, sizeof(imgTransform));
+	vmaUnmapMemory(vk_malloc, uniformBuffer.allocation);
+
+	vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_console_pipeline.pl);
+
+	VkDeviceSize offsets[] = { 0 };
+	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vertexBuffer.buffer, offsets);
+	vkCmdBindIndexBuffer(vk_activeCmdbuffer, indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_console_pipeline.layout, 0, 1, &descriptorSet, 0, NULL);
+	vkCmdDrawIndexed(vk_activeCmdbuffer, 6, 1, 0, 0, 0);
 
 /*	if (scrap_dirty)
 		Scrap_Upload();

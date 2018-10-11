@@ -122,7 +122,13 @@ qvkpipeline_t vk_console_pipeline = QVKPIPELINE_INIT;
 	.offset = o \
 }
 qvkbuffer_t vertexBuffer;
+qvkbuffer_t indexBuffer;
+qvkbuffer_t uniformBuffer;
+VkDescriptorSetLayout descriptorSetLayout;
+VkDescriptorPool descriptorPool;
+VkDescriptorSet  descriptorSet;
 qvkshader_t shaders[2];
+const VkDeviceSize consoleUboSize = sizeof(float) * 4;
 
 VkFormat QVk_FindDepthFormat()
 {
@@ -265,6 +271,10 @@ void QVk_Shutdown( void )
 
 		QVk_DestroyPipeline(&vk_console_pipeline);
 		QVk_FreeBuffer(&vertexBuffer);
+		QVk_FreeBuffer(&indexBuffer);
+		QVk_FreeBuffer(&uniformBuffer);
+		vkDestroyDescriptorPool(vk_device.logical, descriptorPool, NULL);
+		vkDestroyDescriptorSetLayout(vk_device.logical, descriptorSetLayout, NULL);
 
 		for (int i = 0; i < RT_COUNT; i++)
 		{
@@ -532,15 +542,135 @@ qboolean QVk_Init()
 	vk_activeCmdbuffer = vk_commandbuffers[vk_activeBufferIdx];
 
 	// init console pipeline
-	VkVertexInputBindingDescription bindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 3); 
+	VkVertexInputBindingDescription bindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 2);
 	VkVertexInputAttributeDescription attributeDesc = VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0);
 
-	const float verts[9] = { 0.0, -0.5, 0.0,
-							 0.5, 0.5, 0.0,
-							 -0.5, 0.5, 0.0 };
+	const float verts[8] = { -1., -1.,
+							  1.,  1.,
+							 -1.,  1.,
+							  1., -1. };
 
-	QVk_CreateVertexBuffer(verts, sizeof(float) * 9, &vertexBuffer, NULL);
+	const uint32_t indices[6] = { 0, 1, 2, 0, 3, 1 };
 
+	QVk_CreateVertexBuffer(verts, sizeof(verts), &vertexBuffer, NULL);
+	QVk_CreateIndexBuffer(indices, sizeof(indices), &indexBuffer, NULL);
+	QVk_CreateUniformBuffer(consoleUboSize, &uniformBuffer);
+
+	// descriptor set layout for the uniform and a sampler
+	VkDescriptorSetLayoutBinding layoutBindings[] = {
+		// UBO
+		{
+			.binding = 0,
+			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+			.descriptorCount = 1,
+			.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+			.pImmutableSamplers = NULL
+		},
+		/*
+		// sampler
+		{
+			.binding = 1,
+			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+			.descriptorCount = 1,
+			.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+			.pImmutableSamplers = NULL
+		}*/
+	};
+
+	VkDescriptorSetLayoutCreateInfo layoutInfo = {
+		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+		.pNext = NULL,
+		.flags = 0,
+		.bindingCount = sizeof(layoutBindings)/sizeof(layoutBindings[0]),
+		.pBindings = layoutBindings
+	};
+
+	VK_VERIFY(vkCreateDescriptorSetLayout(vk_device.logical, &layoutInfo, NULL, &descriptorSetLayout));
+
+	// create descriptor pool
+	VkDescriptorPoolSize poolSizes[] = {
+		// UBO
+		{
+			.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+			.descriptorCount = 1
+		},
+		/*
+		// sampler
+		{
+		.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+		.descriptorCount = 1
+		}*/
+	};
+
+	VkDescriptorPoolCreateInfo poolInfo = {
+		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+		.pNext = NULL,
+		.flags = 0,
+		.maxSets = 1,
+		.poolSizeCount = sizeof(poolSizes)/sizeof(poolSizes[0]),
+		.pPoolSizes = poolSizes,
+	};
+
+	VK_VERIFY(vkCreateDescriptorPool(vk_device.logical, &poolInfo, NULL, &descriptorPool));
+
+	// create descriptor set
+	VkDescriptorSetLayout layouts[] = { descriptorSetLayout };
+	VkDescriptorSetAllocateInfo dsAllocInfo = {
+		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+		.pNext = NULL,
+		.descriptorPool = descriptorPool,
+		.descriptorSetCount = 1,
+		.pSetLayouts = layouts
+	};
+
+	VK_VERIFY(vkAllocateDescriptorSets(vk_device.logical, &dsAllocInfo, &descriptorSet));
+
+	VkDescriptorBufferInfo bufferInfo = {
+		.buffer = uniformBuffer.buffer,
+		.offset = 0,
+		.range = consoleUboSize
+	};
+
+	/*
+	VkDescriptorImageInfo imageInfo = {
+		.sampler = textures[0]->sampler,
+		.imageView = textures[0]->imageView,
+		.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+	}; */
+
+	VkWriteDescriptorSet descriptorWrites[] = {
+		// UBO
+		{
+			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+			.pNext = NULL,
+			.dstSet = descriptorSet,
+			.dstBinding = 0,
+			.dstArrayElement = 0,
+			.descriptorCount = 1,
+			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+			.pImageInfo = NULL,
+			.pBufferInfo = &bufferInfo,
+			.pTexelBufferView = NULL,
+		},
+		/*
+		// sampler
+		{
+			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+			.pNext = NULL,
+			.dstSet = descriptorSet,
+			.dstBinding = 1,
+			.dstArrayElement = 0,
+			.descriptorCount = 1,
+			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+			.pImageInfo = &imageInfo,
+			.pBufferInfo = NULL,
+			.pTexelBufferView = NULL
+		} */
+	};
+
+	vkUpdateDescriptorSets(vk_device.logical, sizeof(descriptorWrites)/sizeof(descriptorWrites[0]), descriptorWrites, 0, NULL);
+
+	// create pipeline object
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo = {
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
 		.pNext = NULL,
@@ -555,7 +685,7 @@ qboolean QVk_Init()
 	shaders[1] = QVk_CreateShader(basic_frag_spv, basic_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
 
 	vk_console_pipeline.depthTestEnable = VK_FALSE;
-	QVk_CreatePipeline(NULL, 0, &vertexInputInfo, &vk_console_pipeline, shaders, 2);
+	QVk_CreatePipeline(&descriptorSetLayout, 1, &vertexInputInfo, &vk_console_pipeline, shaders, 2);
 	
 	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
 	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);

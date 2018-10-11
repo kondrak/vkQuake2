@@ -60,10 +60,13 @@ static VkResult createBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, const qv
 	}
 
 	VmaAllocationCreateInfo vmallocInfo = {
-		.requiredFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-		.preferredFlags = options.memFlags,
 		.flags = options.vmaFlags,
 		.usage = options.vmaUsage,
+		.requiredFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+		.preferredFlags = options.memFlags,
+		.memoryTypeBits = 0,
+		.pool = VK_NULL_HANDLE,
+		.pUserData = NULL
 	};
 
 	return vmaCreateBuffer(vk_malloc, &bcInfo, &vmallocInfo, &dstBuffer->buffer, &dstBuffer->allocation, NULL);
@@ -107,8 +110,8 @@ VkResult QVk_CreateStagingBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer)
 	qvkbufferopts_t stagingOpts = {
 		.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 		.memFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		.vmaFlags = VMA_ALLOCATION_CREATE_MAPPED_BIT,
-		.vmaUsage = VMA_MEMORY_USAGE_CPU_ONLY
+		.vmaUsage = VMA_MEMORY_USAGE_CPU_ONLY,
+		.vmaFlags = VMA_ALLOCATION_CREATE_MAPPED_BIT
 	};
 
 	return createBuffer(size, dstBuffer, stagingOpts);
@@ -119,8 +122,8 @@ VkResult QVk_CreateUniformBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer)
 	qvkbufferopts_t dstOpts = {
 	dstOpts.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 	dstOpts.memFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-	dstOpts.vmaFlags = VMA_ALLOCATION_CREATE_MAPPED_BIT,
-	dstOpts.vmaUsage = VMA_MEMORY_USAGE_CPU_TO_GPU
+	dstOpts.vmaUsage = VMA_MEMORY_USAGE_CPU_TO_GPU,
+	dstOpts.vmaFlags = VMA_ALLOCATION_CREATE_MAPPED_BIT
 	};
 
 	return createBuffer(size, dstBuffer, dstOpts);
@@ -131,8 +134,8 @@ void QVk_CreateVertexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *ds
 	qvkbufferopts_t dstOpts = {
 		.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
 		.memFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		.vmaFlags = 0,
-		.vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY
+		.vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY,
+		.vmaFlags = 0
 	};
 
 	createStagedBuffer(data, size, dstBuffer, dstOpts, stagingBuffer);
@@ -143,8 +146,8 @@ void QVk_CreateIndexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dst
 	qvkbufferopts_t dstOpts = {
 		.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
 		.memFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		.vmaFlags = 0,
-		.vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY
+		.vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY,
+		.vmaFlags = 0
 	};
 
 	createStagedBuffer(data, size, dstBuffer, dstOpts, stagingBuffer);
