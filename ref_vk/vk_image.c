@@ -157,6 +157,180 @@ static void transitionImageLayout(const VkCommandBuffer *cmdBuffer, const VkQueu
 	vkCmdPipelineBarrier(*cmdBuffer, srcStage, dstStage, 0, 0, NULL, 0, NULL, 1, &imgBarrier);
 }
 
+static void generateMipmaps(const VkCommandBuffer *cmdBuffer, const qvktexture_t *texture, uint32_t width, uint32_t height)
+{
+	int32_t mipWidth = width;
+	int32_t mipHeight = height;
+
+	VkImageMemoryBarrier imgBarrier = {
+		.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+		.pNext = NULL,
+		.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+		.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+		.image = texture->image,
+		.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+		.subresourceRange.levelCount = 1,
+		.subresourceRange.baseArrayLayer = 0,
+		.subresourceRange.layerCount = 1
+	};
+
+	// copy rescaled mip data between consecutive levels (each higher level is half the size of the previous level)
+	for (uint32_t i = 1; i < texture->mipLevels; ++i)
+	{
+		imgBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		imgBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		imgBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		imgBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+		imgBarrier.subresourceRange.baseMipLevel = i - 1;
+
+		vkCmdPipelineBarrier(*cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 1, &imgBarrier);
+
+		VkImageBlit blit = {
+			.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+			.srcSubresource.mipLevel = i - 1,
+			.srcSubresource.baseArrayLayer = 0,
+			.srcSubresource.layerCount = 1,
+			.srcOffsets[0] = { 0, 0, 0 },
+			.srcOffsets[1] = { mipWidth, mipHeight, 1 },
+			.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+			.dstSubresource.mipLevel = i,
+			.dstSubresource.baseArrayLayer = 0,
+			.dstSubresource.layerCount = 1,
+			.dstOffsets[0] = { 0, 0, 0 },
+			.dstOffsets[1] = { mipWidth > 1 ? mipWidth >> 1 : 1,
+							  mipHeight > 1 ? mipHeight >> 1 : 1, 1 } // each mip level is half the size of the previous level
+		};
+
+		// src image == dst image, because we're blitting between different mip levels of the same image
+		vkCmdBlitImage(*cmdBuffer, texture->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+			texture->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, texture->mipmapFilter);
+
+		imgBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		imgBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+		imgBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+		vkCmdPipelineBarrier(*cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, NULL, 0, NULL, 1, &imgBarrier);
+
+		// avoid zero-sized mip levels
+		if (mipWidth > 1)  mipWidth >>= 1;
+		if (mipHeight > 1) mipHeight >>= 1;
+	}
+
+	imgBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+	imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+	imgBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	imgBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	imgBarrier.subresourceRange.baseMipLevel = texture->mipLevels - 1;
+
+	vkCmdPipelineBarrier(*cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, NULL, 0, NULL, 1, &imgBarrier);
+}
+
+static void createTextureImage(qvktexture_t *dstTex, const unsigned char *data, uint32_t width, uint32_t height)
+{
+	qvkbuffer_t stagingBuffer;
+	int unifiedTransferAndGfx = vk_device.transferQueue == vk_device.gfxQueue ? 1 : 0;
+	uint32_t imageSize = width * height * (dstTex->format == VK_FORMAT_R8G8B8_UNORM ? 3 : 4);
+
+	VK_VERIFY(QVk_CreateStagingBuffer(imageSize, &stagingBuffer));
+
+	void *imgData;
+	vmaMapMemory(vk_malloc, stagingBuffer.allocation, &imgData);
+	memcpy(imgData, data, (size_t)imageSize);
+	vmaUnmapMemory(vk_malloc, stagingBuffer.allocation);
+
+	VkImageUsageFlags imageUsage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	// set extra image usage flag if we're dealing with mipmapped image - will need it for copying data between mip levels
+	if (dstTex->mipLevels > 1)
+		imageUsage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+
+	VK_VERIFY(QVk_CreateImage(width, height, dstTex->format, VK_IMAGE_TILING_OPTIMAL, imageUsage, VMA_MEMORY_USAGE_GPU_ONLY, dstTex));
+
+	// copy buffers
+	VkCommandBuffer transferCmdBuffer = QVk_CreateCommandBuffer(&vk_transferCommandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+	VkCommandBuffer drawCmdBuffer = unifiedTransferAndGfx ? transferCmdBuffer : QVk_CreateCommandBuffer(&vk_commandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+
+	QVk_BeginCommand(&transferCmdBuffer);
+	transitionImageLayout(&transferCmdBuffer, &vk_device.transferQueue, dstTex, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	// copy buffer to image
+	VkBufferImageCopy region = {
+		.bufferOffset = 0,
+		.bufferRowLength = 0,
+		.bufferImageHeight = 0,
+		.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+		.imageSubresource.mipLevel = 0,
+		.imageSubresource.baseArrayLayer = 0,
+		.imageSubresource.layerCount = 1,
+		.imageOffset = { 0, 0, 0 },
+		.imageExtent = { width, height, 1 }
+	};
+
+	vkCmdCopyBufferToImage(transferCmdBuffer, stagingBuffer.buffer, dstTex->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+
+	if (dstTex->mipLevels > 1)
+	{
+		// if transfer and graphics queue are different we have to submit the transfer queue before continuing
+		if (!unifiedTransferAndGfx)
+		{
+			QVk_SubmitCommand(&transferCmdBuffer, &vk_device.transferQueue);
+			QVk_BeginCommand(&drawCmdBuffer);
+		}
+
+		// vkCmdBlitImage requires a queue with GRAPHICS_BIT present
+		generateMipmaps(&drawCmdBuffer, dstTex, width, height);
+		QVk_SubmitCommand(&drawCmdBuffer, &vk_device.gfxQueue);
+	}
+	else
+	{
+		// for non-unified transfer and graphics, this step begins queue ownership transfer to graphics queue (for exclusive sharing only)
+		if (unifiedTransferAndGfx || dstTex->sharingMode == VK_SHARING_MODE_EXCLUSIVE)
+			transitionImageLayout(&transferCmdBuffer, &vk_device.transferQueue, dstTex, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		QVk_SubmitCommand(&transferCmdBuffer, &vk_device.transferQueue);
+
+		if (!unifiedTransferAndGfx)
+		{
+			QVk_BeginCommand(&drawCmdBuffer);
+			transitionImageLayout(&drawCmdBuffer, &vk_device.gfxQueue, dstTex, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			QVk_SubmitCommand(&drawCmdBuffer, &vk_device.gfxQueue);
+		}
+	}
+
+	vkFreeCommandBuffers(vk_device.logical, vk_transferCommandPool, 1, &transferCmdBuffer);
+	if (!unifiedTransferAndGfx)
+		vkFreeCommandBuffers(vk_device.logical, vk_commandPool, 1, &drawCmdBuffer);
+
+	QVk_FreeBuffer(&stagingBuffer);
+}
+
+static VkResult createTextureSampler(qvktexture_t *texture)
+{
+	VkSamplerCreateInfo samplerInfo = {
+		.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+		.pNext = NULL,
+		.flags = 0,
+		.magFilter = texture->magFilter,
+		.minFilter = texture->minFilter,
+		.mipmapMode = texture->mipmapMode,
+		.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+		.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+		.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+		.mipLodBias = texture->mipLodBias,
+		.anisotropyEnable = (texture->magFilter == texture->minFilter) && texture->minFilter == VK_FILTER_NEAREST ? VK_FALSE : VK_TRUE,
+		.maxAnisotropy = vk_device.properties.limits.maxSamplerAnisotropy,
+		.compareEnable = VK_FALSE,
+		.compareOp = VK_COMPARE_OP_ALWAYS,
+		.minLod = texture->mipMinLod,
+		.maxLod = (float)texture->mipLevels,
+		.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+		.unnormalizedCoordinates = VK_FALSE
+	};
+
+	if (vk_device.properties.limits.maxSamplerAnisotropy == 1.f)
+		samplerInfo.anisotropyEnable = VK_FALSE;
+
+	return vkCreateSampler(vk_device.logical, &samplerInfo, NULL, &texture->sampler);
+}
+
 VkResult QVk_CreateImageView(const VkImage *image, VkImageAspectFlags aspectFlags, VkImageView *imageView, VkFormat format, uint32_t mipLevels)
 {
 	VkImageViewCreateInfo ivCreateInfo = {
@@ -245,6 +419,23 @@ void QVk_CreateColorBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *colo
 	transitionImageLayout(&cmdBuffer, &vk_device.gfxQueue, colorBuffer, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 	QVk_SubmitCommand(&cmdBuffer, &vk_device.gfxQueue);
 	vkFreeCommandBuffers(vk_device.logical, vk_commandPool, 1, &cmdBuffer);
+}
+
+void QVk_CreateTexture(qvktexture_t *texture, const unsigned char *data, uint32_t width, uint32_t height)
+{
+	createTextureImage(texture, data, width, height);
+	VK_VERIFY(QVk_CreateImageView(&texture->image, VK_IMAGE_ASPECT_COLOR_BIT, &texture->imageView, texture->format, texture->mipLevels));
+	VK_VERIFY(createTextureSampler(texture));
+}
+
+void QVk_ReleaseTexture(qvktexture_t *texture)
+{
+	if (texture->image != VK_NULL_HANDLE)
+		vmaDestroyImage(vk_malloc, texture->image, texture->allocation);
+	if (texture->imageView != VK_NULL_HANDLE)
+		vkDestroyImageView(vk_device.logical, texture->imageView, NULL);
+	if (texture->sampler != VK_NULL_HANDLE)
+		vkDestroySampler(vk_device.logical, texture->sampler, NULL);
 }
 
 void Vk_SetTexturePalette( unsigned palette[256] )
