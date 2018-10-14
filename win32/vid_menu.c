@@ -436,7 +436,6 @@ void VID_MenuInit( void )
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_brightness_slider[VULKAN_MENU]);
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_fs_box[VULKAN_MENU]);
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_tq_slider);
-	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_paletted_texture_box);
 
 	Menu_AddItem( &s_software_menu, ( void * ) &s_defaults_action[SOFTWARE_MENU] );
 	Menu_AddItem( &s_software_menu, ( void * ) &s_cancel_action[SOFTWARE_MENU] );

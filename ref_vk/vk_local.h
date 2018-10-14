@@ -196,7 +196,6 @@ extern cvar_t	*vk_bitdepth;
 extern cvar_t	*vk_log;
 
 extern cvar_t	*gl_ext_swapinterval;
-extern cvar_t	*gl_ext_palettedtexture;
 extern cvar_t	*gl_ext_pointparameters;
 extern cvar_t	*gl_ext_compiled_vertex_array;
 

@@ -92,7 +92,6 @@ cvar_t	*gl_particle_att_b;
 cvar_t	*gl_particle_att_c;
 
 cvar_t	*gl_ext_swapinterval;
-cvar_t	*gl_ext_palettedtexture;
 cvar_t	*gl_ext_pointparameters;
 cvar_t	*gl_ext_compiled_vertex_array;
 
