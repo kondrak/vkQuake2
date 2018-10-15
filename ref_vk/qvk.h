@@ -90,7 +90,24 @@ typedef struct
 	.mipLodBias = 0.f, \
 	.mipMinLod = 0.f, \
 	.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR, \
-	.mipmapFilter = VK_FILTER_LINEAR, \
+	.mipmapFilter = VK_FILTER_LINEAR \
+}
+
+#define QVVKTEXTURE_CLEAR(i)     { \
+	(i).image = VK_NULL_HANDLE; \
+	(i).allocation = VK_NULL_HANDLE; \
+	(i).imageView = VK_NULL_HANDLE; \
+	(i).sampler = VK_NULL_HANDLE; \
+	(i).sharingMode = VK_SHARING_MODE_MAX_ENUM; \
+	(i).sampleCount = VK_SAMPLE_COUNT_1_BIT; \
+	(i).format = VK_FORMAT_R8G8B8A8_UNORM; \
+	(i).minFilter = VK_FILTER_LINEAR; \
+	(i).magFilter = VK_FILTER_LINEAR; \
+	(i).mipLevels = 1; \
+	(i).mipLodBias = 0.f; \
+	(i).mipMinLod = 0.f; \
+	(i).mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR; \
+	(i).mipmapFilter = VK_FILTER_LINEAR; \
 }
 
 typedef struct

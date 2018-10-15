@@ -21,8 +21,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "vk_local.h"
 
-image_t		gltextures[MAX_GLTEXTURES];
-int			numgltextures;
+image_t		vktextures[MAX_VKTEXTURES];
+int			numvktextures;
 int			base_textureid;		// gltextures[i] = base_textureid+i
 
 static byte			 intensitytable[256];
@@ -32,8 +32,8 @@ cvar_t		*intensity;
 
 unsigned	d_8to24table[256];
 
-qboolean GL_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboolean is_sky );
-qboolean GL_Upload32 (unsigned *data, int width, int height,  qboolean mipmap);
+qboolean Vk_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboolean is_sky );
+qboolean Vk_Upload32 (unsigned *data, int width, int height,  qboolean mipmap);
 
 
 int		gl_solid_format = 3;
@@ -1008,10 +1008,10 @@ void R_FloodFillSkin( byte *skin, int skinwidth, int skinheight )
 
 /*
 ================
-GL_ResampleTexture
+Vk_ResampleTexture
 ================
 */
-void GL_ResampleTexture (unsigned *in, int inwidth, int inheight, unsigned *out,  int outwidth, int outheight)
+void Vk_ResampleTexture (unsigned *in, int inwidth, int inheight, unsigned *out,  int outwidth, int outheight)
 {
 	int		i, j;
 	unsigned	*inrow, *inrow2;
@@ -1055,13 +1055,13 @@ void GL_ResampleTexture (unsigned *in, int inwidth, int inheight, unsigned *out,
 
 /*
 ================
-GL_LightScaleTexture
+Vk_LightScaleTexture
 
 Scale up the pixel values in a texture to increase the
 lighting range
 ================
 */
-void GL_LightScaleTexture (unsigned *in, int inwidth, int inheight, qboolean only_gamma )
+void Vk_LightScaleTexture (unsigned *in, int inwidth, int inheight, qboolean only_gamma )
 {
 	if ( only_gamma )
 	{
@@ -1129,45 +1129,174 @@ GL_Upload32
 Returns has_alpha
 ===============
 */
-void GL_BuildPalettedTexture( unsigned char *paletted_texture, unsigned char *scaled, int scaled_width, int scaled_height )
-{
-	int i;
-
-	for ( i = 0; i < scaled_width * scaled_height; i++ )
-	{
-		unsigned int r, g, b, c;
-
-		r = ( scaled[0] >> 3 ) & 31;
-		g = ( scaled[1] >> 2 ) & 63;
-		b = ( scaled[2] >> 3 ) & 31;
-
-		c = r | ( g << 5 ) | ( b << 11 );
-
-		paletted_texture[i] = vk_state.d_16to8table[c];
-
-		scaled += 4;
-	}
-}
-
 int		upload_width, upload_height;
-qboolean uploaded_paletted;
+unsigned char texBuffer[256 * 256];
 
-qboolean GL_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
+qboolean Vk_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
 {
-    return false;
+	int			samples;
+	unsigned	scaled[256 * 256];
+	int			scaled_width, scaled_height;
+	int			i, c;
+	byte		*scan;
+	int comp;
+
+	for (scaled_width = 1; scaled_width < width; scaled_width <<= 1)
+		;
+	if (vk_round_down->value && scaled_width > width && mipmap)
+		scaled_width >>= 1;
+	for (scaled_height = 1; scaled_height < height; scaled_height <<= 1)
+		;
+	if (vk_round_down->value && scaled_height > height && mipmap)
+		scaled_height >>= 1;
+
+	// let people sample down the world textures for speed
+	if (mipmap)
+	{
+		scaled_width >>= (int)vk_picmip->value;
+		scaled_height >>= (int)vk_picmip->value;
+	}
+
+	// don't ever bother with >256 textures
+	if (scaled_width > 256)
+		scaled_width = 256;
+	if (scaled_height > 256)
+		scaled_height = 256;
+
+	if (scaled_width < 1)
+		scaled_width = 1;
+	if (scaled_height < 1)
+		scaled_height = 1;
+
+	upload_width = scaled_width;
+	upload_height = scaled_height;
+
+	if (scaled_width * scaled_height > sizeof(scaled) / 4)
+		ri.Sys_Error(ERR_DROP, "GL_Upload32: too big");
+
+	// scan the texture for any non-255 alpha
+	c = width * height;
+	scan = ((byte *)data) + 3;
+	samples = gl_solid_format;
+	for (i = 0; i<c; i++, scan += 4)
+	{
+		if (*scan != 255)
+		{
+			samples = gl_alpha_format;
+			break;
+		}
+	}
+
+	if (samples == gl_solid_format)
+		comp = gl_tex_solid_format;
+	else if (samples == gl_alpha_format)
+		comp = gl_tex_alpha_format;
+	else {
+		ri.Con_Printf(PRINT_ALL,
+			"Unknown number of texture components %i\n",
+			samples);
+		comp = samples;
+	}
+
+	if (scaled_width == width && scaled_height == height)
+	{
+		if (!mipmap)
+		{
+			//qglTexImage2D(GL_TEXTURE_2D, 0, comp, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			memcpy(texBuffer, data, scaled_width * scaled_height);
+			goto done;
+		}
+		memcpy(scaled, data, width*height * 4);
+	}
+	else
+		Vk_ResampleTexture(data, width, height, scaled, scaled_width, scaled_height);
+
+	Vk_LightScaleTexture(scaled, scaled_width, scaled_height, !mipmap);
+
+	//qglTexImage2D(GL_TEXTURE_2D, 0, comp, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaled);
+	memcpy(texBuffer, scaled, scaled_width * scaled_height);
+
+	/*if (mipmap)
+	{
+		int		miplevel;
+
+		miplevel = 0;
+		while (scaled_width > 1 || scaled_height > 1)
+		{
+			GL_MipMap((byte *)scaled, scaled_width, scaled_height);
+			scaled_width >>= 1;
+			scaled_height >>= 1;
+			if (scaled_width < 1)
+				scaled_width = 1;
+			if (scaled_height < 1)
+				scaled_height = 1;
+			miplevel++;
+
+			qglTexImage2D(GL_TEXTURE_2D, miplevel, comp, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaled);
+		}
+	}*/
+done:;
+	/*
+	if (mipmap)
+	{
+		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
+		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+	}
+	else
+	{
+		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_max);
+		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
+	}*/
+
+	return (samples == gl_alpha_format);
 }
 
 /*
 ===============
-GL_Upload8
+Vk_Upload8
 
 Returns has_alpha
 ===============
 */
 
-qboolean GL_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboolean is_sky )
+qboolean Vk_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboolean is_sky )
 {
-    return false;
+	unsigned	trans[512 * 256];
+	int			i, s;
+	int			p;
+
+	s = width * height;
+
+	if (s > sizeof(trans) / 4)
+		ri.Sys_Error(ERR_DROP, "GL_Upload8: too large");
+
+	for (i = 0; i < s; i++)
+	{
+		p = data[i];
+		trans[i] = d_8to24table[p];
+
+		if (p == 255)
+		{	// transparent, so scan around for another color
+			// to avoid alpha fringes
+			// FIXME: do a full flood fill so mips work...
+			if (i > width && data[i - width] != 255)
+				p = data[i - width];
+			else if (i < s - width && data[i + width] != 255)
+				p = data[i + width];
+			else if (i > 0 && data[i - 1] != 255)
+				p = data[i - 1];
+			else if (i < s - 1 && data[i + 1] != 255)
+				p = data[i + 1];
+			else
+				p = 0;
+			// copy rgb components
+			((byte *)&trans[i])[0] = ((byte *)&d_8to24table[p])[0];
+			((byte *)&trans[i])[1] = ((byte *)&d_8to24table[p])[1];
+			((byte *)&trans[i])[2] = ((byte *)&d_8to24table[p])[2];
+		}
+	}
+
+	return Vk_Upload32(trans, width, height, mipmap);
 }
 
 
@@ -1180,7 +1309,81 @@ This is also used as an entry point for the generated r_notexture
 */
 image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type, int bits)
 {
-    return NULL;
+	image_t		*image;
+	int			i;
+
+	// find a free image_t
+	for (i = 0, image = vktextures; i<numvktextures; i++, image++)
+	{
+		if (image->vk_texture.image == VK_NULL_HANDLE)
+			break;
+	}
+	if (i == numvktextures)
+	{
+		if (numvktextures == MAX_VKTEXTURES)
+			ri.Sys_Error(ERR_DROP, "MAX_VKTEXTURES");
+		numvktextures++;
+	}
+	image = &vktextures[i];
+
+	if (strlen(name) >= sizeof(image->name))
+		ri.Sys_Error(ERR_DROP, "Draw_LoadPic: \"%s\" is too long", name);
+	strcpy(image->name, name);
+	image->registration_sequence = registration_sequence;
+	// zero-clear Vulkan texture handle
+	QVVKTEXTURE_CLEAR(image->vk_texture);
+	image->width = width;
+	image->height = height;
+	image->type = type;
+
+	if (type == it_skin && bits == 8)
+		R_FloodFillSkin(pic, width, height);
+
+	// load little pics into the scrap
+	if (image->type == it_pic && bits == 8
+		&& image->width < 64 && image->height < 64)
+	{
+		int		x, y;
+		int		i, j, k;
+		int		texnum;
+
+		texnum = Scrap_AllocBlock(image->width, image->height, &x, &y);
+		if (texnum == -1)
+			goto nonscrap;
+		scrap_dirty = true;
+
+		// copy the texels into the scrap block
+		k = 0;
+		for (i = 0; i<image->height; i++)
+			for (j = 0; j<image->width; j++, k++)
+				scrap_texels[texnum][(y + i)*BLOCK_WIDTH + x + j] = pic[k];
+		//image->texnum = TEXNUM_SCRAPS + texnum;
+		image->scrap = true;
+		image->has_alpha = true;
+		image->sl = (x + 0.01) / (float)BLOCK_WIDTH;
+		image->sh = (x + image->width - 0.01) / (float)BLOCK_WIDTH;
+		image->tl = (y + 0.01) / (float)BLOCK_WIDTH;
+		image->th = (y + image->height - 0.01) / (float)BLOCK_WIDTH;
+	}
+	else
+	{
+	nonscrap:
+		image->scrap = false;
+		if (bits == 8)
+			image->has_alpha = Vk_Upload8(pic, width, height, (image->type != it_pic && image->type != it_sky), image->type == it_sky);
+		else
+			image->has_alpha = Vk_Upload32((unsigned *)pic, width, height, (image->type != it_pic && image->type != it_sky));
+		image->upload_width = upload_width;		// after power of 2 and scales
+		image->upload_height = upload_height;
+		image->sl = 0;
+		image->sh = 1;
+		image->tl = 0;
+		image->th = 1;
+	}
+
+	QVk_CreateTexture(&image->vk_texture, texBuffer, image->upload_width, image->upload_height);
+
+	return image;
 }
 
 
@@ -1234,7 +1437,7 @@ image_t	*Vk_FindImage (char *name, imagetype_t type)
 		return NULL;	//	ri.Sys_Error (ERR_DROP, "Vk_FindImage: bad name: %s", name);
 
 	// look for it
-	for (i=0, image=gltextures ; i<numgltextures ; i++,image++)
+	for (i=0, image=vktextures ; i<numvktextures ; i++,image++)
 	{
 		if (!strcmp(name, image->name))
 		{
@@ -1350,7 +1553,47 @@ Vk_InitImages
 */
 void	Vk_InitImages (void)
 {
+	int		i, j;
+	float	g = vid_gamma->value;
 
+	registration_sequence = 1;
+
+	// init intensity conversions
+	intensity = ri.Cvar_Get("intensity", "2", 0);
+
+	if (intensity->value <= 1)
+		ri.Cvar_Set("intensity", "1");
+
+	vk_state.inverse_intensity = 1 / intensity->value;
+
+	Draw_GetPalette();
+
+	for (i = 0; i < 256; i++)
+	{
+		if (g == 1)
+		{
+			gammatable[i] = i;
+		}
+		else
+		{
+			float inf;
+
+			inf = 255 * pow((i + 0.5) / 255.5, g) + 0.5;
+			if (inf < 0)
+				inf = 0;
+			if (inf > 255)
+				inf = 255;
+			gammatable[i] = inf;
+		}
+	}
+
+	for (i = 0; i<256; i++)
+	{
+		j = i * intensity->value;
+		if (j > 255)
+			j = 255;
+		intensitytable[i] = j;
+	}
 }
 
 /*
@@ -1360,6 +1603,16 @@ Vk_ShutdownImages
 */
 void	Vk_ShutdownImages (void)
 {
+	int		i;
+	image_t	*image;
 
+	for (i = 0, image = vktextures; i<numvktextures; i++, image++)
+	{
+		if (!image->registration_sequence)
+			continue;		// free image_t slot
+		// free it
+		QVk_ReleaseTexture(&image->vk_texture);
+		memset(image, 0, sizeof(*image));
+	}
 }
 

@@ -555,7 +555,7 @@ Mod_LoadFaces
 */
 void Mod_LoadFaces (lump_t *l)
 {
-
+	ri.Con_Printf(PRINT_ALL, "Implement Mod_LoadFaces to start the game!\n");
 }
 
 

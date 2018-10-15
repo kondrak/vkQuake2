@@ -83,6 +83,8 @@ cvar_t	*vk_validation;
 cvar_t	*vk_mode;
 cvar_t	*vk_bitdepth;
 cvar_t	*vk_log;
+cvar_t	*vk_picmip;
+cvar_t	*vk_round_down;
 
 cvar_t	*gl_particle_min_size;
 cvar_t	*gl_particle_max_size;
@@ -101,8 +103,6 @@ cvar_t	*gl_dynamic;
 cvar_t  *gl_monolightmap;
 cvar_t	*gl_modulate;
 cvar_t	*gl_nobind;
-cvar_t	*gl_round_down;
-cvar_t	*gl_picmip;
 cvar_t	*gl_skymip;
 cvar_t	*gl_showtris;
 cvar_t	*gl_cull;
@@ -315,6 +315,8 @@ void R_Register( void )
 	vk_mode = ri.Cvar_Get("vk_mode", "3", CVAR_ARCHIVE);
 	vk_bitdepth = ri.Cvar_Get("vk_bitdepth", "0", 0);
 	vk_log = ri.Cvar_Get("vk_log", "0", 0);
+	vk_picmip = ri.Cvar_Get("vk_picmip", "0", 0);
+	vk_round_down = ri.Cvar_Get("vk_round_down", "1", 0);
 
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
@@ -402,6 +404,12 @@ qboolean R_Init( void *hinstance, void *hWnd )
 	}
 
 	ri.Con_Printf(PRINT_ALL, "Successfully initialized Vulkan!\n");
+
+	Vk_InitImages();
+	Mod_Init();
+	R_InitParticleTexture();
+	Draw_InitLocal();
+
 	return true;
 }
 
@@ -412,7 +420,12 @@ R_Shutdown
 */
 void R_Shutdown (void)
 {
+	Mod_FreeAll();
+	Vk_ShutdownImages();
+
+	// Shutdown Vulkan subsystem
 	QVk_Shutdown();
+	// shut down OS specific Vulkan stuff (in our case: window)
 	Vkimp_Shutdown();
 }
 

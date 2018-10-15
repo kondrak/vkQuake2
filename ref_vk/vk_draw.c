@@ -36,7 +36,8 @@ Draw_InitLocal
 */
 void Draw_InitLocal (void)
 {
-
+	// load console characters (don't bilerp characters)
+	draw_chars = Vk_FindImage("pics/conchars.pcx", it_pic);
 }
 
 
@@ -105,7 +106,7 @@ void Draw_StretchPic (int x, int y, int w, int h, char *pic)
 	if (!vk)
 	{
 		ri.Con_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
-		//return;
+		return;
 	}
 
 	float imgTransform[] = { (float)x / vid.width, (float)y / vid.height,

@@ -108,6 +108,7 @@
     <ClCompile Include="vk_pipeline.c" />
     <ClCompile Include="vk_renderpass.c" />
     <ClCompile Include="vk_rmain.c" />
+    <ClCompile Include="vk_rmisc.c" />
     <ClCompile Include="vk_shaders.c" />
     <ClCompile Include="vk_swapchain.c" />
     <ClCompile Include="vk_validation.c" />

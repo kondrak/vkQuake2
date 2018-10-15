@@ -97,19 +97,18 @@ typedef struct image_s
 	int		upload_width, upload_height;	// after power of two and picmip
 	int		registration_sequence;		// 0 = free
 	struct msurface_s	*texturechain;	// for sort-by-texture world drawing
-	int		texnum;						// gl texture binding
+	qvktexture_t vk_texture;			// Vulkan texture handle
 	float	sl, tl, sh, th;				// 0,0 - 1,1 unless part of the scrap
 	qboolean	scrap;
 	qboolean	has_alpha;
 
-	qboolean paletted;
 } image_t;
 
 #define	TEXNUM_LIGHTMAPS	1024
 #define	TEXNUM_SCRAPS		1152
 #define	TEXNUM_IMAGES		1153
 
-#define		MAX_GLTEXTURES	1024
+#define		MAX_VKTEXTURES	1024
 
 //===================================================================
 
@@ -148,8 +147,8 @@ typedef struct
 
 //====================================================
 
-extern	image_t		gltextures[MAX_GLTEXTURES];
-extern	int			numgltextures;
+extern	image_t		vktextures[MAX_VKTEXTURES];
+extern	int			numvktextures;
 
 
 extern	image_t		*r_notexture;
@@ -194,6 +193,8 @@ extern cvar_t	*vk_validation;
 extern cvar_t	*vk_mode;
 extern cvar_t	*vk_bitdepth;
 extern cvar_t	*vk_log;
+extern	cvar_t	*vk_picmip;
+extern	cvar_t	*vk_round_down;
 
 extern cvar_t	*gl_ext_swapinterval;
 extern cvar_t	*gl_ext_pointparameters;
@@ -211,8 +212,6 @@ extern	cvar_t	*gl_shadows;
 extern	cvar_t	*gl_dynamic;
 extern  cvar_t  *gl_monolightmap;
 extern	cvar_t	*gl_nobind;
-extern	cvar_t	*gl_round_down;
-extern	cvar_t	*gl_picmip;
 extern	cvar_t	*gl_skymip;
 extern	cvar_t	*gl_showtris;
 extern	cvar_t	*gl_cull;
