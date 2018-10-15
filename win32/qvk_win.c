@@ -542,13 +542,16 @@ qboolean QVk_Init()
 	vk_activeCmdbuffer = vk_commandbuffers[vk_activeBufferIdx];
 
 	// init console pipeline
-	VkVertexInputBindingDescription bindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 2);
-	VkVertexInputAttributeDescription attributeDesc = VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32_SFLOAT, 0);
+	VkVertexInputBindingDescription bindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 4);
+	VkVertexInputAttributeDescription attributeDescriptions[] = {
+		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32_SFLOAT, 0),
+		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float)*2),
+	};
 
-	const float verts[] = { -1., -1.,
-							 1.,  1.,
-							-1.,  1.,
-							 1., -1. };
+	const float verts[] = { -1., -1., 0., 0.,
+							 1.,  1., 1., 1.,
+							-1.,  1., 0., 1.,
+							 1., -1., 1., 0. };
 
 	const uint32_t indices[] = { 0, 1, 2, 0, 3, 1 };
 
@@ -677,8 +680,8 @@ qboolean QVk_Init()
 		.flags = 0,
 		.vertexBindingDescriptionCount = 1,
 		.pVertexBindingDescriptions = &bindingDesc,
-		.vertexAttributeDescriptionCount = 1,
-		.pVertexAttributeDescriptions = &attributeDesc
+		.vertexAttributeDescriptionCount = sizeof(attributeDescriptions)/sizeof(attributeDescriptions[0]),
+		.pVertexAttributeDescriptions = attributeDescriptions
 	};
 
 	shaders[0] = QVk_CreateShader(basic_vert_spv, basic_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
