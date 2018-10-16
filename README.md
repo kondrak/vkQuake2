@@ -14,4 +14,5 @@ Features:
 - updated with Knightmare software renderer with color
 - fixed original compiler warnings
 - vk_validation command to enable layers (0 - off, 1 - warnings and errors, 2 - full validation, defaults to 2 in debug builds and 0 in release)
+- vk_picmip and vk_round_down GL equivalents
 - vk_log - redirects layer messages to file
