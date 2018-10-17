@@ -1203,7 +1203,7 @@ qboolean Vk_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
 		if (!mipmap)
 		{
 			//qglTexImage2D(GL_TEXTURE_2D, 0, comp, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-			memcpy(texBuffer, data, scaled_width * scaled_height);
+			memcpy(texBuffer, data, scaled_width * scaled_height * 4);
 			goto done;
 		}
 		memcpy(scaled, data, width*height * 4);
