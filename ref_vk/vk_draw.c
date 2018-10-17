@@ -53,7 +53,36 @@ smoothly scrolled off.
 */
 void Draw_Char (int x, int y, int num)
 {
+	int				row, col;
+	float			frow, fcol, size;
 
+	num &= 255;
+
+	if ((num & 127) == 32)
+		return;		// space
+
+	if (y <= -8)
+		return;			// totally off screen
+
+	row = num >> 4;
+	col = num & 15;
+
+	frow = row * 0.0625;
+	fcol = col * 0.0625;
+	size = 0.0625;
+
+	/*GL_Bind(draw_chars->texnum);
+
+	qglBegin(GL_QUADS);
+	qglTexCoord2f(fcol, frow);
+	qglVertex2f(x, y);
+	qglTexCoord2f(fcol + size, frow);
+	qglVertex2f(x + 8, y);
+	qglTexCoord2f(fcol + size, frow + size);
+	qglVertex2f(x + 8, y + 8);
+	qglTexCoord2f(fcol, frow + size);
+	qglVertex2f(x, y + 8);
+	qglEnd();*/
 }
 
 /*
