@@ -38,6 +38,9 @@ void Draw_InitLocal (void)
 {
 	// load console characters (don't bilerp characters)
 	draw_chars = Vk_FindImage("pics/conchars.pcx", it_pic);
+	draw_chars->vk_texture.minFilter = VK_FILTER_NEAREST;
+	draw_chars->vk_texture.magFilter = VK_FILTER_NEAREST;
+	VK_VERIFY(QVk_RebuildTextureSampler(&draw_chars->vk_texture));
 }
 
 

@@ -302,8 +302,13 @@ static void createTextureImage(qvktexture_t *dstTex, const unsigned char *data, 
 	QVk_FreeBuffer(&stagingBuffer);
 }
 
-static VkResult createTextureSampler(qvktexture_t *texture)
+VkResult QVk_RebuildTextureSampler(qvktexture_t *texture)
 {
+	if (texture->sampler != VK_NULL_HANDLE)
+	{
+		vkDestroySampler(vk_device.logical, texture->sampler, NULL);
+	}
+
 	VkSamplerCreateInfo samplerInfo = {
 		.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
 		.pNext = NULL,
@@ -425,7 +430,7 @@ void QVk_CreateTexture(qvktexture_t *texture, const unsigned char *data, uint32_
 {
 	createTextureImage(texture, data, width, height);
 	VK_VERIFY(QVk_CreateImageView(&texture->image, VK_IMAGE_ASPECT_COLOR_BIT, &texture->imageView, texture->format, texture->mipLevels));
-	VK_VERIFY(createTextureSampler(texture));
+	VK_VERIFY(QVk_RebuildTextureSampler(texture));
 }
 
 void QVk_ReleaseTexture(qvktexture_t *texture)

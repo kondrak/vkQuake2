@@ -208,6 +208,7 @@ VkResult	QVk_CreateSwapchain();
 VkResult	QVk_CreateRenderpass(qvkrenderpass_t *renderpass);
 VkFormat	QVk_FindDepthFormat();
 VkResult	QVk_CreateCommandPool(VkCommandPool *commandPool, uint32_t queueFamilyIndex);
+VkResult	QVk_RebuildTextureSampler(qvktexture_t *texture);
 VkResult	QVk_CreateImageView(const VkImage *image, VkImageAspectFlags aspectFlags, VkImageView *imageView, VkFormat format, uint32_t mipLevels);
 VkResult	QVk_CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VmaMemoryUsage memUsage, qvktexture_t *texture);
 void		QVk_CreateDepthBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *depthBuffer);
