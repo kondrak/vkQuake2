@@ -6,6 +6,8 @@ layout(binding = 0) uniform imageTransform
 {
     vec2 offset;
     vec2 scale;
+    vec2 uvOffset;
+    vec2 uvScale;
 } it;
 
 layout(location = 0) in vec3 inVertex;
@@ -20,5 +22,5 @@ out gl_PerVertex {
 void main() {
     vec2 vPos = inVertex.xy * it.scale - (vec2(1.0) - it.scale);
     gl_Position = vec4(vPos + it.offset * 2.0, 0.0, 1.0);
-    texCoord = inTexCoord;
+    texCoord = inTexCoord.xy * it.uvScale + it.uvOffset;
 }

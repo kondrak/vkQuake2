@@ -420,6 +420,8 @@ R_Shutdown
 */
 void R_Shutdown (void)
 {
+	vkDeviceWaitIdle(vk_device.logical);
+
 	Mod_FreeAll();
 	Vk_ShutdownImages();
 

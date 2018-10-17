@@ -128,7 +128,7 @@ VkDescriptorSetLayout descriptorSetLayout;
 VkDescriptorPool descriptorPool;
 VkDescriptorSet  descriptorSet;
 qvkshader_t shaders[2];
-const VkDeviceSize consoleUboSize = sizeof(float) * 4;
+const VkDeviceSize consoleUboSize = sizeof(float) * 8;
 
 VkFormat QVk_FindDepthFormat()
 {
@@ -569,7 +569,6 @@ qboolean QVk_Init()
 			.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
 			.pImmutableSamplers = NULL
 		},
-		/*
 		// sampler
 		{
 			.binding = 1,
@@ -577,7 +576,7 @@ qboolean QVk_Init()
 			.descriptorCount = 1,
 			.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
 			.pImmutableSamplers = NULL
-		}*/
+		}
 	};
 
 	VkDescriptorSetLayoutCreateInfo layoutInfo = {
@@ -597,12 +596,11 @@ qboolean QVk_Init()
 			.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 			.descriptorCount = 1
 		},
-		/*
 		// sampler
 		{
 		.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
 		.descriptorCount = 1
-		}*/
+		}
 	};
 
 	VkDescriptorPoolCreateInfo poolInfo = {
@@ -628,51 +626,6 @@ qboolean QVk_Init()
 
 	VK_VERIFY(vkAllocateDescriptorSets(vk_device.logical, &dsAllocInfo, &descriptorSet));
 
-	VkDescriptorBufferInfo bufferInfo = {
-		.buffer = uniformBuffer.buffer,
-		.offset = 0,
-		.range = consoleUboSize
-	};
-
-	/*
-	VkDescriptorImageInfo imageInfo = {
-		.sampler = textures[0]->sampler,
-		.imageView = textures[0]->imageView,
-		.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-	}; */
-
-	VkWriteDescriptorSet descriptorWrites[] = {
-		// UBO
-		{
-			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-			.pNext = NULL,
-			.dstSet = descriptorSet,
-			.dstBinding = 0,
-			.dstArrayElement = 0,
-			.descriptorCount = 1,
-			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-			.pImageInfo = NULL,
-			.pBufferInfo = &bufferInfo,
-			.pTexelBufferView = NULL,
-		},
-		/*
-		// sampler
-		{
-			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-			.pNext = NULL,
-			.dstSet = descriptorSet,
-			.dstBinding = 1,
-			.dstArrayElement = 0,
-			.descriptorCount = 1,
-			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-			.pImageInfo = &imageInfo,
-			.pBufferInfo = NULL,
-			.pTexelBufferView = NULL
-		} */
-	};
-
-	vkUpdateDescriptorSets(vk_device.logical, sizeof(descriptorWrites)/sizeof(descriptorWrites[0]), descriptorWrites, 0, NULL);
-
 	// create pipeline object
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo = {
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
@@ -694,6 +647,52 @@ qboolean QVk_Init()
 	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
 
 	return true;
+}
+
+void QVk_TempUpdateDescriptor(qvktexture_t *texture)
+{
+	VkDescriptorBufferInfo bufferInfo = {
+		.buffer = uniformBuffer.buffer,
+		.offset = 0,
+		.range = consoleUboSize
+	};
+
+	VkDescriptorImageInfo imageInfo = {
+	.sampler = texture->sampler,
+	.imageView = texture->imageView,
+	.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+	};
+
+	VkWriteDescriptorSet descriptorWrites[] = {
+		// UBO
+		{
+			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+			.pNext = NULL,
+			.dstSet = descriptorSet,
+			.dstBinding = 0,
+			.dstArrayElement = 0,
+			.descriptorCount = 1,
+			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+			.pImageInfo = NULL,
+			.pBufferInfo = &bufferInfo,
+			.pTexelBufferView = NULL,
+		},
+		// sampler
+		{
+		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+		.pNext = NULL,
+		.dstSet = descriptorSet,
+		.dstBinding = 1,
+		.dstArrayElement = 0,
+		.descriptorCount = 1,
+		.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+		.pImageInfo = &imageInfo,
+		.pBufferInfo = NULL,
+		.pTexelBufferView = NULL
+		}
+	};
+
+	vkUpdateDescriptorSets(vk_device.logical, sizeof(descriptorWrites) / sizeof(descriptorWrites[0]), descriptorWrites, 0, NULL);
 }
 
 VkResult QVk_BeginFrame()

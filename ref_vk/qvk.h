@@ -229,4 +229,5 @@ void		QVk_CreateIndexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *ds
 qvkshader_t QVk_CreateShader(const uint32_t *shaderSrc, size_t shaderCodeSize, VkShaderStageFlagBits shaderStage);
 void		QVk_CreatePipeline(const VkDescriptorSetLayout *descriptorLayout, const uint32_t desLayoutCount, const VkPipelineVertexInputStateCreateInfo *vertexInputInfo, qvkpipeline_t *pipeline, const qvkshader_t *shaders, uint32_t shaderCount);
 void		QVk_DestroyPipeline(qvkpipeline_t *pipeline);
+void QVk_TempUpdateDescriptor(qvktexture_t *texture);
 #endif

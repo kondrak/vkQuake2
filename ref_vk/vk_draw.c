@@ -109,8 +109,14 @@ void Draw_StretchPic (int x, int y, int w, int h, char *pic)
 		return;
 	}
 
+	// proof of concept, not final solution ;)
+	vkDeviceWaitIdle(vk_device.logical);
+	QVk_TempUpdateDescriptor(&vk->vk_texture);
+
 	float imgTransform[] = { (float)x / vid.width, (float)y / vid.height,
-							 (float)w / vid.width, (float)h / vid.height };
+							 (float)w / vid.width, (float)h / vid.height,
+							  vk->sl,				vk->tl, 
+							  vk->sh - vk->sl,		vk->th - vk->tl };
 	void *data;
 	vmaMapMemory(vk_malloc, uniformBuffer.allocation, &data);
 	memcpy(data, &imgTransform, sizeof(imgTransform));
@@ -126,25 +132,7 @@ void Draw_StretchPic (int x, int y, int w, int h, char *pic)
 
 /*	if (scrap_dirty)
 		Scrap_Upload();
-
-	if (((gl_config.renderer == GL_RENDERER_MCD) || (gl_config.renderer & GL_RENDERER_RENDITION)) && !gl->has_alpha)
-		qglDisable(GL_ALPHA_TEST);
-
-	GL_Bind(gl->texnum);
-	qglBegin(GL_QUADS);
-	qglTexCoord2f(gl->sl, gl->tl);
-	qglVertex2f(x, y);
-	qglTexCoord2f(gl->sh, gl->tl);
-	qglVertex2f(x + w, y);
-	qglTexCoord2f(gl->sh, gl->th);
-	qglVertex2f(x + w, y + h);
-	qglTexCoord2f(gl->sl, gl->th);
-	qglVertex2f(x, y + h);
-	qglEnd();
-
-	if (((gl_config.renderer == GL_RENDERER_MCD) || (gl_config.renderer & GL_RENDERER_RENDITION)) && !gl->has_alpha)
-		qglEnable(GL_ALPHA_TEST);
-		*/
+*/
 }
 
 

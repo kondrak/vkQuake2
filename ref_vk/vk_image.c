@@ -1130,7 +1130,7 @@ Returns has_alpha
 ===============
 */
 int		upload_width, upload_height;
-unsigned char texBuffer[256 * 256];
+unsigned int texBuffer[256 * 256];
 
 qboolean Vk_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
 {
@@ -1214,7 +1214,7 @@ qboolean Vk_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
 	Vk_LightScaleTexture(scaled, scaled_width, scaled_height, !mipmap);
 
 	//qglTexImage2D(GL_TEXTURE_2D, 0, comp, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaled);
-	memcpy(texBuffer, scaled, scaled_width * scaled_height);
+	memcpy(texBuffer, scaled, sizeof(scaled));
 
 	/*if (mipmap)
 	{
@@ -1381,7 +1381,7 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 		image->th = 1;
 	}
 
-	QVk_CreateTexture(&image->vk_texture, texBuffer, image->upload_width, image->upload_height);
+	QVk_CreateTexture(&image->vk_texture, (unsigned char*)texBuffer, image->upload_width, image->upload_height);
 
 	return image;
 }
