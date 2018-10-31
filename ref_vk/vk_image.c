@@ -302,40 +302,6 @@ static void createTextureImage(qvktexture_t *dstTex, const unsigned char *data, 
 	QVk_FreeBuffer(&stagingBuffer);
 }
 
-VkResult QVk_RebuildTextureSampler(qvktexture_t *texture)
-{
-	if (texture->sampler != VK_NULL_HANDLE)
-	{
-		vkDestroySampler(vk_device.logical, texture->sampler, NULL);
-	}
-
-	VkSamplerCreateInfo samplerInfo = {
-		.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-		.pNext = NULL,
-		.flags = 0,
-		.magFilter = texture->magFilter,
-		.minFilter = texture->minFilter,
-		.mipmapMode = texture->mipmapMode,
-		.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-		.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-		.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-		.mipLodBias = texture->mipLodBias,
-		.anisotropyEnable = (texture->magFilter == texture->minFilter) && texture->minFilter == VK_FILTER_NEAREST ? VK_FALSE : VK_TRUE,
-		.maxAnisotropy = vk_device.properties.limits.maxSamplerAnisotropy,
-		.compareEnable = VK_FALSE,
-		.compareOp = VK_COMPARE_OP_ALWAYS,
-		.minLod = texture->mipMinLod,
-		.maxLod = (float)texture->mipLevels,
-		.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
-		.unnormalizedCoordinates = VK_FALSE
-	};
-
-	if (vk_device.properties.limits.maxSamplerAnisotropy == 1.f)
-		samplerInfo.anisotropyEnable = VK_FALSE;
-
-	return vkCreateSampler(vk_device.logical, &samplerInfo, NULL, &texture->sampler);
-}
-
 VkResult QVk_CreateImageView(const VkImage *image, VkImageAspectFlags aspectFlags, VkImageView *imageView, VkFormat format, uint32_t mipLevels)
 {
 	VkImageViewCreateInfo ivCreateInfo = {
@@ -426,11 +392,95 @@ void QVk_CreateColorBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *colo
 	vkFreeCommandBuffers(vk_device.logical, vk_commandPool, 1, &cmdBuffer);
 }
 
-void QVk_CreateTexture(qvktexture_t *texture, const unsigned char *data, uint32_t width, uint32_t height)
+
+extern VkDescriptorSetLayout descriptorSetLayout;
+// todo: get rid of this? use vertex input instead?
+extern qvkbuffer_t uniformBuffer;
+void QVk_CreateTexture(qvktexture_t *texture, const unsigned char *data, uint32_t width, uint32_t height, qvktextureopts_t *texOpts)
 {
 	createTextureImage(texture, data, width, height);
 	VK_VERIFY(QVk_CreateImageView(&texture->image, VK_IMAGE_ASPECT_COLOR_BIT, &texture->imageView, texture->format, texture->mipLevels));
-	VK_VERIFY(QVk_RebuildTextureSampler(texture));
+
+	// create sampler
+	VkSamplerCreateInfo samplerInfo = {
+		.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+		.pNext = NULL,
+		.flags = 0,
+		.magFilter = texOpts->magFilter,
+		.minFilter = texOpts->minFilter,
+		.mipmapMode = texture->mipmapMode,
+		.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+		.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+		.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+		.mipLodBias = texture->mipLodBias,
+		.anisotropyEnable = (texOpts->magFilter == texOpts->minFilter) && texOpts->minFilter == VK_FILTER_NEAREST ? VK_FALSE : VK_TRUE,
+		.maxAnisotropy = vk_device.properties.limits.maxSamplerAnisotropy,
+		.compareEnable = VK_FALSE,
+		.compareOp = VK_COMPARE_OP_ALWAYS,
+		.minLod = texture->mipMinLod,
+		.maxLod = (float)texture->mipLevels,
+		.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+		.unnormalizedCoordinates = VK_FALSE
+	};
+
+	if (vk_device.properties.limits.maxSamplerAnisotropy == 1.f)
+		samplerInfo.anisotropyEnable = VK_FALSE;
+
+	VK_VERIFY(vkCreateSampler(vk_device.logical, &samplerInfo, NULL, &texture->sampler));
+
+	// create descriptor set
+	VkDescriptorSetLayout layouts[] = { descriptorSetLayout };
+	VkDescriptorSetAllocateInfo dsAllocInfo = {
+		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+		.pNext = NULL,
+		.descriptorPool = vk_descriptorPool,
+		.descriptorSetCount = 1,
+		.pSetLayouts = layouts
+	};
+
+	VK_VERIFY(vkAllocateDescriptorSets(vk_device.logical, &dsAllocInfo, &texture->descriptorSet));
+
+	VkDescriptorBufferInfo bufferInfo = {
+		.buffer = uniformBuffer.buffer,
+		.offset = 0,
+		.range = sizeof(float) * 8 // size of uniformBufferObject
+	};
+	VkDescriptorImageInfo imageInfo = {
+		.sampler = texture->sampler,
+		.imageView = texture->imageView,
+		.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+	};
+
+	VkWriteDescriptorSet descriptorWrites[] = {
+		// UBO
+		{
+			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+			.pNext = NULL,
+			.dstSet = texture->descriptorSet,
+			.dstBinding = 0,
+			.dstArrayElement = 0,
+			.descriptorCount = 1,
+			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+			.pImageInfo = NULL,
+			.pBufferInfo = &bufferInfo,
+			.pTexelBufferView = NULL,
+		},
+		// sampler
+		{
+			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+			.pNext = NULL,
+			.dstSet = texture->descriptorSet,
+			.dstBinding = 1,
+			.dstArrayElement = 0,
+			.descriptorCount = 1,
+			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+			.pImageInfo = &imageInfo,
+			.pBufferInfo = NULL,
+			.pTexelBufferView = NULL
+		}
+	};
+
+	vkUpdateDescriptorSets(vk_device.logical, sizeof(descriptorWrites) / sizeof(descriptorWrites[0]), descriptorWrites, 0, NULL);
 }
 
 void QVk_ReleaseTexture(qvktexture_t *texture)
@@ -1312,7 +1362,7 @@ Vk_LoadPic
 This is also used as an entry point for the generated r_notexture
 ================
 */
-image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type, int bits)
+image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type, int bits, qvktextureopts_t *texOpts)
 {
 	image_t		*image;
 	int			i;
@@ -1386,7 +1436,8 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 		image->th = 1;
 	}
 
-	QVk_CreateTexture(&image->vk_texture, (unsigned char*)texBuffer, image->upload_width, image->upload_height);
+	qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
+	QVk_CreateTexture(&image->vk_texture, (unsigned char*)texBuffer, image->upload_width, image->upload_height, texOpts ? texOpts : &defaultTexOpts);
 
 	return image;
 }
@@ -1414,7 +1465,7 @@ image_t *Vk_LoadWal (char *name)
 	height = LittleLong (mt->height);
 	ofs = LittleLong (mt->offsets[0]);
 
-	image = Vk_LoadPic (name, (byte *)mt + ofs, width, height, it_wall, 8);
+	image = Vk_LoadPic (name, (byte *)mt + ofs, width, height, it_wall, 8, NULL);
 
 	ri.FS_FreeFile ((void *)mt);
 
@@ -1428,7 +1479,7 @@ Vk_FindImage
 Finds or loads the given image
 ===============
 */
-image_t	*Vk_FindImage (char *name, imagetype_t type)
+image_t	*Vk_FindImage (char *name, imagetype_t type, qvktextureopts_t *texOpts)
 {
 	image_t	*image;
 	int		i, len;
@@ -1461,7 +1512,7 @@ image_t	*Vk_FindImage (char *name, imagetype_t type)
 		LoadPCX (name, &pic, &palette, &width, &height);
 		if (!pic)
 			return NULL; // ri.Sys_Error (ERR_DROP, "Vk_FindImage: can't load %s", name);
-		image = Vk_LoadPic (name, pic, width, height, type, 8);
+		image = Vk_LoadPic (name, pic, width, height, type, 8, texOpts);
 	}
 	else if (!strcmp(name+len-4, ".wal"))
 	{
@@ -1472,7 +1523,7 @@ image_t	*Vk_FindImage (char *name, imagetype_t type)
 		LoadTGA (name, &pic, &width, &height);
 		if (!pic)
 			return NULL; // ri.Sys_Error (ERR_DROP, "Vk_FindImage: can't load %s", name);
-		image = Vk_LoadPic (name, pic, width, height, type, 32);
+		image = Vk_LoadPic (name, pic, width, height, type, 32, texOpts);
 	}
 	else
 		return NULL;	//	ri.Sys_Error (ERR_DROP, "Vk_FindImage: bad extension on: %s", name);
@@ -1495,7 +1546,7 @@ R_RegisterSkin
 */
 struct image_s *R_RegisterSkin (char *name)
 {
-	return Vk_FindImage (name, it_skin);
+	return Vk_FindImage (name, it_skin, NULL);
 }
 
 

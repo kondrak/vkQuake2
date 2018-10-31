@@ -57,6 +57,17 @@ typedef struct
 	int imageCount;
 } qvkswapchain_t;
 
+typedef struct
+{
+	VkFilter  minFilter;
+	VkFilter  magFilter;
+} qvktextureopts_t;
+
+#define QVVKTEXTUREOPTS_INIT     { \
+	.minFilter = VK_FILTER_LINEAR, \
+	.magFilter = VK_FILTER_LINEAR, \
+}
+
 typedef struct 
 {
 	VkImage image;
@@ -66,8 +77,7 @@ typedef struct
 	VkSharingMode sharingMode;
 	VkSampleCountFlagBits sampleCount;
 	VkFormat  format;
-	VkFilter  minFilter;
-	VkFilter  magFilter;
+	VkDescriptorSet descriptorSet;
 	// mipmap settings
 	uint32_t mipLevels;
 	float mipLodBias;
@@ -84,8 +94,7 @@ typedef struct
 	.sharingMode = VK_SHARING_MODE_MAX_ENUM, \
 	.sampleCount = VK_SAMPLE_COUNT_1_BIT, \
 	.format = VK_FORMAT_R8G8B8A8_UNORM, \
-	.minFilter = VK_FILTER_LINEAR, \
-	.magFilter = VK_FILTER_LINEAR, \
+	.descriptorSet = VK_NULL_HANDLE, \
 	.mipLevels = 1, \
 	.mipLodBias = 0.f, \
 	.mipMinLod = 0.f, \
@@ -101,8 +110,6 @@ typedef struct
 	(i).sharingMode = VK_SHARING_MODE_MAX_ENUM; \
 	(i).sampleCount = VK_SAMPLE_COUNT_1_BIT; \
 	(i).format = VK_FORMAT_R8G8B8A8_UNORM; \
-	(i).minFilter = VK_FILTER_LINEAR; \
-	(i).magFilter = VK_FILTER_LINEAR; \
 	(i).mipLevels = 1; \
 	(i).mipLodBias = 0.f; \
 	(i).mipMinLod = 0.f; \
@@ -190,6 +197,8 @@ extern VkCommandBuffer vk_activeCmdbuffer;
 // Vulkan command pools
 extern VkCommandPool vk_commandPool;
 extern VkCommandPool vk_transferCommandPool;
+// Vulkan descriptor pool
+extern VkDescriptorPool vk_descriptorPool;
 
 // *** pipelines ***
 // console
@@ -208,12 +217,11 @@ VkResult	QVk_CreateSwapchain();
 VkResult	QVk_CreateRenderpass(qvkrenderpass_t *renderpass);
 VkFormat	QVk_FindDepthFormat();
 VkResult	QVk_CreateCommandPool(VkCommandPool *commandPool, uint32_t queueFamilyIndex);
-VkResult	QVk_RebuildTextureSampler(qvktexture_t *texture);
 VkResult	QVk_CreateImageView(const VkImage *image, VkImageAspectFlags aspectFlags, VkImageView *imageView, VkFormat format, uint32_t mipLevels);
 VkResult	QVk_CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VmaMemoryUsage memUsage, qvktexture_t *texture);
 void		QVk_CreateDepthBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *depthBuffer);
 void		QVk_CreateColorBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *colorBuffer);
-void		QVk_CreateTexture(qvktexture_t *texture, const unsigned char *data, uint32_t width, uint32_t height);
+void		QVk_CreateTexture(qvktexture_t *texture, const unsigned char *data, uint32_t width, uint32_t height, qvktextureopts_t *texOpts);
 void		QVk_ReleaseTexture(qvktexture_t *texture);
 VkResult	QVk_BeginCommand(const VkCommandBuffer *commandBuffer);
 void		QVk_SubmitCommand(const VkCommandBuffer *commandBuffer, const VkQueue *queue);
@@ -230,5 +238,4 @@ void		QVk_CreateIndexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *ds
 qvkshader_t QVk_CreateShader(const uint32_t *shaderSrc, size_t shaderCodeSize, VkShaderStageFlagBits shaderStage);
 void		QVk_CreatePipeline(const VkDescriptorSetLayout *descriptorLayout, const uint32_t desLayoutCount, const VkPipelineVertexInputStateCreateInfo *vertexInputInfo, qvkpipeline_t *pipeline, const qvkshader_t *shaders, uint32_t shaderCount);
 void		QVk_DestroyPipeline(qvkpipeline_t *pipeline);
-void QVk_TempUpdateDescriptor(qvktexture_t *texture);
 #endif

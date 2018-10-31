@@ -72,6 +72,7 @@ qvkrenderpass_t vk_renderpasses[RT_COUNT] = {
 
 VkCommandPool vk_commandPool = VK_NULL_HANDLE;
 VkCommandPool vk_transferCommandPool = VK_NULL_HANDLE;
+VkDescriptorPool vk_descriptorPool = VK_NULL_HANDLE;
 
 // Vulkan image views
 VkImageView *vk_imageviews = NULL;
@@ -124,9 +125,10 @@ qvkpipeline_t vk_console_pipeline = QVKPIPELINE_INIT;
 qvkbuffer_t vertexBuffer;
 qvkbuffer_t indexBuffer;
 qvkbuffer_t uniformBuffer;
+
+// we will need multiple of these
 VkDescriptorSetLayout descriptorSetLayout;
-VkDescriptorPool descriptorPool;
-VkDescriptorSet  descriptorSet;
+
 qvkshader_t shaders[2];
 const VkDeviceSize consoleUboSize = sizeof(float) * 8;
 
@@ -273,7 +275,7 @@ void QVk_Shutdown( void )
 		QVk_FreeBuffer(&vertexBuffer);
 		QVk_FreeBuffer(&indexBuffer);
 		QVk_FreeBuffer(&uniformBuffer);
-		vkDestroyDescriptorPool(vk_device.logical, descriptorPool, NULL);
+		vkDestroyDescriptorPool(vk_device.logical, vk_descriptorPool, NULL);
 		vkDestroyDescriptorSetLayout(vk_device.logical, descriptorSetLayout, NULL);
 
 		for (int i = 0; i < RT_COUNT; i++)
@@ -594,12 +596,12 @@ qboolean QVk_Init()
 		// UBO
 		{
 			.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-			.descriptorCount = 1
+			.descriptorCount = MAX_VKTEXTURES + 1
 		},
 		// sampler
 		{
 		.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-		.descriptorCount = 1
+		.descriptorCount = MAX_VKTEXTURES + 1
 		}
 	};
 
@@ -607,24 +609,12 @@ qboolean QVk_Init()
 		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
 		.pNext = NULL,
 		.flags = 0,
-		.maxSets = 1,
+		.maxSets = MAX_VKTEXTURES + 32,
 		.poolSizeCount = sizeof(poolSizes)/sizeof(poolSizes[0]),
 		.pPoolSizes = poolSizes,
 	};
 
-	VK_VERIFY(vkCreateDescriptorPool(vk_device.logical, &poolInfo, NULL, &descriptorPool));
-
-	// create descriptor set
-	VkDescriptorSetLayout layouts[] = { descriptorSetLayout };
-	VkDescriptorSetAllocateInfo dsAllocInfo = {
-		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-		.pNext = NULL,
-		.descriptorPool = descriptorPool,
-		.descriptorSetCount = 1,
-		.pSetLayouts = layouts
-	};
-
-	VK_VERIFY(vkAllocateDescriptorSets(vk_device.logical, &dsAllocInfo, &descriptorSet));
+	VK_VERIFY(vkCreateDescriptorPool(vk_device.logical, &poolInfo, NULL, &vk_descriptorPool));
 
 	// create pipeline object
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo = {
@@ -647,52 +637,6 @@ qboolean QVk_Init()
 	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
 
 	return true;
-}
-
-void QVk_TempUpdateDescriptor(qvktexture_t *texture)
-{
-	VkDescriptorBufferInfo bufferInfo = {
-		.buffer = uniformBuffer.buffer,
-		.offset = 0,
-		.range = consoleUboSize
-	};
-
-	VkDescriptorImageInfo imageInfo = {
-	.sampler = texture->sampler,
-	.imageView = texture->imageView,
-	.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-	};
-
-	VkWriteDescriptorSet descriptorWrites[] = {
-		// UBO
-		{
-			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-			.pNext = NULL,
-			.dstSet = descriptorSet,
-			.dstBinding = 0,
-			.dstArrayElement = 0,
-			.descriptorCount = 1,
-			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-			.pImageInfo = NULL,
-			.pBufferInfo = &bufferInfo,
-			.pTexelBufferView = NULL,
-		},
-		// sampler
-		{
-		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-		.pNext = NULL,
-		.dstSet = descriptorSet,
-		.dstBinding = 1,
-		.dstArrayElement = 0,
-		.descriptorCount = 1,
-		.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-		.pImageInfo = &imageInfo,
-		.pBufferInfo = NULL,
-		.pTexelBufferView = NULL
-		}
-	};
-
-	vkUpdateDescriptorSets(vk_device.logical, sizeof(descriptorWrites) / sizeof(descriptorWrites[0]), descriptorWrites, 0, NULL);
 }
 
 VkResult QVk_BeginFrame()
