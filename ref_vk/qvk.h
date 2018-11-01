@@ -128,6 +128,7 @@ typedef struct
 {
 	VkBuffer buffer;
 	VmaAllocation allocation;
+	VmaAllocationInfo allocInfo;
 } qvkbuffer_t;
 
 typedef struct

@@ -69,7 +69,7 @@ static VkResult createBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, const qv
 		.pUserData = NULL
 	};
 
-	return vmaCreateBuffer(vk_malloc, &bcInfo, &vmallocInfo, &dstBuffer->buffer, &dstBuffer->allocation, NULL);
+	return vmaCreateBuffer(vk_malloc, &bcInfo, &vmallocInfo, &dstBuffer->buffer, &dstBuffer->allocation, &dstBuffer->allocInfo);
 }
 
 // internal helper
@@ -111,7 +111,7 @@ VkResult QVk_CreateStagingBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer)
 		.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 		.memFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 		.vmaUsage = VMA_MEMORY_USAGE_CPU_ONLY,
-		.vmaFlags = VMA_ALLOCATION_CREATE_MAPPED_BIT
+		.vmaFlags = 0
 	};
 
 	return createBuffer(size, dstBuffer, stagingOpts);

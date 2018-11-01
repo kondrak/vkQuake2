@@ -82,13 +82,10 @@ void Draw_Char (int x, int y, int num)
 	float imgTransform[] = { (float)x / vid.width, (float)y / vid.height,
 							 8.f / vid.width, 8.f / vid.height,
 							 fcol, frow, size, size };
-	void *data;
-	vmaMapMemory(vk_malloc, uniformBuffer.allocation, &data);
-	memcpy(data, &imgTransform, sizeof(imgTransform));
-	vmaUnmapMemory(vk_malloc, uniformBuffer.allocation);
+
+	memcpy((unsigned char*)uniformBuffer.allocInfo.pMappedData, &imgTransform, sizeof(imgTransform));
 
 	vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_console_pipeline.pl);
-
 	VkDeviceSize offsets[] = { 0 };
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vertexBuffer.buffer, offsets);
 	vkCmdBindIndexBuffer(vk_activeCmdbuffer, indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
@@ -148,13 +145,10 @@ void Draw_StretchPic (int x, int y, int w, int h, char *pic)
 							 (float)w / vid.width, (float)h / vid.height,
 							  vk->sl,				vk->tl, 
 							  vk->sh - vk->sl,		vk->th - vk->tl };
-	void *data;
-	vmaMapMemory(vk_malloc, uniformBuffer.allocation, &data);
-	memcpy(data, &imgTransform, sizeof(imgTransform));
-	vmaUnmapMemory(vk_malloc, uniformBuffer.allocation);
+
+	memcpy(uniformBuffer.allocInfo.pMappedData, &imgTransform, sizeof(imgTransform));
 
 	vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_console_pipeline.pl);
-
 	VkDeviceSize offsets[] = { 0 };
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vertexBuffer.buffer, offsets);
 	vkCmdBindIndexBuffer(vk_activeCmdbuffer, indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
