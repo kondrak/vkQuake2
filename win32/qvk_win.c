@@ -122,15 +122,22 @@ qvkpipeline_t vk_console_pipeline = QVKPIPELINE_INIT;
 	.format = f, \
 	.offset = o \
 }
+
+// global dynamic buffers (double buffered)
+#define NUM_DYNBUFFERS 2
 qvkbuffer_t vertexBuffer;
 qvkbuffer_t indexBuffer;
-qvkbuffer_t uniformBuffer;
+static qvkbuffer_t vk_dynUniformBuffers[NUM_DYNBUFFERS];
+static VkDescriptorSet vk_uboDescriptorSets[NUM_DYNBUFFERS];
+static int vk_activeDynBufferIdx = 0;
+
+#define UNIFORM_BUFFER_MAXSIZE 2048
 
 // we will need multiple of these
-VkDescriptorSetLayout descriptorSetLayout;
+VkDescriptorSetLayout vk_uboDescSetLayout;
+VkDescriptorSetLayout vk_samplerDescSetLayout;
 
 qvkshader_t shaders[2];
-const VkDeviceSize consoleUboSize = sizeof(float) * 8;
 
 VkFormat QVk_FindDepthFormat()
 {
@@ -155,7 +162,7 @@ VkFormat QVk_FindDepthFormat()
 }
 
 // internal helpers
-void DestroyImageViews()
+static void DestroyImageViews()
 {
 	for (int i = 0; i < vk_swapchain.imageCount; i++)
 		vkDestroyImageView(vk_device.logical, vk_imageviews[i], NULL);
@@ -163,7 +170,7 @@ void DestroyImageViews()
 	vk_imageviews = NULL;
 }
 
-VkResult CreateImageViews()
+static VkResult CreateImageViews()
 {
 	VkResult res = VK_SUCCESS;
 	vk_imageviews = (VkImageView *)malloc(vk_swapchain.imageCount * sizeof(VkImageView));
@@ -182,7 +189,7 @@ VkResult CreateImageViews()
 	return res;
 }
 
-void DestroyFramebuffers()
+static void DestroyFramebuffers()
 {
 	for (int f = 0; f < RT_COUNT; f++)
 	{
@@ -199,7 +206,7 @@ void DestroyFramebuffers()
 	}
 }
 
-VkResult CreateFramebuffers(const qvkrenderpass_t *renderpass, qvkrendertype_t framebufferType)
+static VkResult CreateFramebuffers(const qvkrenderpass_t *renderpass, qvkrendertype_t framebufferType)
 {
 	VkResult res = VK_SUCCESS;
 	vk_framebuffers[framebufferType] = (VkFramebuffer *)malloc(vk_swapchain.imageCount * sizeof(VkFramebuffer));
@@ -231,7 +238,7 @@ VkResult CreateFramebuffers(const qvkrenderpass_t *renderpass, qvkrendertype_t f
 	return res;
 }
 
-void CreateDrawBuffers()
+static void CreateDrawBuffers()
 {
 	QVk_CreateDepthBuffer(vk_renderpasses[RT_STANDARD].sampleCount, &vk_depthbuffer);
 	ri.Con_Printf(PRINT_ALL, "...created depth buffer\n");
@@ -241,7 +248,7 @@ void CreateDrawBuffers()
 	ri.Con_Printf(PRINT_ALL, "...created MSAA color buffer\n");
 }
 
-void DestroyDrawBuffer(qvktexture_t *drawBuffer)
+static void DestroyDrawBuffer(qvktexture_t *drawBuffer)
 {
 	if (drawBuffer->image != VK_NULL_HANDLE)
 	{
@@ -252,11 +259,115 @@ void DestroyDrawBuffer(qvktexture_t *drawBuffer)
 	}
 }
 
-void DestroyDrawBuffers()
+static void DestroyDrawBuffers()
 {
 	DestroyDrawBuffer(&vk_depthbuffer);
 	DestroyDrawBuffer(&vk_msaaDepthbuffer);
 	DestroyDrawBuffer(&vk_msaaColorbuffer);
+}
+
+static void CreateDescriptorSetLayouts()
+{
+	VkDescriptorSetLayoutBinding layoutBinding = {
+		.binding = 0,
+		.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
+		.descriptorCount = 1,
+		.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+		.pImmutableSamplers = NULL
+	};
+
+	VkDescriptorSetLayoutCreateInfo layoutInfo = {
+		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+		.pNext = NULL,
+		.flags = 0,
+		.bindingCount = 1,
+		.pBindings = &layoutBinding
+	};
+
+	// uniform buffer object layout
+	VK_VERIFY(vkCreateDescriptorSetLayout(vk_device.logical, &layoutInfo, NULL, &vk_uboDescSetLayout));
+
+	// sampler layout
+	layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	layoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	VK_VERIFY(vkCreateDescriptorSetLayout(vk_device.logical, &layoutInfo, NULL, &vk_samplerDescSetLayout));
+}
+
+static void CreateDescriptorPool()
+{
+	VkDescriptorPoolSize poolSizes[] = {
+		// UBO
+		{
+			.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
+			.descriptorCount = 16
+		},
+		// sampler
+		{
+			.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+			.descriptorCount = MAX_VKTEXTURES + 1
+		}
+	};
+
+	VkDescriptorPoolCreateInfo poolInfo = {
+		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+		.pNext = NULL,
+		.flags = 0,
+		.maxSets = MAX_VKTEXTURES + 32,
+		.poolSizeCount = sizeof(poolSizes) / sizeof(poolSizes[0]),
+		.pPoolSizes = poolSizes,
+	};
+
+	VK_VERIFY(vkCreateDescriptorPool(vk_device.logical, &poolInfo, NULL, &vk_descriptorPool));
+}
+
+static void CreateDynamicBuffers()
+{
+	const float verts[] = { -1., -1., 0., 0.,
+							 1.,  1., 1., 1.,
+							-1.,  1., 0., 1.,
+							 1., -1., 1., 0. };
+
+	const uint32_t indices[] = { 0, 1, 2, 0, 3, 1 };
+
+	QVk_CreateVertexBuffer(verts, sizeof(verts), &vertexBuffer, NULL);
+	QVk_CreateIndexBuffer(indices, sizeof(indices), &indexBuffer, NULL);
+
+	for (int i = 0; i < NUM_DYNBUFFERS; ++i)
+	{
+		QVk_CreateUniformBuffer(UNIFORM_BUFFER_MAXSIZE * 1024, &vk_dynUniformBuffers[i]);
+
+		// create descriptor set
+		VkDescriptorSetAllocateInfo dsAllocInfo = {
+			.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+			.pNext = NULL,
+			.descriptorPool = vk_descriptorPool,
+			.descriptorSetCount = 1,
+			.pSetLayouts = &vk_uboDescSetLayout
+		};
+
+		VK_VERIFY(vkAllocateDescriptorSets(vk_device.logical, &dsAllocInfo, &vk_uboDescriptorSets[i]));
+
+		VkDescriptorBufferInfo bufferInfo = {
+			.buffer = vk_dynUniformBuffers[i].buffer,
+			.offset = 0,
+			.range = UNIFORM_BUFFER_MAXSIZE
+		};
+
+		VkWriteDescriptorSet descriptorWrite = {
+			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+			.pNext = NULL,
+			.dstSet = vk_uboDescriptorSets[i],
+			.dstBinding = 0,
+			.dstArrayElement = 0,
+			.descriptorCount = 1,
+			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
+			.pImageInfo = NULL,
+			.pBufferInfo = &bufferInfo,
+			.pTexelBufferView = NULL,
+		};
+
+		vkUpdateDescriptorSets(vk_device.logical, 1, &descriptorWrite, 0, NULL);
+	}
 }
 
 /*
@@ -274,9 +385,13 @@ void QVk_Shutdown( void )
 		QVk_DestroyPipeline(&vk_console_pipeline);
 		QVk_FreeBuffer(&vertexBuffer);
 		QVk_FreeBuffer(&indexBuffer);
-		QVk_FreeBuffer(&uniformBuffer);
+		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
+		{
+			QVk_FreeBuffer(&vk_dynUniformBuffers[i]);
+		}
 		vkDestroyDescriptorPool(vk_device.logical, vk_descriptorPool, NULL);
-		vkDestroyDescriptorSetLayout(vk_device.logical, descriptorSetLayout, NULL);
+		vkDestroyDescriptorSetLayout(vk_device.logical, vk_uboDescSetLayout, NULL);
+		vkDestroyDescriptorSetLayout(vk_device.logical, vk_samplerDescSetLayout, NULL);
 
 		for (int i = 0; i < RT_COUNT; i++)
 		{
@@ -351,14 +466,14 @@ qboolean QVk_Init()
 
 	Vkimp_GetSurfaceExtensions(NULL, &extCount);
 
-	if(vk_validation->value)
+	if (vk_validation->value)
 		extCount++;
 
 	wantedExtensions = (char **)malloc(extCount * sizeof(const char *));
 	Vkimp_GetSurfaceExtensions(wantedExtensions, NULL);
 
 	if (vk_validation->value)
-		wantedExtensions[extCount-1] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
+		wantedExtensions[extCount - 1] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
 
 	ri.Con_Printf(PRINT_ALL, "Vulkan extensions: ");
 	for (int i = 0; i < extCount; i++)
@@ -378,7 +493,7 @@ qboolean QVk_Init()
 	if (vk_validation->value)
 	{
 		const char *validationLayers[] = { "VK_LAYER_LUNARG_standard_validation" };
-		createInfo.enabledLayerCount = sizeof(validationLayers)/sizeof(validationLayers[0]);
+		createInfo.enabledLayerCount = sizeof(validationLayers) / sizeof(validationLayers[0]);
 		createInfo.ppEnabledLayerNames = validationLayers;
 	}
 
@@ -448,8 +563,8 @@ qboolean QVk_Init()
 		.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
 		.flags = VK_FENCE_CREATE_SIGNALED_BIT
 	};
-	VkSemaphoreCreateInfo sCreateInfo = { 
-		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO 
+	VkSemaphoreCreateInfo sCreateInfo = {
+		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
 	};
 	for (int i = 0; i < NUM_CMDBUFFERS; ++i)
 	{
@@ -543,78 +658,17 @@ qboolean QVk_Init()
 	vk_activeFramebuffer = vk_framebuffers[RT_STANDARD];
 	vk_activeCmdbuffer = vk_commandbuffers[vk_activeBufferIdx];
 
+	CreateDescriptorSetLayouts();
+	CreateDescriptorPool();
+	// create vertex, index and uniform buffer pools
+	CreateDynamicBuffers();
+
 	// init console pipeline
 	VkVertexInputBindingDescription bindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 4);
 	VkVertexInputAttributeDescription attributeDescriptions[] = {
 		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32_SFLOAT, 0),
-		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float)*2),
+		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 2),
 	};
-
-	const float verts[] = { -1., -1., 0., 0.,
-							 1.,  1., 1., 1.,
-							-1.,  1., 0., 1.,
-							 1., -1., 1., 0. };
-
-	const uint32_t indices[] = { 0, 1, 2, 0, 3, 1 };
-
-	QVk_CreateVertexBuffer(verts, sizeof(verts), &vertexBuffer, NULL);
-	QVk_CreateIndexBuffer(indices, sizeof(indices), &indexBuffer, NULL);
-	QVk_CreateUniformBuffer(consoleUboSize, &uniformBuffer);
-
-	// descriptor set layout for the uniform and a sampler
-	VkDescriptorSetLayoutBinding layoutBindings[] = {
-		// UBO
-		{
-			.binding = 0,
-			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-			.descriptorCount = 1,
-			.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
-			.pImmutableSamplers = NULL
-		},
-		// sampler
-		{
-			.binding = 1,
-			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-			.descriptorCount = 1,
-			.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
-			.pImmutableSamplers = NULL
-		}
-	};
-
-	VkDescriptorSetLayoutCreateInfo layoutInfo = {
-		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-		.pNext = NULL,
-		.flags = 0,
-		.bindingCount = sizeof(layoutBindings)/sizeof(layoutBindings[0]),
-		.pBindings = layoutBindings
-	};
-
-	VK_VERIFY(vkCreateDescriptorSetLayout(vk_device.logical, &layoutInfo, NULL, &descriptorSetLayout));
-
-	// create descriptor pool
-	VkDescriptorPoolSize poolSizes[] = {
-		// UBO
-		{
-			.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-			.descriptorCount = MAX_VKTEXTURES + 1
-		},
-		// sampler
-		{
-		.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-		.descriptorCount = MAX_VKTEXTURES + 1
-		}
-	};
-
-	VkDescriptorPoolCreateInfo poolInfo = {
-		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-		.pNext = NULL,
-		.flags = 0,
-		.maxSets = MAX_VKTEXTURES + 32,
-		.poolSizeCount = sizeof(poolSizes)/sizeof(poolSizes[0]),
-		.pPoolSizes = poolSizes,
-	};
-
-	VK_VERIFY(vkCreateDescriptorPool(vk_device.logical, &poolInfo, NULL, &vk_descriptorPool));
 
 	// create pipeline object
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo = {
@@ -631,7 +685,8 @@ qboolean QVk_Init()
 	shaders[1] = QVk_CreateShader(basic_frag_spv, basic_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
 
 	vk_console_pipeline.depthTestEnable = VK_FALSE;
-	QVk_CreatePipeline(&descriptorSetLayout, 1, &vertexInputInfo, &vk_console_pipeline, shaders, 2);
+	VkDescriptorSetLayout dsLayouts[] = { vk_uboDescSetLayout, vk_samplerDescSetLayout };
+	QVk_CreatePipeline(dsLayouts, 2, &vertexInputInfo, &vk_console_pipeline, shaders, 2);
 	
 	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
 	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
@@ -644,6 +699,10 @@ VkResult QVk_BeginFrame()
 	VkResult result = vkAcquireNextImageKHR(vk_device.logical, vk_swapchain.sc, UINT32_MAX, vk_imageAvailableSemaphores[vk_activeBufferIdx], VK_NULL_HANDLE, &vk_imageIndex);
 	vk_activeCmdbuffer = vk_commandbuffers[vk_activeBufferIdx];
 	vk_activeFramebuffer = (vk_activeRenderpass.sampleCount == VK_SAMPLE_COUNT_1_BIT) ? vk_framebuffers[RT_STANDARD][vk_imageIndex] : vk_framebuffers[RT_MSAA][vk_imageIndex];
+
+	// swap dynamic buffers
+	vk_activeDynBufferIdx = (vk_activeDynBufferIdx + 1) % NUM_DYNBUFFERS;
+	vk_dynUniformBuffers[vk_activeDynBufferIdx].currentOffset = 0;
 
 	// swapchain has become incompatible - need to recreate it
 	if (result == VK_ERROR_OUT_OF_DATE_KHR)
@@ -754,6 +813,18 @@ void QVk_RecreateSwapchain()
 	VK_VERIFY( CreateFramebuffers( &vk_renderpasses[RT_MSAA], RT_MSAA ) );
 }
 
+uint8_t *QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescriptorSet *dstUboDescriptorSet)
+{
+	// 0x100 alignment is required by Vulkan spec
+	const int align_mod = size % 256;
+	const uint32_t aligned_size = ((size % 256) == 0) ? size : (size + 256 - align_mod);
+	*dstOffset = vk_dynUniformBuffers[vk_activeDynBufferIdx].currentOffset;
+	*dstUboDescriptorSet = vk_uboDescriptorSets[vk_activeDynBufferIdx];
+	vk_dynUniformBuffers[vk_activeDynBufferIdx].currentOffset += aligned_size;
+
+	return (uint8_t *)vk_dynUniformBuffers[vk_activeDynBufferIdx].allocInfo.pMappedData + (*dstOffset);
+}
+
 const char *QVk_GetError(VkResult errorCode)
 {
 #define ERRSTR(r) case VK_ ##r: return "VK_"#r
@@ -821,6 +892,4 @@ void Vkimp_LogNewFrame( void )
 }
 
 #pragma warning (default : 4113 4133 4047 )
-
-
 

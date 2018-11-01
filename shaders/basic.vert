@@ -2,7 +2,7 @@
 #extension GL_ARB_separate_shader_objects : enable
 
 // normalized offset and scale
-layout(binding = 0) uniform imageTransform
+layout(set = 0, binding = 0) uniform imageTransform
 {
     vec2 offset;
     vec2 scale;

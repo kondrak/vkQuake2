@@ -57,7 +57,6 @@ smoothly scrolled off.
 */
 extern qvkbuffer_t vertexBuffer;
 extern qvkbuffer_t indexBuffer;
-extern qvkbuffer_t uniformBuffer;
 
 void Draw_Char (int x, int y, int num)
 {
@@ -83,13 +82,17 @@ void Draw_Char (int x, int y, int num)
 							 8.f / vid.width, 8.f / vid.height,
 							 fcol, frow, size, size };
 
-	memcpy((unsigned char*)uniformBuffer.allocInfo.pMappedData, &imgTransform, sizeof(imgTransform));
+	uint32_t offset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *data = QVk_GetUniformBuffer(sizeof(imgTransform), &offset, &uboDescriptorSet);
+	memcpy(data, &imgTransform, sizeof(imgTransform));
 
 	vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_console_pipeline.pl);
 	VkDeviceSize offsets[] = { 0 };
+	VkDescriptorSet descriptorSets[] = { uboDescriptorSet, draw_chars->vk_texture.descriptorSet };
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vertexBuffer.buffer, offsets);
 	vkCmdBindIndexBuffer(vk_activeCmdbuffer, indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_console_pipeline.layout, 0, 1, &draw_chars->vk_texture.descriptorSet, 0, NULL);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_console_pipeline.layout, 0, 2, descriptorSets, 1, &offset);
 	vkCmdDrawIndexed(vk_activeCmdbuffer, 6, 1, 0, 0, 0);
 }
 
@@ -146,13 +149,17 @@ void Draw_StretchPic (int x, int y, int w, int h, char *pic)
 							  vk->sl,				vk->tl, 
 							  vk->sh - vk->sl,		vk->th - vk->tl };
 
-	memcpy(uniformBuffer.allocInfo.pMappedData, &imgTransform, sizeof(imgTransform));
+	uint32_t offset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *data = QVk_GetUniformBuffer(sizeof(imgTransform), &offset, &uboDescriptorSet);
+	memcpy(data, &imgTransform, sizeof(imgTransform));
 
 	vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_console_pipeline.pl);
 	VkDeviceSize offsets[] = { 0 };
+	VkDescriptorSet descriptorSets[] = { uboDescriptorSet, vk->vk_texture.descriptorSet };
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vertexBuffer.buffer, offsets);
 	vkCmdBindIndexBuffer(vk_activeCmdbuffer, indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_console_pipeline.layout, 0, 1, &vk->vk_texture.descriptorSet, 0, NULL);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_console_pipeline.layout, 0, 2, descriptorSets, 1, &offset);
 	vkCmdDrawIndexed(vk_activeCmdbuffer, 6, 1, 0, 0, 0);
 
 /*	if (scrap_dirty)

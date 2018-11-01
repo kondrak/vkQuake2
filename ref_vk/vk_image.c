@@ -393,9 +393,7 @@ void QVk_CreateColorBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *colo
 }
 
 
-extern VkDescriptorSetLayout descriptorSetLayout;
-// todo: get rid of this? use vertex input instead?
-extern qvkbuffer_t uniformBuffer;
+extern VkDescriptorSetLayout vk_samplerDescSetLayout;
 void QVk_CreateTexture(qvktexture_t *texture, const unsigned char *data, uint32_t width, uint32_t height, qvktextureopts_t *texOpts)
 {
 	createTextureImage(texture, data, width, height);
@@ -428,59 +426,37 @@ void QVk_CreateTexture(qvktexture_t *texture, const unsigned char *data, uint32_
 
 	VK_VERIFY(vkCreateSampler(vk_device.logical, &samplerInfo, NULL, &texture->sampler));
 
-	// create descriptor set
-	VkDescriptorSetLayout layouts[] = { descriptorSetLayout };
+	// create descriptor set for the texture
 	VkDescriptorSetAllocateInfo dsAllocInfo = {
 		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
 		.pNext = NULL,
 		.descriptorPool = vk_descriptorPool,
 		.descriptorSetCount = 1,
-		.pSetLayouts = layouts
+		.pSetLayouts = &vk_samplerDescSetLayout
 	};
 
 	VK_VERIFY(vkAllocateDescriptorSets(vk_device.logical, &dsAllocInfo, &texture->descriptorSet));
 
-	VkDescriptorBufferInfo bufferInfo = {
-		.buffer = uniformBuffer.buffer,
-		.offset = 0,
-		.range = sizeof(float) * 8 // size of uniformBufferObject
-	};
 	VkDescriptorImageInfo imageInfo = {
 		.sampler = texture->sampler,
 		.imageView = texture->imageView,
 		.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
 	};
 
-	VkWriteDescriptorSet descriptorWrites[] = {
-		// UBO
-		{
-			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-			.pNext = NULL,
-			.dstSet = texture->descriptorSet,
-			.dstBinding = 0,
-			.dstArrayElement = 0,
-			.descriptorCount = 1,
-			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-			.pImageInfo = NULL,
-			.pBufferInfo = &bufferInfo,
-			.pTexelBufferView = NULL,
-		},
-		// sampler
-		{
-			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-			.pNext = NULL,
-			.dstSet = texture->descriptorSet,
-			.dstBinding = 1,
-			.dstArrayElement = 0,
-			.descriptorCount = 1,
-			.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-			.pImageInfo = &imageInfo,
-			.pBufferInfo = NULL,
-			.pTexelBufferView = NULL
-		}
+	VkWriteDescriptorSet descriptorWrite = {
+		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+		.pNext = NULL,
+		.dstSet = texture->descriptorSet,
+		.dstBinding = 0,
+		.dstArrayElement = 0,
+		.descriptorCount = 1,
+		.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+		.pImageInfo = &imageInfo,
+		.pBufferInfo = NULL,
+		.pTexelBufferView = NULL
 	};
 
-	vkUpdateDescriptorSets(vk_device.logical, sizeof(descriptorWrites) / sizeof(descriptorWrites[0]), descriptorWrites, 0, NULL);
+	vkUpdateDescriptorSets(vk_device.logical, 1, &descriptorWrite, 0, NULL);
 }
 
 void QVk_ReleaseTexture(qvktexture_t *texture)

@@ -1,6 +1,6 @@
 #version 450
 
-layout(binding = 1) uniform sampler2D sTexture;
+layout(set = 1, binding = 0) uniform sampler2D sTexture;
 
 layout(location = 0) in vec2 texCoord;
 
