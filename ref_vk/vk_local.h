@@ -313,8 +313,6 @@ image_t	*Vk_FindImage (char *name, imagetype_t type, qvktextureopts_t *texOpts);
 void	Vk_TextureMode( char *string );
 void	Vk_ImageList_f (void);
 
-void	Vk_SetTexturePalette( unsigned palette[256] );
-
 void	Vk_InitImages (void);
 void	Vk_ShutdownImages (void);
 

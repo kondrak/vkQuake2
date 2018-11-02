@@ -483,7 +483,30 @@ unsigned r_rawpalette[256];
 
 void R_SetPalette ( const unsigned char *palette)
 {
+	int		i;
 
+	byte *rp = (byte *)r_rawpalette;
+
+	if (palette)
+	{
+		for (i = 0; i < 256; i++)
+		{
+			rp[i * 4 + 0] = palette[i * 3 + 0];
+			rp[i * 4 + 1] = palette[i * 3 + 1];
+			rp[i * 4 + 2] = palette[i * 3 + 2];
+			rp[i * 4 + 3] = 0xff;
+		}
+	}
+	else
+	{
+		for (i = 0; i < 256; i++)
+		{
+			rp[i * 4 + 0] = d_8to24table[i] & 0xff;
+			rp[i * 4 + 1] = (d_8to24table[i] >> 8) & 0xff;
+			rp[i * 4 + 2] = (d_8to24table[i] >> 16) & 0xff;
+			rp[i * 4 + 3] = 0xff;
+		}
+	}
 }
 
 /*

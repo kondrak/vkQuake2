@@ -24,6 +24,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 image_t		vktextures[MAX_VKTEXTURES];
 int			numvktextures;
 int			base_textureid;		// gltextures[i] = base_textureid+i
+// texture for storing raw image data (cinematics, endscreens, etc.)
+qvktexture_t vk_rawTexture;
 
 static byte			 intensitytable[256];
 static unsigned char gammatable[256];
@@ -465,11 +467,8 @@ void QVk_ReleaseTexture(qvktexture_t *texture)
 		vkDestroyImageView(vk_device.logical, texture->imageView, NULL);
 	if (texture->sampler != VK_NULL_HANDLE)
 		vkDestroySampler(vk_device.logical, texture->sampler, NULL);
-}
-
-void Vk_SetTexturePalette( unsigned palette[256] )
-{
-
+	if (texture->descriptorSet != VK_NULL_HANDLE)
+		vkFreeDescriptorSets(vk_device.logical, vk_descriptorPool, 1, &texture->descriptorSet);
 }
 
 // need Vulkan equivalent
@@ -1642,5 +1641,7 @@ void	Vk_ShutdownImages (void)
 		QVk_ReleaseTexture(&image->vk_texture);
 		memset(image, 0, sizeof(*image));
 	}
+
+	QVk_ReleaseTexture(&vk_rawTexture);
 }
 

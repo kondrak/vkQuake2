@@ -270,8 +270,67 @@ Draw_StretchRaw
 =============
 */
 extern unsigned	r_rawpalette[256];
+extern qvktexture_t vk_rawTexture;
 
 void Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data)
 {
+	unsigned	image32[256 * 256];
+	int			i, j, trows;
+	byte		*source;
+	int			frac, fracstep;
+	float		hscale;
+	int			row;
+	float		t;
 
+	if (rows <= 256)
+	{
+		hscale = 1;
+		trows = rows;
+	}
+	else
+	{
+		hscale = rows / 256.0;
+		trows = 256;
+	}
+	t = rows * hscale / 256;
+
+	unsigned *dest;
+
+	for (i = 0; i < trows; i++)
+	{
+		row = (int)(i*hscale);
+		if (row > rows)
+			break;
+		source = data + cols * row;
+		dest = &image32[i * 256];
+		fracstep = cols * 0x10000 / 256;
+		frac = fracstep >> 1;
+		for (j = 0; j < 256; j++)
+		{
+			dest[j] = r_rawpalette[source[frac >> 16]];
+			frac += fracstep;
+		}
+	}
+
+	vkDeviceWaitIdle(vk_device.logical);
+	QVk_ReleaseTexture(&vk_rawTexture);
+	QVVKTEXTURE_CLEAR(vk_rawTexture);
+	qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
+	QVk_CreateTexture(&vk_rawTexture, (unsigned char*)&image32, 256, 256, &defaultTexOpts );
+
+	float imgTransform[] = { (float)x / vid.width, (float)y / vid.height,
+							 (float)w / vid.width, (float)h / vid.height,
+							 0.f, 0.f, 1.f, t, 1.f, 1.f, 1.f, 1.f };
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(imgTransform), &uboOffset, &uboDescriptorSet);
+	memcpy(uboData, &imgTransform, sizeof(imgTransform));
+
+	vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawTexQuadPipeline.pl);
+	VkDeviceSize offsets = 0;
+	VkDescriptorSet descriptorSets[] = { uboDescriptorSet, vk_rawTexture.descriptorSet };
+	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vk_rectVbo.buffer, &offsets);
+	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_rectIbo.buffer, 0, VK_INDEX_TYPE_UINT32);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawTexQuadPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
+	vkCmdDrawIndexed(vk_activeCmdbuffer, 6, 1, 0, 0, 0);
 }

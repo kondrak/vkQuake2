@@ -6,6 +6,11 @@ Setup:
 - install Visual Studio 2017 Community (because of MFC and resources)
 - install Windows SDK 10.0.17134.0 and MFC in Visual Studio installer
 
+Original code changes:
+===
+- fixed compiler warnings
+- Calling M_DrawTextBox properly without using explicit endframe calls (required for Vulkan)
+
 Features:
 ===
 - using Vulkan 1.1
