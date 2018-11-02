@@ -123,14 +123,20 @@ qvkpipeline_t vk_console_pipeline = QVKPIPELINE_INIT;
 	.offset = o \
 }
 
+// global static buffers (reused, never changing)
+qvkbuffer_t vk_rectVbo;
+qvkbuffer_t vk_rectIbo;
+
 // global dynamic buffers (double buffered)
 #define NUM_DYNBUFFERS 2
-qvkbuffer_t vertexBuffer;
-qvkbuffer_t indexBuffer;
+static qvkbuffer_t vk_dynVertexBuffers[NUM_DYNBUFFERS];
+static qvkbuffer_t vk_dynIndexBuffers[NUM_DYNBUFFERS];
 static qvkbuffer_t vk_dynUniformBuffers[NUM_DYNBUFFERS];
 static VkDescriptorSet vk_uboDescriptorSets[NUM_DYNBUFFERS];
 static int vk_activeDynBufferIdx = 0;
 
+#define VERTEX_BUFFER_MAXSIZE 2048
+#define INDEX_BUFFER_MAXSIZE 2048
 #define UNIFORM_BUFFER_MAXSIZE 2048
 
 // we will need multiple of these
@@ -322,19 +328,11 @@ static void CreateDescriptorPool()
 
 static void CreateDynamicBuffers()
 {
-	const float verts[] = { -1., -1., 0., 0.,
-							 1.,  1., 1., 1.,
-							-1.,  1., 0., 1.,
-							 1., -1., 1., 0. };
-
-	const uint32_t indices[] = { 0, 1, 2, 0, 3, 1 };
-
-	QVk_CreateVertexBuffer(verts, sizeof(verts), &vertexBuffer, NULL);
-	QVk_CreateIndexBuffer(indices, sizeof(indices), &indexBuffer, NULL);
-
 	for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 	{
-		QVk_CreateUniformBuffer(UNIFORM_BUFFER_MAXSIZE * 1024, &vk_dynUniformBuffers[i]);
+		QVk_CreateVertexBuffer(NULL, VERTEX_BUFFER_MAXSIZE * 1024, &vk_dynVertexBuffers[i], NULL, VMA_ALLOCATION_CREATE_MAPPED_BIT);
+		QVk_CreateIndexBuffer(NULL, INDEX_BUFFER_MAXSIZE * 1024, &vk_dynIndexBuffers[i], NULL, VMA_ALLOCATION_CREATE_MAPPED_BIT);
+		QVk_CreateUniformBuffer(UNIFORM_BUFFER_MAXSIZE * 1024, &vk_dynUniformBuffers[i], VMA_ALLOCATION_CREATE_MAPPED_BIT);
 
 		// create descriptor set
 		VkDescriptorSetAllocateInfo dsAllocInfo = {
@@ -370,6 +368,19 @@ static void CreateDynamicBuffers()
 	}
 }
 
+static void CreateStaticBuffers()
+{
+	const float verts[] = { -1., -1., 0., 0.,
+							 1.,  1., 1., 1.,
+							-1.,  1., 0., 1.,
+							 1., -1., 1., 0. };
+
+	const uint32_t indices[] = { 0, 1, 2, 0, 3, 1 };
+
+	QVk_CreateVertexBuffer(verts, sizeof(verts), &vk_rectVbo, NULL, 0);
+	QVk_CreateIndexBuffer(indices, sizeof(indices), &vk_rectIbo, NULL, 0);
+}
+
 /*
 ** QVk_Shutdown
 **
@@ -383,10 +394,12 @@ void QVk_Shutdown( void )
 		vkDeviceWaitIdle(vk_device.logical);
 
 		QVk_DestroyPipeline(&vk_console_pipeline);
-		QVk_FreeBuffer(&vertexBuffer);
-		QVk_FreeBuffer(&indexBuffer);
+		QVk_FreeBuffer(&vk_rectVbo);
+		QVk_FreeBuffer(&vk_rectIbo);
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 		{
+			QVk_FreeBuffer(&vk_dynVertexBuffers[i]);
+			QVk_FreeBuffer(&vk_dynIndexBuffers[i]);
 			QVk_FreeBuffer(&vk_dynUniformBuffers[i]);
 		}
 		vkDestroyDescriptorPool(vk_device.logical, vk_descriptorPool, NULL);
@@ -660,6 +673,8 @@ qboolean QVk_Init()
 
 	CreateDescriptorSetLayouts();
 	CreateDescriptorPool();
+	// create static vertex/index buffers reused in the games
+	CreateStaticBuffers();
 	// create vertex, index and uniform buffer pools
 	CreateDynamicBuffers();
 
@@ -813,6 +828,31 @@ void QVk_RecreateSwapchain()
 	VK_VERIFY( CreateFramebuffers( &vk_renderpasses[RT_MSAA], RT_MSAA ) );
 }
 
+uint8_t *QVk_GetVertexBuffer(VkDeviceSize size, uint32_t *dstOffset)
+{
+	*dstOffset = vk_dynVertexBuffers[vk_activeDynBufferIdx].currentOffset;
+	vk_dynVertexBuffers[vk_activeDynBufferIdx].currentOffset += size;
+
+	if (vk_dynVertexBuffers[vk_activeDynBufferIdx].currentOffset > VERTEX_BUFFER_MAXSIZE * 1024)
+		Sys_Error("Out of vertex buffer memory!");
+
+	return (uint8_t *)vk_dynVertexBuffers[vk_activeDynBufferIdx].allocInfo.pMappedData + (*dstOffset);
+}
+
+uint8_t *QVk_GetIndexBuffer(VkDeviceSize size, uint32_t *dstOffset)
+{
+	// align to 4 bytes, so that we can reuse the buffer for both VK_INDEX_TYPE_UINT16 and VK_INDEX_TYPE_UINT32
+	const int align_mod = size % 4;
+	const uint32_t aligned_size = ((size % 4) == 0) ? size : (size + 4 - align_mod);
+	*dstOffset = vk_dynIndexBuffers[vk_activeDynBufferIdx].currentOffset;
+	vk_dynIndexBuffers[vk_activeDynBufferIdx].currentOffset += aligned_size;
+
+	if (vk_dynIndexBuffers[vk_activeDynBufferIdx].currentOffset > INDEX_BUFFER_MAXSIZE * 1024)
+		Sys_Error("Out of index buffer memory!");
+
+	return (uint8_t *)vk_dynIndexBuffers[vk_activeDynBufferIdx].allocInfo.pMappedData + (*dstOffset);
+}
+
 uint8_t *QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescriptorSet *dstUboDescriptorSet)
 {
 	// 0x100 alignment is required by Vulkan spec
@@ -821,6 +861,9 @@ uint8_t *QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescript
 	*dstOffset = vk_dynUniformBuffers[vk_activeDynBufferIdx].currentOffset;
 	*dstUboDescriptorSet = vk_uboDescriptorSets[vk_activeDynBufferIdx];
 	vk_dynUniformBuffers[vk_activeDynBufferIdx].currentOffset += aligned_size;
+
+	if (vk_dynUniformBuffers[vk_activeDynBufferIdx].currentOffset > UNIFORM_BUFFER_MAXSIZE * 1024)
+		Sys_Error("Out of uniform buffer object memory!");
 
 	return (uint8_t *)vk_dynUniformBuffers[vk_activeDynBufferIdx].allocInfo.pMappedData + (*dstOffset);
 }

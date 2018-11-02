@@ -202,6 +202,14 @@ extern VkCommandPool vk_transferCommandPool;
 // Vulkan descriptor pool
 extern VkDescriptorPool vk_descriptorPool;
 
+// Vulkan static buffers
+extern qvkbuffer_t vk_rectVbo;
+extern qvkbuffer_t vk_rectIbo;
+
+// Vulkan descriptor sets
+extern VkDescriptorSetLayout vk_uboDescSetLayout;
+extern VkDescriptorSetLayout vk_samplerDescSetLayout;
+
 // *** pipelines ***
 // console
 extern qvkpipeline_t vk_console_pipeline;
@@ -234,11 +242,13 @@ VkResult	QVk_EndFrame();
 void		QVk_RecreateSwapchain();
 void		QVk_FreeBuffer(qvkbuffer_t *buffer);
 VkResult	QVk_CreateStagingBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer);
-VkResult	QVk_CreateUniformBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer);
-void		QVk_CreateVertexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, qvkbuffer_t *stagingBuffer);
-void		QVk_CreateIndexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, qvkbuffer_t *stagingBuffer);
+VkResult	QVk_CreateUniformBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, VmaAllocationCreateFlags vmaFlags);
+void		QVk_CreateVertexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, qvkbuffer_t *stagingBuffer, VmaAllocationCreateFlags vmaFlags);
+void		QVk_CreateIndexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, qvkbuffer_t *stagingBuffer, VmaAllocationCreateFlags vmaFlags);
 qvkshader_t QVk_CreateShader(const uint32_t *shaderSrc, size_t shaderCodeSize, VkShaderStageFlagBits shaderStage);
 void		QVk_CreatePipeline(const VkDescriptorSetLayout *descriptorLayout, const uint32_t desLayoutCount, const VkPipelineVertexInputStateCreateInfo *vertexInputInfo, qvkpipeline_t *pipeline, const qvkshader_t *shaders, uint32_t shaderCount);
 void		QVk_DestroyPipeline(qvkpipeline_t *pipeline);
+uint8_t*	QVk_GetVertexBuffer(VkDeviceSize size, uint32_t *dstOffset);
+uint8_t*	QVk_GetIndexBuffer(VkDeviceSize size, uint32_t *dstOffset);
 uint8_t*	QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescriptorSet *dstUboDescriptorSet);
 #endif

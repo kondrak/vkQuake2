@@ -392,8 +392,6 @@ void QVk_CreateColorBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *colo
 	vkFreeCommandBuffers(vk_device.logical, vk_commandPool, 1, &cmdBuffer);
 }
 
-
-extern VkDescriptorSetLayout vk_samplerDescSetLayout;
 void QVk_CreateTexture(qvktexture_t *texture, const unsigned char *data, uint32_t width, uint32_t height, qvktextureopts_t *texOpts)
 {
 	createTextureImage(texture, data, width, height);
