@@ -1363,6 +1363,8 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 	QVVKTEXTURE_CLEAR(image->vk_texture);
 	image->width = width;
 	image->height = height;
+	image->upload_width = width;
+	image->upload_height = height;
 	image->type = type;
 
 	if (type == it_skin && bits == 8)

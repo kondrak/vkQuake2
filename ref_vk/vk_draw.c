@@ -120,7 +120,16 @@ Draw_GetPicSize
 */
 void Draw_GetPicSize (int *w, int *h, char *pic)
 {
+	image_t *vk;
 
+	vk = Draw_FindPic(pic);
+	if (!vk)
+	{
+		*w = *h = -1;
+		return;
+	}
+	*w = vk->width;
+	*h = vk->height;
 }
 
 /*
@@ -170,7 +179,16 @@ Draw_Pic
 */
 void Draw_Pic (int x, int y, char *pic)
 {
+	image_t *vk;
 
+	vk = Draw_FindPic(pic);
+	if (!vk)
+	{
+		ri.Con_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
+		return;
+	}
+
+	Draw_StretchPic(x, y, vk->width, vk->height, pic);
 }
 
 /*
@@ -196,7 +214,33 @@ Fills a box of pixels with a single color
 */
 void Draw_Fill (int x, int y, int w, int h, int c)
 {
+	union
+	{
+		unsigned	c;
+		byte		v[4];
+	} color;
 
+	if ((unsigned)c > 255)
+		ri.Sys_Error(ERR_FATAL, "Draw_Fill: bad color");
+
+	color.c = d_8to24table[c];
+	/*
+	qglDisable(GL_TEXTURE_2D);
+	qglColor3f(color.v[0] / 255.0,
+		color.v[1] / 255.0,
+		color.v[2] / 255.0);
+
+	qglBegin(GL_QUADS);
+
+	qglVertex2f(x, y);
+	qglVertex2f(x + w, y);
+	qglVertex2f(x + w, y + h);
+	qglVertex2f(x, y + h);
+
+	qglEnd();
+	qglColor3f(1, 1, 1);
+	qglEnable(GL_TEXTURE_2D);
+	*/
 }
 
 //=============================================================================
