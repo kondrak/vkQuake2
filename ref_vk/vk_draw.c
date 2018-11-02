@@ -77,18 +77,18 @@ void Draw_Char (int x, int y, int num)
 
 	float imgTransform[] = { (float)x / vid.width, (float)y / vid.height,
 							 8.f / vid.width, 8.f / vid.height,
-							 fcol, frow, size, size };
+							 fcol, frow, size, size, 1.f, 1.f, 1.f, 1.f };
 	uint32_t uboOffset;
 	VkDescriptorSet uboDescriptorSet;
 	uint8_t *data = QVk_GetUniformBuffer(sizeof(imgTransform), &uboOffset, &uboDescriptorSet);
 	memcpy(data, &imgTransform, sizeof(imgTransform));
 
-	vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_console_pipeline.pl);
+	vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawTexQuadPipeline.pl);
 	VkDeviceSize offsets = 0;
 	VkDescriptorSet descriptorSets[] = { uboDescriptorSet, draw_chars->vk_texture.descriptorSet };
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vk_rectVbo.buffer, &offsets);
 	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_rectIbo.buffer, 0, VK_INDEX_TYPE_UINT32);
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_console_pipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawTexQuadPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
 	vkCmdDrawIndexed(vk_activeCmdbuffer, 6, 1, 0, 0, 0);
 }
 
@@ -152,18 +152,19 @@ void Draw_StretchPic (int x, int y, int w, int h, char *pic)
 	float imgTransform[] = { (float)x / vid.width, (float)y / vid.height,
 							 (float)w / vid.width, (float)h / vid.height,
 							  vk->sl,				vk->tl, 
-							  vk->sh - vk->sl,		vk->th - vk->tl };
+							  vk->sh - vk->sl,		vk->th - vk->tl,
+							  1.f, 1.f, 1.f, 1.f };
 	uint32_t uboOffset;
 	VkDescriptorSet uboDescriptorSet;
 	uint8_t *data = QVk_GetUniformBuffer(sizeof(imgTransform), &uboOffset, &uboDescriptorSet);
 	memcpy(data, &imgTransform, sizeof(imgTransform));
 
-	vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_console_pipeline.pl);
+	vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawTexQuadPipeline.pl);
 	VkDeviceSize offsets = 0;
 	VkDescriptorSet descriptorSets[] = { uboDescriptorSet, vk->vk_texture.descriptorSet };
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vk_rectVbo.buffer, &offsets);
 	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_rectIbo.buffer, 0, VK_INDEX_TYPE_UINT32);
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_console_pipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawTexQuadPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
 	vkCmdDrawIndexed(vk_activeCmdbuffer, 6, 1, 0, 0, 0);
 
 /*	if (scrap_dirty)
@@ -224,23 +225,22 @@ void Draw_Fill (int x, int y, int w, int h, int c)
 		ri.Sys_Error(ERR_FATAL, "Draw_Fill: bad color");
 
 	color.c = d_8to24table[c];
-	/*
-	qglDisable(GL_TEXTURE_2D);
-	qglColor3f(color.v[0] / 255.0,
-		color.v[1] / 255.0,
-		color.v[2] / 255.0);
 
-	qglBegin(GL_QUADS);
+	float imgTransform[] = { (float)x / vid.width, (float)y / vid.height,
+							 (float)w / vid.width, (float)h / vid.height, 0.f, 0.f, 1.f, 1.f,
+							 color.v[0] / 255.f, color.v[1] / 255.f, color.v[2] / 255.f, 1.f };
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *data = QVk_GetUniformBuffer(sizeof(imgTransform), &uboOffset, &uboDescriptorSet);
+	memcpy(data, &imgTransform, sizeof(imgTransform));
 
-	qglVertex2f(x, y);
-	qglVertex2f(x + w, y);
-	qglVertex2f(x + w, y + h);
-	qglVertex2f(x, y + h);
-
-	qglEnd();
-	qglColor3f(1, 1, 1);
-	qglEnable(GL_TEXTURE_2D);
-	*/
+	vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawColorQuadPipeline.pl);
+	VkDeviceSize offsets = 0;
+	VkDescriptorSet descriptorSets[] = { uboDescriptorSet };
+	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vk_rectVbo.buffer, &offsets);
+	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_rectIbo.buffer, 0, VK_INDEX_TYPE_UINT32);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawColorQuadPipeline.layout, 0, 1, descriptorSets, 1, &uboOffset);
+	vkCmdDrawIndexed(vk_activeCmdbuffer, 6, 1, 0, 0, 0);
 }
 
 //=============================================================================
@@ -253,7 +253,19 @@ Draw_FadeScreen
 */
 void Draw_FadeScreen (void)
 {
+	float imgTransform[] = { 0.f, 0.f, vid.width, vid.height, 0.f, 0.f, 1.f, 1.f, 0.f, 0.f, 0.f, .8f };
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *data = QVk_GetUniformBuffer(sizeof(imgTransform), &uboOffset, &uboDescriptorSet);
+	memcpy(data, &imgTransform, sizeof(imgTransform));
 
+	vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawColorQuadPipeline.pl);
+	VkDeviceSize offsets = 0;
+	VkDescriptorSet descriptorSets[] = { uboDescriptorSet };
+	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vk_rectVbo.buffer, &offsets);
+	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_rectIbo.buffer, 0, VK_INDEX_TYPE_UINT32);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawColorQuadPipeline.layout, 0, 1, descriptorSets, 1, &uboOffset);
+	vkCmdDrawIndexed(vk_activeCmdbuffer, 6, 1, 0, 0, 0);
 }
 
 

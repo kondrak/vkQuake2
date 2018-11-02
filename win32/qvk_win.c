@@ -108,7 +108,8 @@ int vk_imageIndex = 0;
 PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;
 PFN_vkDestroyDebugUtilsMessengerEXT qvkDestroyDebugUtilsMessengerEXT;
 
-qvkpipeline_t vk_console_pipeline = QVKPIPELINE_INIT;
+qvkpipeline_t vk_drawTexQuadPipeline = QVKPIPELINE_INIT;
+qvkpipeline_t vk_drawColorQuadPipeline = QVKPIPELINE_INIT;
 
 #define VK_INPUTBIND_DESC(s) { \
 	.binding = 0, \
@@ -142,8 +143,6 @@ static int vk_activeDynBufferIdx = 0;
 // we will need multiple of these
 VkDescriptorSetLayout vk_uboDescSetLayout;
 VkDescriptorSetLayout vk_samplerDescSetLayout;
-
-qvkshader_t shaders[2];
 
 VkFormat QVk_FindDepthFormat()
 {
@@ -381,6 +380,51 @@ static void CreateStaticBuffers()
 	QVk_CreateIndexBuffer(indices, sizeof(indices), &vk_rectIbo, NULL, 0);
 }
 
+static void CreatePipelines()
+{
+	qvkshader_t shaders[2];
+	// init console pipeline
+	VkVertexInputBindingDescription bindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 4);
+	VkVertexInputAttributeDescription attributeDescriptions[] = {
+		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32_SFLOAT, 0),
+		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 2),
+	};
+
+	// create pipeline object
+	VkPipelineVertexInputStateCreateInfo vertexInputInfo = {
+		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+		.pNext = NULL,
+		.flags = 0,
+		.vertexBindingDescriptionCount = 1,
+		.pVertexBindingDescriptions = &bindingDesc,
+		.vertexAttributeDescriptionCount = sizeof(attributeDescriptions) / sizeof(attributeDescriptions[0]),
+		.pVertexAttributeDescriptions = attributeDescriptions
+	};
+
+	// textured quad pipeline
+	shaders[0] = QVk_CreateShader(basic_vert_spv, basic_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
+	shaders[1] = QVk_CreateShader(basic_frag_spv, basic_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
+
+	vk_drawTexQuadPipeline.depthTestEnable = VK_FALSE;
+	VkDescriptorSetLayout dsLayouts[] = { vk_uboDescSetLayout, vk_samplerDescSetLayout };
+	QVk_CreatePipeline(dsLayouts, 2, &vertexInputInfo, &vk_drawTexQuadPipeline, shaders, 2);
+
+	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
+	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
+
+	// colored quad pipeline
+	shaders[0] = QVk_CreateShader(basic_color_quad_vert_spv, basic_color_quad_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
+	shaders[1] = QVk_CreateShader(basic_color_quad_frag_spv, basic_color_quad_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
+
+	vk_drawColorQuadPipeline.depthTestEnable = VK_FALSE;
+	vk_drawColorQuadPipeline.blendMode = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+	VkDescriptorSetLayout dsLayoutsColorQuad[] = { vk_uboDescSetLayout };
+	QVk_CreatePipeline(dsLayoutsColorQuad, 1, &vertexInputInfo, &vk_drawColorQuadPipeline, shaders, 2);
+
+	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
+	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
+}
+
 /*
 ** QVk_Shutdown
 **
@@ -393,7 +437,8 @@ void QVk_Shutdown( void )
 		ri.Con_Printf(PRINT_ALL, "Shutting down Vulkan\n");
 		vkDeviceWaitIdle(vk_device.logical);
 
-		QVk_DestroyPipeline(&vk_console_pipeline);
+		QVk_DestroyPipeline(&vk_drawTexQuadPipeline);
+		QVk_DestroyPipeline(&vk_drawColorQuadPipeline);
 		QVk_FreeBuffer(&vk_rectVbo);
 		QVk_FreeBuffer(&vk_rectIbo);
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
@@ -677,34 +722,7 @@ qboolean QVk_Init()
 	CreateStaticBuffers();
 	// create vertex, index and uniform buffer pools
 	CreateDynamicBuffers();
-
-	// init console pipeline
-	VkVertexInputBindingDescription bindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 4);
-	VkVertexInputAttributeDescription attributeDescriptions[] = {
-		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32_SFLOAT, 0),
-		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 2),
-	};
-
-	// create pipeline object
-	VkPipelineVertexInputStateCreateInfo vertexInputInfo = {
-		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-		.pNext = NULL,
-		.flags = 0,
-		.vertexBindingDescriptionCount = 1,
-		.pVertexBindingDescriptions = &bindingDesc,
-		.vertexAttributeDescriptionCount = sizeof(attributeDescriptions)/sizeof(attributeDescriptions[0]),
-		.pVertexAttributeDescriptions = attributeDescriptions
-	};
-
-	shaders[0] = QVk_CreateShader(basic_vert_spv, basic_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
-	shaders[1] = QVk_CreateShader(basic_frag_spv, basic_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
-
-	vk_console_pipeline.depthTestEnable = VK_FALSE;
-	VkDescriptorSetLayout dsLayouts[] = { vk_uboDescSetLayout, vk_samplerDescSetLayout };
-	QVk_CreatePipeline(dsLayouts, 2, &vertexInputInfo, &vk_console_pipeline, shaders, 2);
-	
-	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
-	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
+	CreatePipelines();
 
 	return true;
 }

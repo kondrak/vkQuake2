@@ -22,9 +22,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define __VK_SHADERS_H__
 #include <stdint.h>
 
+// textured quad (alpha)
 extern const uint32_t basic_vert_spv[];
 extern const size_t basic_vert_size;
 
 extern const uint32_t basic_frag_spv[];
 extern const size_t basic_frag_size;
+
+// colored quad (alpha)
+extern const uint32_t basic_color_quad_vert_spv[];
+extern const size_t basic_color_quad_vert_size;
+
+extern const uint32_t basic_color_quad_frag_spv[];
+extern const size_t basic_color_quad_frag_size;
 #endif

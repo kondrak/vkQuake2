@@ -211,8 +211,8 @@ extern VkDescriptorSetLayout vk_uboDescSetLayout;
 extern VkDescriptorSetLayout vk_samplerDescSetLayout;
 
 // *** pipelines ***
-// console
-extern qvkpipeline_t vk_console_pipeline;
+extern qvkpipeline_t vk_drawTexQuadPipeline;
+extern qvkpipeline_t vk_drawColorQuadPipeline;
 
 // function pointers
 extern PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;
