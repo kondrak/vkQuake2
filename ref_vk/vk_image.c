@@ -581,7 +581,6 @@ void	Vk_ImageList_f (void)
 
 int			scrap_allocated[MAX_SCRAPS][BLOCK_WIDTH];
 byte		scrap_texels[MAX_SCRAPS][BLOCK_WIDTH*BLOCK_HEIGHT];
-qboolean	scrap_dirty;
 
 // returns a texture number and the position inside it
 int Scrap_AllocBlock (int w, int h, int *x, int *y)
@@ -623,13 +622,6 @@ int Scrap_AllocBlock (int w, int h, int *x, int *y)
 
 	return -1;
 //	Sys_Error ("Scrap_AllocBlock: full");
-}
-
-int	scrap_uploads;
-
-void Scrap_Upload (void)
-{
-
 }
 
 /*
@@ -1363,8 +1355,6 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 	QVVKTEXTURE_CLEAR(image->vk_texture);
 	image->width = width;
 	image->height = height;
-	image->upload_width = width;
-	image->upload_height = height;
 	image->type = type;
 
 	if (type == it_skin && bits == 8)
@@ -1381,7 +1371,6 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 		texnum = Scrap_AllocBlock(image->width, image->height, &x, &y);
 		if (texnum == -1)
 			goto nonscrap;
-		scrap_dirty = true;
 
 		// copy the texels into the scrap block
 		k = 0;
@@ -1395,6 +1384,13 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 		image->sh = (x + image->width - 0.01) / (float)BLOCK_WIDTH;
 		image->tl = (y + 0.01) / (float)BLOCK_WIDTH;
 		image->th = (y + image->height - 0.01) / (float)BLOCK_WIDTH;
+		image->upload_width = BLOCK_WIDTH;
+		image->upload_height = BLOCK_HEIGHT;
+
+		// update scrap data
+		Vk_Upload8(scrap_texels[0], BLOCK_WIDTH, BLOCK_HEIGHT, false, false);
+		qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
+		QVk_CreateTexture(&image->vk_texture, (unsigned char*)texBuffer, image->upload_width, image->upload_height, texOpts ? texOpts : &defaultTexOpts);
 	}
 	else
 	{
@@ -1410,10 +1406,10 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 		image->sh = 1;
 		image->tl = 0;
 		image->th = 1;
-	}
 
-	qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
-	QVk_CreateTexture(&image->vk_texture, (unsigned char*)texBuffer, image->upload_width, image->upload_height, texOpts ? texOpts : &defaultTexOpts);
+		qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
+		QVk_CreateTexture(&image->vk_texture, (unsigned char*)texBuffer, image->upload_width, image->upload_height, texOpts ? texOpts : &defaultTexOpts);
+	}
 
 	return image;
 }

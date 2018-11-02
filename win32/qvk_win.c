@@ -138,7 +138,7 @@ static int vk_activeDynBufferIdx = 0;
 
 #define VERTEX_BUFFER_MAXSIZE 2048
 #define INDEX_BUFFER_MAXSIZE 2048
-#define UNIFORM_BUFFER_MAXSIZE 2048
+#define UNIFORM_BUFFER_MAXSIZE 4096
 
 // we will need multiple of these
 VkDescriptorSetLayout vk_uboDescSetLayout;

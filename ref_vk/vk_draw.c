@@ -25,10 +25,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 image_t		*draw_chars;
 
-extern	qboolean	scrap_dirty;
-void Scrap_Upload (void);
-
-
 /*
 ===============
 Draw_InitLocal
@@ -166,10 +162,6 @@ void Draw_StretchPic (int x, int y, int w, int h, char *pic)
 	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_rectIbo.buffer, 0, VK_INDEX_TYPE_UINT32);
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawTexQuadPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
 	vkCmdDrawIndexed(vk_activeCmdbuffer, 6, 1, 0, 0, 0);
-
-/*	if (scrap_dirty)
-		Scrap_Upload();
-*/
 }
 
 
