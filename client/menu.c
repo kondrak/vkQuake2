@@ -27,6 +27,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 static int	m_main_cursor;
 
+static qboolean update_sound_quality = false;
+static qboolean search_local_games = false;
+
 #define NUM_CURSOR_FRAMES 15
 
 static char *menu_in_sound		= "misc/menu1.wav";
@@ -1174,15 +1177,7 @@ static void UpdateSoundQualityFunc( void *unused )
 	
 	Cvar_SetValue( "s_primary", s_options_compatibility_list.curvalue );
 
-	M_DrawTextBox( 8, 120 - 48, 36, 3 );
-	M_Print( 16 + 16, 120 - 48 + 8,  "Restarting the sound system. This" );
-	M_Print( 16 + 16, 120 - 48 + 16, "could take up to a minute, so" );
-	M_Print( 16 + 16, 120 - 48 + 24, "please be patient." );
-
-	// the text box won't show up unless we do a buffer swap
-	re.EndFrame();
-
-	CL_Snd_Restart_f();
+	update_sound_quality = true;
 }
 
 void Options_MenuInit( void )
@@ -1367,6 +1362,17 @@ void Options_MenuDraw (void)
 	M_Banner( "m_banner_options" );
 	Menu_AdjustCursor( &s_options_menu, 1 );
 	Menu_Draw( &s_options_menu );
+
+	if (update_sound_quality)
+	{
+		M_DrawTextBox(8, 120 - 48, 36, 3);
+		M_Print(16 + 16, 120 - 48 + 8, "Restarting the sound system. This");
+		M_Print(16 + 16, 120 - 48 + 16, "could take up to a minute, so");
+		M_Print(16 + 16, 120 - 48 + 24, "please be patient.");
+
+		CL_Snd_Restart_f();
+		update_sound_quality = false;
+	}
 }
 
 const char *Options_MenuKey( int key )
@@ -2276,16 +2282,7 @@ void SearchLocalGames( void )
 	for (i=0 ; i<MAX_LOCAL_SERVERS ; i++)
 		strcpy (local_server_names[i], NO_SERVER_STRING);
 
-	M_DrawTextBox( 8, 120 - 48, 36, 3 );
-	M_Print( 16 + 16, 120 - 48 + 8,  "Searching for local servers, this" );
-	M_Print( 16 + 16, 120 - 48 + 16, "could take up to a minute, so" );
-	M_Print( 16 + 16, 120 - 48 + 24, "please be patient." );
-
-	// the text box won't show up unless we do a buffer swap
-	re.EndFrame();
-
-	// send out info packets
-	CL_PingServers_f();
+	search_local_games = true;
 }
 
 void SearchLocalGamesFunc( void *self )
@@ -2348,6 +2345,18 @@ void JoinServer_MenuDraw(void)
 {
 	M_Banner( "m_banner_join_server" );
 	Menu_Draw( &s_joinserver_menu );
+
+	if (search_local_games)
+	{
+		M_DrawTextBox(8, 120 - 48, 36, 3);
+		M_Print(16 + 16, 120 - 48 + 8, "Searching for local servers, this");
+		M_Print(16 + 16, 120 - 48 + 16, "could take up to a minute, so");
+		M_Print(16 + 16, 120 - 48 + 24, "please be patient.");
+
+		// send out info packets
+		CL_PingServers_f();
+		search_local_games = false;
+	}
 }
 
 
