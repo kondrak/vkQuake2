@@ -150,7 +150,7 @@ typedef struct
 	VkPolygonMode mode;
 	VkCullModeFlags cullMode;
 	VkPrimitiveTopology topology;
-	VkBlendFactor blendMode;
+	VkPipelineColorBlendAttachmentState blendOpts;
 	VkBool32 depthTestEnable;
 	float minSampleShading; // sample shading minimum fraction - >= 0 to enable
 } qvkpipeline_t;
@@ -170,7 +170,16 @@ typedef struct
 	.mode = VK_POLYGON_MODE_FILL, \
 	.cullMode = VK_CULL_MODE_BACK_BIT, \
 	.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, \
-	.blendMode = VK_BLEND_FACTOR_ZERO, \
+	.blendOpts = { \
+		.blendEnable = VK_FALSE, \
+		.srcColorBlendFactor = VK_BLEND_FACTOR_ONE, \
+		.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO, \
+		.colorBlendOp = VK_BLEND_OP_ADD, \
+		.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE, \
+		.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO, \
+		.alphaBlendOp = VK_BLEND_OP_ADD, \
+		.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT \
+	}, \
 	.depthTestEnable = VK_TRUE, \
 	.minSampleShading = -1.f \
 }

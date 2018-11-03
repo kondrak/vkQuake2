@@ -10,14 +10,14 @@ Original code changes:
 ===
 - fixed compiler warnings
 - Calling M_DrawTextBox properly without using explicit endframe calls (required for Vulkan)
+- added custom debug Windows console for debug builds
 
 Features:
 ===
 - using Vulkan 1.1
 - using VK_EXT_debug_utils instead of VK_EXT_debug_report
-- added custom debug console for debug builds
 - updated with Knightmare software renderer with color
-- fixed original compiler warnings
 - vk_validation command to enable layers (0 - off, 1 - warnings and errors, 2 - full validation, defaults to 2 in debug builds and 0 in release)
 - vk_picmip and vk_round_down GL equivalents
 - vk_log - redirects layer messages to file
+- skipped 8-bit textures - no modern hardware even supports it these days

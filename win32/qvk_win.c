@@ -417,7 +417,11 @@ static void CreatePipelines()
 	shaders[1] = QVk_CreateShader(basic_color_quad_frag_spv, basic_color_quad_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
 
 	vk_drawColorQuadPipeline.depthTestEnable = VK_FALSE;
-	vk_drawColorQuadPipeline.blendMode = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+	vk_drawColorQuadPipeline.blendOpts.blendEnable = VK_TRUE;
+	vk_drawColorQuadPipeline.blendOpts.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+	vk_drawColorQuadPipeline.blendOpts.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+	vk_drawColorQuadPipeline.blendOpts.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+	vk_drawColorQuadPipeline.blendOpts.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 	VkDescriptorSetLayout dsLayoutsColorQuad[] = { vk_uboDescSetLayout };
 	QVk_CreatePipeline(dsLayoutsColorQuad, 1, &vertexInputInfo, &vk_drawColorQuadPipeline, shaders, 2);
 

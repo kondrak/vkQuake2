@@ -134,17 +134,6 @@ void QVk_CreatePipeline(const VkDescriptorSetLayout *descriptorLayout, const uin
 		.maxDepthBounds = 1.f
 	};
 
-	VkPipelineColorBlendAttachmentState cbaState = {
-		.blendEnable = pipeline->blendMode != VK_BLEND_FACTOR_ZERO ? VK_TRUE : VK_FALSE,
-		.srcColorBlendFactor = VK_BLEND_FACTOR_ONE,
-		.dstColorBlendFactor = pipeline->blendMode,
-		.colorBlendOp = VK_BLEND_OP_ADD,
-		.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
-		.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
-		.alphaBlendOp = VK_BLEND_OP_ADD,
-		.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT
-	};
-
 	VkPipelineColorBlendStateCreateInfo cbsCreateInfo = {
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
 		.pNext = NULL,
@@ -152,7 +141,7 @@ void QVk_CreatePipeline(const VkDescriptorSetLayout *descriptorLayout, const uin
 		.logicOpEnable = VK_FALSE,
 		.logicOp = VK_LOGIC_OP_COPY,
 		.attachmentCount = 1,
-		.pAttachments = &cbaState,
+		.pAttachments = &pipeline->blendOpts,
 		.blendConstants[0] = 0.f,
 		.blendConstants[1] = 0.f,
 		.blendConstants[2] = 0.f,
