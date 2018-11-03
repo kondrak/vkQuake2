@@ -26,6 +26,8 @@ int			numvktextures;
 int			base_textureid;		// gltextures[i] = base_textureid+i
 // texture for storing raw image data (cinematics, endscreens, etc.)
 qvktexture_t vk_rawTexture;
+// texture for storing scrap image data (tiny image atlas)
+qvktexture_t vk_scrapTexture;
 
 static byte			 intensitytable[256];
 static unsigned char gammatable[256];
@@ -546,6 +548,11 @@ void QVk_ReleaseTexture(qvktexture_t *texture)
 		vkDestroySampler(vk_device.logical, texture->sampler, NULL);
 	if (texture->descriptorSet != VK_NULL_HANDLE)
 		vkFreeDescriptorSets(vk_device.logical, vk_descriptorPool, 1, &texture->descriptorSet);
+
+	texture->image = VK_NULL_HANDLE;
+	texture->imageView = VK_NULL_HANDLE;
+	texture->sampler = VK_NULL_HANDLE;
+	texture->descriptorSet = VK_NULL_HANDLE;
 }
 
 // need Vulkan equivalent
@@ -1412,7 +1419,7 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 	// find a free image_t
 	for (i = 0, image = vktextures; i<numvktextures; i++, image++)
 	{
-		if (image->vk_texture.image == VK_NULL_HANDLE)
+		if (image->vk_texture.image == VK_NULL_HANDLE && !image->scrap)
 			break;
 	}
 	if (i == numvktextures)
@@ -1466,7 +1473,17 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 		// update scrap data
 		Vk_Upload8(scrap_texels[0], BLOCK_WIDTH, BLOCK_HEIGHT, false, false);
 		qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
-		QVk_CreateTexture(&image->vk_texture, (unsigned char*)texBuffer, image->upload_width, image->upload_height, texOpts ? texOpts : &defaultTexOpts);
+		
+		if (vk_scrapTexture.image != VK_NULL_HANDLE)
+		{
+			QVk_UpdateTexture(&vk_scrapTexture, (unsigned char*)texBuffer, image->upload_width, image->upload_height);
+		}
+		else
+		{
+			QVVKTEXTURE_CLEAR(vk_scrapTexture);
+			qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
+			QVk_CreateTexture(&vk_scrapTexture, (unsigned char*)texBuffer, image->upload_width, image->upload_height, texOpts ? texOpts : &defaultTexOpts);
+		}
 	}
 	else
 	{
@@ -1714,11 +1731,13 @@ void	Vk_ShutdownImages (void)
 	{
 		if (!image->registration_sequence)
 			continue;		// free image_t slot
-		// free it
-		QVk_ReleaseTexture(&image->vk_texture);
+		// free it (scraps are stored in a separate Vulkan buffer)
+		if (!image->scrap)
+			QVk_ReleaseTexture(&image->vk_texture);
 		memset(image, 0, sizeof(*image));
 	}
 
 	QVk_ReleaseTexture(&vk_rawTexture);
+	QVk_ReleaseTexture(&vk_scrapTexture);
 }
 

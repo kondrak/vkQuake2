@@ -133,6 +133,7 @@ void Draw_GetPicSize (int *w, int *h, char *pic)
 Draw_StretchPic
 =============
 */
+extern qvktexture_t vk_scrapTexture;
 
 void Draw_StretchPic (int x, int y, int w, int h, char *pic)
 {
@@ -144,6 +145,9 @@ void Draw_StretchPic (int x, int y, int w, int h, char *pic)
 		ri.Con_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
 		return;
 	}
+
+	if (vk->scrap)
+		vk->vk_texture = vk_scrapTexture;
 
 	float imgTransform[] = { (float)x / vid.width, (float)y / vid.height,
 							 (float)w / vid.width, (float)h / vid.height,
