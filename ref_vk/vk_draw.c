@@ -312,11 +312,16 @@ void Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data
 		}
 	}
 
-	vkDeviceWaitIdle(vk_device.logical);
-	QVk_ReleaseTexture(&vk_rawTexture);
-	QVVKTEXTURE_CLEAR(vk_rawTexture);
-	qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
-	QVk_CreateTexture(&vk_rawTexture, (unsigned char*)&image32, 256, 256, &defaultTexOpts );
+	if (vk_rawTexture.image != VK_NULL_HANDLE)
+	{
+		QVk_UpdateTexture(&vk_rawTexture, (unsigned char*)&image32, 256, 256);
+	}
+	else
+	{
+		QVVKTEXTURE_CLEAR(vk_rawTexture);
+		qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
+		QVk_CreateTexture(&vk_rawTexture, (unsigned char*)&image32, 256, 256, &defaultTexOpts);
+	}
 
 	float imgTransform[] = { (float)x / vid.width, (float)y / vid.height,
 							 (float)w / vid.width, (float)h / vid.height,
