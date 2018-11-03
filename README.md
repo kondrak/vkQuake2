@@ -11,6 +11,7 @@ Original code changes:
 - fixed compiler warnings
 - Calling M_DrawTextBox properly without using explicit endframe calls (required for Vulkan)
 - added custom debug Windows console for debug builds
+- added 1920x1080 screen resolution
 
 Features:
 ===
@@ -20,4 +21,8 @@ Features:
 - vk_validation command to enable layers (0 - off, 1 - warnings and errors, 2 - full validation, defaults to 2 in debug builds and 0 in release)
 - vk_picmip and vk_round_down GL equivalents
 - vk_log - redirects layer messages to file
+- vk_flashblend - dynamic light drawing control (lightmap or really dynamic)
+- vk_finish - basically inserts vkDeviceWaitIdle when necessary - added for completness' sake (a glFinish() equivalent in the original) but really, don't use it!
+- vk_lockpvs - equivalent to GL
+- vk_polyblend - equivalent to GL
 - skipped 8-bit textures - no modern hardware even supports it these days

@@ -38,6 +38,7 @@ static cvar_t *gl_driver;
 static cvar_t *gl_picmip;
 static cvar_t *gl_ext_palettedtexture;
 static cvar_t *gl_finish;
+static cvar_t *vk_finish;
 
 static cvar_t *sw_mode;
 static cvar_t *sw_stipplealpha;
@@ -73,6 +74,7 @@ static menulist_s  		s_fs_box[3];
 static menulist_s  		s_stipple_box;
 static menulist_s  		s_paletted_texture_box;
 static menulist_s  		s_finish_box;
+static menulist_s		s_vkfinish_box;
 static menuaction_s		s_cancel_action[3];
 static menuaction_s		s_defaults_action[3];
 
@@ -156,6 +158,7 @@ static void ApplyChanges( void *unused )
 	Cvar_SetValue( "vid_fullscreen", s_fs_box[s_current_menu_index].curvalue );
 	Cvar_SetValue( "gl_ext_palettedtexture", s_paletted_texture_box.curvalue );
 	Cvar_SetValue( "gl_finish", s_finish_box.curvalue );
+	Cvar_SetValue( "vk_finish", s_vkfinish_box.curvalue );
 	Cvar_SetValue( "sw_mode", s_mode_list[SOFTWARE_MENU].curvalue );
 	Cvar_SetValue( "gl_mode", s_mode_list[OPENGL_MENU].curvalue );
 	Cvar_SetValue( "vk_mode", s_mode_list[VULKAN_MENU].curvalue );
@@ -249,6 +252,7 @@ void VID_MenuInit( void )
 		"[1152 864 ]",
 		"[1280 960 ]",
 		"[1600 1200]",
+		"[1920 1080]",
 		"[2048 1536]",
 		0
 	};
@@ -282,6 +286,8 @@ void VID_MenuInit( void )
 		gl_ext_palettedtexture = Cvar_Get( "gl_ext_palettedtexture", "1", CVAR_ARCHIVE );
 	if ( !gl_finish )
 		gl_finish = Cvar_Get( "gl_finish", "0", CVAR_ARCHIVE );
+	if ( !vk_finish )
+		vk_finish = Cvar_Get( "vk_finish", "0", CVAR_ARCHIVE );
 
 	if ( !sw_stipplealpha )
 		sw_stipplealpha = Cvar_Get( "sw_stipplealpha", "0", CVAR_ARCHIVE );
@@ -414,6 +420,13 @@ void VID_MenuInit( void )
 	s_finish_box.curvalue = gl_finish->value;
 	s_finish_box.itemnames = yesno_names;
 
+	s_vkfinish_box.generic.type = MTYPE_SPINCONTROL;
+	s_vkfinish_box.generic.x = 0;
+	s_vkfinish_box.generic.y = 80;
+	s_vkfinish_box.generic.name = "sync every frame";
+	s_vkfinish_box.curvalue = vk_finish->value;
+	s_vkfinish_box.itemnames = yesno_names;
+
 	Menu_AddItem( &s_software_menu, ( void * ) &s_ref_list[SOFTWARE_MENU] );
 	Menu_AddItem( &s_software_menu, ( void * ) &s_mode_list[SOFTWARE_MENU] );
 	Menu_AddItem( &s_software_menu, ( void * ) &s_screensize_slider[SOFTWARE_MENU] );
@@ -436,6 +449,7 @@ void VID_MenuInit( void )
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_brightness_slider[VULKAN_MENU]);
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_fs_box[VULKAN_MENU]);
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_tq_slider);
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_vkfinish_box);
 
 	Menu_AddItem( &s_software_menu, ( void * ) &s_defaults_action[SOFTWARE_MENU] );
 	Menu_AddItem( &s_software_menu, ( void * ) &s_cancel_action[SOFTWARE_MENU] );

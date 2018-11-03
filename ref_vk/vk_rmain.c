@@ -85,6 +85,10 @@ cvar_t	*vk_bitdepth;
 cvar_t	*vk_log;
 cvar_t	*vk_picmip;
 cvar_t	*vk_round_down;
+cvar_t	*vk_flashblend;
+cvar_t	*vk_finish;
+cvar_t	*vk_lockpvs;
+cvar_t	*vk_polyblend;
 
 cvar_t	*gl_particle_min_size;
 cvar_t	*gl_particle_max_size;
@@ -107,14 +111,12 @@ cvar_t	*gl_skymip;
 cvar_t	*gl_showtris;
 cvar_t	*gl_cull;
 cvar_t	*gl_polyblend;
-cvar_t	*gl_flashblend;
 cvar_t	*gl_playermip;
 cvar_t  *gl_saturatelighting;
 cvar_t	*gl_swapinterval;
 cvar_t	*gl_texturemode;
 cvar_t	*gl_texturealphamode;
 cvar_t	*gl_texturesolidmode;
-cvar_t	*gl_lockpvs;
 
 cvar_t	*vid_fullscreen;
 cvar_t	*vid_gamma;
@@ -236,6 +238,65 @@ R_SetupFrame
 */
 void R_SetupFrame (void)
 {
+	int i;
+	mleaf_t	*leaf;
+
+	r_framecount++;
+
+	// build the transformation matrix for the given view angles
+	VectorCopy(r_newrefdef.vieworg, r_origin);
+
+	AngleVectors(r_newrefdef.viewangles, vpn, vright, vup);
+
+	// current viewcluster
+	if (!(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
+	{
+		r_oldviewcluster = r_viewcluster;
+		r_oldviewcluster2 = r_viewcluster2;
+		leaf = Mod_PointInLeaf(r_origin, r_worldmodel);
+		r_viewcluster = r_viewcluster2 = leaf->cluster;
+
+		// check above and below so crossing solid water doesn't draw wrong
+		if (!leaf->contents)
+		{	// look down a bit
+			vec3_t	temp;
+
+			VectorCopy(r_origin, temp);
+			temp[2] -= 16;
+			leaf = Mod_PointInLeaf(temp, r_worldmodel);
+			if (!(leaf->contents & CONTENTS_SOLID) &&
+				(leaf->cluster != r_viewcluster2))
+				r_viewcluster2 = leaf->cluster;
+		}
+		else
+		{	// look up a bit
+			vec3_t	temp;
+
+			VectorCopy(r_origin, temp);
+			temp[2] += 16;
+			leaf = Mod_PointInLeaf(temp, r_worldmodel);
+			if (!(leaf->contents & CONTENTS_SOLID) &&
+				(leaf->cluster != r_viewcluster2))
+				r_viewcluster2 = leaf->cluster;
+		}
+	}
+
+	for (i = 0; i < 4; i++)
+		v_blend[i] = r_newrefdef.blend[i];
+
+	c_brush_polys = 0;
+	c_alias_polys = 0;
+
+	// clear out the portion of the screen that the NOWORLDMODEL defines
+	if (r_newrefdef.rdflags & RDF_NOWORLDMODEL)
+	{
+		/*qglEnable(GL_SCISSOR_TEST);
+		qglClearColor(0.3, 0.3, 0.3, 1);
+		qglScissor(r_newrefdef.x, vid.height - r_newrefdef.height - r_newrefdef.y, r_newrefdef.width, r_newrefdef.height);
+		qglClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		qglClearColor(1, 0, 0.5, 0.5);
+		qglDisable(GL_SCISSOR_TEST);*/
+	}
 }
 
 /*
@@ -270,7 +331,54 @@ r_newrefdef must be set before the first call
 */
 void R_RenderView (refdef_t *fd)
 {
+	if (r_norefresh->value)
+		return;
 
+	r_newrefdef = *fd;
+
+	if (!r_worldmodel && !(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
+		ri.Sys_Error(ERR_DROP, "R_RenderView: NULL worldmodel");
+
+	if (r_speeds->value)
+	{
+		c_brush_polys = 0;
+		c_alias_polys = 0;
+	}
+
+	R_PushDlights();
+
+	// added for compatibility sake with OpenGL implementation - don't use it!
+	if (vk_finish->value)
+		vkDeviceWaitIdle(vk_device.logical);
+
+	R_SetupFrame();
+
+	R_SetFrustum();
+
+	R_SetupVulkan();
+
+	R_MarkLeaves();	// done here so we know if we're in water
+
+	R_DrawWorld();
+
+	R_DrawEntitiesOnList();
+
+	R_RenderDlights();
+
+	R_DrawParticles();
+
+	R_DrawAlphaSurfaces();
+
+	R_Flash();
+
+	if (r_speeds->value)
+	{
+		ri.Con_Printf(PRINT_ALL, "%4i wpoly %4i epoly %i tex %i lmaps\n",
+			c_brush_polys,
+			c_alias_polys,
+			c_visible_textures,
+			c_visible_lightmaps);
+	}
 }
 
 
@@ -288,7 +396,31 @@ R_SetLightLevel
 */
 void R_SetLightLevel (void)
 {
+	vec3_t		shadelight;
 
+	if (r_newrefdef.rdflags & RDF_NOWORLDMODEL)
+		return;
+
+	// save off light value for server to look at (BIG HACK!)
+
+	R_LightPoint(r_newrefdef.vieworg, shadelight);
+
+	// pick the greatest component, which should be the same
+	// as the mono value returned by software
+	if (shadelight[0] > shadelight[1])
+	{
+		if (shadelight[0] > shadelight[2])
+			r_lightlevel->value = 150 * shadelight[0];
+		else
+			r_lightlevel->value = 150 * shadelight[2];
+	}
+	else
+	{
+		if (shadelight[1] > shadelight[2])
+			r_lightlevel->value = 150 * shadelight[1];
+		else
+			r_lightlevel->value = 150 * shadelight[2];
+	}
 }
 
 /*
@@ -307,6 +439,18 @@ void R_RenderFrame (refdef_t *fd)
 
 void R_Register( void )
 {
+	r_lefthand = ri.Cvar_Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
+	r_norefresh = ri.Cvar_Get("r_norefresh", "0", 0);
+	r_fullbright = ri.Cvar_Get("r_fullbright", "0", 0);
+	r_drawentities = ri.Cvar_Get("r_drawentities", "1", 0);
+	r_drawworld = ri.Cvar_Get("r_drawworld", "1", 0);
+	r_novis = ri.Cvar_Get("r_novis", "0", 0);
+	r_nocull = ri.Cvar_Get("r_nocull", "0", 0);
+	r_lerpmodels = ri.Cvar_Get("r_lerpmodels", "1", 0);
+	r_speeds = ri.Cvar_Get("r_speeds", "0", 0);
+
+	r_lightlevel = ri.Cvar_Get("r_lightlevel", "0", 0);
+
 #ifdef _DEBUG
 	vk_validation = ri.Cvar_Get("vk_validation", "2", 0);
 #else
@@ -317,6 +461,10 @@ void R_Register( void )
 	vk_log = ri.Cvar_Get("vk_log", "0", 0);
 	vk_picmip = ri.Cvar_Get("vk_picmip", "0", 0);
 	vk_round_down = ri.Cvar_Get("vk_round_down", "1", 0);
+	vk_flashblend = ri.Cvar_Get("vk_flashblend", "0", 0);
+	vk_finish = ri.Cvar_Get("vk_finish", "0", CVAR_ARCHIVE);
+	vk_lockpvs = ri.Cvar_Get("vk_lockpvs", "0", 0);
+	vk_polyblend = ri.Cvar_Get("vk_polyblend", "1", 0);
 
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);

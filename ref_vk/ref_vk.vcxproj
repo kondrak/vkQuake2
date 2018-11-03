@@ -103,12 +103,14 @@
     <ClCompile Include="vk_device.c" />
     <ClCompile Include="vk_draw.c" />
     <ClCompile Include="vk_image.c" />
+    <ClCompile Include="vk_light.c" />
     <ClCompile Include="vk_mem_alloc.cpp" />
     <ClCompile Include="vk_model.c" />
     <ClCompile Include="vk_pipeline.c" />
     <ClCompile Include="vk_renderpass.c" />
     <ClCompile Include="vk_rmain.c" />
     <ClCompile Include="vk_rmisc.c" />
+    <ClCompile Include="vk_rsurf.c" />
     <ClCompile Include="vk_shaders.c" />
     <ClCompile Include="vk_swapchain.c" />
     <ClCompile Include="vk_validation.c" />
