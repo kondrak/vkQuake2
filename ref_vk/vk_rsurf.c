@@ -256,7 +256,46 @@ DrawTextureChains
 */
 void DrawTextureChains (void)
 {
+	int		i;
+	msurface_t	*s;
+	image_t		*image;
 
+	c_visible_textures = 0;
+
+	for (i = 0, image = vktextures; i < numvktextures; i++, image++)
+	{
+		if (!image->registration_sequence)
+			continue;
+		if (!image->texturechain)
+			continue;
+		c_visible_textures++;
+
+		for (s = image->texturechain; s; s = s->texturechain)
+		{
+			if (!(s->flags & SURF_DRAWTURB))
+				R_RenderBrushPoly(s);
+		}
+	}
+
+	//GL_EnableMultitexture(false);
+	for (i = 0, image = vktextures; i < numvktextures; i++, image++)
+	{
+		if (!image->registration_sequence)
+			continue;
+		s = image->texturechain;
+		if (!s)
+			continue;
+
+		for (; s; s = s->texturechain)
+		{
+			if (s->flags & SURF_DRAWTURB)
+				R_RenderBrushPoly(s);
+		}
+
+		image->texturechain = NULL;
+	}
+
+	//GL_TexEnv(GL_REPLACE);
 }
 
 
