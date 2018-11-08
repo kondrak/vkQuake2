@@ -321,7 +321,68 @@ R_DrawBrushModel
 */
 void R_DrawBrushModel (entity_t *e)
 {
+	vec3_t		mins, maxs;
+	int			i;
+	qboolean	rotated;
 
+	if (currentmodel->nummodelsurfaces == 0)
+		return;
+
+	currententity = e;
+	//gl_state.currenttextures[0] = gl_state.currenttextures[1] = -1;
+
+	if (e->angles[0] || e->angles[1] || e->angles[2])
+	{
+		rotated = true;
+		for (i = 0; i<3; i++)
+		{
+			mins[i] = e->origin[i] - currentmodel->radius;
+			maxs[i] = e->origin[i] + currentmodel->radius;
+		}
+	}
+	else
+	{
+		rotated = false;
+		VectorAdd(e->origin, currentmodel->mins, mins);
+		VectorAdd(e->origin, currentmodel->maxs, maxs);
+	}
+
+	if (R_CullBox(mins, maxs))
+		return;
+
+	//qglColor3f(1, 1, 1);
+	memset(gl_lms.lightmap_surfaces, 0, sizeof(gl_lms.lightmap_surfaces));
+
+	VectorSubtract(r_newrefdef.vieworg, e->origin, modelorg);
+	if (rotated)
+	{
+		vec3_t	temp;
+		vec3_t	forward, right, up;
+
+		VectorCopy(modelorg, temp);
+		AngleVectors(e->angles, forward, right, up);
+		modelorg[0] = DotProduct(temp, forward);
+		modelorg[1] = -DotProduct(temp, right);
+		modelorg[2] = DotProduct(temp, up);
+	}
+
+	//qglPushMatrix();
+	e->angles[0] = -e->angles[0];	// stupid quake bug
+	e->angles[2] = -e->angles[2];	// stupid quake bug
+	R_RotateForEntity(e);
+	e->angles[0] = -e->angles[0];	// stupid quake bug
+	e->angles[2] = -e->angles[2];	// stupid quake bug
+
+	/*GL_EnableMultitexture(true);
+	GL_SelectTexture(GL_TEXTURE0);
+	GL_TexEnv(GL_REPLACE);
+	GL_SelectTexture(GL_TEXTURE1);
+	GL_TexEnv(GL_MODULATE);
+
+	R_DrawInlineBModel();
+	GL_EnableMultitexture(false);
+
+	qglPopMatrix();*/
 }
 
 /*

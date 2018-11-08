@@ -110,7 +110,6 @@ cvar_t	*gl_nobind;
 cvar_t	*gl_skymip;
 cvar_t	*gl_showtris;
 cvar_t	*gl_cull;
-cvar_t	*gl_polyblend;
 cvar_t	*gl_playermip;
 cvar_t  *gl_saturatelighting;
 cvar_t	*gl_swapinterval;
@@ -145,6 +144,13 @@ qboolean R_CullBox (vec3_t mins, vec3_t maxs)
 
 void R_RotateForEntity (entity_t *e)
 {
+	/*
+	qglTranslatef (e->origin[0],  e->origin[1],  e->origin[2]);
+
+	qglRotatef (e->angles[1],  0, 0, 1);
+	qglRotatef (-e->angles[0],  0, 1, 0);
+	qglRotatef (-e->angles[2],  1, 0, 0);
+	*/
 }
 
 /*
@@ -164,7 +170,73 @@ R_DrawSpriteModel
 */
 void R_DrawSpriteModel (entity_t *e)
 {
+	float alpha = 1.0F;
+	vec3_t	point;
+	dsprframe_t	*frame;
+	float		*up, *right;
+	dsprite_t		*psprite;
 
+	// don't even bother culling, because it's just a single
+	// polygon without a surface cache
+
+	psprite = (dsprite_t *)currentmodel->extradata;
+
+	e->frame %= psprite->numframes;
+
+	frame = &psprite->frames[e->frame];
+
+	// normal sprite
+	up = vup;
+	right = vright;
+
+	if (e->flags & RF_TRANSLUCENT)
+		alpha = e->alpha;
+
+	/*if (alpha != 1.0F)
+		qglEnable(GL_BLEND);
+
+	qglColor4f(1, 1, 1, alpha);
+
+	GL_Bind(currentmodel->skins[e->frame]->texnum);
+
+	GL_TexEnv(GL_MODULATE);
+
+	if (alpha == 1.0)
+		qglEnable(GL_ALPHA_TEST);
+	else
+		qglDisable(GL_ALPHA_TEST);
+
+	qglBegin(GL_QUADS);
+
+	qglTexCoord2f(0, 1);
+	VectorMA(e->origin, -frame->origin_y, up, point);
+	VectorMA(point, -frame->origin_x, right, point);
+	qglVertex3fv(point);
+
+	qglTexCoord2f(0, 0);
+	VectorMA(e->origin, frame->height - frame->origin_y, up, point);
+	VectorMA(point, -frame->origin_x, right, point);
+	qglVertex3fv(point);
+
+	qglTexCoord2f(1, 0);
+	VectorMA(e->origin, frame->height - frame->origin_y, up, point);
+	VectorMA(point, frame->width - frame->origin_x, right, point);
+	qglVertex3fv(point);
+
+	qglTexCoord2f(1, 1);
+	VectorMA(e->origin, -frame->origin_y, up, point);
+	VectorMA(point, frame->width - frame->origin_x, right, point);
+	qglVertex3fv(point);
+
+	qglEnd();
+
+	qglDisable(GL_ALPHA_TEST);
+	GL_TexEnv(GL_REPLACE);
+
+	if (alpha != 1.0F)
+		qglDisable(GL_BLEND);
+
+	qglColor4f(1, 1, 1, 1);*/
 }
 
 //==================================================================================
@@ -176,7 +248,35 @@ R_DrawNullModel
 */
 void R_DrawNullModel (void)
 {
+	vec3_t	shadelight;
+	int		i;
 
+	if (currententity->flags & RF_FULLBRIGHT)
+		shadelight[0] = shadelight[1] = shadelight[2] = 1.0F;
+	else
+		R_LightPoint(currententity->origin, shadelight);
+
+	/*qglPushMatrix();
+	R_RotateForEntity(currententity);
+
+	qglDisable(GL_TEXTURE_2D);
+	qglColor3fv(shadelight);
+
+	qglBegin(GL_TRIANGLE_FAN);
+	qglVertex3f(0, 0, -16);
+	for (i = 0; i <= 4; i++)
+		qglVertex3f(16 * cos(i*M_PI / 2), 16 * sin(i*M_PI / 2), 0);
+	qglEnd();
+
+	qglBegin(GL_TRIANGLE_FAN);
+	qglVertex3f(0, 0, 16);
+	for (i = 4; i >= 0; i--)
+		qglVertex3f(16 * cos(i*M_PI / 2), 16 * sin(i*M_PI / 2), 0);
+	qglEnd();
+
+	qglColor3f(1, 1, 1);
+	qglPopMatrix();
+	qglEnable(GL_TEXTURE_2D);*/
 }
 
 /*
@@ -186,7 +286,88 @@ R_DrawEntitiesOnList
 */
 void R_DrawEntitiesOnList (void)
 {
+	int		i;
 
+	if (!r_drawentities->value)
+		return;
+
+	// draw non-transparent first
+	for (i = 0; i<r_newrefdef.num_entities; i++)
+	{
+		currententity = &r_newrefdef.entities[i];
+		if (currententity->flags & RF_TRANSLUCENT)
+			continue;	// solid
+
+		if (currententity->flags & RF_BEAM)
+		{
+			R_DrawBeam(currententity);
+		}
+		else
+		{
+			currentmodel = currententity->model;
+			if (!currentmodel)
+			{
+				R_DrawNullModel();
+				continue;
+			}
+			switch (currentmodel->type)
+			{
+			case mod_alias:
+				R_DrawAliasModel(currententity);
+				break;
+			case mod_brush:
+				R_DrawBrushModel(currententity);
+				break;
+			case mod_sprite:
+				R_DrawSpriteModel(currententity);
+				break;
+			default:
+				ri.Sys_Error(ERR_DROP, "Bad modeltype");
+				break;
+			}
+		}
+	}
+
+	// draw transparent entities
+	// we could sort these if it ever becomes a problem...
+	//qglDepthMask(0);		// no z writes
+	for (i = 0; i<r_newrefdef.num_entities; i++)
+	{
+		currententity = &r_newrefdef.entities[i];
+		if (!(currententity->flags & RF_TRANSLUCENT))
+			continue;	// solid
+
+		if (currententity->flags & RF_BEAM)
+		{
+			R_DrawBeam(currententity);
+		}
+		else
+		{
+			currentmodel = currententity->model;
+
+			if (!currentmodel)
+			{
+				R_DrawNullModel();
+				continue;
+			}
+			switch (currentmodel->type)
+			{
+			case mod_alias:
+				R_DrawAliasModel(currententity);
+				break;
+			case mod_brush:
+				R_DrawBrushModel(currententity);
+				break;
+			case mod_sprite:
+				R_DrawSpriteModel(currententity);
+				break;
+			default:
+				ri.Sys_Error(ERR_DROP, "Bad modeltype");
+				break;
+			}
+		}
+	}
+	//qglDepthMask(1);		// back to writing
 }
 
 /*
@@ -213,7 +394,37 @@ R_PolyBlend
 */
 void R_PolyBlend (void)
 {
+	if (!vk_polyblend->value)
+		return;
+	if (!v_blend[3])
+		return;
 
+	/*qglDisable(GL_ALPHA_TEST);
+	qglEnable(GL_BLEND);
+	qglDisable(GL_DEPTH_TEST);
+	qglDisable(GL_TEXTURE_2D);
+
+	qglLoadIdentity();
+
+	// FIXME: get rid of these
+	qglRotatef(-90, 1, 0, 0);	    // put Z going up
+	qglRotatef(90, 0, 0, 1);	    // put Z going up
+
+	qglColor4fv(v_blend);
+
+	qglBegin(GL_QUADS);
+
+	qglVertex3f(10, 100, 100);
+	qglVertex3f(10, -100, 100);
+	qglVertex3f(10, -100, -100);
+	qglVertex3f(10, 100, -100);
+	qglEnd();
+
+	qglDisable(GL_BLEND);
+	qglEnable(GL_TEXTURE_2D);
+	qglEnable(GL_ALPHA_TEST);
+
+	qglColor4f(1, 1, 1, 1);*/
 }
 
 //=======================================================================
@@ -226,7 +437,21 @@ int SignbitsForPlane (cplane_t *out)
 
 void R_SetFrustum (void)
 {
+	// rotate VPN right by FOV_X/2 degrees
+	RotatePointAroundVector(frustum[0].normal, vup, vpn, -(90 - r_newrefdef.fov_x / 2));
+	// rotate VPN left by FOV_X/2 degrees
+	RotatePointAroundVector(frustum[1].normal, vup, vpn, 90 - r_newrefdef.fov_x / 2);
+	// rotate VPN up by FOV_X/2 degrees
+	RotatePointAroundVector(frustum[2].normal, vright, vpn, 90 - r_newrefdef.fov_y / 2);
+	// rotate VPN down by FOV_X/2 degrees
+	RotatePointAroundVector(frustum[3].normal, vright, vpn, -(90 - r_newrefdef.fov_y / 2));
 
+	for (int i = 0; i < 4; i++)
+	{
+		frustum[i].type = PLANE_ANYZ;
+		frustum[i].dist = DotProduct(r_origin, frustum[i].normal);
+		frustum[i].signbits = SignbitsForPlane(&frustum[i]);
+	}
 }
 
 //=======================================================================

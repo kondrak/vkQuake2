@@ -220,7 +220,6 @@ extern	cvar_t	*gl_skymip;
 extern	cvar_t	*gl_showtris;
 extern	cvar_t	*gl_cull;
 extern	cvar_t	*gl_poly;
-extern	cvar_t	*gl_polyblend;
 extern	cvar_t	*gl_lightmaptype;
 extern	cvar_t	*gl_modulate;
 extern	cvar_t	*gl_playermip;
