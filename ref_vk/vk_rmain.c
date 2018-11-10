@@ -59,6 +59,13 @@ vec3_t	r_origin;
 
 float	r_world_matrix[16];
 float	r_base_world_matrix[16];
+float	r_projection_matrix[16];
+// correction matrix for perspective in Vulkan
+float	r_vulkan_correction[16] = { 1.f,  0.f, 0.f, 0.f,
+									0.f, -1.f, 0.f, 0.f,
+									0.f,  0.f, .5f, 0.f,
+									0.f,  0.f, .5f, 1.f
+								  };
 
 //
 // screen size info
@@ -524,6 +531,83 @@ void R_SetupFrame (void)
 	}
 }
 
+void MatIdentity(float *matrix)
+{
+	matrix[0] = 1.f;
+	matrix[1] = 0.f;
+	matrix[2] = 0.f;
+	matrix[3] = 0.f;
+	matrix[4] = 0.f;
+	matrix[5] = 1.f;
+	matrix[6] = 0.f;
+	matrix[7] = 0.f;
+	matrix[8] = 0.f;
+	matrix[9] = 0.f;
+	matrix[10] = 1.f;
+	matrix[11] = 0.f;
+	matrix[12] = 0.f;
+	matrix[13] = 0.f;
+	matrix[14] = 0.f;
+	matrix[15] = 1.f;
+}
+
+void MatMul(float *m1, float *m2, float *res)
+{
+	res[0]  = m1[0] * m2[0] + m1[1] * m2[4] + m1[2] * m2[8] + m1[3] * m2[12];
+	res[1]  = m1[0] * m2[1] + m1[1] * m2[5] + m1[2] * m2[9] + m1[3] * m2[13];
+	res[2]  = m1[0] * m2[2] + m1[1] * m2[6] + m1[2] * m2[10] + m1[3] * m2[14];
+	res[3]  = m1[0] * m2[3] + m1[1] * m2[7] + m1[2] * m2[11] + m1[3] * m2[15];
+	res[4]  = m1[4] * m2[0] + m1[5] * m2[4] + m1[6] * m2[8] + m1[7] * m2[12];
+	res[5]  = m1[4] * m2[1] + m1[5] * m2[5] + m1[6] * m2[9] + m1[7] * m2[13];
+	res[6]  = m1[4] * m2[2] + m1[5] * m2[6] + m1[6] * m2[10] + m1[7] * m2[14];
+	res[7]  = m1[4] * m2[3] + m1[5] * m2[7] + m1[6] * m2[11] + m1[7] * m2[15];
+	res[8]  = m1[8] * m2[0] + m1[9] * m2[4] + m1[10] * m2[8] + m1[11] * m2[12];
+	res[9]  = m1[8] * m2[1] + m1[9] * m2[5] + m1[10] * m2[9] + m1[11] * m2[13];
+	res[10] = m1[8] * m2[2] + m1[9] * m2[6] + m1[10] * m2[10] + m1[11] * m2[14];
+	res[11] = m1[8] * m2[3] + m1[9] * m2[7] + m1[10] * m2[11] + m1[11] * m2[15];
+	res[12] = m1[12] * m2[0] + m1[13] * m2[4] + m1[14] * m2[8] + m1[15] * m2[12];
+	res[13] = m1[12] * m2[1] + m1[13] * m2[5] + m1[14] * m2[9] + m1[15] * m2[13];
+	res[14] = m1[12] * m2[2] + m1[13] * m2[6] + m1[14] * m2[10] + m1[15] * m2[14];
+	res[15] = m1[12] * m2[3] + m1[13] * m2[7] + m1[14] * m2[11] + m1[15] * m2[15];
+}
+
+void MatPerspective(float *matrix, float fovy, float aspect,
+	float zNear, float zFar)
+{
+	float xmin, xmax, ymin, ymax;
+
+	ymax = zNear * tan(fovy * M_PI / 360.0);
+	ymin = -ymax;
+
+	xmin = ymin * aspect;
+	xmax = ymax * aspect;
+
+	xmin += -(2 * vk_state.camera_separation) / zNear;
+	xmax += -(2 * vk_state.camera_separation) / zNear;
+
+	float proj[16];
+	proj[0] = 2.f * zNear / (xmax - xmin);
+	proj[1] = 0.f;
+	proj[2] = (xmax + xmin) / (xmax - xmin);
+	proj[3] = 0.f;
+	proj[4] = 0.f;
+	proj[5] = 2.f * zNear / (ymax - ymin);
+	proj[6] = (ymax + ymin) / (ymax - ymin);
+	proj[7] = 0.f;
+	proj[8] = 0.f;
+	proj[9] = 0.f;
+	proj[10] = -(zFar + zNear) / (zFar - zNear);
+	proj[11] = -2.f * zFar * zNear / (zFar - zNear);
+	proj[12] = 0.f;
+	proj[13] = 0.f;
+	proj[14] = -1.f;
+	proj[15] = 0.f;
+
+	// Convert projection matrix to Vulkan coordinate system (https://matthewwellings.com/blog/the-new-vulkan-coordinate-system/)
+	MatMul(proj, r_vulkan_correction, matrix);
+}
+
+
 /*
 =============
 R_SetupVulkan
@@ -531,6 +615,61 @@ R_SetupVulkan
 */
 void R_SetupVulkan (void)
 {
+	float	screenaspect;
+	int		x, x2, y2, y, w, h;
+
+	//
+	// set up viewport
+	//
+	x = floor(r_newrefdef.x * vid.width / vid.width);
+	x2 = ceil((r_newrefdef.x + r_newrefdef.width) * vid.width / vid.width);
+	y = floor(vid.height - r_newrefdef.y * vid.height / vid.height);
+	y2 = ceil(vid.height - (r_newrefdef.y + r_newrefdef.height) * vid.height / vid.height);
+
+	w = x2 - x;
+	h = y - y2;
+
+	//qglViewport(x, y2, w, h);
+
+	//
+	// set up projection matrix
+	//
+	screenaspect = (float)r_newrefdef.width / r_newrefdef.height;
+	MatIdentity(r_projection_matrix);
+	MatPerspective(r_projection_matrix, r_newrefdef.fov_y, screenaspect, 4, 4096);
+
+	//qglCullFace(GL_FRONT);
+
+	//qglMatrixMode(GL_MODELVIEW);
+	MatIdentity(r_world_matrix);
+
+	float trans[16];
+	MatIdentity(trans);
+	trans[3] = -r_newrefdef.vieworg[0];
+	trans[7] = -r_newrefdef.vieworg[1];
+	trans[11] = -r_newrefdef.vieworg[2];
+	//MatMul(r_world_matrix, trans, r_world_matrix);
+
+	/*qglRotatef(-90, 1, 0, 0);	    // put Z going up
+	qglRotatef(90, 0, 0, 1);	    // put Z going up
+	qglRotatef(-r_newrefdef.viewangles[2], 1, 0, 0);
+	qglRotatef(-r_newrefdef.viewangles[0], 0, 1, 0);
+	qglRotatef(-r_newrefdef.viewangles[1], 0, 0, 1);
+	qglTranslatef(-r_newrefdef.vieworg[0], -r_newrefdef.vieworg[1], -r_newrefdef.vieworg[2]);
+
+	qglGetFloatv(GL_MODELVIEW_MATRIX, r_world_matrix);*/
+
+	//
+	// set drawing parms
+	//
+	/*if (gl_cull->value)
+		qglEnable(GL_CULL_FACE);
+	else
+		qglDisable(GL_CULL_FACE);
+
+	qglDisable(GL_BLEND);
+	qglDisable(GL_ALPHA_TEST);
+	qglEnable(GL_DEPTH_TEST);*/
 }
 
 /*
