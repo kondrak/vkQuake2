@@ -78,6 +78,9 @@
     <ClCompile Include="vk_rsurf.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="vk_mesh.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="ref_vk.def">

@@ -105,6 +105,7 @@
     <ClCompile Include="vk_image.c" />
     <ClCompile Include="vk_light.c" />
     <ClCompile Include="vk_mem_alloc.cpp" />
+    <ClCompile Include="vk_mesh.c" />
     <ClCompile Include="vk_model.c" />
     <ClCompile Include="vk_pipeline.c" />
     <ClCompile Include="vk_renderpass.c" />
