@@ -110,6 +110,7 @@ PFN_vkDestroyDebugUtilsMessengerEXT qvkDestroyDebugUtilsMessengerEXT;
 
 qvkpipeline_t vk_drawTexQuadPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawColorQuadPipeline = QVKPIPELINE_INIT;
+qvkpipeline_t vk_drawNullModel = QVKPIPELINE_INIT;
 
 #define VK_INPUTBIND_DESC(s) { \
 	.binding = 0, \
@@ -427,6 +428,33 @@ static void CreatePipelines()
 
 	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
 	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
+
+	// untextured null model
+	VkVertexInputBindingDescription nullBind = VK_INPUTBIND_DESC(sizeof(float) * 6);
+	VkVertexInputAttributeDescription nullAttrDesc[] = {
+		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
+		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 3),
+	};
+
+	VkPipelineVertexInputStateCreateInfo nullVertInfo = {
+		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+		.pNext = NULL,
+		.flags = 0,
+		.vertexBindingDescriptionCount = 1,
+		.pVertexBindingDescriptions = &nullBind,
+		.vertexAttributeDescriptionCount = sizeof(nullAttrDesc) / sizeof(nullAttrDesc[0]),
+		.pVertexAttributeDescriptions = nullAttrDesc
+	};
+
+	shaders[0] = QVk_CreateShader(nullmodel_vert_spv, nullmodel_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
+	shaders[1] = QVk_CreateShader(nullmodel_frag_spv, nullmodel_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
+
+	vk_drawNullModel.depthTestEnable = VK_FALSE;
+	vk_drawNullModel.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+	QVk_CreatePipeline(NULL, 0, &nullVertInfo, &vk_drawNullModel, shaders, 2);
+
+	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
+	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
 }
 
 /*
@@ -443,6 +471,7 @@ void QVk_Shutdown( void )
 
 		QVk_DestroyPipeline(&vk_drawTexQuadPipeline);
 		QVk_DestroyPipeline(&vk_drawColorQuadPipeline);
+		QVk_DestroyPipeline(&vk_drawNullModel);
 		QVk_FreeBuffer(&vk_rectVbo);
 		QVk_FreeBuffer(&vk_rectIbo);
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
@@ -850,7 +879,7 @@ void QVk_RecreateSwapchain()
 	VK_VERIFY( CreateFramebuffers( &vk_renderpasses[RT_MSAA], RT_MSAA ) );
 }
 
-uint8_t *QVk_GetVertexBuffer(VkDeviceSize size, uint32_t *dstOffset)
+uint8_t *QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, uint32_t *dstOffset)
 {
 	*dstOffset = vk_dynVertexBuffers[vk_activeDynBufferIdx].currentOffset;
 	vk_dynVertexBuffers[vk_activeDynBufferIdx].currentOffset += size;
@@ -858,6 +887,7 @@ uint8_t *QVk_GetVertexBuffer(VkDeviceSize size, uint32_t *dstOffset)
 	if (vk_dynVertexBuffers[vk_activeDynBufferIdx].currentOffset > VERTEX_BUFFER_MAXSIZE * 1024)
 		Sys_Error("Out of vertex buffer memory!");
 
+	*dstBuffer = vk_dynVertexBuffers[vk_activeDynBufferIdx].buffer;
 	return (uint8_t *)vk_dynVertexBuffers[vk_activeDynBufferIdx].allocInfo.pMappedData + (*dstOffset);
 }
 

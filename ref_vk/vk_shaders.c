@@ -25,9 +25,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "spirv/basic_frag.c"
 #include "spirv/basic_color_quad_vert.c"
 #include "spirv/basic_color_quad_frag.c"
+#include "spirv/nullmodel_vert.c"
+#include "spirv/nullmodel_frag.c"
 
 const size_t basic_vert_size = sizeof(basic_vert_spv);
 const size_t basic_frag_size = sizeof(basic_frag_spv);
 
 const size_t basic_color_quad_vert_size = sizeof(basic_color_quad_vert_spv);
 const size_t basic_color_quad_frag_size = sizeof(basic_color_quad_frag_spv);
+
+const size_t nullmodel_vert_size = sizeof(nullmodel_vert_spv);
+const size_t nullmodel_frag_size = sizeof(nullmodel_frag_spv);

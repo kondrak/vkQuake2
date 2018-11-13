@@ -58,7 +58,6 @@ vec3_t	vright;
 vec3_t	r_origin;
 
 float	r_world_matrix[16];
-float	r_base_world_matrix[16];
 float	r_projection_matrix[16];
 // correction matrix for perspective in Vulkan
 float	r_vulkan_correction[16] = { 1.f,  0.f, 0.f, 0.f,
@@ -149,15 +148,12 @@ qboolean R_CullBox (vec3_t mins, vec3_t maxs)
 }
 
 
-void R_RotateForEntity (entity_t *e)
+void R_RotateForEntity (entity_t *e, float *mvMatrix)
 {
-	/*
-	qglTranslatef (e->origin[0],  e->origin[1],  e->origin[2]);
-
-	qglRotatef (e->angles[1],  0, 0, 1);
-	qglRotatef (-e->angles[0],  0, 1, 0);
-	qglRotatef (-e->angles[2],  1, 0, 0);
-	*/
+	Mat_Translate(mvMatrix, e->origin[0], e->origin[1], e->origin[2]);
+	Mat_Rotate(mvMatrix,  e->angles[1], 0.f, 0.f, 1.f);
+	Mat_Rotate(mvMatrix, -e->angles[0], 0.f, 1.f, 0.f);
+	Mat_Rotate(mvMatrix, -e->angles[2], 1.f, 0.f, 0.f);
 }
 
 /*
@@ -256,34 +252,61 @@ R_DrawNullModel
 void R_DrawNullModel (void)
 {
 	vec3_t	shadelight;
-	int		i;
+	int		i,j;
 
 	if (currententity->flags & RF_FULLBRIGHT)
 		shadelight[0] = shadelight[1] = shadelight[2] = 1.0F;
 	else
 		R_LightPoint(currententity->origin, shadelight);
 
-	//qglPushMatrix();
-	R_RotateForEntity(currententity);
+	float mtx[16];
+	vec3_t verts[24];
+	memcpy(mtx, r_world_matrix, sizeof(float) * 16);
+	R_RotateForEntity(currententity, mtx);
 
-	/*qglDisable(GL_TEXTURE_2D);
-	qglColor3fv(shadelight);
+	verts[0][0] = 0.f;
+	verts[0][1] = 0.f;
+	verts[0][2] = -16.f;
+	verts[1][0] = shadelight[0];
+	verts[1][1] = shadelight[1];
+	verts[1][2] = shadelight[2];
 
-	qglBegin(GL_TRIANGLE_FAN);
-	qglVertex3f(0, 0, -16);
-	for (i = 0; i <= 4; i++)
-		qglVertex3f(16 * cos(i*M_PI / 2), 16 * sin(i*M_PI / 2), 0);
-	qglEnd();
+	for (i = 2, j = 1; i < 12; i+=2, j++)
+	{
+		verts[i][0] = 16 * cos(j*M_PI / 2);
+		verts[i][1] = 16 * sin(j*M_PI / 2);
+		verts[i][2] = 0.f;
+		verts[i+1][0] = shadelight[0];
+		verts[i+1][1] = shadelight[1];
+		verts[i+1][2] = shadelight[2];
+	}
 
-	qglBegin(GL_TRIANGLE_FAN);
-	qglVertex3f(0, 0, 16);
-	for (i = 4; i >= 0; i--)
-		qglVertex3f(16 * cos(i*M_PI / 2), 16 * sin(i*M_PI / 2), 0);
-	qglEnd();
+	verts[12][0] = 0.f;
+	verts[12][1] = 0.f;
+	verts[12][2] = 16.f;
+	verts[13][0] = shadelight[0];
+	verts[13][1] = shadelight[1];
+	verts[13][2] = shadelight[2];
 
-	qglColor3f(1, 1, 1);
-	qglPopMatrix();
-	qglEnable(GL_TEXTURE_2D);*/
+	for (i = 23, j = 12; i > 13; i-=2, j--)
+	{
+		verts[i-1][0] = 16 * cos(j*M_PI / 2);
+		verts[i-1][1] = 16 * sin(j*M_PI / 2);
+		verts[i-1][2] = 0.f;
+		verts[i][0] = shadelight[0];
+		verts[i][1] = shadelight[1];
+		verts[i][2] = shadelight[2];
+	}
+
+	VkBuffer vbo;
+	uint32_t vboOffset;
+	uint8_t *data = QVk_GetVertexBuffer(sizeof(verts), &vbo, &vboOffset);
+	memcpy(data, verts, sizeof(verts));
+
+	vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawNullModel.pl);
+	VkDeviceSize offsets = 0;
+	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &offsets);
+	vkCmdDraw(vk_activeCmdbuffer, 12, 1, 0, 0);
 }
 
 /*
@@ -531,7 +554,7 @@ void R_SetupFrame (void)
 	}
 }
 
-void MatIdentity(float *matrix)
+void Mat_Identity(float *matrix)
 {
 	matrix[0] = 1.f;
 	matrix[1] = 0.f;
@@ -551,7 +574,7 @@ void MatIdentity(float *matrix)
 	matrix[15] = 1.f;
 }
 
-void MatMul(float *m1, float *m2, float *res)
+void Mat_Mul(float *m1, float *m2, float *res)
 {
 	float mul[16] = { m1[0] * m2[0] + m1[1] * m2[4] + m1[2] * m2[8] + m1[3] * m2[12],
 					  m1[0] * m2[1] + m1[1] * m2[5] + m1[2] * m2[9] + m1[3] * m2[13],
@@ -574,7 +597,17 @@ void MatMul(float *m1, float *m2, float *res)
 	memcpy(res, mul, sizeof(float) * 16);
 }
 
-void MatRotate(float *matrix, float deg, float x, float y, float z)
+void Mat_Translate(float *matrix, float x, float y, float z)
+{
+	float t[16] = { 1.f, 0.f, 0.f, x,
+					0.f, 1.f, 0.f, y,
+					0.f, 0.f, 1.f, z,
+					0.f, 0.f, 0.f, 1.f };
+
+	Mat_Mul(matrix, t, matrix);
+}
+
+void Mat_Rotate(float *matrix, float deg, float x, float y, float z)
 {
 	double c = cos(deg * M_PI / 180.0);
 	double s = sin(deg * M_PI / 180.0);
@@ -586,10 +619,10 @@ void MatRotate(float *matrix, float deg, float x, float y, float z)
 					0.f,		  0.f,			0.f,		  1.f
 	};
 
-	MatMul(matrix, r, matrix);
+	Mat_Mul(matrix, r, matrix);
 }
 
-void MatScale(float *matrix, float x, float y, float z)
+void Mat_Scale(float *matrix, float x, float y, float z)
 {
 	float s[16] = {   x, 0.f, 0.f, 0.f,
 					0.f,   y, 0.f, 0.f,
@@ -597,10 +630,10 @@ void MatScale(float *matrix, float x, float y, float z)
 					0.f, 0.f, 0.f, 1.f
 	};
 
-	MatMul(matrix, s, matrix);
+	Mat_Mul(matrix, s, matrix);
 }
 
-void MatPerspective(float *matrix, float fovy, float aspect,
+void Mat_Perspective(float *matrix, float fovy, float aspect,
 	float zNear, float zFar)
 {
 	float xmin, xmax, ymin, ymax;
@@ -633,7 +666,7 @@ void MatPerspective(float *matrix, float fovy, float aspect,
 	proj[15] = 0.f;
 
 	// Convert projection matrix to Vulkan coordinate system (https://matthewwellings.com/blog/the-new-vulkan-coordinate-system/)
-	MatMul(proj, r_vulkan_correction, matrix);
+	Mat_Mul(proj, r_vulkan_correction, matrix);
 }
 
 
@@ -662,25 +695,20 @@ void R_SetupVulkan (void)
 
 	// set up projection matrix
 	screenaspect = (float)r_newrefdef.width / r_newrefdef.height;
-	MatIdentity(r_projection_matrix);
-	MatPerspective(r_projection_matrix, r_newrefdef.fov_y, screenaspect, 4, 4096);
+	Mat_Identity(r_projection_matrix);
+	Mat_Perspective(r_projection_matrix, r_newrefdef.fov_y, screenaspect, 4, 4096);
 
 	//qglCullFace(GL_FRONT);
 
 	// set up modelview matrix
-	MatIdentity(r_world_matrix);
-
-	float trans[16] = { 1.f, 0.f, 0.f, -r_newrefdef.vieworg[0],
-						0.f, 1.f, 0.f, -r_newrefdef.vieworg[1],
-						0.f, 0.f, 1.f, -r_newrefdef.vieworg[2],
-						0.f, 0.f, 0.f, 1.f };
+	Mat_Identity(r_world_matrix);
 	// put Z going up
-	MatRotate(r_world_matrix, -90.f, 1.f, 0.f, 0.f);
-	MatRotate(r_world_matrix, 90.f, 0.f, 0.f, 1.f);
-	MatRotate(r_world_matrix, -r_newrefdef.viewangles[2], 1.f, 0.f, 0.f);
-	MatRotate(r_world_matrix, -r_newrefdef.viewangles[0], 0.f, 1.f, 0.f);
-	MatRotate(r_world_matrix, -r_newrefdef.viewangles[1], 0.f, 0.f, 1.f);
-	MatMul(r_world_matrix, trans, r_world_matrix);
+	Mat_Rotate(r_world_matrix, -90.f, 1.f, 0.f, 0.f);
+	Mat_Rotate(r_world_matrix, 90.f, 0.f, 0.f, 1.f);
+	Mat_Rotate(r_world_matrix, -r_newrefdef.viewangles[2], 1.f, 0.f, 0.f);
+	Mat_Rotate(r_world_matrix, -r_newrefdef.viewangles[0], 0.f, 1.f, 0.f);
+	Mat_Rotate(r_world_matrix, -r_newrefdef.viewangles[1], 0.f, 0.f, 1.f);
+	Mat_Translate(r_world_matrix, -r_newrefdef.vieworg[0], -r_newrefdef.vieworg[1], -r_newrefdef.vieworg[2]);
 
 	//
 	// set drawing parms

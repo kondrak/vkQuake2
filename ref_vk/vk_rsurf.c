@@ -369,7 +369,9 @@ void R_DrawBrushModel (entity_t *e)
 	//qglPushMatrix();
 	e->angles[0] = -e->angles[0];	// stupid quake bug
 	e->angles[2] = -e->angles[2];	// stupid quake bug
-	R_RotateForEntity(e);
+	float mtx[16];
+	memcpy(mtx, r_world_matrix, sizeof(float) * 16);
+	R_RotateForEntity(e, mtx);
 	e->angles[0] = -e->angles[0];	// stupid quake bug
 	e->angles[2] = -e->angles[2];	// stupid quake bug
 

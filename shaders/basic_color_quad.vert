@@ -11,7 +11,7 @@ layout(set = 0, binding = 0) uniform imageTransform
     vec4 color;
 } it;
 
-layout(location = 0) in vec3 inVertex;
+layout(location = 0) in vec2 inVertex;
 layout(location = 1) in vec2 inTexCoord;
 
 layout(location = 0) out vec4 color;

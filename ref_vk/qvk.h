@@ -222,6 +222,7 @@ extern VkDescriptorSetLayout vk_samplerDescSetLayout;
 // *** pipelines ***
 extern qvkpipeline_t vk_drawTexQuadPipeline;
 extern qvkpipeline_t vk_drawColorQuadPipeline;
+extern qvkpipeline_t vk_drawNullModel;
 
 // function pointers
 extern PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;
@@ -258,7 +259,7 @@ void		QVk_CreateIndexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *ds
 qvkshader_t QVk_CreateShader(const uint32_t *shaderSrc, size_t shaderCodeSize, VkShaderStageFlagBits shaderStage);
 void		QVk_CreatePipeline(const VkDescriptorSetLayout *descriptorLayout, const uint32_t desLayoutCount, const VkPipelineVertexInputStateCreateInfo *vertexInputInfo, qvkpipeline_t *pipeline, const qvkshader_t *shaders, uint32_t shaderCount);
 void		QVk_DestroyPipeline(qvkpipeline_t *pipeline);
-uint8_t*	QVk_GetVertexBuffer(VkDeviceSize size, uint32_t *dstOffset);
+uint8_t*	QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, uint32_t *dstOffset);
 uint8_t*	QVk_GetIndexBuffer(VkDeviceSize size, uint32_t *dstOffset);
 uint8_t*	QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescriptorSet *dstUboDescriptorSet);
 #endif

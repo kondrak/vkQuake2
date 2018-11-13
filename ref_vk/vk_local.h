@@ -277,7 +277,7 @@ void R_InitParticleTexture (void);
 void Draw_InitLocal (void);
 void Vk_SubdivideSurface (msurface_t *fa);
 qboolean R_CullBox (vec3_t mins, vec3_t maxs);
-void R_RotateForEntity (entity_t *e);
+void R_RotateForEntity (entity_t *e, float *mvMatrix);
 void R_MarkLeaves (void);
 
 vkpoly_t *WaterWarpPolyVerts (vkpoly_t *p);
@@ -322,10 +322,14 @@ void	Vk_FreeUnusedImages (void);
 void Vk_TextureAlphaMode( char *string );
 void Vk_TextureSolidMode( char *string );
 
-/*
-** GL extension emulation functions
-*/
 void Vk_DrawParticles( int n, const particle_t particles[], const unsigned colortable[768] );
+
+void Mat_Identity(float *matrix);
+//void Mat_Mul(float *m1, float *m2, float *res);
+void Mat_Translate(float *matrix, float x, float y, float z);
+void Mat_Rotate(float *matrix, float deg, float x, float y, float z);
+void Mat_Scale(float *matrix, float x, float y, float z);
+void Mat_Perspective(float *matrix, float fovy, float aspect, float zNear, float zFar);
 
 typedef struct
 {

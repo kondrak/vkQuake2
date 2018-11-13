@@ -608,7 +608,6 @@ void R_DrawAliasModel (entity_t *e)
 
 	if ( ( currententity->flags & RF_WEAPONMODEL ) && ( r_lefthand->value == 1.0F ) )
 	{
-		extern void MatPerspective(float *matrix, float fovy, float aspect, float zNear, float zFar);
 		/*extern void MYgluPerspective( GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar );
 
 		qglMatrixMode( GL_PROJECTION );
@@ -623,7 +622,9 @@ void R_DrawAliasModel (entity_t *e)
 
     //qglPushMatrix ();
 	e->angles[PITCH] = -e->angles[PITCH];	// sigh.
-	R_RotateForEntity (e);
+	float mtx[16];
+	memcpy(mtx, r_world_matrix, sizeof(float) * 16);
+	R_RotateForEntity (e, mtx);
 	e->angles[PITCH] = -e->angles[PITCH];	// sigh.
 
 	// select skin
