@@ -263,10 +263,10 @@ void R_DrawNullModel (void)
 	else
 		R_LightPoint(currententity->origin, shadelight);
 
-	/*qglPushMatrix();
+	//qglPushMatrix();
 	R_RotateForEntity(currententity);
 
-	qglDisable(GL_TEXTURE_2D);
+	/*qglDisable(GL_TEXTURE_2D);
 	qglColor3fv(shadelight);
 
 	qglBegin(GL_TRIANGLE_FAN);
@@ -553,22 +553,51 @@ void MatIdentity(float *matrix)
 
 void MatMul(float *m1, float *m2, float *res)
 {
-	res[0]  = m1[0] * m2[0] + m1[1] * m2[4] + m1[2] * m2[8] + m1[3] * m2[12];
-	res[1]  = m1[0] * m2[1] + m1[1] * m2[5] + m1[2] * m2[9] + m1[3] * m2[13];
-	res[2]  = m1[0] * m2[2] + m1[1] * m2[6] + m1[2] * m2[10] + m1[3] * m2[14];
-	res[3]  = m1[0] * m2[3] + m1[1] * m2[7] + m1[2] * m2[11] + m1[3] * m2[15];
-	res[4]  = m1[4] * m2[0] + m1[5] * m2[4] + m1[6] * m2[8] + m1[7] * m2[12];
-	res[5]  = m1[4] * m2[1] + m1[5] * m2[5] + m1[6] * m2[9] + m1[7] * m2[13];
-	res[6]  = m1[4] * m2[2] + m1[5] * m2[6] + m1[6] * m2[10] + m1[7] * m2[14];
-	res[7]  = m1[4] * m2[3] + m1[5] * m2[7] + m1[6] * m2[11] + m1[7] * m2[15];
-	res[8]  = m1[8] * m2[0] + m1[9] * m2[4] + m1[10] * m2[8] + m1[11] * m2[12];
-	res[9]  = m1[8] * m2[1] + m1[9] * m2[5] + m1[10] * m2[9] + m1[11] * m2[13];
-	res[10] = m1[8] * m2[2] + m1[9] * m2[6] + m1[10] * m2[10] + m1[11] * m2[14];
-	res[11] = m1[8] * m2[3] + m1[9] * m2[7] + m1[10] * m2[11] + m1[11] * m2[15];
-	res[12] = m1[12] * m2[0] + m1[13] * m2[4] + m1[14] * m2[8] + m1[15] * m2[12];
-	res[13] = m1[12] * m2[1] + m1[13] * m2[5] + m1[14] * m2[9] + m1[15] * m2[13];
-	res[14] = m1[12] * m2[2] + m1[13] * m2[6] + m1[14] * m2[10] + m1[15] * m2[14];
-	res[15] = m1[12] * m2[3] + m1[13] * m2[7] + m1[14] * m2[11] + m1[15] * m2[15];
+	float mul[16] = { m1[0] * m2[0] + m1[1] * m2[4] + m1[2] * m2[8] + m1[3] * m2[12],
+					  m1[0] * m2[1] + m1[1] * m2[5] + m1[2] * m2[9] + m1[3] * m2[13],
+					  m1[0] * m2[2] + m1[1] * m2[6] + m1[2] * m2[10] + m1[3] * m2[14],
+					  m1[0] * m2[3] + m1[1] * m2[7] + m1[2] * m2[11] + m1[3] * m2[15],
+					  m1[4] * m2[0] + m1[5] * m2[4] + m1[6] * m2[8] + m1[7] * m2[12],
+					  m1[4] * m2[1] + m1[5] * m2[5] + m1[6] * m2[9] + m1[7] * m2[13],
+					  m1[4] * m2[2] + m1[5] * m2[6] + m1[6] * m2[10] + m1[7] * m2[14],
+					  m1[4] * m2[3] + m1[5] * m2[7] + m1[6] * m2[11] + m1[7] * m2[15],
+					  m1[8] * m2[0] + m1[9] * m2[4] + m1[10] * m2[8] + m1[11] * m2[12],
+					  m1[8] * m2[1] + m1[9] * m2[5] + m1[10] * m2[9] + m1[11] * m2[13],
+					  m1[8] * m2[2] + m1[9] * m2[6] + m1[10] * m2[10] + m1[11] * m2[14],
+					  m1[8] * m2[3] + m1[9] * m2[7] + m1[10] * m2[11] + m1[11] * m2[15],
+					  m1[12] * m2[0] + m1[13] * m2[4] + m1[14] * m2[8] + m1[15] * m2[12],
+					  m1[12] * m2[1] + m1[13] * m2[5] + m1[14] * m2[9] + m1[15] * m2[13],
+					  m1[12] * m2[2] + m1[13] * m2[6] + m1[14] * m2[10] + m1[15] * m2[14],
+					  m1[12] * m2[3] + m1[13] * m2[7] + m1[14] * m2[11] + m1[15] * m2[15]
+	};
+
+	memcpy(res, mul, sizeof(float) * 16);
+}
+
+void MatRotate(float *matrix, float deg, float x, float y, float z)
+{
+	double c = cos(deg * M_PI / 180.0);
+	double s = sin(deg * M_PI / 180.0);
+	double cd = 1.0 - c;
+
+	float r[16] = {	x*x*cd + c,	  x*y*cd - z*s, x*z*cd + y*s, 0.f,
+					y*x*cd + z*s, y*y*cd + c,	y*z*cd - x*s, 0.f,
+					x*z*cd - y*s, y*z*cd + x*s, z*z*cd + c,   0.f,
+					0.f,		  0.f,			0.f,		  1.f
+	};
+
+	MatMul(matrix, r, matrix);
+}
+
+void MatScale(float *matrix, float x, float y, float z)
+{
+	float s[16] = {   x, 0.f, 0.f, 0.f,
+					0.f,   y, 0.f, 0.f,
+					0.f, 0.f,   z, 0.f,
+					0.f, 0.f, 0.f, 1.f
+	};
+
+	MatMul(matrix, s, matrix);
 }
 
 void MatPerspective(float *matrix, float fovy, float aspect,
@@ -631,33 +660,27 @@ void R_SetupVulkan (void)
 
 	//qglViewport(x, y2, w, h);
 
-	//
 	// set up projection matrix
-	//
 	screenaspect = (float)r_newrefdef.width / r_newrefdef.height;
 	MatIdentity(r_projection_matrix);
 	MatPerspective(r_projection_matrix, r_newrefdef.fov_y, screenaspect, 4, 4096);
 
 	//qglCullFace(GL_FRONT);
 
-	//qglMatrixMode(GL_MODELVIEW);
+	// set up modelview matrix
 	MatIdentity(r_world_matrix);
 
-	float trans[16];
-	MatIdentity(trans);
-	trans[3] = -r_newrefdef.vieworg[0];
-	trans[7] = -r_newrefdef.vieworg[1];
-	trans[11] = -r_newrefdef.vieworg[2];
-	//MatMul(r_world_matrix, trans, r_world_matrix);
-
-	/*qglRotatef(-90, 1, 0, 0);	    // put Z going up
-	qglRotatef(90, 0, 0, 1);	    // put Z going up
-	qglRotatef(-r_newrefdef.viewangles[2], 1, 0, 0);
-	qglRotatef(-r_newrefdef.viewangles[0], 0, 1, 0);
-	qglRotatef(-r_newrefdef.viewangles[1], 0, 0, 1);
-	qglTranslatef(-r_newrefdef.vieworg[0], -r_newrefdef.vieworg[1], -r_newrefdef.vieworg[2]);
-
-	qglGetFloatv(GL_MODELVIEW_MATRIX, r_world_matrix);*/
+	float trans[16] = { 1.f, 0.f, 0.f, -r_newrefdef.vieworg[0],
+						0.f, 1.f, 0.f, -r_newrefdef.vieworg[1],
+						0.f, 0.f, 1.f, -r_newrefdef.vieworg[2],
+						0.f, 0.f, 0.f, 1.f };
+	// put Z going up
+	MatRotate(r_world_matrix, -90.f, 1.f, 0.f, 0.f);
+	MatRotate(r_world_matrix, 90.f, 0.f, 0.f, 1.f);
+	MatRotate(r_world_matrix, -r_newrefdef.viewangles[2], 1.f, 0.f, 0.f);
+	MatRotate(r_world_matrix, -r_newrefdef.viewangles[0], 0.f, 1.f, 0.f);
+	MatRotate(r_world_matrix, -r_newrefdef.viewangles[1], 0.f, 0.f, 1.f);
+	MatMul(r_world_matrix, trans, r_world_matrix);
 
 	//
 	// set drawing parms
