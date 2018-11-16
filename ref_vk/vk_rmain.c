@@ -556,14 +556,24 @@ void R_SetupFrame (void)
 	c_alias_polys = 0;
 
 	// clear out the portion of the screen that the NOWORLDMODEL defines
+	// unlike OpenGL, draw a rectangle in proper location - it's easier to do in Vulkan
 	if (r_newrefdef.rdflags & RDF_NOWORLDMODEL)
 	{
-		/*qglEnable(GL_SCISSOR_TEST);
-		qglClearColor(0.3, 0.3, 0.3, 1);
-		qglScissor(r_newrefdef.x, vid.height - r_newrefdef.height - r_newrefdef.y, r_newrefdef.width, r_newrefdef.height);
-		qglClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		qglClearColor(1, 0, 0.5, 0.5);
-		qglDisable(GL_SCISSOR_TEST);*/
+		float clearArea[] = { (float)r_newrefdef.x / vid.width, (float)r_newrefdef.y / vid.height,
+							  (float)r_newrefdef.width / vid.width, (float)r_newrefdef.height / vid.height,
+							  0.f, 0.f, 1.f, 1.f, .3f, .3f, .3f, 1.f };
+		uint32_t uboOffset;
+		VkDescriptorSet uboDescriptorSet;
+		uint8_t *data = QVk_GetUniformBuffer(sizeof(clearArea), &uboOffset, &uboDescriptorSet);
+		memcpy(data, &clearArea, sizeof(clearArea));
+
+		vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawColorQuadPipeline.pl);
+		VkDeviceSize offsets = 0;
+		VkDescriptorSet descriptorSets[] = { uboDescriptorSet };
+		vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vk_rectVbo.buffer, &offsets);
+		vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_rectIbo.buffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawColorQuadPipeline.layout, 0, 1, descriptorSets, 1, &uboOffset);
+		vkCmdDrawIndexed(vk_activeCmdbuffer, 6, 1, 0, 0, 0);
 	}
 }
 
