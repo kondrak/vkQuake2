@@ -325,7 +325,7 @@ void Vk_TextureSolidMode( char *string );
 void Vk_DrawParticles( int n, const particle_t particles[], const unsigned colortable[768] );
 
 void Mat_Identity(float *matrix);
-//void Mat_Mul(float *m1, float *m2, float *res);
+void Mat_Mul(float *m1, float *m2, float *res);
 void Mat_Translate(float *matrix, float x, float y, float z);
 void Mat_Rotate(float *matrix, float deg, float x, float y, float z);
 void Mat_Scale(float *matrix, float x, float y, float z);

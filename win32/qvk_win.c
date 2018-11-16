@@ -449,9 +449,10 @@ static void CreatePipelines()
 	shaders[0] = QVk_CreateShader(nullmodel_vert_spv, nullmodel_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
 	shaders[1] = QVk_CreateShader(nullmodel_frag_spv, nullmodel_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
 
-	vk_drawNullModel.depthTestEnable = VK_FALSE;
+	vk_drawNullModel.cullMode = VK_CULL_MODE_FRONT_BIT;
 	vk_drawNullModel.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
-	QVk_CreatePipeline(NULL, 0, &nullVertInfo, &vk_drawNullModel, shaders, 2);
+	VkDescriptorSetLayout dsLayoutsNullModel[] = { vk_uboDescSetLayout };
+	QVk_CreatePipeline(dsLayoutsNullModel, 1, &nullVertInfo, &vk_drawNullModel, shaders, 2);
 
 	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
 	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
@@ -769,6 +770,8 @@ VkResult QVk_BeginFrame()
 	// swap dynamic buffers
 	vk_activeDynBufferIdx = (vk_activeDynBufferIdx + 1) % NUM_DYNBUFFERS;
 	vk_dynUniformBuffers[vk_activeDynBufferIdx].currentOffset = 0;
+	vk_dynVertexBuffers[vk_activeDynBufferIdx].currentOffset = 0;
+	vk_dynIndexBuffers[vk_activeDynBufferIdx].currentOffset = 0;
 
 	// swapchain has become incompatible - need to recreate it
 	if (result == VK_ERROR_OUT_OF_DATE_KHR)

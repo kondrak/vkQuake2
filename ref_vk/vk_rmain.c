@@ -59,6 +59,7 @@ vec3_t	r_origin;
 
 float	r_world_matrix[16];
 float	r_projection_matrix[16];
+float	r_view_matrix[16];
 // correction matrix for perspective in Vulkan
 float	r_vulkan_correction[16] = { 1.f,  0.f, 0.f, 0.f,
 									0.f, -1.f, 0.f, 0.f,
@@ -150,10 +151,10 @@ qboolean R_CullBox (vec3_t mins, vec3_t maxs)
 
 void R_RotateForEntity (entity_t *e, float *mvMatrix)
 {
-	Mat_Translate(mvMatrix, e->origin[0], e->origin[1], e->origin[2]);
-	Mat_Rotate(mvMatrix,  e->angles[1], 0.f, 0.f, 1.f);
-	Mat_Rotate(mvMatrix, -e->angles[0], 0.f, 1.f, 0.f);
 	Mat_Rotate(mvMatrix, -e->angles[2], 1.f, 0.f, 0.f);
+	Mat_Rotate(mvMatrix, -e->angles[0], 0.f, 1.f, 0.f);
+	Mat_Rotate(mvMatrix,  e->angles[1], 0.f, 0.f, 1.f);
+	Mat_Translate(mvMatrix, e->origin[0], e->origin[1], e->origin[2]);
 }
 
 /*
@@ -259,11 +260,15 @@ void R_DrawNullModel (void)
 	else
 		R_LightPoint(currententity->origin, shadelight);
 
-	float mtx[16];
-	vec3_t verts[24];
-	memcpy(mtx, r_world_matrix, sizeof(float) * 16);
-	R_RotateForEntity(currententity, mtx);
+	float mvp[16];
+	float viewproj[16];
+	float model[16];
+	memcpy(model, r_world_matrix, sizeof(float) * 16);
+	R_RotateForEntity(currententity, model);
+	Mat_Mul(r_view_matrix, r_projection_matrix, viewproj);
+	Mat_Mul(model, viewproj, mvp);
 
+	vec3_t verts[24];
 	verts[0][0] = 0.f;
 	verts[0][1] = 0.f;
 	verts[0][2] = -16.f;
@@ -271,7 +276,7 @@ void R_DrawNullModel (void)
 	verts[1][1] = shadelight[1];
 	verts[1][2] = shadelight[2];
 
-	for (i = 2, j = 1; i < 12; i+=2, j++)
+	for (i = 2, j = 0; i < 12; i+=2, j++)
 	{
 		verts[i][0] = 16 * cos(j*M_PI / 2);
 		verts[i][1] = 16 * sin(j*M_PI / 2);
@@ -288,7 +293,7 @@ void R_DrawNullModel (void)
 	verts[13][1] = shadelight[1];
 	verts[13][2] = shadelight[2];
 
-	for (i = 23, j = 12; i > 13; i-=2, j--)
+	for (i = 23, j = 4; i > 13; i-=2, j--)
 	{
 		verts[i-1][0] = 16 * cos(j*M_PI / 2);
 		verts[i-1][1] = 16 * sin(j*M_PI / 2);
@@ -303,10 +308,18 @@ void R_DrawNullModel (void)
 	uint8_t *data = QVk_GetVertexBuffer(sizeof(verts), &vbo, &vboOffset);
 	memcpy(data, verts, sizeof(verts));
 
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(mvp), &uboOffset, &uboDescriptorSet);
+	memcpy(uboData, &mvp, sizeof(mvp));
+
 	vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawNullModel.pl);
+	VkDescriptorSet descriptorSets[] = { uboDescriptorSet };
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawTexQuadPipeline.layout, 0, 1, descriptorSets, 1, &uboOffset);
 	VkDeviceSize offsets = 0;
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &offsets);
-	vkCmdDraw(vk_activeCmdbuffer, 12, 1, 0, 0);
+	vkCmdDraw(vk_activeCmdbuffer, 6, 1, 0, 0);
+	vkCmdDraw(vk_activeCmdbuffer, 6, 1, 6, 0);
 }
 
 /*
@@ -599,10 +612,10 @@ void Mat_Mul(float *m1, float *m2, float *res)
 
 void Mat_Translate(float *matrix, float x, float y, float z)
 {
-	float t[16] = { 1.f, 0.f, 0.f, x,
-					0.f, 1.f, 0.f, y,
-					0.f, 0.f, 1.f, z,
-					0.f, 0.f, 0.f, 1.f };
+	float t[16] = { 1.f, 0.f, 0.f, 0.f,
+					0.f, 1.f, 0.f, 0.f,
+					0.f, 0.f, 1.f, 0.f,
+					  x,   y,   z, 1.f };
 
 	Mat_Mul(matrix, t, matrix);
 }
@@ -613,10 +626,10 @@ void Mat_Rotate(float *matrix, float deg, float x, float y, float z)
 	double s = sin(deg * M_PI / 180.0);
 	double cd = 1.0 - c;
 
-	float r[16] = {	x*x*cd + c,	  x*y*cd - z*s, x*z*cd + y*s, 0.f,
-					y*x*cd + z*s, y*y*cd + c,	y*z*cd - x*s, 0.f,
-					x*z*cd - y*s, y*z*cd + x*s, z*z*cd + c,   0.f,
-					0.f,		  0.f,			0.f,		  1.f
+	float r[16] = { x*x*cd + c,   y*x*cd + z*s, x*z*cd - y*s,  0.f,
+					x*y*cd - z*s, y*y*cd + c,	 y*z*cd + x*s, 0.f,
+					x*z*cd + y*s, y*z*cd - x*s, z*z*cd + c,	   0.f,
+					0.f,		  0.f,			0.f,		   1.f
 	};
 
 	Mat_Mul(matrix, r, matrix);
@@ -648,22 +661,14 @@ void Mat_Perspective(float *matrix, float fovy, float aspect,
 	xmax += -(2 * vk_state.camera_separation) / zNear;
 
 	float proj[16];
+	memset(proj, 0, sizeof(float) * 16);
 	proj[0] = 2.f * zNear / (xmax - xmin);
-	proj[1] = 0.f;
 	proj[2] = (xmax + xmin) / (xmax - xmin);
-	proj[3] = 0.f;
-	proj[4] = 0.f;
 	proj[5] = 2.f * zNear / (ymax - ymin);
 	proj[6] = (ymax + ymin) / (ymax - ymin);
-	proj[7] = 0.f;
-	proj[8] = 0.f;
-	proj[9] = 0.f;
 	proj[10] = -(zFar + zNear) / (zFar - zNear);
-	proj[11] = -2.f * zFar * zNear / (zFar - zNear);
-	proj[12] = 0.f;
-	proj[13] = 0.f;
-	proj[14] = -1.f;
-	proj[15] = 0.f;
+	proj[11] = -1.f;
+	proj[14] = -2.f * zFar * zNear / (zFar - zNear);
 
 	// Convert projection matrix to Vulkan coordinate system (https://matthewwellings.com/blog/the-new-vulkan-coordinate-system/)
 	Mat_Mul(proj, r_vulkan_correction, matrix);
@@ -698,17 +703,19 @@ void R_SetupVulkan (void)
 	Mat_Identity(r_projection_matrix);
 	Mat_Perspective(r_projection_matrix, r_newrefdef.fov_y, screenaspect, 4, 4096);
 
+	// set up view matrix
+	Mat_Identity(r_view_matrix);
 	//qglCullFace(GL_FRONT);
 
-	// set up modelview matrix
+	// set up model matrix
 	Mat_Identity(r_world_matrix);
 	// put Z going up
-	Mat_Rotate(r_world_matrix, -90.f, 1.f, 0.f, 0.f);
-	Mat_Rotate(r_world_matrix, 90.f, 0.f, 0.f, 1.f);
-	Mat_Rotate(r_world_matrix, -r_newrefdef.viewangles[2], 1.f, 0.f, 0.f);
-	Mat_Rotate(r_world_matrix, -r_newrefdef.viewangles[0], 0.f, 1.f, 0.f);
-	Mat_Rotate(r_world_matrix, -r_newrefdef.viewangles[1], 0.f, 0.f, 1.f);
-	Mat_Translate(r_world_matrix, -r_newrefdef.vieworg[0], -r_newrefdef.vieworg[1], -r_newrefdef.vieworg[2]);
+	Mat_Rotate(r_view_matrix, 90.f, 0.f, 0.f, 1.f);
+	Mat_Rotate(r_view_matrix, -90.f, 1.f, 0.f, 0.f);
+	Mat_Rotate(r_view_matrix, -r_newrefdef.viewangles[1], 0.f, 0.f, 1.f);
+	Mat_Rotate(r_view_matrix, -r_newrefdef.viewangles[0], 0.f, 1.f, 0.f);
+	Mat_Rotate(r_view_matrix, -r_newrefdef.viewangles[2], 1.f, 0.f, 0.f);
+	Mat_Translate(r_view_matrix, -r_newrefdef.vieworg[0], -r_newrefdef.vieworg[1], -r_newrefdef.vieworg[2]);
 
 	//
 	// set drawing parms
