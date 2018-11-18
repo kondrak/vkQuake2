@@ -95,13 +95,43 @@ typedef struct _TargaHeader {
 
 /* 
 ================== 
-GL_ScreenShot_f
+Vk_ScreenShot_f
 ================== 
 */  
 void Vk_ScreenShot_f (void) 
 {
 
 } 
+
+/*
+** Vk_Strings_f
+*/
+void Vk_Strings_f(void)
+{
+	ri.Con_Printf(PRINT_ALL, "------------------------------------\n");
+	ri.Con_Printf(PRINT_ALL, "Vulkan API: %d.%d.%d\n",  VK_VERSION_MAJOR(vk_config.vk_version),
+														VK_VERSION_MINOR(vk_config.vk_version),
+														VK_VERSION_PATCH(vk_config.vk_version));
+	ri.Con_Printf(PRINT_ALL, "Physical device:\n");
+	ri.Con_Printf(PRINT_ALL, "   apiVersion: %d.%d.%d\n"
+							 "   deviceID: %d\n"
+							 "   deviceName: %s\n"
+							 "   deviceType: %s\n"
+							 "   gfx/present/transfer: %d/%d/%d\n", VK_VERSION_MAJOR(vk_config.api_version),
+																	VK_VERSION_MINOR(vk_config.api_version),
+																	VK_VERSION_PATCH(vk_config.api_version),
+																	vk_config.device_id,
+																	vk_config.device_name,
+																	vk_config.device_type,
+																	vk_config.gfx_family_idx, vk_config.present_family_idx, vk_config.transfer_family_idx);
+	ri.Con_Printf(PRINT_ALL, "Vulkan extensions: ");
+	int i = 0;
+	while(vk_config.extensions[i])
+	{
+		ri.Con_Printf(PRINT_ALL, "%s ", vk_config.extensions[i++]);
+	}
+	ri.Con_Printf(PRINT_ALL, "\n");
+}
 
 /*
 ** Vk_SetDefaultState

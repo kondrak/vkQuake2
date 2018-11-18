@@ -333,12 +333,16 @@ void Mat_Perspective(float *matrix, float fovy, float aspect, float zNear, float
 
 typedef struct
 {
-	int         renderer;
-	const char *renderer_string;
-	const char *vendor_string;
-	const char *version_string;
-	const char *extensions_string;
-} glconfig_t;
+	uint32_t    vk_version;
+	uint32_t    api_version;
+	uint32_t    device_id;
+	const char *device_name;
+	const char *device_type;
+	int         gfx_family_idx;
+	int         present_family_idx;
+	int         transfer_family_idx;
+	const char *extensions[256];
+} vkconfig_t;
 
 typedef struct
 {
@@ -362,7 +366,7 @@ typedef struct
 	unsigned char originalBlueGammaTable[256];
 } vkstate_t;
 
-extern glconfig_t  gl_config;
+extern vkconfig_t  vk_config;
 extern vkstate_t   vk_state;
 
 /*

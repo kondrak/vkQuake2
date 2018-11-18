@@ -243,16 +243,26 @@ qboolean QVk_CreateDevice()
 	if (!selectPhysicalDevice())
 		return false;
 
+	vk_config.api_version = vk_device.properties.apiVersion;
+	vk_config.device_id = vk_device.properties.deviceID;
+	vk_config.device_name = vk_device.properties.deviceName;
+	vk_config.device_type = deviceTypeString(vk_device.properties.deviceType);
+	vk_config.gfx_family_idx = vk_device.gfxFamilyIndex;
+	vk_config.present_family_idx = vk_device.presentFamilyIndex;
+	vk_config.transfer_family_idx = vk_device.transferFamilyIndex;
+
 	ri.Con_Printf(PRINT_ALL, "Using physical device:\n");
-	ri.Con_Printf(PRINT_ALL, "   apiVersion: %d\n"
+	ri.Con_Printf(PRINT_ALL, "   apiVersion: %d.%d.%d\n"
 							 "   deviceID: %d\n"
 							 "   deviceName: %s\n"
 							 "   deviceType: %s\n"
-							 "   gfx/present/transfer: %d/%d/%d\n", vk_device.properties.apiVersion,
-																	vk_device.properties.deviceID,
-																	vk_device.properties.deviceName,
-																	deviceTypeString(vk_device.properties.deviceType),
-																	vk_device.gfxFamilyIndex, vk_device.presentFamilyIndex, vk_device.transferFamilyIndex);
+							 "   gfx/present/transfer: %d/%d/%d\n", VK_VERSION_MAJOR(vk_config.api_version),
+																	VK_VERSION_MINOR(vk_config.api_version),
+																	VK_VERSION_PATCH(vk_config.api_version),
+																	vk_config.device_id,
+																	vk_config.device_name,
+																	vk_config.device_type,
+																	vk_config.gfx_family_idx, vk_config.present_family_idx, vk_config.transfer_family_idx);
 	VkResult res = createLogicalDevice();
 	if (res != VK_SUCCESS)
 	{

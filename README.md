@@ -25,4 +25,5 @@ Features:
 - vk_finish - basically inserts vkDeviceWaitIdle when necessary - added for completness' sake (a glFinish() equivalent in the original) but really, don't use it!
 - vk_lockpvs - equivalent to GL
 - vk_polyblend - equivalent to GL
+- vk_strings - prints some Vulkan stats
 - skipped 8-bit textures - no modern hardware even supports it these days

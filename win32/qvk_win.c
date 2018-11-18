@@ -555,6 +555,8 @@ qboolean QVk_Init()
 
 	uint32_t extCount;
 	char **wantedExtensions;
+	memset(vk_config.extensions, 0, 256);
+	vk_config.vk_version = appInfo.apiVersion;
 
 	Vkimp_GetSurfaceExtensions(NULL, &extCount);
 
@@ -571,6 +573,7 @@ qboolean QVk_Init()
 	for (int i = 0; i < extCount; i++)
 	{
 		ri.Con_Printf(PRINT_ALL, "%s ", wantedExtensions[i]);
+		vk_config.extensions[i] = wantedExtensions[i];
 	}
 	ri.Con_Printf(PRINT_ALL, "\n");
 

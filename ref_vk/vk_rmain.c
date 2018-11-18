@@ -31,7 +31,7 @@ model_t		*r_worldmodel;
 
 float		gldepthmin, gldepthmax;
 
-glconfig_t gl_config;
+vkconfig_t vk_config;
 vkstate_t  vk_state;
 
 image_t		*r_notexture;		// use for bad textures
@@ -48,6 +48,8 @@ int			r_framecount;		// used for dlight push checking
 int			c_brush_polys, c_alias_polys;
 
 float		v_blend[4];			// final blending color
+
+void Vk_Strings_f(void);
 
 //
 // view origin
@@ -901,6 +903,8 @@ void R_Register( void )
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
 	vid_ref = ri.Cvar_Get("vid_ref", "soft", CVAR_ARCHIVE);
+
+	ri.Cmd_AddCommand("vk_strings", Vk_Strings_f);
 }
 
 /*
@@ -1000,6 +1004,8 @@ R_Shutdown
 */
 void R_Shutdown (void)
 {
+	ri.Cmd_RemoveCommand("vk_strings");
+
 	vkDeviceWaitIdle(vk_device.logical);
 
 	Mod_FreeAll();
