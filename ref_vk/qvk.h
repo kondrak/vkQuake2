@@ -222,6 +222,8 @@ extern VkDescriptorSetLayout vk_samplerDescSetLayout;
 // *** pipelines ***
 extern qvkpipeline_t vk_drawTexQuadPipeline;
 extern qvkpipeline_t vk_drawColorQuadPipeline;
+extern qvkpipeline_t vk_drawModelPipelineStrip;
+extern qvkpipeline_t vk_drawModelPipelineFan;
 extern qvkpipeline_t vk_drawNullModel;
 
 // function pointers

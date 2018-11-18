@@ -110,6 +110,8 @@ PFN_vkDestroyDebugUtilsMessengerEXT qvkDestroyDebugUtilsMessengerEXT;
 
 qvkpipeline_t vk_drawTexQuadPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawColorQuadPipeline = QVKPIPELINE_INIT;
+qvkpipeline_t vk_drawModelPipelineStrip = QVKPIPELINE_INIT;
+qvkpipeline_t vk_drawModelPipelineFan = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawNullModel = QVKPIPELINE_INIT;
 
 #define VK_INPUTBIND_DESC(s) { \
@@ -456,6 +458,36 @@ static void CreatePipelines()
 
 	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
 	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
+
+	// textured model
+	VkVertexInputBindingDescription modelBind = VK_INPUTBIND_DESC(sizeof(float) * 9);
+	VkVertexInputAttributeDescription modelAttrDesc[] = {
+		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
+		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 3),
+		VK_INPUTATTR_DESC(2, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 7),
+	};
+
+	VkPipelineVertexInputStateCreateInfo modelVertInfo = {
+		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+		.pNext = NULL,
+		.flags = 0,
+		.vertexBindingDescriptionCount = 1,
+		.pVertexBindingDescriptions = &modelBind,
+		.vertexAttributeDescriptionCount = sizeof(modelAttrDesc) / sizeof(modelAttrDesc[0]),
+		.pVertexAttributeDescriptions = modelAttrDesc
+	};
+
+	shaders[0] = QVk_CreateShader(model_vert_spv, model_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
+	shaders[1] = QVk_CreateShader(model_frag_spv, model_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
+
+	VkDescriptorSetLayout dsLayoutsModel[] = { vk_uboDescSetLayout };
+	vk_drawModelPipelineStrip.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+	QVk_CreatePipeline(dsLayoutsModel, 1, &modelVertInfo, &vk_drawModelPipelineStrip, shaders, 2);
+	vk_drawModelPipelineFan.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+	QVk_CreatePipeline(dsLayoutsModel, 1, &modelVertInfo, &vk_drawModelPipelineFan, shaders, 2);
+
+	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
+	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
 }
 
 /*
@@ -473,6 +505,8 @@ void QVk_Shutdown( void )
 		QVk_DestroyPipeline(&vk_drawTexQuadPipeline);
 		QVk_DestroyPipeline(&vk_drawColorQuadPipeline);
 		QVk_DestroyPipeline(&vk_drawNullModel);
+		QVk_DestroyPipeline(&vk_drawModelPipelineStrip);
+		QVk_DestroyPipeline(&vk_drawModelPipelineFan);
 		QVk_FreeBuffer(&vk_rectVbo);
 		QVk_FreeBuffer(&vk_rectIbo);
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)

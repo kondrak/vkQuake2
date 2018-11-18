@@ -36,6 +36,13 @@ extern const size_t basic_color_quad_vert_size;
 extern const uint32_t basic_color_quad_frag_spv[];
 extern const size_t basic_color_quad_frag_size;
 
+// textured model
+extern const uint32_t model_vert_spv[];
+extern const size_t model_vert_size;
+
+extern const uint32_t model_frag_spv[];
+extern const size_t model_frag_size;
+
 // untextured null model
 extern const uint32_t nullmodel_vert_spv[];
 extern const size_t nullmodel_vert_size;

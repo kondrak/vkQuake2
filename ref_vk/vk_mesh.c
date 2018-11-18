@@ -87,7 +87,7 @@ interpolates between two frames and origins
 FIXME: batch lerp all vertexes
 =============
 */
-void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp)
+void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, float *modelMatrix)
 {
 	float 	l;
 	daliasframe_t	*frame, *oldframe;
@@ -150,36 +150,20 @@ void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp)
 
 	Vk_LerpVerts( paliashdr->num_xyz, v, ov, verts, lerp, move, frontv, backv );
 
-	float colorArray[MAX_VERTS * 4];
+	int pipeIdx = 0;
+	typedef struct {
+		float vertex[3];
+		float color[4];
+		float texCoord[2];
+	} modelvert;
 
-	//qglEnableClientState(GL_VERTEX_ARRAY);
-	//qglVertexPointer(3, GL_FLOAT, 16, s_lerped);	// padded for SIMD
-
-	// PMM - added double damage shell
-	if (currententity->flags & (RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM))
-	{
-		//qglColor4f(shadelight[0], shadelight[1], shadelight[2], alpha);
-	}
-	else
-	{
-		//qglEnableClientState(GL_COLOR_ARRAY);
-		//qglColorPointer(3, GL_FLOAT, 0, colorArray);
-
-		//
-		// pre light everything
-		//
-		for (i = 0; i < paliashdr->num_xyz; i++)
-		{
-			float l = shadedots[verts[i].lightnormalindex];
-
-			colorArray[i * 3 + 0] = l * shadelight[0];
-			colorArray[i * 3 + 1] = l * shadelight[1];
-			colorArray[i * 3 + 2] = l * shadelight[2];
-		}
-	}
-
-	//if (qglLockArraysEXT != 0)
-	//	qglLockArraysEXT(0, paliashdr->num_xyz);
+	int vertCounts[2] = { 0, 0 };
+	modelvert vertList[2][MAX_VERTS];
+	int pipeCounters[2] = { 0, 0 };
+	int vertOffsets2[2][MAX_VERTS];
+	int vertOffsets[2][MAX_VERTS];
+	vertOffsets[0][0] = 0;
+	vertOffsets[1][0] = 0;
 
 	while (1)
 	{
@@ -191,44 +175,88 @@ void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp)
 		{
 			count = -count;
 			//qglBegin(GL_TRIANGLE_FAN);
+			pipeIdx = 1;
 		}
 		else
 		{
 			//qglBegin(GL_TRIANGLE_STRIP);
+			pipeIdx = 0;
 		}
 
-		// PMM - added double damage shell
-		if (currententity->flags & (RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM))
+		if (currententity->flags & (RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE))
 		{
 			do
 			{
 				index_xyz = order[2];
 				order += 3;
 
+				//qglColor4f(shadelight[0], shadelight[1], shadelight[2], alpha);
 				//qglVertex3fv(s_lerped[index_xyz]);
 
 			} while (--count);
 		}
 		else
 		{
+			vertOffsets2[pipeIdx][pipeCounters[pipeIdx]] = count;
 			do
 			{
+				int vertIdx = vertCounts[pipeIdx];
 				// texture coordinates come from the draw list
-				//qglTexCoord2f(((float *)order)[0], ((float *)order)[1]);
+				vertList[pipeIdx][vertIdx].texCoord[0] = ((float *)order)[0];
+				vertList[pipeIdx][vertIdx].texCoord[1] = ((float *)order)[1];
 				index_xyz = order[2];
-
 				order += 3;
 
 				// normals and vertexes come from the frame list
-				//qglArrayElement(index_xyz);
+				l = shadedots[verts[index_xyz].lightnormalindex];
 
+				vertList[pipeIdx][vertIdx].color[0] = l * shadelight[0];
+				vertList[pipeIdx][vertIdx].color[1] = l * shadelight[1];
+				vertList[pipeIdx][vertIdx].color[2] = l * shadelight[2];
+				vertList[pipeIdx][vertIdx].color[3] = alpha;
+
+				vertList[pipeIdx][vertIdx].vertex[0] = s_lerped[index_xyz][0];
+				vertList[pipeIdx][vertIdx].vertex[1] = s_lerped[index_xyz][1];
+				vertList[pipeIdx][vertIdx].vertex[2] = s_lerped[index_xyz][2];
+				vertCounts[pipeIdx]++;
 			} while (--count);
+
+			pipeCounters[pipeIdx]++;
+			vertOffsets[pipeIdx][pipeCounters[pipeIdx]] = vertCounts[pipeIdx];
 		}
-	//	qglEnd();
 	}
 
-	//if (qglUnlockArraysEXT != 0)
-	//	qglUnlockArraysEXT();
+	float mvp[16];
+	extern float r_view_matrix[16];
+	extern float r_projection_matrix[16];
+	float viewproj[16];
+	Mat_Mul(r_view_matrix, r_projection_matrix, viewproj);
+	Mat_Mul(modelMatrix, viewproj, mvp);
+
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(mvp), &uboOffset, &uboDescriptorSet);
+	memcpy(uboData, &mvp, sizeof(mvp));
+
+	qvkpipeline_t pipelines[] = { vk_drawModelPipelineStrip, vk_drawModelPipelineFan };
+	for (int p = 0; p < 2; p++)
+	{
+		VkDeviceSize vaoSize = sizeof(modelvert) * vertCounts[p];
+		VkBuffer vbo;
+		uint32_t vboOffset;
+		uint8_t *data = QVk_GetVertexBuffer(vaoSize, &vbo, &vboOffset);
+		memcpy(data, vertList[p], vaoSize);
+
+		vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[p].pl);
+		VkDescriptorSet descriptorSets[] = { uboDescriptorSet };
+		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[p].layout, 0, 1, descriptorSets, 1, &uboOffset);
+		VkDeviceSize offsets = vboOffset;
+		vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &offsets);
+		for (int i = 0; i < pipeCounters[p]; i++)
+		{
+			vkCmdDraw(vk_activeCmdbuffer, vertOffsets2[p][i], 1, vertOffsets[p][i], 0);
+		}
+	}
 
 	// PMM - added double damage shell
 	if (currententity->flags & (RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM))
@@ -622,9 +650,9 @@ void R_DrawAliasModel (entity_t *e)
 
     //qglPushMatrix ();
 	e->angles[PITCH] = -e->angles[PITCH];	// sigh.
-	float mtx[16];
-	memcpy(mtx, r_world_matrix, sizeof(float) * 16);
-	R_RotateForEntity (e, mtx);
+	float model[16];
+	memcpy(model, r_world_matrix, sizeof(float) * 16);
+	R_RotateForEntity (e, model);
 	e->angles[PITCH] = -e->angles[PITCH];	// sigh.
 
 	// select skin
@@ -676,7 +704,7 @@ void R_DrawAliasModel (entity_t *e)
 
 	if ( !r_lerpmodels->value )
 		currententity->backlerp = 0;
-	Vk_DrawAliasFrameLerp (paliashdr, currententity->backlerp);
+	Vk_DrawAliasFrameLerp (paliashdr, currententity->backlerp, model);
 
 	//GL_TexEnv( GL_REPLACE );
 	//qglShadeModel (GL_FLAT);
