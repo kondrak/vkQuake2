@@ -708,7 +708,15 @@ void R_SetupVulkan (void)
 	w = x2 - x;
 	h = y - y2;
 
-	//qglViewport(x, y2, w, h);
+	VkViewport viewport = {
+		.x = x,
+		.y = vid.height - h - y2,
+		.width = w,
+		.height = h,
+		.minDepth = 0.f,
+		.maxDepth = 1.f,
+	};
+	vkCmdSetViewport(vk_activeCmdbuffer, 0, 1, &viewport);
 
 	// set up projection matrix
 	screenaspect = (float)r_newrefdef.width / r_newrefdef.height;
@@ -717,8 +725,6 @@ void R_SetupVulkan (void)
 
 	// set up view matrix
 	Mat_Identity(r_view_matrix);
-	//qglCullFace(GL_FRONT);
-
 	// set up model matrix
 	Mat_Identity(r_world_matrix);
 	// put Z going up
@@ -818,7 +824,19 @@ void R_RenderView (refdef_t *fd)
 
 void R_SetVulkan2D (void)
 {
-
+	extern VkViewport vk_viewport;
+	vkCmdSetViewport(vk_activeCmdbuffer, 0, 1, &vk_viewport);
+	/*
+	qglMatrixMode(GL_PROJECTION);
+	qglLoadIdentity ();
+	qglOrtho  (0, vid.width, vid.height, 0, -99999, 99999);
+	qglMatrixMode(GL_MODELVIEW);
+	qglLoadIdentity ();
+	qglDisable (GL_DEPTH_TEST);
+	qglDisable (GL_CULL_FACE);
+	qglDisable (GL_BLEND);
+	qglEnable (GL_ALPHA_TEST);
+	*/
 }
 
 

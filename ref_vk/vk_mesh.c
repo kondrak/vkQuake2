@@ -87,7 +87,7 @@ interpolates between two frames and origins
 FIXME: batch lerp all vertexes
 =============
 */
-void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, float *modelMatrix)
+void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *skin, float *modelMatrix)
 {
 	float 	l;
 	daliasframe_t	*frame, *oldframe;
@@ -117,12 +117,6 @@ void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, float *modelMatri
 	else
 		alpha = 1.0;
 
-	// PMM - added double shell
-	if (currententity->flags & (RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM))
-	{
-	//	qglDisable(GL_TEXTURE_2D);
-	}
-
 	frontlerp = 1.0 - backlerp;
 
 	// move should be the delta back to the previous frame * backlerp
@@ -150,7 +144,11 @@ void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, float *modelMatri
 
 	Vk_LerpVerts( paliashdr->num_xyz, v, ov, verts, lerp, move, frontv, backv );
 
-	int pipeIdx = 0;
+	enum {
+		TRIANGLE_STRIP = 0,
+		TRIANGLE_FAN = 1
+	} pipelineIdx;
+
 	typedef struct {
 		float vertex[3];
 		float color[4];
@@ -160,10 +158,19 @@ void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, float *modelMatri
 	int vertCounts[2] = { 0, 0 };
 	modelvert vertList[2][MAX_VERTS];
 	int pipeCounters[2] = { 0, 0 };
-	int vertOffsets2[2][MAX_VERTS];
-	int vertOffsets[2][MAX_VERTS];
-	vertOffsets[0][0] = 0;
-	vertOffsets[1][0] = 0;
+
+	struct {
+		int vertexCount;
+		int firstVertex;
+	} drawInfo[2][MAX_VERTS];
+
+	drawInfo[0][0].firstVertex = 0;
+	drawInfo[1][0].firstVertex = 0;
+
+	struct {
+		float mvp[16];
+		int textured;
+	} meshUbo;
 
 	while (1)
 	{
@@ -174,69 +181,78 @@ void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, float *modelMatri
 		if (count < 0)
 		{
 			count = -count;
-			//qglBegin(GL_TRIANGLE_FAN);
-			pipeIdx = 1;
+			pipelineIdx = TRIANGLE_FAN;
 		}
 		else
 		{
-			//qglBegin(GL_TRIANGLE_STRIP);
-			pipeIdx = 0;
+			pipelineIdx = TRIANGLE_STRIP;
 		}
 
+		drawInfo[pipelineIdx][pipeCounters[pipelineIdx]].vertexCount = count;
 		if (currententity->flags & (RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE))
 		{
+			meshUbo.textured = 0;
 			do
 			{
+				int vertIdx = vertCounts[pipelineIdx];
 				index_xyz = order[2];
 				order += 3;
+				// unused in this case, since texturing is disabled
+				vertList[pipelineIdx][vertIdx].texCoord[0] = 0.f;
+				vertList[pipelineIdx][vertIdx].texCoord[1] = 0.f;
 
-				//qglColor4f(shadelight[0], shadelight[1], shadelight[2], alpha);
-				//qglVertex3fv(s_lerped[index_xyz]);
+				vertList[pipelineIdx][vertIdx].color[0] = shadelight[0];
+				vertList[pipelineIdx][vertIdx].color[1] = shadelight[1];
+				vertList[pipelineIdx][vertIdx].color[2] = shadelight[2];
+				vertList[pipelineIdx][vertIdx].color[3] = alpha;
 
+				vertList[pipelineIdx][vertIdx].vertex[0] = s_lerped[index_xyz][0];
+				vertList[pipelineIdx][vertIdx].vertex[1] = s_lerped[index_xyz][1];
+				vertList[pipelineIdx][vertIdx].vertex[2] = s_lerped[index_xyz][2];
+				vertCounts[pipelineIdx]++;
 			} while (--count);
 		}
 		else
 		{
-			vertOffsets2[pipeIdx][pipeCounters[pipeIdx]] = count;
+			meshUbo.textured = 1;
 			do
 			{
-				int vertIdx = vertCounts[pipeIdx];
+				int vertIdx = vertCounts[pipelineIdx];
 				// texture coordinates come from the draw list
-				vertList[pipeIdx][vertIdx].texCoord[0] = ((float *)order)[0];
-				vertList[pipeIdx][vertIdx].texCoord[1] = ((float *)order)[1];
+				vertList[pipelineIdx][vertIdx].texCoord[0] = ((float *)order)[0];
+				vertList[pipelineIdx][vertIdx].texCoord[1] = ((float *)order)[1];
 				index_xyz = order[2];
 				order += 3;
 
 				// normals and vertexes come from the frame list
 				l = shadedots[verts[index_xyz].lightnormalindex];
 
-				vertList[pipeIdx][vertIdx].color[0] = l * shadelight[0];
-				vertList[pipeIdx][vertIdx].color[1] = l * shadelight[1];
-				vertList[pipeIdx][vertIdx].color[2] = l * shadelight[2];
-				vertList[pipeIdx][vertIdx].color[3] = alpha;
+				vertList[pipelineIdx][vertIdx].color[0] = l * shadelight[0];
+				vertList[pipelineIdx][vertIdx].color[1] = l * shadelight[1];
+				vertList[pipelineIdx][vertIdx].color[2] = l * shadelight[2];
+				vertList[pipelineIdx][vertIdx].color[3] = alpha;
 
-				vertList[pipeIdx][vertIdx].vertex[0] = s_lerped[index_xyz][0];
-				vertList[pipeIdx][vertIdx].vertex[1] = s_lerped[index_xyz][1];
-				vertList[pipeIdx][vertIdx].vertex[2] = s_lerped[index_xyz][2];
-				vertCounts[pipeIdx]++;
+				vertList[pipelineIdx][vertIdx].vertex[0] = s_lerped[index_xyz][0];
+				vertList[pipelineIdx][vertIdx].vertex[1] = s_lerped[index_xyz][1];
+				vertList[pipelineIdx][vertIdx].vertex[2] = s_lerped[index_xyz][2];
+				vertCounts[pipelineIdx]++;
 			} while (--count);
 
-			pipeCounters[pipeIdx]++;
-			vertOffsets[pipeIdx][pipeCounters[pipeIdx]] = vertCounts[pipeIdx];
+			pipeCounters[pipelineIdx]++;
+			drawInfo[pipelineIdx][pipeCounters[pipelineIdx]].firstVertex = vertCounts[pipelineIdx];
 		}
 	}
 
-	float mvp[16];
 	extern float r_view_matrix[16];
 	extern float r_projection_matrix[16];
 	float viewproj[16];
 	Mat_Mul(r_view_matrix, r_projection_matrix, viewproj);
-	Mat_Mul(modelMatrix, viewproj, mvp);
+	Mat_Mul(modelMatrix, viewproj, meshUbo.mvp);
 
 	uint32_t uboOffset;
 	VkDescriptorSet uboDescriptorSet;
-	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(mvp), &uboOffset, &uboDescriptorSet);
-	memcpy(uboData, &mvp, sizeof(mvp));
+	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(meshUbo), &uboOffset, &uboDescriptorSet);
+	memcpy(uboData, &meshUbo, sizeof(meshUbo));
 
 	qvkpipeline_t pipelines[] = { vk_drawModelPipelineStrip, vk_drawModelPipelineFan };
 	for (int p = 0; p < 2; p++)
@@ -248,20 +264,14 @@ void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, float *modelMatri
 		memcpy(data, vertList[p], vaoSize);
 
 		vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[p].pl);
-		VkDescriptorSet descriptorSets[] = { uboDescriptorSet };
-		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[p].layout, 0, 1, descriptorSets, 1, &uboOffset);
+		VkDescriptorSet descriptorSets[] = { uboDescriptorSet, skin->vk_texture.descriptorSet };
+		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[p].layout, 0, 2, descriptorSets, 1, &uboOffset);
 		VkDeviceSize offsets = vboOffset;
 		vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &offsets);
 		for (int i = 0; i < pipeCounters[p]; i++)
 		{
-			vkCmdDraw(vk_activeCmdbuffer, vertOffsets2[p][i], 1, vertOffsets[p][i], 0);
+			vkCmdDraw(vk_activeCmdbuffer, drawInfo[p][i].vertexCount, 1, drawInfo[p][i].firstVertex, 0);
 		}
-	}
-
-	// PMM - added double damage shell
-	if (currententity->flags & (RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE | RF_SHELL_HALF_DAM))
-	{
-	//	qglEnable(GL_TEXTURE_2D);
 	}
 }
 
@@ -671,7 +681,6 @@ void R_DrawAliasModel (entity_t *e)
 	}
 	if (!skin)
 		skin = r_notexture;	// fallback...
-	//GL_Bind(skin->texnum);
 
 	// draw it
 
@@ -704,7 +713,7 @@ void R_DrawAliasModel (entity_t *e)
 
 	if ( !r_lerpmodels->value )
 		currententity->backlerp = 0;
-	Vk_DrawAliasFrameLerp (paliashdr, currententity->backlerp, model);
+	Vk_DrawAliasFrameLerp (paliashdr, currententity->backlerp, skin, model);
 
 	//GL_TexEnv( GL_REPLACE );
 	//qglShadeModel (GL_FLAT);
@@ -742,8 +751,6 @@ void R_DrawAliasModel (entity_t *e)
 		qglDisable (GL_BLEND);
 		qglPopMatrix ();*/
 	}
-
-	//qglColor4f (1,1,1,1);
 }
 
 

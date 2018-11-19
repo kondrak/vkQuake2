@@ -480,11 +480,11 @@ static void CreatePipelines()
 	shaders[0] = QVk_CreateShader(model_vert_spv, model_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
 	shaders[1] = QVk_CreateShader(model_frag_spv, model_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
 
-	VkDescriptorSetLayout dsLayoutsModel[] = { vk_uboDescSetLayout };
+	VkDescriptorSetLayout dsLayoutsModel[] = { vk_uboDescSetLayout, vk_samplerDescSetLayout };
 	vk_drawModelPipelineStrip.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
-	QVk_CreatePipeline(dsLayoutsModel, 1, &modelVertInfo, &vk_drawModelPipelineStrip, shaders, 2);
+	QVk_CreatePipeline(dsLayoutsModel, 2, &modelVertInfo, &vk_drawModelPipelineStrip, shaders, 2);
 	vk_drawModelPipelineFan.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
-	QVk_CreatePipeline(dsLayoutsModel, 1, &modelVertInfo, &vk_drawModelPipelineFan, shaders, 2);
+	QVk_CreatePipeline(dsLayoutsModel, 2, &modelVertInfo, &vk_drawModelPipelineFan, shaders, 2);
 
 	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
 	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);

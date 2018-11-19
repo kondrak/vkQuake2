@@ -8,9 +8,12 @@ layout(location = 2) in vec2 inTexCoord;
 layout(binding = 0) uniform UniformBufferObject
 {
     mat4 mvpMatrix;
+    int textured;
 } ubo;
 
 layout(location = 0) out vec4 color;
+layout(location = 1) out vec2 texCoord;
+layout(location = 2) out int textured;
 
 out gl_PerVertex {
     vec4 gl_Position;
@@ -19,4 +22,6 @@ out gl_PerVertex {
 void main() {
     gl_Position = ubo.mvpMatrix * vec4(inVertex, 1.0);
     color = inColor;
+    texCoord = inTexCoord;
+    textured = ubo.textured;
 }
