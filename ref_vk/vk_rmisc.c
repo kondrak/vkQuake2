@@ -124,11 +124,18 @@ void Vk_Strings_f(void)
 																	vk_config.device_name,
 																	vk_config.device_type,
 																	vk_config.gfx_family_idx, vk_config.present_family_idx, vk_config.transfer_family_idx);
-	ri.Con_Printf(PRINT_ALL, "Vulkan extensions: ");
+	ri.Con_Printf(PRINT_ALL, "Enabled extensions: ");
 	int i = 0;
 	while(vk_config.extensions[i])
 	{
 		ri.Con_Printf(PRINT_ALL, "%s ", vk_config.extensions[i++]);
+	}
+	ri.Con_Printf(PRINT_ALL, "\nEnabled layers: ");
+
+	i = 0;
+	while(vk_config.layers[i])
+	{
+		ri.Con_Printf(PRINT_ALL, "%s ", vk_config.layers[i++]);
 	}
 	ri.Con_Printf(PRINT_ALL, "\n");
 }

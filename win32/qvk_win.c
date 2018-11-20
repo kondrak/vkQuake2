@@ -590,6 +590,7 @@ qboolean QVk_Init()
 	uint32_t extCount;
 	char **wantedExtensions;
 	memset(vk_config.extensions, 0, 256);
+	memset(vk_config.layers, 0, 256);
 	vk_config.vk_version = appInfo.apiVersion;
 
 	Vkimp_GetSurfaceExtensions(NULL, &extCount);
@@ -603,7 +604,7 @@ qboolean QVk_Init()
 	if (vk_validation->value)
 		wantedExtensions[extCount - 1] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
 
-	ri.Con_Printf(PRINT_ALL, "Vulkan extensions: ");
+	ri.Con_Printf(PRINT_ALL, "Enabled extensions: ");
 	for (int i = 0; i < extCount; i++)
 	{
 		ri.Con_Printf(PRINT_ALL, "%s ", wantedExtensions[i]);
@@ -624,6 +625,10 @@ qboolean QVk_Init()
 		const char *validationLayers[] = { "VK_LAYER_LUNARG_standard_validation" };
 		createInfo.enabledLayerCount = sizeof(validationLayers) / sizeof(validationLayers[0]);
 		createInfo.ppEnabledLayerNames = validationLayers;
+		for (int i = 0; i < createInfo.enabledLayerCount; i++)
+		{
+			vk_config.layers[i] = validationLayers[i];
+		}
 	}
 
 	VkResult res = vkCreateInstance(&createInfo, NULL, &vk_instance);
