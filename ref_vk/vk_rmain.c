@@ -306,7 +306,7 @@ void R_DrawNullModel (void)
 	}
 
 	VkBuffer vbo;
-	uint32_t vboOffset;
+	VkDeviceSize vboOffset;
 	uint8_t *data = QVk_GetVertexBuffer(sizeof(verts), &vbo, &vboOffset);
 	memcpy(data, verts, sizeof(verts));
 
@@ -318,8 +318,7 @@ void R_DrawNullModel (void)
 	vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawNullModel.pl);
 	VkDescriptorSet descriptorSets[] = { uboDescriptorSet };
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawNullModel.layout, 0, 1, descriptorSets, 1, &uboOffset);
-	VkDeviceSize offsets = 0;
-	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &offsets);
+	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 	vkCmdDraw(vk_activeCmdbuffer, 6, 1, 0, 0);
 	vkCmdDraw(vk_activeCmdbuffer, 6, 1, 6, 0);
 }

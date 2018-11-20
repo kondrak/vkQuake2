@@ -341,7 +341,7 @@ typedef struct
 	int         present_family_idx;
 	int         transfer_family_idx;
 	char       *extensions[256];
-	char       *layers[256];
+	const char *layers[256];
 } vkconfig_t;
 
 typedef struct

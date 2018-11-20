@@ -924,7 +924,7 @@ void QVk_RecreateSwapchain()
 	VK_VERIFY( CreateFramebuffers( &vk_renderpasses[RT_MSAA], RT_MSAA ) );
 }
 
-uint8_t *QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, uint32_t *dstOffset)
+uint8_t *QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, VkDeviceSize *dstOffset)
 {
 	*dstOffset = vk_dynVertexBuffers[vk_activeDynBufferIdx].currentOffset;
 	vk_dynVertexBuffers[vk_activeDynBufferIdx].currentOffset += size;
@@ -936,7 +936,7 @@ uint8_t *QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, uint32_t *d
 	return (uint8_t *)vk_dynVertexBuffers[vk_activeDynBufferIdx].allocInfo.pMappedData + (*dstOffset);
 }
 
-uint8_t *QVk_GetIndexBuffer(VkDeviceSize size, uint32_t *dstOffset)
+uint8_t *QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset)
 {
 	// align to 4 bytes, so that we can reuse the buffer for both VK_INDEX_TYPE_UINT16 and VK_INDEX_TYPE_UINT32
 	const int align_mod = size % 4;

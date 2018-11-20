@@ -124,7 +124,7 @@ void QVk_CreatePipeline(const VkDescriptorSetLayout *descriptorLayout, const uin
 		.pNext = NULL,
 		.flags = 0,
 		.depthTestEnable = pipeline->depthTestEnable,
-		.depthWriteEnable = VK_TRUE,
+		.depthWriteEnable = pipeline->depthTestEnable, // there should be NO depth writes if depthTestEnable is false but Intel seems to not follow the specs fully...
 		.depthCompareOp = VK_COMPARE_OP_LESS,
 		.depthBoundsTestEnable = VK_FALSE,
 		.stencilTestEnable = VK_FALSE,

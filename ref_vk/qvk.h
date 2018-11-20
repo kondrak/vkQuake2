@@ -129,7 +129,7 @@ typedef struct
 	VkBuffer buffer;
 	VmaAllocation allocation;
 	VmaAllocationInfo allocInfo;
-	uint32_t currentOffset;
+	VkDeviceSize currentOffset;
 } qvkbuffer_t;
 
 typedef struct
@@ -261,7 +261,7 @@ void		QVk_CreateIndexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *ds
 qvkshader_t QVk_CreateShader(const uint32_t *shaderSrc, size_t shaderCodeSize, VkShaderStageFlagBits shaderStage);
 void		QVk_CreatePipeline(const VkDescriptorSetLayout *descriptorLayout, const uint32_t desLayoutCount, const VkPipelineVertexInputStateCreateInfo *vertexInputInfo, qvkpipeline_t *pipeline, const qvkshader_t *shaders, uint32_t shaderCount);
 void		QVk_DestroyPipeline(qvkpipeline_t *pipeline);
-uint8_t*	QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, uint32_t *dstOffset);
-uint8_t*	QVk_GetIndexBuffer(VkDeviceSize size, uint32_t *dstOffset);
+uint8_t*	QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, VkDeviceSize *dstOffset);
+uint8_t*	QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset);
 uint8_t*	QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescriptorSet *dstUboDescriptorSet);
 #endif
