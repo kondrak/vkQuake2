@@ -589,8 +589,8 @@ qboolean QVk_Init()
 
 	uint32_t extCount;
 	char **wantedExtensions;
-	memset(vk_config.extensions, 0, 256);
-	memset(vk_config.layers, 0, 256);
+	memset((char*)vk_config.extensions, 0, 256);
+	memset((char*)vk_config.layers, 0, 256);
 	vk_config.vk_version = appInfo.apiVersion;
 
 	Vkimp_GetSurfaceExtensions(NULL, &extCount);

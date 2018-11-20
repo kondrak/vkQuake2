@@ -340,7 +340,7 @@ typedef struct
 	int         gfx_family_idx;
 	int         present_family_idx;
 	int         transfer_family_idx;
-	char       *extensions[256];
+	const char *extensions[256];
 	const char *layers[256];
 } vkconfig_t;
 
