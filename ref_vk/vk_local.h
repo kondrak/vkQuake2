@@ -100,7 +100,6 @@ typedef struct image_s
 	qvktexture_t vk_texture;			// Vulkan texture handle
 	float	sl, tl, sh, th;				// 0,0 - 1,1 unless part of the scrap
 	qboolean	scrap;
-	qboolean	has_alpha;
 
 } image_t;
 

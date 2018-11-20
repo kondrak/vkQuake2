@@ -36,8 +36,8 @@ cvar_t		*intensity;
 
 unsigned	d_8to24table[256];
 
-qboolean Vk_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboolean is_sky );
-qboolean Vk_Upload32 (unsigned *data, int width, int height,  qboolean mipmap);
+uint32_t Vk_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboolean is_sky );
+uint32_t Vk_Upload32 (unsigned *data, int width, int height,  qboolean mipmap);
 
 
 int		gl_solid_format = 3;
@@ -1200,50 +1200,21 @@ void Vk_LightScaleTexture (unsigned *in, int inwidth, int inheight, qboolean onl
 }
 
 /*
-================
-GL_MipMap
-
-Operates in place, quartering the size of the texture
-================
-*/
-void GL_MipMap (byte *in, int width, int height)
-{
-	int		i, j;
-	byte	*out;
-
-	width <<=2;
-	height >>= 1;
-	out = in;
-	for (i=0 ; i<height ; i++, in+=width)
-	{
-		for (j=0 ; j<width ; j+=8, out+=4, in+=8)
-		{
-			out[0] = (in[0] + in[4] + in[width+0] + in[width+4])>>2;
-			out[1] = (in[1] + in[5] + in[width+1] + in[width+5])>>2;
-			out[2] = (in[2] + in[6] + in[width+2] + in[width+6])>>2;
-			out[3] = (in[3] + in[7] + in[width+3] + in[width+7])>>2;
-		}
-	}
-}
-
-/*
 ===============
 GL_Upload32
 
-Returns has_alpha
+Returns number of mip levels
 ===============
 */
 int		upload_width, upload_height;
 unsigned int texBuffer[256 * 256];
 
-qboolean Vk_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
+uint32_t Vk_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
 {
-	int			samples;
 	unsigned	scaled[256 * 256];
 	int			scaled_width, scaled_height;
 	int			i, c;
 	byte		*scan;
-	int comp;
 
 	for (scaled_width = 1; scaled_width < width; scaled_width <<= 1)
 		;
@@ -1278,37 +1249,12 @@ qboolean Vk_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
 	if (scaled_width * scaled_height > sizeof(scaled) / 4)
 		ri.Sys_Error(ERR_DROP, "GL_Upload32: too big");
 
-	// scan the texture for any non-255 alpha
-	c = width * height;
-	scan = ((byte *)data) + 3;
-	samples = gl_solid_format;
-	for (i = 0; i<c; i++, scan += 4)
-	{
-		if (*scan != 255)
-		{
-			samples = gl_alpha_format;
-			break;
-		}
-	}
-
-	if (samples == gl_solid_format)
-		comp = gl_tex_solid_format;
-	else if (samples == gl_alpha_format)
-		comp = gl_tex_alpha_format;
-	else {
-		ri.Con_Printf(PRINT_ALL,
-			"Unknown number of texture components %i\n",
-			samples);
-		comp = samples;
-	}
-
 	if (scaled_width == width && scaled_height == height)
 	{
 		if (!mipmap)
 		{
-			//qglTexImage2D(GL_TEXTURE_2D, 0, comp, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 			memcpy(texBuffer, data, scaled_width * scaled_height * 4);
-			goto done;
+			return 1;
 		}
 		memcpy(scaled, data, width*height * 4);
 	}
@@ -1317,17 +1263,14 @@ qboolean Vk_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
 
 	Vk_LightScaleTexture(scaled, scaled_width, scaled_height, !mipmap);
 
-	//qglTexImage2D(GL_TEXTURE_2D, 0, comp, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaled);
 	memcpy(texBuffer, scaled, sizeof(scaled));
-
-	/*if (mipmap)
+	if (mipmap)
 	{
 		int		miplevel;
 
 		miplevel = 0;
 		while (scaled_width > 1 || scaled_height > 1)
 		{
-			GL_MipMap((byte *)scaled, scaled_width, scaled_height);
 			scaled_width >>= 1;
 			scaled_height >>= 1;
 			if (scaled_width < 1)
@@ -1335,35 +1278,23 @@ qboolean Vk_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
 			if (scaled_height < 1)
 				scaled_height = 1;
 			miplevel++;
-
-			qglTexImage2D(GL_TEXTURE_2D, miplevel, comp, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaled);
 		}
-	}*/
-done:;
-	/*
-	if (mipmap)
-	{
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
-	}
-	else
-	{
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_max);
-		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
-	}*/
 
-	return (samples == gl_alpha_format);
+		return miplevel;
+	}
+
+	return 1;
 }
 
 /*
 ===============
 Vk_Upload8
 
-Returns has_alpha
+Returns number of mip levels
 ===============
 */
 
-qboolean Vk_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboolean is_sky )
+uint32_t Vk_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboolean is_sky )
 {
 	unsigned	trans[512 * 256];
 	int			i, s;
@@ -1462,7 +1393,6 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 				scrap_texels[texnum][(y + i)*BLOCK_WIDTH + x + j] = pic[k];
 		//image->texnum = TEXNUM_SCRAPS + texnum;
 		image->scrap = true;
-		image->has_alpha = true;
 		image->sl = (x + 0.01) / (float)BLOCK_WIDTH;
 		image->sh = (x + image->width - 0.01) / (float)BLOCK_WIDTH;
 		image->tl = (y + 0.01) / (float)BLOCK_WIDTH;
@@ -1490,9 +1420,9 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 	nonscrap:
 		image->scrap = false;
 		if (bits == 8)
-			image->has_alpha = Vk_Upload8(pic, width, height, (image->type != it_pic && image->type != it_sky), image->type == it_sky);
+			image->vk_texture.mipLevels = Vk_Upload8(pic, width, height, (image->type != it_pic && image->type != it_sky), image->type == it_sky);
 		else
-			image->has_alpha = Vk_Upload32((unsigned *)pic, width, height, (image->type != it_pic && image->type != it_sky));
+			image->vk_texture.mipLevels = Vk_Upload32((unsigned *)pic, width, height, (image->type != it_pic && image->type != it_sky));
 		image->upload_width = upload_width;		// after power of 2 and scales
 		image->upload_height = upload_height;
 		image->sl = 0;
