@@ -309,11 +309,6 @@ void VID_MenuInit( void )
 	if( !vk_driver )
 		vk_driver = Cvar_Get( "vk_driver", "vulkan", 0 );
 
-	if (vk_msaa->value < 0)
-		Cvar_Set("vk_msaa", "0");
-	else if (vk_msaa->value > 3)
-		Cvar_Set("vk_msaa", "3");
-
 	s_mode_list[SOFTWARE_MENU].curvalue = sw_mode->value;
 	s_mode_list[OPENGL_MENU].curvalue = gl_mode->value;
 	s_mode_list[VULKAN_MENU].curvalue = vk_mode->value;
