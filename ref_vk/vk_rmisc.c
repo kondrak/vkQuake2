@@ -109,9 +109,9 @@ void Vk_ScreenShot_f (void)
 void Vk_Strings_f(void)
 {
 	ri.Con_Printf(PRINT_ALL, "------------------------------------\n");
-	ri.Con_Printf(PRINT_ALL, "Vulkan API: %d.%d.%d\n",  VK_VERSION_MAJOR(vk_config.vk_version),
-														VK_VERSION_MINOR(vk_config.vk_version),
-														VK_VERSION_PATCH(vk_config.vk_version));
+	ri.Con_Printf(PRINT_ALL, "Vulkan API: %d.%d\n",  VK_VERSION_MAJOR(vk_config.vk_version),
+													 VK_VERSION_MINOR(vk_config.vk_version));
+	ri.Con_Printf(PRINT_ALL, "Header version: %d\n", VK_HEADER_VERSION);
 	ri.Con_Printf(PRINT_ALL, "Physical device:\n");
 	ri.Con_Printf(PRINT_ALL, "   apiVersion: %d.%d.%d\n"
 							 "   deviceID: %d\n"

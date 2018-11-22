@@ -543,8 +543,8 @@ void CalcSurfaceExtents (msurface_t *s)
 }
 
 
-void GL_BuildPolygonFromSurface(msurface_t *fa);
-void GL_CreateSurfaceLightmap (msurface_t *surf);
+void Vk_BuildPolygonFromSurface(msurface_t *fa);
+void Vk_CreateSurfaceLightmap (msurface_t *surf);
 void GL_EndBuildingLightmaps (void);
 void GL_BeginBuildingLightmaps (model_t *m);
 
@@ -555,7 +555,81 @@ Mod_LoadFaces
 */
 void Mod_LoadFaces (lump_t *l)
 {
-	ri.Con_Printf(PRINT_ALL, "Implement Mod_LoadFaces to start the game!\n");
+	ri.Sys_Error(ERR_DROP, "Implement Mod_LoadFaces to start the game!\n");
+
+	dface_t		*in;
+	msurface_t 	*out;
+	int			i, count, surfnum;
+	int			planenum, side;
+	int			ti;
+
+	in = (void *)(mod_base + l->fileofs);
+	if (l->filelen % sizeof(*in))
+		ri.Sys_Error(ERR_DROP, "MOD_LoadBmodel: funny lump size in %s", loadmodel->name);
+	count = l->filelen / sizeof(*in);
+	out = Hunk_Alloc(count * sizeof(*out));
+
+	loadmodel->surfaces = out;
+	loadmodel->numsurfaces = count;
+
+	currentmodel = loadmodel;
+
+	GL_BeginBuildingLightmaps(loadmodel);
+
+	for (surfnum = 0; surfnum<count; surfnum++, in++, out++)
+	{
+		out->firstedge = LittleLong(in->firstedge);
+		out->numedges = LittleShort(in->numedges);
+		out->flags = 0;
+		out->polys = NULL;
+
+		planenum = LittleShort(in->planenum);
+		side = LittleShort(in->side);
+		if (side)
+			out->flags |= SURF_PLANEBACK;
+
+		out->plane = loadmodel->planes + planenum;
+
+		ti = LittleShort(in->texinfo);
+		if (ti < 0 || ti >= loadmodel->numtexinfo)
+			ri.Sys_Error(ERR_DROP, "MOD_LoadBmodel: bad texinfo number");
+		out->texinfo = loadmodel->texinfo + ti;
+
+		CalcSurfaceExtents(out);
+
+		// lighting info
+
+		for (i = 0; i<MAXLIGHTMAPS; i++)
+			out->styles[i] = in->styles[i];
+		i = LittleLong(in->lightofs);
+		if (i == -1)
+			out->samples = NULL;
+		else
+			out->samples = loadmodel->lightdata + i;
+
+		// set the drawing flags
+
+		if (out->texinfo->flags & SURF_WARP)
+		{
+			out->flags |= SURF_DRAWTURB;
+			for (i = 0; i<2; i++)
+			{
+				out->extents[i] = 16384;
+				out->texturemins[i] = -8192;
+			}
+			Vk_SubdivideSurface(out);	// cut up polygon for warps
+		}
+
+		// create lightmaps and polygons
+		if (!(out->texinfo->flags & (SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP)))
+			Vk_CreateSurfaceLightmap(out);
+
+		if (!(out->texinfo->flags & SURF_WARP))
+			Vk_BuildPolygonFromSurface(out);
+
+	}
+
+	GL_EndBuildingLightmaps();
 }
 
 

@@ -251,7 +251,10 @@ qboolean QVk_CreateDevice()
 	vk_config.present_family_idx = vk_device.presentFamilyIndex;
 	vk_config.transfer_family_idx = vk_device.transferFamilyIndex;
 
-	ri.Con_Printf(PRINT_ALL, "Using physical device:\n");
+	ri.Con_Printf(PRINT_ALL, "Vulkan API: %d.%d\n",  VK_VERSION_MAJOR(vk_config.vk_version),
+													 VK_VERSION_MINOR(vk_config.vk_version));
+	ri.Con_Printf(PRINT_ALL, "Header version: %d\n", VK_HEADER_VERSION);
+	ri.Con_Printf(PRINT_ALL, "Physical device:\n");
 	ri.Con_Printf(PRINT_ALL, "   apiVersion: %d.%d.%d\n"
 							 "   deviceID: %d\n"
 							 "   deviceName: %s\n"

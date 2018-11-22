@@ -54,9 +54,9 @@ typedef struct
 	// the lightmap texture data needs to be kept in
 	// main memory so texsubimage can update properly
 	byte		lightmap_buffer[4*BLOCK_WIDTH*BLOCK_HEIGHT];
-} gllightmapstate_t;
+} vklightmapstate_t;
 
-static gllightmapstate_t gl_lms;
+static vklightmapstate_t vk_lms;
 
 
 static void		LM_InitBlock( void );
@@ -351,7 +351,7 @@ void R_DrawBrushModel (entity_t *e)
 		return;
 
 	//qglColor3f(1, 1, 1);
-	memset(gl_lms.lightmap_surfaces, 0, sizeof(gl_lms.lightmap_surfaces));
+	memset(vk_lms.lightmap_surfaces, 0, sizeof(vk_lms.lightmap_surfaces));
 
 	VectorSubtract(r_newrefdef.vieworg, e->origin, modelorg);
 	if (rotated)
@@ -540,7 +540,7 @@ void R_DrawWorld (void)
 	//gl_state.currenttextures[0] = gl_state.currenttextures[1] = -1;
 
 	//qglColor3f (1,1,1);
-	memset (gl_lms.lightmap_surfaces, 0, sizeof(gl_lms.lightmap_surfaces));
+	memset (vk_lms.lightmap_surfaces, 0, sizeof(vk_lms.lightmap_surfaces));
 	R_ClearSkyBox ();
 
 	R_RecursiveWorldNode (r_worldmodel->nodes);
@@ -640,12 +640,60 @@ void R_MarkLeaves (void)
 
 static void LM_InitBlock( void )
 {
-	memset( gl_lms.allocated, 0, sizeof( gl_lms.allocated ) );
+	memset( vk_lms.allocated, 0, sizeof( vk_lms.allocated ) );
 }
 
 static void LM_UploadBlock( qboolean dynamic )
 {
+	/*
+	int texture;
+	int height = 0;
 
+	if ( dynamic )
+	{
+		texture = 0;
+	}
+	else
+	{
+		texture = gl_lms.current_lightmap_texture;
+	}
+
+	GL_Bind( gl_state.lightmap_textures + texture );
+	qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	if ( dynamic )
+	{
+		int i;
+
+		for ( i = 0; i < BLOCK_WIDTH; i++ )
+		{
+			if ( gl_lms.allocated[i] > height )
+				height = gl_lms.allocated[i];
+		}
+
+		qglTexSubImage2D( GL_TEXTURE_2D, 
+						  0,
+						  0, 0,
+						  BLOCK_WIDTH, height,
+						  GL_LIGHTMAP_FORMAT,
+						  GL_UNSIGNED_BYTE,
+						  gl_lms.lightmap_buffer );
+	}
+	else
+	{
+		qglTexImage2D( GL_TEXTURE_2D, 
+					   0, 
+					   gl_lms.internal_format,
+					   BLOCK_WIDTH, BLOCK_HEIGHT, 
+					   0, 
+					   GL_LIGHTMAP_FORMAT, 
+					   GL_UNSIGNED_BYTE, 
+					   gl_lms.lightmap_buffer );
+		if ( ++gl_lms.current_lightmap_texture == MAX_LIGHTMAPS )
+			ri.Sys_Error( ERR_DROP, "LM_UploadBlock() - MAX_LIGHTMAPS exceeded\n" );
+	}
+	*/
 }
 
 // returns a texture number and the position inside it
@@ -662,10 +710,10 @@ static qboolean LM_AllocBlock (int w, int h, int *x, int *y)
 
 		for (j=0 ; j<w ; j++)
 		{
-			if (gl_lms.allocated[i+j] >= best)
+			if (vk_lms.allocated[i+j] >= best)
 				break;
-			if (gl_lms.allocated[i+j] > best2)
-				best2 = gl_lms.allocated[i+j];
+			if (vk_lms.allocated[i+j] > best2)
+				best2 = vk_lms.allocated[i+j];
 		}
 		if (j == w)
 		{	// this is a valid spot
@@ -678,17 +726,17 @@ static qboolean LM_AllocBlock (int w, int h, int *x, int *y)
 		return false;
 
 	for (i=0 ; i<w ; i++)
-		gl_lms.allocated[*x + i] = best + h;
+		vk_lms.allocated[*x + i] = best + h;
 
 	return true;
 }
 
 /*
 ================
-GL_BuildPolygonFromSurface
+Vk_BuildPolygonFromSurface
 ================
 */
-void GL_BuildPolygonFromSurface(msurface_t *fa)
+void Vk_BuildPolygonFromSurface(msurface_t *fa)
 {
 	int			i, lindex, lnumverts;
 	medge_t		*pedges, *r_pedge;
@@ -763,10 +811,10 @@ void GL_BuildPolygonFromSurface(msurface_t *fa)
 
 /*
 ========================
-GL_CreateSurfaceLightmap
+Vk_CreateSurfaceLightmap
 ========================
 */
-void GL_CreateSurfaceLightmap (msurface_t *surf)
+void Vk_CreateSurfaceLightmap (msurface_t *surf)
 {
 	int		smax, tmax;
 	byte	*base;
@@ -787,9 +835,9 @@ void GL_CreateSurfaceLightmap (msurface_t *surf)
 		}
 	}
 
-	surf->lightmaptexturenum = gl_lms.current_lightmap_texture;
+	surf->lightmaptexturenum = vk_lms.current_lightmap_texture;
 
-	base = gl_lms.lightmap_buffer;
+	base = vk_lms.lightmap_buffer;
 	base += (surf->light_t * BLOCK_WIDTH + surf->light_s) * LIGHTMAP_BYTES;
 
 	R_SetCacheState( surf );

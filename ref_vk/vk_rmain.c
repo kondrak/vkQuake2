@@ -98,6 +98,7 @@ cvar_t	*vk_flashblend;
 cvar_t	*vk_finish;
 cvar_t	*vk_lockpvs;
 cvar_t	*vk_polyblend;
+cvar_t	*vk_modulate;
 
 cvar_t	*gl_particle_min_size;
 cvar_t	*gl_particle_max_size;
@@ -114,7 +115,6 @@ cvar_t	*gl_lightmap;
 cvar_t	*gl_shadows;
 cvar_t	*gl_dynamic;
 cvar_t  *gl_monolightmap;
-cvar_t	*gl_modulate;
 cvar_t	*gl_nobind;
 cvar_t	*gl_skymip;
 cvar_t	*gl_showtris;
@@ -916,6 +916,7 @@ void R_Register( void )
 	vk_finish = ri.Cvar_Get("vk_finish", "0", CVAR_ARCHIVE);
 	vk_lockpvs = ri.Cvar_Get("vk_lockpvs", "0", 0);
 	vk_polyblend = ri.Cvar_Get("vk_polyblend", "1", 0);
+	vk_modulate = ri.Cvar_Get("vk_modulate", "1", CVAR_ARCHIVE);
 
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);

@@ -198,6 +198,7 @@ extern	cvar_t	*vk_flashblend;
 extern	cvar_t	*vk_finish;
 extern	cvar_t	*vk_lockpvs;
 extern	cvar_t	*vk_polyblend;
+extern	cvar_t	*vk_modulate;
 
 extern cvar_t	*gl_ext_swapinterval;
 extern cvar_t	*gl_ext_pointparameters;
@@ -220,7 +221,6 @@ extern	cvar_t	*gl_showtris;
 extern	cvar_t	*gl_cull;
 extern	cvar_t	*gl_poly;
 extern	cvar_t	*gl_lightmaptype;
-extern	cvar_t	*gl_modulate;
 extern	cvar_t	*gl_playermip;
 extern	cvar_t	*gl_swapinterval;
 extern	cvar_t	*gl_texturemode;
