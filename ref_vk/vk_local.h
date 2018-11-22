@@ -329,6 +329,7 @@ void Mat_Translate(float *matrix, float x, float y, float z);
 void Mat_Rotate(float *matrix, float deg, float x, float y, float z);
 void Mat_Scale(float *matrix, float x, float y, float z);
 void Mat_Perspective(float *matrix, float fovy, float aspect, float zNear, float zFar);
+void Mat_Ortho(float *matrix, float left, float right, float bottom, float top, float zNear, float zFar);
 
 typedef struct
 {

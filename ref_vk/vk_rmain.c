@@ -675,6 +675,23 @@ void Mat_Perspective(float *matrix, float fovy, float aspect,
 	Mat_Mul(proj, r_vulkan_correction, matrix);
 }
 
+void Mat_Ortho(float *matrix, float left, float right, float bottom, float top,
+			   float zNear, float zFar)
+{
+	float proj[16];
+	memset(proj, 0, sizeof(float) * 16);
+	proj[0] = 2.f / (right - left);
+	proj[3] = (right + left) / (right - left);
+	proj[5] = 2.f / (top - bottom);
+	proj[7] = (top + bottom) / (top - bottom);
+	proj[10] = -2.f / (zFar - zNear);
+	proj[11] = -(zFar + zNear) / (zFar - zNear);
+	proj[15] = 1.f;
+
+	// Convert projection matrix to Vulkan coordinate system (https://matthewwellings.com/blog/the-new-vulkan-coordinate-system/)
+	Mat_Mul(proj, r_vulkan_correction, matrix);
+}
+
 
 /*
 =============
