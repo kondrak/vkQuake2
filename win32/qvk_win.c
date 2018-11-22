@@ -831,6 +831,9 @@ qboolean QVk_Init()
 
 VkResult QVk_BeginFrame()
 {
+	// reset tracking variables
+	vk_state.current_pipeline = VK_NULL_HANDLE;
+
 	VkResult result = vkAcquireNextImageKHR(vk_device.logical, vk_swapchain.sc, UINT32_MAX, vk_imageAvailableSemaphores[vk_activeBufferIdx], VK_NULL_HANDLE, &vk_imageIndex);
 	vk_activeCmdbuffer = vk_commandbuffers[vk_activeBufferIdx];
 	vk_activeFramebuffer = (vk_activeRenderpass.sampleCount == VK_SAMPLE_COUNT_1_BIT) ? vk_framebuffers[RT_STANDARD][vk_imageIndex] : vk_framebuffers[RT_MSAA][vk_imageIndex];
@@ -989,6 +992,47 @@ uint8_t *QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescript
 		Sys_Error("Out of uniform buffer object memory!");
 
 	return (uint8_t *)vk_dynUniformBuffers[vk_activeDynBufferIdx].allocInfo.pMappedData + (*dstOffset);
+}
+
+void QVk_DrawColorRect(float *ubo, VkDeviceSize uboSize)
+{
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *data = QVk_GetUniformBuffer(uboSize, &uboOffset, &uboDescriptorSet);
+	memcpy(data, ubo, uboSize);
+
+	QVk_BindPipeline(&vk_drawColorQuadPipeline);
+	VkDeviceSize offsets = 0;
+	VkDescriptorSet descriptorSets[] = { uboDescriptorSet };
+	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vk_rectVbo.buffer, &offsets);
+	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_rectIbo.buffer, 0, VK_INDEX_TYPE_UINT32);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawColorQuadPipeline.layout, 0, 1, descriptorSets, 1, &uboOffset);
+	vkCmdDrawIndexed(vk_activeCmdbuffer, 6, 1, 0, 0, 0);
+}
+
+void QVk_DrawTexRect(float *ubo, VkDeviceSize uboSize, qvktexture_t *texture)
+{
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *uboData = QVk_GetUniformBuffer(uboSize, &uboOffset, &uboDescriptorSet);
+	memcpy(uboData, ubo, uboSize);
+
+	QVk_BindPipeline(&vk_drawTexQuadPipeline);
+	VkDeviceSize offsets = 0;
+	VkDescriptorSet descriptorSets[] = { uboDescriptorSet, texture->descriptorSet };
+	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vk_rectVbo.buffer, &offsets);
+	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_rectIbo.buffer, 0, VK_INDEX_TYPE_UINT32);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawTexQuadPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
+	vkCmdDrawIndexed(vk_activeCmdbuffer, 6, 1, 0, 0, 0);
+}
+
+void QVk_BindPipeline(qvkpipeline_t *pipeline)
+{
+	if (vk_state.current_pipeline != pipeline->pl)
+	{
+		vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pl);
+		vk_state.current_pipeline = pipeline->pl;
+	}
 }
 
 const char *QVk_GetError(VkResult errorCode)

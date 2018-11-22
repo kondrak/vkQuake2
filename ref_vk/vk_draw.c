@@ -74,18 +74,7 @@ void Draw_Char (int x, int y, int num)
 	float imgTransform[] = { (float)x / vid.width, (float)y / vid.height,
 							 8.f / vid.width, 8.f / vid.height,
 							 fcol, frow, size, size, 1.f, 1.f, 1.f, 1.f };
-	uint32_t uboOffset;
-	VkDescriptorSet uboDescriptorSet;
-	uint8_t *data = QVk_GetUniformBuffer(sizeof(imgTransform), &uboOffset, &uboDescriptorSet);
-	memcpy(data, &imgTransform, sizeof(imgTransform));
-
-	vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawTexQuadPipeline.pl);
-	VkDeviceSize offsets = 0;
-	VkDescriptorSet descriptorSets[] = { uboDescriptorSet, draw_chars->vk_texture.descriptorSet };
-	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vk_rectVbo.buffer, &offsets);
-	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_rectIbo.buffer, 0, VK_INDEX_TYPE_UINT32);
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawTexQuadPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
-	vkCmdDrawIndexed(vk_activeCmdbuffer, 6, 1, 0, 0, 0);
+	QVk_DrawTexRect(imgTransform, sizeof(imgTransform), &draw_chars->vk_texture);
 }
 
 /*
@@ -154,18 +143,7 @@ void Draw_StretchPic (int x, int y, int w, int h, char *pic)
 							  vk->sl,				vk->tl, 
 							  vk->sh - vk->sl,		vk->th - vk->tl,
 							  1.f, 1.f, 1.f, 1.f };
-	uint32_t uboOffset;
-	VkDescriptorSet uboDescriptorSet;
-	uint8_t *data = QVk_GetUniformBuffer(sizeof(imgTransform), &uboOffset, &uboDescriptorSet);
-	memcpy(data, &imgTransform, sizeof(imgTransform));
-
-	vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawTexQuadPipeline.pl);
-	VkDeviceSize offsets = 0;
-	VkDescriptorSet descriptorSets[] = { uboDescriptorSet, vk->vk_texture.descriptorSet };
-	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vk_rectVbo.buffer, &offsets);
-	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_rectIbo.buffer, 0, VK_INDEX_TYPE_UINT32);
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawTexQuadPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
-	vkCmdDrawIndexed(vk_activeCmdbuffer, 6, 1, 0, 0, 0);
+	QVk_DrawTexRect(imgTransform, sizeof(imgTransform), &vk->vk_texture);
 }
 
 
@@ -225,18 +203,7 @@ void Draw_Fill (int x, int y, int w, int h, int c)
 	float imgTransform[] = { (float)x / vid.width, (float)y / vid.height,
 							 (float)w / vid.width, (float)h / vid.height, 0.f, 0.f, 1.f, 1.f,
 							 color.v[0] / 255.f, color.v[1] / 255.f, color.v[2] / 255.f, 1.f };
-	uint32_t uboOffset;
-	VkDescriptorSet uboDescriptorSet;
-	uint8_t *data = QVk_GetUniformBuffer(sizeof(imgTransform), &uboOffset, &uboDescriptorSet);
-	memcpy(data, &imgTransform, sizeof(imgTransform));
-
-	vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawColorQuadPipeline.pl);
-	VkDeviceSize offsets = 0;
-	VkDescriptorSet descriptorSets[] = { uboDescriptorSet };
-	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vk_rectVbo.buffer, &offsets);
-	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_rectIbo.buffer, 0, VK_INDEX_TYPE_UINT32);
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawColorQuadPipeline.layout, 0, 1, descriptorSets, 1, &uboOffset);
-	vkCmdDrawIndexed(vk_activeCmdbuffer, 6, 1, 0, 0, 0);
+	QVk_DrawColorRect(imgTransform, sizeof(imgTransform));
 }
 
 //=============================================================================
@@ -250,18 +217,7 @@ Draw_FadeScreen
 void Draw_FadeScreen (void)
 {
 	float imgTransform[] = { 0.f, 0.f, vid.width, vid.height, 0.f, 0.f, 1.f, 1.f, 0.f, 0.f, 0.f, .8f };
-	uint32_t uboOffset;
-	VkDescriptorSet uboDescriptorSet;
-	uint8_t *data = QVk_GetUniformBuffer(sizeof(imgTransform), &uboOffset, &uboDescriptorSet);
-	memcpy(data, &imgTransform, sizeof(imgTransform));
-
-	vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawColorQuadPipeline.pl);
-	VkDeviceSize offsets = 0;
-	VkDescriptorSet descriptorSets[] = { uboDescriptorSet };
-	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vk_rectVbo.buffer, &offsets);
-	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_rectIbo.buffer, 0, VK_INDEX_TYPE_UINT32);
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawColorQuadPipeline.layout, 0, 1, descriptorSets, 1, &uboOffset);
-	vkCmdDrawIndexed(vk_activeCmdbuffer, 6, 1, 0, 0, 0);
+	QVk_DrawColorRect(imgTransform, sizeof(imgTransform));
 }
 
 
@@ -330,16 +286,5 @@ void Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data
 	float imgTransform[] = { (float)x / vid.width, (float)y / vid.height,
 							 (float)w / vid.width, (float)h / vid.height,
 							 0.f, 0.f, 1.f, t, 1.f, 1.f, 1.f, 1.f };
-	uint32_t uboOffset;
-	VkDescriptorSet uboDescriptorSet;
-	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(imgTransform), &uboOffset, &uboDescriptorSet);
-	memcpy(uboData, &imgTransform, sizeof(imgTransform));
-
-	vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawTexQuadPipeline.pl);
-	VkDeviceSize offsets = 0;
-	VkDescriptorSet descriptorSets[] = { uboDescriptorSet, vk_rawTexture.descriptorSet };
-	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vk_rectVbo.buffer, &offsets);
-	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_rectIbo.buffer, 0, VK_INDEX_TYPE_UINT32);
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawTexQuadPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
-	vkCmdDrawIndexed(vk_activeCmdbuffer, 6, 1, 0, 0, 0);
+	QVk_DrawTexRect(imgTransform, sizeof(imgTransform), &vk_rawTexture);
 }

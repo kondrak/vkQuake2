@@ -263,7 +263,7 @@ void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *skin, fl
 		uint8_t *data = QVk_GetVertexBuffer(vaoSize, &vbo, &vboOffset);
 		memcpy(data, vertList[p], vaoSize);
 
-		vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[p].pl);
+		QVk_BindPipeline(&pipelines[p]);
 		VkDescriptorSet descriptorSets[] = { uboDescriptorSet, skin->vk_texture.descriptorSet };
 		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[p].layout, 0, 2, descriptorSets, 1, &uboOffset);
 		vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);

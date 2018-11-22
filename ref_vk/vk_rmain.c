@@ -316,7 +316,7 @@ void R_DrawNullModel (void)
 	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(mvp), &uboOffset, &uboDescriptorSet);
 	memcpy(uboData, &mvp, sizeof(mvp));
 
-	vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawNullModel.pl);
+	QVk_BindPipeline(&vk_drawNullModel);
 	VkDescriptorSet descriptorSets[] = { uboDescriptorSet };
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawNullModel.layout, 0, 1, descriptorSets, 1, &uboOffset);
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
@@ -564,18 +564,7 @@ void R_SetupFrame (void)
 		float clearArea[] = { (float)r_newrefdef.x / vid.width, (float)r_newrefdef.y / vid.height,
 							  (float)r_newrefdef.width / vid.width, (float)r_newrefdef.height / vid.height,
 							  0.f, 0.f, 1.f, 1.f, .3f, .3f, .3f, 1.f };
-		uint32_t uboOffset;
-		VkDescriptorSet uboDescriptorSet;
-		uint8_t *data = QVk_GetUniformBuffer(sizeof(clearArea), &uboOffset, &uboDescriptorSet);
-		memcpy(data, &clearArea, sizeof(clearArea));
-
-		vkCmdBindPipeline(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawColorQuadPipeline.pl);
-		VkDeviceSize offsets = 0;
-		VkDescriptorSet descriptorSets[] = { uboDescriptorSet };
-		vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vk_rectVbo.buffer, &offsets);
-		vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_rectIbo.buffer, 0, VK_INDEX_TYPE_UINT32);
-		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawColorQuadPipeline.layout, 0, 1, descriptorSets, 1, &uboOffset);
-		vkCmdDrawIndexed(vk_activeCmdbuffer, 6, 1, 0, 0, 0);
+		QVk_DrawColorRect(clearArea, sizeof(clearArea));
 	}
 }
 
@@ -946,6 +935,7 @@ qboolean R_SetMode (void)
 	vid_fullscreen->modified = false;
 	vk_mode->modified = false;
 	vk_msaa->modified = false;
+	vk_validation->modified = false;
 
 	if ((err = Vkimp_SetMode(&vid.width, &vid.height, vk_mode->value, fullscreen)) == rserr_ok)
 	{
@@ -1054,7 +1044,7 @@ void R_BeginFrame( float camera_separation )
 	/*
 	** change modes if necessary
 	*/
-	if (vk_mode->modified || vid_fullscreen->modified || vk_msaa->modified)
+	if (vk_mode->modified || vid_fullscreen->modified || vk_msaa->modified || vk_validation->modified)
 	{
 		cvar_t	*ref = ri.Cvar_Get("vid_ref", "vk", 0);
 		ref->modified = true;

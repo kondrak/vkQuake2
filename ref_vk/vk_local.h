@@ -361,9 +361,7 @@ typedef struct
 	float camera_separation;
 	qboolean stereo_enabled;
 
-	unsigned char originalRedGammaTable[256];
-	unsigned char originalGreenGammaTable[256];
-	unsigned char originalBlueGammaTable[256];
+	VkPipeline current_pipeline;
 } vkstate_t;
 
 extern vkconfig_t  vk_config;
