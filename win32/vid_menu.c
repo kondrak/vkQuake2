@@ -39,6 +39,7 @@ static cvar_t *gl_picmip;
 static cvar_t *gl_ext_palettedtexture;
 static cvar_t *gl_finish;
 static cvar_t *vk_finish;
+static cvar_t *vk_msaa;
 
 static cvar_t *sw_mode;
 static cvar_t *sw_stipplealpha;
@@ -73,6 +74,7 @@ static menuslider_s		s_brightness_slider[3];
 static menulist_s  		s_fs_box[3];
 static menulist_s  		s_stipple_box;
 static menulist_s  		s_paletted_texture_box;
+static menulist_s		s_msaa_mode;
 static menulist_s  		s_finish_box;
 static menulist_s		s_vkfinish_box;
 static menuaction_s		s_cancel_action[3];
@@ -162,6 +164,7 @@ static void ApplyChanges( void *unused )
 	Cvar_SetValue( "sw_mode", s_mode_list[SOFTWARE_MENU].curvalue );
 	Cvar_SetValue( "gl_mode", s_mode_list[OPENGL_MENU].curvalue );
 	Cvar_SetValue( "vk_mode", s_mode_list[VULKAN_MENU].curvalue );
+	Cvar_SetValue( "vk_msaa", s_msaa_mode.curvalue);
 
 	switch ( s_ref_list[s_current_menu_index].curvalue )
 	{
@@ -272,6 +275,14 @@ void VID_MenuInit( void )
 		"yes",
 		0
 	};
+	static const char *msaa_modes[] =
+	{
+		"off",
+		"x2",
+		"x4",
+		"x8",
+		0
+	};
 	int i;
 
 	if ( !gl_driver )
@@ -288,7 +299,8 @@ void VID_MenuInit( void )
 		gl_finish = Cvar_Get( "gl_finish", "0", CVAR_ARCHIVE );
 	if ( !vk_finish )
 		vk_finish = Cvar_Get( "vk_finish", "0", CVAR_ARCHIVE );
-
+	if ( !vk_msaa )
+		vk_msaa = Cvar_Get( "vk_msaa", "0", CVAR_ARCHIVE );
 	if ( !sw_stipplealpha )
 		sw_stipplealpha = Cvar_Get( "sw_stipplealpha", "0", CVAR_ARCHIVE );
 
@@ -296,6 +308,11 @@ void VID_MenuInit( void )
 		vk_mode = Cvar_Get( "vk_mode", "6", 0 );
 	if( !vk_driver )
 		vk_driver = Cvar_Get( "vk_driver", "vulkan", 0 );
+
+	if (vk_msaa->value < 0)
+		Cvar_Set("vk_msaa", "0");
+	else if (vk_msaa->value > 3)
+		Cvar_Set("vk_msaa", "3");
 
 	s_mode_list[SOFTWARE_MENU].curvalue = sw_mode->value;
 	s_mode_list[OPENGL_MENU].curvalue = gl_mode->value;
@@ -413,6 +430,13 @@ void VID_MenuInit( void )
 	s_paletted_texture_box.itemnames = yesno_names;
 	s_paletted_texture_box.curvalue = gl_ext_palettedtexture->value;
 
+	s_msaa_mode.generic.type = MTYPE_SPINCONTROL;
+	s_msaa_mode.generic.name = "multisampling";
+	s_msaa_mode.generic.x = 0;
+	s_msaa_mode.generic.y = 70;
+	s_msaa_mode.itemnames = msaa_modes;
+	s_msaa_mode.curvalue = vk_msaa->value;
+
 	s_finish_box.generic.type = MTYPE_SPINCONTROL;
 	s_finish_box.generic.x	= 0;
 	s_finish_box.generic.y	= 80;
@@ -449,6 +473,7 @@ void VID_MenuInit( void )
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_brightness_slider[VULKAN_MENU]);
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_fs_box[VULKAN_MENU]);
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_tq_slider);
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_msaa_mode);
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_vkfinish_box);
 
 	Menu_AddItem( &s_software_menu, ( void * ) &s_defaults_action[SOFTWARE_MENU] );

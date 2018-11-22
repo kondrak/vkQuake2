@@ -66,7 +66,7 @@ qvkrenderpass_t vk_renderpasses[RT_COUNT] = {
 	{
 		.rp = VK_NULL_HANDLE,
 		.colorLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-		.sampleCount = VK_SAMPLE_COUNT_8_BIT
+		.sampleCount = VK_SAMPLE_COUNT_2_BIT
 	} 
 };
 
@@ -170,6 +170,20 @@ VkFormat QVk_FindDepthFormat()
 }
 
 // internal helpers
+static VkSampleCountFlagBits GetSampleCount()
+{
+	extern cvar_t *vk_msaa;
+
+	static VkSampleCountFlagBits msaaModes[] = {
+		VK_SAMPLE_COUNT_1_BIT,
+		VK_SAMPLE_COUNT_2_BIT,
+		VK_SAMPLE_COUNT_4_BIT,
+		VK_SAMPLE_COUNT_8_BIT
+	};
+
+	return msaaModes[(int)vk_msaa->value];
+}
+
 static void DestroyImageViews()
 {
 	for (int i = 0; i < vk_swapchain.imageCount; i++)
@@ -251,9 +265,9 @@ static void CreateDrawBuffers()
 	QVk_CreateDepthBuffer(vk_renderpasses[RT_STANDARD].sampleCount, &vk_depthbuffer);
 	ri.Con_Printf(PRINT_ALL, "...created depth buffer\n");
 	QVk_CreateDepthBuffer(vk_renderpasses[RT_MSAA].sampleCount, &vk_msaaDepthbuffer);
-	ri.Con_Printf(PRINT_ALL, "...created MSAA depth buffer\n");
+	ri.Con_Printf(PRINT_ALL, "...created MSAAx%d depth buffer\n", vk_renderpasses[1].sampleCount);
 	QVk_CreateColorBuffer(vk_renderpasses[RT_MSAA].sampleCount, &vk_msaaColorbuffer);
-	ri.Con_Printf(PRINT_ALL, "...created MSAA color buffer\n");
+	ri.Con_Printf(PRINT_ALL, "...created MSAAx%d color buffer\n", vk_renderpasses[1].sampleCount);
 }
 
 static void DestroyDrawBuffer(qvktexture_t *drawBuffer)
@@ -716,13 +730,17 @@ qboolean QVk_Init()
 		return false;
 	}
 	ri.Con_Printf(PRINT_ALL, "...created Vulkan renderpass\n");
+	VkSampleCountFlagBits msaaMode = GetSampleCount();
+
+	if (msaaMode != VK_SAMPLE_COUNT_1_BIT)
+		vk_renderpasses[1].sampleCount = msaaMode;
 	res = QVk_CreateRenderpass(&vk_renderpasses[1]);
 	if (res != VK_SUCCESS)
 	{
-		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan MSAA renderpass: %s\n", QVk_GetError(res));
+		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan MSAA%d renderpass: %s\n", QVk_GetError(res), vk_renderpasses[1].sampleCount);
 		return false;
 	}
-	ri.Con_Printf(PRINT_ALL, "...created Vulkan MSAA renderpass\n");
+	ri.Con_Printf(PRINT_ALL, "...created Vulkan MSAAx%d renderpass\n", vk_renderpasses[1].sampleCount);
 
 	// setup command pools
 	res = QVk_CreateCommandPool(&vk_commandPool, vk_device.gfxFamilyIndex);
@@ -788,8 +806,16 @@ qboolean QVk_Init()
 	ri.Con_Printf(PRINT_ALL, "...created %d Vulkan commandbuffers\n", NUM_CMDBUFFERS);
 
 	// initialize tracker variables
-	vk_activeRenderpass = vk_renderpasses[RT_STANDARD];
-	vk_activeFramebuffer = vk_framebuffers[RT_STANDARD];
+	if (msaaMode != VK_SAMPLE_COUNT_1_BIT)
+	{
+		vk_activeRenderpass  = vk_renderpasses[RT_MSAA];
+		vk_activeFramebuffer = vk_framebuffers[RT_MSAA];
+	}
+	else
+	{
+		vk_activeRenderpass  = vk_renderpasses[RT_STANDARD];
+		vk_activeFramebuffer = vk_framebuffers[RT_STANDARD];
+	}
 	vk_activeCmdbuffer = vk_commandbuffers[vk_activeBufferIdx];
 
 	CreateDescriptorSetLayouts();
