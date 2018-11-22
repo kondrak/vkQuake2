@@ -563,7 +563,7 @@ void R_SetupFrame (void)
 	{
 		float clearArea[] = { (float)r_newrefdef.x / vid.width, (float)r_newrefdef.y / vid.height,
 							  (float)r_newrefdef.width / vid.width, (float)r_newrefdef.height / vid.height,
-							  0.f, 0.f, 1.f, 1.f, .3f, .3f, .3f, 1.f };
+							  .3f, .3f, .3f, 1.f };
 		QVk_DrawColorRect(clearArea, sizeof(clearArea));
 	}
 }

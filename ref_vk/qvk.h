@@ -211,10 +211,6 @@ extern VkCommandPool vk_transferCommandPool;
 // Vulkan descriptor pool
 extern VkDescriptorPool vk_descriptorPool;
 
-// Vulkan static buffers
-extern qvkbuffer_t vk_rectVbo;
-extern qvkbuffer_t vk_rectIbo;
-
 // Vulkan descriptor sets
 extern VkDescriptorSetLayout vk_uboDescSetLayout;
 extern VkDescriptorSetLayout vk_samplerDescSetLayout;

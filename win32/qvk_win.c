@@ -128,7 +128,8 @@ qvkpipeline_t vk_drawNullModel = QVKPIPELINE_INIT;
 }
 
 // global static buffers (reused, never changing)
-qvkbuffer_t vk_rectVbo;
+qvkbuffer_t vk_texRectVbo;
+qvkbuffer_t vk_colorRectVbo;
 qvkbuffer_t vk_rectIbo;
 
 // global dynamic buffers (double buffered)
@@ -386,14 +387,20 @@ static void CreateDynamicBuffers()
 
 static void CreateStaticBuffers()
 {
-	const float verts[] = { -1., -1., 0., 0.,
-							 1.,  1., 1., 1.,
-							-1.,  1., 0., 1.,
-							 1., -1., 1., 0. };
+	const float texVerts[] = {  -1., -1., 0., 0.,
+								 1.,  1., 1., 1.,
+								-1.,  1., 0., 1.,
+								 1., -1., 1., 0. };
+
+	const float colorVerts[] = { -1., -1.,
+								  1.,  1.,
+								 -1.,  1.,
+								  1., -1. };
 
 	const uint32_t indices[] = { 0, 1, 2, 0, 3, 1 };
 
-	QVk_CreateVertexBuffer(verts, sizeof(verts), &vk_rectVbo, NULL, 0);
+	QVk_CreateVertexBuffer(texVerts, sizeof(texVerts), &vk_texRectVbo, NULL, 0);
+	QVk_CreateVertexBuffer(colorVerts, sizeof(colorVerts), &vk_colorRectVbo, NULL, 0);
 	QVk_CreateIndexBuffer(indices, sizeof(indices), &vk_rectIbo, NULL, 0);
 }
 
@@ -430,6 +437,22 @@ static void CreatePipelines()
 	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
 
 	// colored quad pipeline
+	VkVertexInputBindingDescription colorQuadDesc = VK_INPUTBIND_DESC(sizeof(float) * 2);
+	VkVertexInputAttributeDescription colorQuadAttrDesc[] = {
+		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32_SFLOAT, 0)
+	};
+
+	// create pipeline object
+	VkPipelineVertexInputStateCreateInfo colorQuadVertInfo = {
+		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+		.pNext = NULL,
+		.flags = 0,
+		.vertexBindingDescriptionCount = 1,
+		.pVertexBindingDescriptions = &colorQuadDesc,
+		.vertexAttributeDescriptionCount = sizeof(colorQuadAttrDesc) / sizeof(colorQuadAttrDesc[0]),
+		.pVertexAttributeDescriptions = colorQuadAttrDesc
+	};
+
 	shaders[0] = QVk_CreateShader(basic_color_quad_vert_spv, basic_color_quad_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
 	shaders[1] = QVk_CreateShader(basic_color_quad_frag_spv, basic_color_quad_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
 
@@ -440,7 +463,7 @@ static void CreatePipelines()
 	vk_drawColorQuadPipeline.blendOpts.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
 	vk_drawColorQuadPipeline.blendOpts.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 	VkDescriptorSetLayout dsLayoutsColorQuad[] = { vk_uboDescSetLayout };
-	QVk_CreatePipeline(dsLayoutsColorQuad, 1, &vertexInputInfo, &vk_drawColorQuadPipeline, shaders, 2);
+	QVk_CreatePipeline(dsLayoutsColorQuad, 1, &colorQuadVertInfo, &vk_drawColorQuadPipeline, shaders, 2);
 
 	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
 	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
@@ -521,7 +544,8 @@ void QVk_Shutdown( void )
 		QVk_DestroyPipeline(&vk_drawNullModel);
 		QVk_DestroyPipeline(&vk_drawModelPipelineStrip);
 		QVk_DestroyPipeline(&vk_drawModelPipelineFan);
-		QVk_FreeBuffer(&vk_rectVbo);
+		QVk_FreeBuffer(&vk_texRectVbo);
+		QVk_FreeBuffer(&vk_colorRectVbo);
 		QVk_FreeBuffer(&vk_rectIbo);
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 		{
@@ -1004,7 +1028,7 @@ void QVk_DrawColorRect(float *ubo, VkDeviceSize uboSize)
 	QVk_BindPipeline(&vk_drawColorQuadPipeline);
 	VkDeviceSize offsets = 0;
 	VkDescriptorSet descriptorSets[] = { uboDescriptorSet };
-	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vk_rectVbo.buffer, &offsets);
+	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vk_colorRectVbo.buffer, &offsets);
 	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_rectIbo.buffer, 0, VK_INDEX_TYPE_UINT32);
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawColorQuadPipeline.layout, 0, 1, descriptorSets, 1, &uboOffset);
 	vkCmdDrawIndexed(vk_activeCmdbuffer, 6, 1, 0, 0, 0);
@@ -1020,7 +1044,7 @@ void QVk_DrawTexRect(float *ubo, VkDeviceSize uboSize, qvktexture_t *texture)
 	QVk_BindPipeline(&vk_drawTexQuadPipeline);
 	VkDeviceSize offsets = 0;
 	VkDescriptorSet descriptorSets[] = { uboDescriptorSet, texture->descriptorSet };
-	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vk_rectVbo.buffer, &offsets);
+	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vk_texRectVbo.buffer, &offsets);
 	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_rectIbo.buffer, 0, VK_INDEX_TYPE_UINT32);
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawTexQuadPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
 	vkCmdDrawIndexed(vk_activeCmdbuffer, 6, 1, 0, 0, 0);

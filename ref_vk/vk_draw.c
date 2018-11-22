@@ -201,7 +201,7 @@ void Draw_Fill (int x, int y, int w, int h, int c)
 	color.c = d_8to24table[c];
 
 	float imgTransform[] = { (float)x / vid.width, (float)y / vid.height,
-							 (float)w / vid.width, (float)h / vid.height, 0.f, 0.f, 1.f, 1.f,
+							 (float)w / vid.width, (float)h / vid.height,
 							 color.v[0] / 255.f, color.v[1] / 255.f, color.v[2] / 255.f, 1.f };
 	QVk_DrawColorRect(imgTransform, sizeof(imgTransform));
 }
@@ -216,7 +216,7 @@ Draw_FadeScreen
 */
 void Draw_FadeScreen (void)
 {
-	float imgTransform[] = { 0.f, 0.f, vid.width, vid.height, 0.f, 0.f, 1.f, 1.f, 0.f, 0.f, 0.f, .8f };
+	float imgTransform[] = { 0.f, 0.f, vid.width, vid.height, 0.f, 0.f, 0.f, .8f };
 	QVk_DrawColorRect(imgTransform, sizeof(imgTransform));
 }
 
