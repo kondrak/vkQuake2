@@ -945,6 +945,7 @@ qboolean R_SetMode (void)
 
 	vid_fullscreen->modified = false;
 	vk_mode->modified = false;
+	vk_msaa->modified = false;
 
 	if ((err = Vkimp_SetMode(&vid.width, &vid.height, vk_mode->value, fullscreen)) == rserr_ok)
 	{
@@ -1053,7 +1054,7 @@ void R_BeginFrame( float camera_separation )
 	/*
 	** change modes if necessary
 	*/
-	if (vk_mode->modified || vid_fullscreen->modified)
+	if (vk_mode->modified || vid_fullscreen->modified || vk_msaa->modified)
 	{
 		cvar_t	*ref = ri.Cvar_Get("vid_ref", "vk", 0);
 		ref->modified = true;
