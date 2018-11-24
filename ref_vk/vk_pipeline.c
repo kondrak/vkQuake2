@@ -69,8 +69,8 @@ void QVk_CreatePipeline(const VkDescriptorSetLayout *descriptorLayout, const uin
 	VkViewport viewport = {
 		.x = 0.f,
 		.y = 0.f,
-		.width = (float)vk_swapchain.extent.width,
-		.height = (float)vk_swapchain.extent.height,
+		.width = (float)vid.width,
+		.height = (float)vid.height,
 		.minDepth = 0.f,
 		.maxDepth = 1.f,
 	};

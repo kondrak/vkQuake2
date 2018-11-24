@@ -724,8 +724,8 @@ qboolean QVk_Init()
 	vk_viewport.y = 0.f;
 	vk_viewport.minDepth = 0.f;
 	vk_viewport.maxDepth = 1.f;
-	vk_viewport.width = (float)vk_swapchain.extent.width;
-	vk_viewport.height = (float)vk_swapchain.extent.height;
+	vk_viewport.width = (float)vid.width;
+	vk_viewport.height = (float)vid.height;
 	vk_scissor.offset.x = 0;
 	vk_scissor.offset.y = 0;
 	vk_scissor.extent = vk_swapchain.extent;
@@ -967,8 +967,8 @@ void QVk_RecreateSwapchain()
 	DestroyFramebuffers();
 	DestroyImageViews();
 	VK_VERIFY( QVk_CreateSwapchain() );
-	vk_viewport.width = vk_swapchain.extent.width;
-	vk_viewport.height = vk_swapchain.extent.height;
+	vk_viewport.width = (float)vid.width;
+	vk_viewport.height = (float)vid.height;
 	vk_scissor.extent = vk_swapchain.extent;
 	DestroyDrawBuffers();
 	CreateDrawBuffers();
