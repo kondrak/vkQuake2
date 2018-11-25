@@ -537,7 +537,6 @@ void QVk_Shutdown( void )
 	if (vk_instance != VK_NULL_HANDLE)
 	{
 		ri.Con_Printf(PRINT_ALL, "Shutting down Vulkan\n");
-		vkDeviceWaitIdle(vk_device.logical);
 
 		QVk_DestroyPipeline(&vk_drawTexQuadPipeline);
 		QVk_DestroyPipeline(&vk_drawColorQuadPipeline);

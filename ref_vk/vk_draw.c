@@ -73,7 +73,7 @@ void Draw_Char (int x, int y, int num)
 
 	float imgTransform[] = { (float)x / vid.width, (float)y / vid.height,
 							 8.f / vid.width, 8.f / vid.height,
-							 fcol, frow, size, size, 1.f, 1.f, 1.f, 1.f };
+							 fcol, frow, size, size };
 	QVk_DrawTexRect(imgTransform, sizeof(imgTransform), &draw_chars->vk_texture);
 }
 
@@ -141,8 +141,7 @@ void Draw_StretchPic (int x, int y, int w, int h, char *pic)
 	float imgTransform[] = { (float)x / vid.width, (float)y / vid.height,
 							 (float)w / vid.width, (float)h / vid.height,
 							  vk->sl,				vk->tl, 
-							  vk->sh - vk->sl,		vk->th - vk->tl,
-							  1.f, 1.f, 1.f, 1.f };
+							  vk->sh - vk->sl,		vk->th - vk->tl };
 	QVk_DrawTexRect(imgTransform, sizeof(imgTransform), &vk->vk_texture);
 }
 
@@ -285,6 +284,6 @@ void Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data
 
 	float imgTransform[] = { (float)x / vid.width, (float)y / vid.height,
 							 (float)w / vid.width, (float)h / vid.height,
-							 0.f, 0.f, 1.f, t, 1.f, 1.f, 1.f, 1.f };
+							 0.f, 0.f, 1.f, t };
 	QVk_DrawTexRect(imgTransform, sizeof(imgTransform), &vk_rawTexture);
 }

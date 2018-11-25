@@ -8,7 +8,6 @@ layout(set = 0, binding = 0) uniform imageTransform
     vec2 scale;
     vec2 uvOffset;
     vec2 uvScale;
-    vec4 color;
 } it;
 
 layout(location = 0) in vec2 inVertex;
