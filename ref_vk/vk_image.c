@@ -1400,7 +1400,7 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 		image->upload_height = BLOCK_HEIGHT;
 
 		// update scrap data
-		Vk_Upload8(scrap_texels[0], BLOCK_WIDTH, BLOCK_HEIGHT, false, false);
+		Vk_Upload8(scrap_texels[texnum], BLOCK_WIDTH, BLOCK_HEIGHT, false, false);
 		qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
 		
 		if (vk_scrapTextures[texnum].image != VK_NULL_HANDLE)
