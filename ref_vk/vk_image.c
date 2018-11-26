@@ -25,9 +25,7 @@ image_t		vktextures[MAX_VKTEXTURES];
 int			numvktextures;
 int			base_textureid;		// gltextures[i] = base_textureid+i
 // texture for storing raw image data (cinematics, endscreens, etc.)
-qvktexture_t vk_rawTexture;
-// texture for storing scrap image data (tiny image atlas)
-qvktexture_t vk_scrapTexture;
+qvktexture_t vk_rawTexture = QVVKTEXTURE_INIT;
 
 static byte			 intensitytable[256];
 static unsigned char gammatable[256];
@@ -664,6 +662,8 @@ void	Vk_ImageList_f (void)
 
 int			scrap_allocated[MAX_SCRAPS][BLOCK_WIDTH];
 byte		scrap_texels[MAX_SCRAPS][BLOCK_WIDTH*BLOCK_HEIGHT];
+// textures for storing scrap image data (tiny image atlas)
+qvktexture_t vk_scrapTextures[MAX_SCRAPS] = { QVVKTEXTURE_INIT };
 
 // returns a texture number and the position inside it
 int Scrap_AllocBlock (int w, int h, int *x, int *y)
@@ -1391,7 +1391,6 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 		for (i = 0; i<image->height; i++)
 			for (j = 0; j<image->width; j++, k++)
 				scrap_texels[texnum][(y + i)*BLOCK_WIDTH + x + j] = pic[k];
-		//image->texnum = TEXNUM_SCRAPS + texnum;
 		image->scrap = true;
 		image->sl = (x + 0.01) / (float)BLOCK_WIDTH;
 		image->sh = (x + image->width - 0.01) / (float)BLOCK_WIDTH;
@@ -1404,16 +1403,18 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 		Vk_Upload8(scrap_texels[0], BLOCK_WIDTH, BLOCK_HEIGHT, false, false);
 		qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
 		
-		if (vk_scrapTexture.image != VK_NULL_HANDLE)
+		if (vk_scrapTextures[texnum].image != VK_NULL_HANDLE)
 		{
-			QVk_UpdateTexture(&vk_scrapTexture, (unsigned char*)texBuffer, image->upload_width, image->upload_height);
+			QVk_UpdateTexture(&vk_scrapTextures[texnum], (unsigned char*)texBuffer, image->upload_width, image->upload_height);
 		}
 		else
 		{
-			QVVKTEXTURE_CLEAR(vk_scrapTexture);
+			QVVKTEXTURE_CLEAR(vk_scrapTextures[texnum]);
 			qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
-			QVk_CreateTexture(&vk_scrapTexture, (unsigned char*)texBuffer, image->upload_width, image->upload_height, texOpts ? texOpts : &defaultTexOpts);
+			QVk_CreateTexture(&vk_scrapTextures[texnum], (unsigned char*)texBuffer, image->upload_width, image->upload_height, texOpts ? texOpts : &defaultTexOpts);
 		}
+
+		image->vk_texture = vk_scrapTextures[texnum];
 	}
 	else
 	{
@@ -1668,6 +1669,8 @@ void	Vk_ShutdownImages (void)
 	}
 
 	QVk_ReleaseTexture(&vk_rawTexture);
-	QVk_ReleaseTexture(&vk_scrapTexture);
+
+	for(i = 0; i < MAX_SCRAPS; i++)
+		QVk_ReleaseTexture(&vk_scrapTextures[i]);
 }
 

@@ -103,10 +103,6 @@ typedef struct image_s
 
 } image_t;
 
-#define	TEXNUM_LIGHTMAPS	1024
-#define	TEXNUM_SCRAPS		1152
-#define	TEXNUM_IMAGES		1153
-
 #define		MAX_VKTEXTURES	1024
 
 //===================================================================
