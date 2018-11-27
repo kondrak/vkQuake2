@@ -416,11 +416,102 @@ void R_DrawEntitiesOnList (void)
 }
 
 /*
-** GL_DrawParticles
+** Vk_DrawParticles
 **
 */
 void Vk_DrawParticles( int num_particles, const particle_t particles[], const unsigned colortable[768] )
 {
+	const particle_t *p;
+	int				i;
+	vec3_t			up, right;
+	float			scale;
+	byte			color[4];
+
+	if (!num_particles)
+		return;
+
+	VectorScale(vup, 1.5, up);
+	VectorScale(vright, 1.5, right);
+
+	typedef struct {
+		float x,y,z,u,v,r,g,b,a;
+	} pvertex;
+	
+	pvertex visibleParticles[MAX_PARTICLES*3];
+
+	for (p = particles, i = 0; i < num_particles; i++, p++)
+	{
+		// hack a scale up to keep particles from disapearing
+		scale = (p->origin[0] - r_origin[0]) * vpn[0] +
+			(p->origin[1] - r_origin[1]) * vpn[1] +
+			(p->origin[2] - r_origin[2]) * vpn[2];
+
+		if (scale < 20)
+			scale = 1;
+		else
+			scale = 1 + scale * 0.004;
+
+		*(int *)color = colortable[p->color];
+
+		int idx = i * 3;
+		float r = color[0] / 255.f;
+		float g = color[1] / 255.f;
+		float b = color[2] / 255.f;
+
+		visibleParticles[idx].x = p->origin[0];
+		visibleParticles[idx].y = p->origin[1];
+		visibleParticles[idx].z = p->origin[2];
+		visibleParticles[idx].u = 0.0625;
+		visibleParticles[idx].v = 0.0625;
+		visibleParticles[idx].r = r;
+		visibleParticles[idx].g = g;
+		visibleParticles[idx].b = b;
+		visibleParticles[idx].a = p->alpha;
+
+		visibleParticles[idx + 1].x = p->origin[0] + up[0] * scale;
+		visibleParticles[idx + 1].y = p->origin[1] + up[1] * scale;
+		visibleParticles[idx + 1].z = p->origin[2] + up[2] * scale;
+		visibleParticles[idx + 1].u = 1.0625;
+		visibleParticles[idx + 1].v = 0.0625;
+		visibleParticles[idx + 1].r = r;
+		visibleParticles[idx + 1].g = g;
+		visibleParticles[idx + 1].b = b;
+		visibleParticles[idx + 1].a = p->alpha;
+
+		visibleParticles[idx + 2].x = p->origin[0] + right[0] * scale;
+		visibleParticles[idx + 2].y = p->origin[1] + right[1] * scale;
+		visibleParticles[idx + 2].z = p->origin[2] + right[2] * scale;
+		visibleParticles[idx + 2].u = 0.0625;
+		visibleParticles[idx + 2].v = 1.0625;
+		visibleParticles[idx + 2].r = r;
+		visibleParticles[idx + 2].g = g;
+		visibleParticles[idx + 2].b = b;
+		visibleParticles[idx + 2].a = p->alpha;
+	}
+
+	float mvp[16];
+	float viewproj[16];
+	float model[16];
+	memcpy(model, r_world_matrix, sizeof(float) * 16);
+	Mat_Mul(r_view_matrix, r_projection_matrix, viewproj);
+	Mat_Mul(model, viewproj, mvp);
+
+	QVk_BindPipeline(&vk_drawParticlesPipeline);
+
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(mvp), &uboOffset, &uboDescriptorSet);
+	memcpy(uboData, &mvp, sizeof(mvp));
+
+	VkBuffer vbo;
+	VkDeviceSize vboOffset;
+	uint8_t *data = QVk_GetVertexBuffer(3 * sizeof(pvertex) * num_particles, &vbo, &vboOffset);
+	memcpy(data, &visibleParticles, 3 * sizeof(pvertex) * num_particles);
+	
+	VkDescriptorSet descriptorSets[] = { uboDescriptorSet, r_particletexture->vk_texture.descriptorSet };
+	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawParticlesPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
+	vkCmdDraw(vk_activeCmdbuffer, 3 * num_particles, 1, 0, 0);
 }
 
 /*
@@ -430,6 +521,7 @@ R_DrawParticles
 */
 void R_DrawParticles (void)
 {
+	Vk_DrawParticles(r_newrefdef.num_particles, r_newrefdef.particles, d_8to24table);
 }
 
 /*

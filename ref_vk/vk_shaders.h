@@ -49,4 +49,11 @@ extern const size_t nullmodel_vert_size;
 
 extern const uint32_t nullmodel_frag_spv[];
 extern const size_t nullmodel_frag_size;
+
+// particle
+extern const uint32_t particle_vert_spv[];
+extern const size_t particle_vert_size;
+
+extern const uint32_t particle_frag_spv[];
+extern const size_t particle_frag_size;
 #endif

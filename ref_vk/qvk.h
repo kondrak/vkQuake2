@@ -152,6 +152,7 @@ typedef struct
 	VkPrimitiveTopology topology;
 	VkPipelineColorBlendAttachmentState blendOpts;
 	VkBool32 depthTestEnable;
+	VkBool32 depthWriteEnable;
 	float minSampleShading; // sample shading minimum fraction - >= 0 to enable
 } qvkpipeline_t;
 
@@ -181,6 +182,7 @@ typedef struct
 		.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT \
 	}, \
 	.depthTestEnable = VK_TRUE, \
+	.depthWriteEnable = VK_TRUE, \
 	.minSampleShading = -1.f \
 }
 
@@ -221,6 +223,7 @@ extern qvkpipeline_t vk_drawColorQuadPipeline;
 extern qvkpipeline_t vk_drawModelPipelineStrip;
 extern qvkpipeline_t vk_drawModelPipelineFan;
 extern qvkpipeline_t vk_drawNullModel;
+extern qvkpipeline_t vk_drawParticlesPipeline;
 
 // function pointers
 extern PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;

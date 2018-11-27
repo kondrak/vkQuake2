@@ -6,3 +6,5 @@
 %VULKAN_SDK%\bin32\glslangValidator.exe --variable-name nullmodel_frag_spv -V shaders/nullmodel.frag -o ref_vk/spirv/nullmodel_frag.c
 %VULKAN_SDK%\bin32\glslangValidator.exe --variable-name model_vert_spv -V shaders/model.vert -o ref_vk/spirv/model_vert.c
 %VULKAN_SDK%\bin32\glslangValidator.exe --variable-name model_frag_spv -V shaders/model.frag -o ref_vk/spirv/model_frag.c
+%VULKAN_SDK%\bin32\glslangValidator.exe --variable-name particle_vert_spv -V shaders/particle.vert -o ref_vk/spirv/particle_vert.c
+%VULKAN_SDK%\bin32\glslangValidator.exe --variable-name particle_frag_spv -V shaders/particle.frag -o ref_vk/spirv/particle_frag.c

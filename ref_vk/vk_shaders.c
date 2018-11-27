@@ -29,6 +29,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "spirv/model_frag.c"
 #include "spirv/nullmodel_vert.c"
 #include "spirv/nullmodel_frag.c"
+#include "spirv/particle_vert.c"
+#include "spirv/particle_frag.c"
 
 const size_t basic_vert_size = sizeof(basic_vert_spv);
 const size_t basic_frag_size = sizeof(basic_frag_spv);
@@ -41,3 +43,6 @@ const size_t model_frag_size = sizeof(model_frag_spv);
 
 const size_t nullmodel_vert_size = sizeof(nullmodel_vert_spv);
 const size_t nullmodel_frag_size = sizeof(nullmodel_frag_spv);
+
+const size_t particle_vert_size = sizeof(particle_vert_spv);
+const size_t particle_frag_size = sizeof(particle_frag_spv);

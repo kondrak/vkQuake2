@@ -113,6 +113,7 @@ qvkpipeline_t vk_drawColorQuadPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawModelPipelineStrip = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawModelPipelineFan = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawNullModel = QVKPIPELINE_INIT;
+qvkpipeline_t vk_drawParticlesPipeline = QVKPIPELINE_INIT;
 
 #define VK_INPUTBIND_DESC(s) { \
 	.binding = 0, \
@@ -407,14 +408,13 @@ static void CreateStaticBuffers()
 static void CreatePipelines()
 {
 	qvkshader_t shaders[2];
-	// init console pipeline
+	// textured quad pipeline
 	VkVertexInputBindingDescription bindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 4);
 	VkVertexInputAttributeDescription attributeDescriptions[] = {
 		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32_SFLOAT, 0),
 		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 2),
 	};
 
-	// create pipeline object
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo = {
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
 		.pNext = NULL,
@@ -425,7 +425,6 @@ static void CreatePipelines()
 		.pVertexAttributeDescriptions = attributeDescriptions
 	};
 
-	// textured quad pipeline
 	shaders[0] = QVk_CreateShader(basic_vert_spv, basic_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
 	shaders[1] = QVk_CreateShader(basic_frag_spv, basic_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
 
@@ -436,13 +435,47 @@ static void CreatePipelines()
 	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
 	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
 
+	// draw particles pipeline
+	VkVertexInputBindingDescription particleBindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 9);
+	VkVertexInputAttributeDescription particleAttributeDescriptions[] = {
+		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
+		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 3),
+		VK_INPUTATTR_DESC(2, VK_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 5),
+	};
+
+	VkPipelineVertexInputStateCreateInfo particleVertexInputInfo = {
+		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+		.pNext = NULL,
+		.flags = 0,
+		.vertexBindingDescriptionCount = 1,
+		.pVertexBindingDescriptions = &particleBindingDesc,
+		.vertexAttributeDescriptionCount = sizeof(particleAttributeDescriptions) / sizeof(particleAttributeDescriptions[0]),
+		.pVertexAttributeDescriptions = particleAttributeDescriptions
+	};
+
+	shaders[0] = QVk_CreateShader(particle_vert_spv, particle_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
+	shaders[1] = QVk_CreateShader(particle_frag_spv, particle_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
+
+	vk_drawParticlesPipeline.depthTestEnable = VK_TRUE;
+	vk_drawParticlesPipeline.depthWriteEnable = VK_FALSE;
+	vk_drawParticlesPipeline.blendOpts.blendEnable = VK_TRUE;
+	vk_drawParticlesPipeline.blendOpts.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+	vk_drawParticlesPipeline.blendOpts.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+	vk_drawParticlesPipeline.blendOpts.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+	vk_drawParticlesPipeline.blendOpts.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+
+	VkDescriptorSetLayout particleDsLayouts[] = { vk_uboDescSetLayout, vk_samplerDescSetLayout };
+	QVk_CreatePipeline(particleDsLayouts, 2, &particleVertexInputInfo, &vk_drawParticlesPipeline, shaders, 2);
+
+	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
+	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
+
 	// colored quad pipeline
 	VkVertexInputBindingDescription colorQuadDesc = VK_INPUTBIND_DESC(sizeof(float) * 2);
 	VkVertexInputAttributeDescription colorQuadAttrDesc[] = {
 		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32_SFLOAT, 0)
 	};
 
-	// create pipeline object
 	VkPipelineVertexInputStateCreateInfo colorQuadVertInfo = {
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
 		.pNext = NULL,
@@ -543,6 +576,7 @@ void QVk_Shutdown( void )
 		QVk_DestroyPipeline(&vk_drawNullModel);
 		QVk_DestroyPipeline(&vk_drawModelPipelineStrip);
 		QVk_DestroyPipeline(&vk_drawModelPipelineFan);
+		QVk_DestroyPipeline(&vk_drawParticlesPipeline);
 		QVk_FreeBuffer(&vk_texRectVbo);
 		QVk_FreeBuffer(&vk_colorRectVbo);
 		QVk_FreeBuffer(&vk_rectIbo);
