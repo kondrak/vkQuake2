@@ -196,6 +196,7 @@ extern	cvar_t	*vk_lockpvs;
 extern	cvar_t	*vk_polyblend;
 extern	cvar_t	*vk_modulate;
 extern	cvar_t	*vk_monolightmap;
+extern	cvar_t	*vk_shadows;
 
 extern cvar_t	*gl_ext_swapinterval;
 extern cvar_t	*gl_ext_pointparameters;
@@ -209,7 +210,6 @@ extern cvar_t	*gl_particle_att_b;
 extern cvar_t	*gl_particle_att_c;
 
 extern	cvar_t	*gl_lightmap;
-extern	cvar_t	*gl_shadows;
 extern	cvar_t	*gl_dynamic;
 extern	cvar_t	*gl_nobind;
 extern	cvar_t	*gl_skymip;

@@ -100,6 +100,7 @@ cvar_t	*vk_lockpvs;
 cvar_t	*vk_polyblend;
 cvar_t	*vk_modulate;
 cvar_t	*vk_monolightmap;
+cvar_t	*vk_shadows;
 cvar_t	*vk_msaa;
 
 cvar_t	*gl_particle_min_size;
@@ -114,7 +115,6 @@ cvar_t	*gl_ext_pointparameters;
 cvar_t	*gl_ext_compiled_vertex_array;
 
 cvar_t	*gl_lightmap;
-cvar_t	*gl_shadows;
 cvar_t	*gl_dynamic;
 cvar_t	*gl_nobind;
 cvar_t	*gl_skymip;
@@ -901,6 +901,7 @@ void R_Register( void )
 	vk_polyblend = ri.Cvar_Get("vk_polyblend", "1", 0);
 	vk_modulate = ri.Cvar_Get("vk_modulate", "1", CVAR_ARCHIVE);
 	vk_monolightmap = ri.Cvar_Get("vk_monolightmap", "0", 0);
+	vk_shadows = ri.Cvar_Get("vk_shadows", "0", CVAR_ARCHIVE);
 	vk_msaa = ri.Cvar_Get("vk_msaa", "0", CVAR_ARCHIVE);
 	if (vk_msaa->value < 0)
 		ri.Cvar_Set("vk_msaa", "0");
@@ -1109,7 +1110,68 @@ void R_SetPalette ( const unsigned char *palette)
 */
 void R_DrawBeam( entity_t *e )
 {
+#define NUM_BEAM_SEGS 6
 
+	int	i;
+	float r, g, b;
+
+	vec3_t perpvec;
+	vec3_t direction, normalized_direction;
+	vec3_t	start_points[NUM_BEAM_SEGS], end_points[NUM_BEAM_SEGS];
+	vec3_t oldorigin, origin;
+
+	oldorigin[0] = e->oldorigin[0];
+	oldorigin[1] = e->oldorigin[1];
+	oldorigin[2] = e->oldorigin[2];
+
+	origin[0] = e->origin[0];
+	origin[1] = e->origin[1];
+	origin[2] = e->origin[2];
+
+	normalized_direction[0] = direction[0] = oldorigin[0] - origin[0];
+	normalized_direction[1] = direction[1] = oldorigin[1] - origin[1];
+	normalized_direction[2] = direction[2] = oldorigin[2] - origin[2];
+
+	if (VectorNormalize(normalized_direction) == 0)
+		return;
+
+	PerpendicularVector(perpvec, normalized_direction);
+	VectorScale(perpvec, e->frame / 2, perpvec);
+
+	for (i = 0; i < 6; i++)
+	{
+		RotatePointAroundVector(start_points[i], normalized_direction, perpvec, (360.0 / NUM_BEAM_SEGS)*i);
+		VectorAdd(start_points[i], origin, start_points[i]);
+		VectorAdd(start_points[i], direction, end_points[i]);
+	}
+
+	//qglDisable(GL_TEXTURE_2D);
+	//qglEnable(GL_BLEND);
+	//qglDepthMask(GL_FALSE);
+
+	r = (d_8to24table[e->skinnum & 0xFF]) & 0xFF;
+	g = (d_8to24table[e->skinnum & 0xFF] >> 8) & 0xFF;
+	b = (d_8to24table[e->skinnum & 0xFF] >> 16) & 0xFF;
+
+	r *= 1 / 255.0F;
+	g *= 1 / 255.0F;
+	b *= 1 / 255.0F;
+
+	/*qglColor4f(r, g, b, e->alpha);
+
+	qglBegin(GL_TRIANGLE_STRIP);
+	for (i = 0; i < NUM_BEAM_SEGS; i++)
+	{
+		qglVertex3fv(start_points[i]);
+		qglVertex3fv(end_points[i]);
+		qglVertex3fv(start_points[(i + 1) % NUM_BEAM_SEGS]);
+		qglVertex3fv(end_points[(i + 1) % NUM_BEAM_SEGS]);
+	}
+	qglEnd();
+
+	qglEnable(GL_TEXTURE_2D);
+	qglDisable(GL_BLEND);
+	qglDepthMask(GL_TRUE); */
 }
 
 //===================================================================
