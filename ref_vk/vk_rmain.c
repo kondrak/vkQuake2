@@ -101,11 +101,12 @@ cvar_t	*vk_polyblend;
 cvar_t	*vk_modulate;
 cvar_t	*vk_monolightmap;
 cvar_t	*vk_shadows;
+cvar_t	*vk_particle_size;
+cvar_t	*vk_point_particle;
 cvar_t	*vk_msaa;
 
 cvar_t	*gl_particle_min_size;
 cvar_t	*gl_particle_max_size;
-cvar_t	*gl_particle_size;
 cvar_t	*gl_particle_att_a;
 cvar_t	*gl_particle_att_b;
 cvar_t	*gl_particle_att_c;
@@ -521,7 +522,71 @@ R_DrawParticles
 */
 void R_DrawParticles (void)
 {
-	Vk_DrawParticles(r_newrefdef.num_particles, r_newrefdef.particles, d_8to24table);
+	if (vk_point_particle->value)
+	{
+		int i;
+		unsigned char color[4];
+		const particle_t *p;
+
+		if (!r_newrefdef.num_particles)
+			return;
+
+		typedef struct {
+			float x, y, z, r, g, b, a;
+		} ppoint;
+
+		struct {
+			float mvp[16];
+			float particleSize;
+		} particleUbo;
+
+		particleUbo.particleSize = vk_particle_size->value;
+		ppoint visibleParticles[MAX_PARTICLES];
+
+		for (i = 0, p = r_newrefdef.particles; i < r_newrefdef.num_particles; i++, p++)
+		{
+			*(int *)color = d_8to24table[p->color];
+
+			float r = color[0] / 255.f;
+			float g = color[1] / 255.f;
+			float b = color[2] / 255.f;
+
+			visibleParticles[i].x = p->origin[0];
+			visibleParticles[i].y = p->origin[1];
+			visibleParticles[i].z = p->origin[2];
+			visibleParticles[i].r = r;
+			visibleParticles[i].g = g;
+			visibleParticles[i].b = b;
+			visibleParticles[i].a = p->alpha;
+		}
+
+		float viewproj[16];
+		float model[16];
+		memcpy(model, r_world_matrix, sizeof(float) * 16);
+		Mat_Mul(r_view_matrix, r_projection_matrix, viewproj);
+		Mat_Mul(model, viewproj, particleUbo.mvp);
+
+		QVk_BindPipeline(&vk_drawPointParticlesPipeline);
+
+		uint32_t uboOffset;
+		VkDescriptorSet uboDescriptorSet;
+		uint8_t *uboData = QVk_GetUniformBuffer(sizeof(particleUbo), &uboOffset, &uboDescriptorSet);
+		memcpy(uboData, &particleUbo, sizeof(particleUbo));
+
+		VkBuffer vbo;
+		VkDeviceSize vboOffset;
+		uint8_t *data = QVk_GetVertexBuffer(sizeof(ppoint) * r_newrefdef.num_particles, &vbo, &vboOffset);
+		memcpy(data, &visibleParticles, sizeof(ppoint) * r_newrefdef.num_particles);
+
+		VkDescriptorSet descriptorSets[] = { uboDescriptorSet };
+		vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
+		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPointParticlesPipeline.layout, 0, 1, descriptorSets, 1, &uboOffset);
+		vkCmdDraw(vk_activeCmdbuffer, r_newrefdef.num_particles, 1, 0, 0);
+	}
+	else
+	{
+		Vk_DrawParticles(r_newrefdef.num_particles, r_newrefdef.particles, d_8to24table);
+	}
 }
 
 /*
@@ -994,6 +1059,8 @@ void R_Register( void )
 	vk_modulate = ri.Cvar_Get("vk_modulate", "1", CVAR_ARCHIVE);
 	vk_monolightmap = ri.Cvar_Get("vk_monolightmap", "0", 0);
 	vk_shadows = ri.Cvar_Get("vk_shadows", "0", CVAR_ARCHIVE);
+	vk_particle_size = ri.Cvar_Get("vk_particle_size", "40", CVAR_ARCHIVE);
+	vk_point_particle = ri.Cvar_Get("vk_point_particle", "1", CVAR_ARCHIVE);
 	vk_msaa = ri.Cvar_Get("vk_msaa", "0", CVAR_ARCHIVE);
 	if (vk_msaa->value < 0)
 		ri.Cvar_Set("vk_msaa", "0");

@@ -114,6 +114,7 @@ qvkpipeline_t vk_drawModelPipelineStrip = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawModelPipelineFan = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawNullModel = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawParticlesPipeline = QVKPIPELINE_INIT;
+qvkpipeline_t vk_drawPointParticlesPipeline = QVKPIPELINE_INIT;
 
 #define VK_INPUTBIND_DESC(s) { \
 	.binding = 0, \
@@ -435,7 +436,7 @@ static void CreatePipelines()
 	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
 	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
 
-	// draw particles pipeline
+	// draw particles pipeline (using a texture)
 	VkVertexInputBindingDescription particleBindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 9);
 	VkVertexInputAttributeDescription particleAttributeDescriptions[] = {
 		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
@@ -466,6 +467,42 @@ static void CreatePipelines()
 
 	VkDescriptorSetLayout particleDsLayouts[] = { vk_uboDescSetLayout, vk_samplerDescSetLayout };
 	QVk_CreatePipeline(particleDsLayouts, 2, &particleVertexInputInfo, &vk_drawParticlesPipeline, shaders, 2);
+
+	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
+	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
+
+	// draw particles pipeline (using point list)
+	VkVertexInputBindingDescription pointParticleBindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 7);
+	VkVertexInputAttributeDescription pointParticleAttributeDescriptions[] = {
+		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
+		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 3),
+	};
+
+	VkPipelineVertexInputStateCreateInfo pointParticleVertexInputInfo = {
+		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+		.pNext = NULL,
+		.flags = 0,
+		.vertexBindingDescriptionCount = 1,
+		.pVertexBindingDescriptions = &pointParticleBindingDesc,
+		.vertexAttributeDescriptionCount = sizeof(pointParticleAttributeDescriptions) / sizeof(pointParticleAttributeDescriptions[0]),
+		.pVertexAttributeDescriptions = pointParticleAttributeDescriptions
+	};
+
+	shaders[0] = QVk_CreateShader(point_particle_vert_spv, point_particle_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
+	shaders[1] = QVk_CreateShader(point_particle_frag_spv, point_particle_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
+
+	vk_drawPointParticlesPipeline.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+	//vk_drawPointParticlesPipeline.mode = VK_POLYGON_MODE_POINT;
+	vk_drawPointParticlesPipeline.depthTestEnable = VK_TRUE;
+	vk_drawPointParticlesPipeline.depthWriteEnable = VK_FALSE;
+	vk_drawPointParticlesPipeline.blendOpts.blendEnable = VK_TRUE;
+	vk_drawPointParticlesPipeline.blendOpts.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+	vk_drawPointParticlesPipeline.blendOpts.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+	vk_drawPointParticlesPipeline.blendOpts.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+	vk_drawPointParticlesPipeline.blendOpts.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+
+	VkDescriptorSetLayout pointParticleDsLayouts[] = { vk_uboDescSetLayout };
+	QVk_CreatePipeline(pointParticleDsLayouts, 1, &pointParticleVertexInputInfo, &vk_drawPointParticlesPipeline, shaders, 2);
 
 	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
 	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
@@ -577,6 +614,7 @@ void QVk_Shutdown( void )
 		QVk_DestroyPipeline(&vk_drawModelPipelineStrip);
 		QVk_DestroyPipeline(&vk_drawModelPipelineFan);
 		QVk_DestroyPipeline(&vk_drawParticlesPipeline);
+		QVk_DestroyPipeline(&vk_drawPointParticlesPipeline);
 		QVk_FreeBuffer(&vk_texRectVbo);
 		QVk_FreeBuffer(&vk_colorRectVbo);
 		QVk_FreeBuffer(&vk_rectIbo);

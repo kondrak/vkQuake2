@@ -197,6 +197,8 @@ extern	cvar_t	*vk_polyblend;
 extern	cvar_t	*vk_modulate;
 extern	cvar_t	*vk_monolightmap;
 extern	cvar_t	*vk_shadows;
+extern	cvar_t	*vk_particle_size;
+extern	cvar_t	*vk_point_particle;
 
 extern cvar_t	*gl_ext_swapinterval;
 extern cvar_t	*gl_ext_pointparameters;
@@ -204,7 +206,6 @@ extern cvar_t	*gl_ext_compiled_vertex_array;
 
 extern cvar_t	*gl_particle_min_size;
 extern cvar_t	*gl_particle_max_size;
-extern cvar_t	*gl_particle_size;
 extern cvar_t	*gl_particle_att_a;
 extern cvar_t	*gl_particle_att_b;
 extern cvar_t	*gl_particle_att_c;
