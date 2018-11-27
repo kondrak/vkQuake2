@@ -444,32 +444,8 @@ void R_PolyBlend (void)
 	if (!v_blend[3])
 		return;
 
-	/*qglDisable(GL_ALPHA_TEST);
-	qglEnable(GL_BLEND);
-	qglDisable(GL_DEPTH_TEST);
-	qglDisable(GL_TEXTURE_2D);
-
-	qglLoadIdentity();
-
-	// FIXME: get rid of these
-	qglRotatef(-90, 1, 0, 0);	    // put Z going up
-	qglRotatef(90, 0, 0, 1);	    // put Z going up
-
-	qglColor4fv(v_blend);
-
-	qglBegin(GL_QUADS);
-
-	qglVertex3f(10, 100, 100);
-	qglVertex3f(10, -100, 100);
-	qglVertex3f(10, -100, -100);
-	qglVertex3f(10, 100, -100);
-	qglEnd();
-
-	qglDisable(GL_BLEND);
-	qglEnable(GL_TEXTURE_2D);
-	qglEnable(GL_ALPHA_TEST);
-
-	qglColor4f(1, 1, 1, 1);*/
+	float polyTransform[] = { 0.f, 0.f, vid.width, vid.height, v_blend[0], v_blend[1], v_blend[2], v_blend[3] };
+	QVk_DrawColorRect(polyTransform, sizeof(polyTransform));
 }
 
 //=======================================================================
