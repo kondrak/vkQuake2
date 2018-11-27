@@ -31,4 +31,8 @@ Features:
 - vk_msaa - multisampling control (0 - off, 1 - x2, 2 - x4, 3 - x8)
 - vk_monolightmap - equivalent to GL
 - vk_shadows - equivalent to GL
+- vk_particle_size - size of particle
+- vk_particle_min_size - min size of point particle
+- vk_particle_max_size - max size of point particle
+- vk_point_particle - (default 1) - use POINT_LIST to render particles vs texture
 - skipped 8-bit textures - no modern hardware even supports it these days
