@@ -734,12 +734,12 @@ void R_SetupVulkan (void)
 	// set up model matrix
 	Mat_Identity(r_world_matrix);
 	// put Z going up
-	Mat_Rotate(r_view_matrix, 90.f, 0.f, 0.f, 1.f);
-	Mat_Rotate(r_view_matrix, -90.f, 1.f, 0.f, 0.f);
+	Mat_Translate(r_view_matrix, -r_newrefdef.vieworg[0], -r_newrefdef.vieworg[1], -r_newrefdef.vieworg[2]);
 	Mat_Rotate(r_view_matrix, -r_newrefdef.viewangles[1], 0.f, 0.f, 1.f);
 	Mat_Rotate(r_view_matrix, -r_newrefdef.viewangles[0], 0.f, 1.f, 0.f);
 	Mat_Rotate(r_view_matrix, -r_newrefdef.viewangles[2], 1.f, 0.f, 0.f);
-	Mat_Translate(r_view_matrix, -r_newrefdef.vieworg[0], -r_newrefdef.vieworg[1], -r_newrefdef.vieworg[2]);
+	Mat_Rotate(r_view_matrix, 90.f, 0.f, 0.f, 1.f);
+	Mat_Rotate(r_view_matrix, -90.f, 1.f, 0.f, 0.f);
 
 	//
 	// set drawing parms

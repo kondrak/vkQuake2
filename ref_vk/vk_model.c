@@ -555,8 +555,6 @@ Mod_LoadFaces
 */
 void Mod_LoadFaces (lump_t *l)
 {
-	ri.Sys_Error(ERR_DROP, "Implement Mod_LoadFaces to start the game!\n");
-
 	dface_t		*in;
 	msurface_t 	*out;
 	int			i, count, surfnum;
@@ -621,8 +619,8 @@ void Mod_LoadFaces (lump_t *l)
 		}
 
 		// create lightmaps and polygons
-		if (!(out->texinfo->flags & (SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP)))
-			Vk_CreateSurfaceLightmap(out);
+		//if (!(out->texinfo->flags & (SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP)))
+		//	Vk_CreateSurfaceLightmap(out);
 
 		if (!(out->texinfo->flags & SURF_WARP))
 			Vk_BuildPolygonFromSurface(out);
