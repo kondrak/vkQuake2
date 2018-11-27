@@ -51,6 +51,9 @@ float	r_avertexnormal_dots[SHADEDOT_QUANT][256] =
 
 float	*shadedots = r_avertexnormal_dots[0];
 
+extern float r_view_matrix[16];
+extern float r_projection_matrix[16];
+
 void Vk_LerpVerts( int nverts, dtrivertx_t *v, dtrivertx_t *ov, dtrivertx_t *verts, float *lerp, float move[3], float frontv[3], float backv[3] )
 {
 	int i;
@@ -243,8 +246,6 @@ void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *skin, fl
 		}
 	}
 
-	extern float r_view_matrix[16];
-	extern float r_projection_matrix[16];
 	float viewproj[16];
 	Mat_Mul(r_view_matrix, r_projection_matrix, viewproj);
 	Mat_Mul(modelMatrix, viewproj, meshUbo.mvp);
@@ -645,16 +646,7 @@ void R_DrawAliasModel (entity_t *e)
 
 	if ( ( currententity->flags & RF_WEAPONMODEL ) && ( r_lefthand->value == 1.0F ) )
 	{
-		/*extern void MYgluPerspective( GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zFar );
-
-		qglMatrixMode( GL_PROJECTION );
-		qglPushMatrix();
-		qglLoadIdentity();
-		qglScalef( -1, 1, 1 );
-	    MYgluPerspective( r_newrefdef.fov_y, ( float ) r_newrefdef.width / r_newrefdef.height,  4,  4096);
-		qglMatrixMode( GL_MODELVIEW );
-
-		qglCullFace( GL_BACK );*/
+		Mat_Scale(r_projection_matrix, -1.f, 1.f, 1.f);
 	}
 
     //qglPushMatrix ();
@@ -721,11 +713,7 @@ void R_DrawAliasModel (entity_t *e)
 
 	if ( ( currententity->flags & RF_WEAPONMODEL ) && ( r_lefthand->value == 1.0F ) )
 	{
-	/*	qglMatrixMode( GL_PROJECTION );
-		qglPopMatrix();
-		qglMatrixMode( GL_MODELVIEW );
-		qglCullFace( GL_FRONT );
-		*/
+		Mat_Scale(r_projection_matrix, -1.f, 1.f, 1.f);
 	}
 
 	if ( currententity->flags & RF_TRANSLUCENT )
