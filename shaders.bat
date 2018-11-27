@@ -10,3 +10,5 @@
 %VULKAN_SDK%\bin32\glslangValidator.exe --variable-name particle_frag_spv -V shaders/particle.frag -o ref_vk/spirv/particle_frag.c
 %VULKAN_SDK%\bin32\glslangValidator.exe --variable-name point_particle_vert_spv -V shaders/point_particle.vert -o ref_vk/spirv/point_particle_vert.c
 %VULKAN_SDK%\bin32\glslangValidator.exe --variable-name point_particle_frag_spv -V shaders/point_particle.frag -o ref_vk/spirv/point_particle_frag.c
+%VULKAN_SDK%\bin32\glslangValidator.exe --variable-name sprite_vert_spv -V shaders/sprite.vert -o ref_vk/spirv/sprite_vert.c
+%VULKAN_SDK%\bin32\glslangValidator.exe --variable-name sprite_frag_spv -V shaders/sprite.frag -o ref_vk/spirv/sprite_frag.c

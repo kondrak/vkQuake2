@@ -225,6 +225,7 @@ extern qvkpipeline_t vk_drawModelPipelineFan;
 extern qvkpipeline_t vk_drawNullModel;
 extern qvkpipeline_t vk_drawParticlesPipeline;
 extern qvkpipeline_t vk_drawPointParticlesPipeline;
+extern qvkpipeline_t vk_drawSpritePipeline;
 
 // function pointers
 extern PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;

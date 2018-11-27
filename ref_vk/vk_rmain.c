@@ -200,51 +200,52 @@ void R_DrawSpriteModel (entity_t *e)
 	if (e->flags & RF_TRANSLUCENT)
 		alpha = e->alpha;
 
-	/*if (alpha != 1.0F)
-		qglEnable(GL_BLEND);
+	struct {
+		float mvp[16];
+		float alpha;
+	} spriteUbo;
 
-	qglColor4f(1, 1, 1, alpha);
+	spriteUbo.alpha = alpha;
+	vec3_t spriteQuad[4];
 
-	GL_Bind(currentmodel->skins[e->frame]->texnum);
-
-	GL_TexEnv(GL_MODULATE);
-
-	if (alpha == 1.0)
-		qglEnable(GL_ALPHA_TEST);
-	else
-		qglDisable(GL_ALPHA_TEST);
-
-	qglBegin(GL_QUADS);
-
-	qglTexCoord2f(0, 1);
 	VectorMA(e->origin, -frame->origin_y, up, point);
-	VectorMA(point, -frame->origin_x, right, point);
-	qglVertex3fv(point);
-
-	qglTexCoord2f(0, 0);
+	VectorMA(point, -frame->origin_x, right, spriteQuad[0]);
 	VectorMA(e->origin, frame->height - frame->origin_y, up, point);
-	VectorMA(point, -frame->origin_x, right, point);
-	qglVertex3fv(point);
-
-	qglTexCoord2f(1, 0);
+	VectorMA(point, -frame->origin_x, right, spriteQuad[1]);
 	VectorMA(e->origin, frame->height - frame->origin_y, up, point);
-	VectorMA(point, frame->width - frame->origin_x, right, point);
-	qglVertex3fv(point);
-
-	qglTexCoord2f(1, 1);
+	VectorMA(point, frame->width - frame->origin_x, right, spriteQuad[2]);
 	VectorMA(e->origin, -frame->origin_y, up, point);
-	VectorMA(point, frame->width - frame->origin_x, right, point);
-	qglVertex3fv(point);
+	VectorMA(point, frame->width - frame->origin_x, right, spriteQuad[3]);
 
-	qglEnd();
+	float quadVerts[] = { spriteQuad[0][0], spriteQuad[0][1], spriteQuad[0][2], 0.f, 1.f,
+						  spriteQuad[1][0], spriteQuad[1][1], spriteQuad[1][2], 0.f, 0.f,
+						  spriteQuad[2][0], spriteQuad[2][1], spriteQuad[2][2], 1.f, 0.f,
+						  spriteQuad[0][0], spriteQuad[0][1], spriteQuad[0][2], 0.f, 1.f,
+						  spriteQuad[2][0], spriteQuad[2][1], spriteQuad[2][2], 1.f, 0.f,
+						  spriteQuad[3][0], spriteQuad[3][1], spriteQuad[3][2], 1.f, 1.f };
 
-	qglDisable(GL_ALPHA_TEST);
-	GL_TexEnv(GL_REPLACE);
+	float viewproj[16];
+	float model[16];
+	memcpy(model, r_world_matrix, sizeof(float) * 16);
+	Mat_Mul(r_view_matrix, r_projection_matrix, viewproj);
+	Mat_Mul(model, viewproj, spriteUbo.mvp);
 
-	if (alpha != 1.0F)
-		qglDisable(GL_BLEND);
+	QVk_BindPipeline(&vk_drawSpritePipeline);
 
-	qglColor4f(1, 1, 1, 1);*/
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(spriteUbo), &uboOffset, &uboDescriptorSet);
+	memcpy(uboData, &spriteUbo, sizeof(spriteUbo));
+
+	VkBuffer vbo;
+	VkDeviceSize vboOffset;
+	uint8_t *data = QVk_GetVertexBuffer(sizeof(quadVerts), &vbo, &vboOffset);
+	memcpy(data, quadVerts, sizeof(quadVerts));
+	
+	VkDescriptorSet descriptorSets[] = { uboDescriptorSet, currentmodel->skins[e->frame]->vk_texture.descriptorSet };
+	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawSpritePipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
+	vkCmdDraw(vk_activeCmdbuffer, 6, 1, 0, 0);
 }
 
 //==================================================================================

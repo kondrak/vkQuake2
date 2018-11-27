@@ -33,6 +33,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "spirv/particle_frag.c"
 #include "spirv/point_particle_vert.c"
 #include "spirv/point_particle_frag.c"
+#include "spirv/sprite_vert.c"
+#include "spirv/sprite_frag.c"
 
 const size_t basic_vert_size = sizeof(basic_vert_spv);
 const size_t basic_frag_size = sizeof(basic_frag_spv);
@@ -51,3 +53,6 @@ const size_t particle_frag_size = sizeof(particle_frag_spv);
 
 const size_t point_particle_vert_size = sizeof(point_particle_vert_spv);
 const size_t point_particle_frag_size = sizeof(point_particle_frag_spv);
+
+const size_t sprite_vert_size = sizeof(sprite_vert_spv);
+const size_t sprite_frag_size = sizeof(sprite_frag_spv);

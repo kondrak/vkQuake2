@@ -63,4 +63,11 @@ extern const size_t point_particle_vert_size;
 
 extern const uint32_t point_particle_frag_spv[];
 extern const size_t point_particle_frag_size;
+
+// sprite model
+extern const uint32_t sprite_vert_spv[];
+extern const size_t sprite_vert_size;
+
+extern const uint32_t sprite_frag_spv[];
+extern const size_t sprite_frag_size;
 #endif
