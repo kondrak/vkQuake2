@@ -571,7 +571,7 @@ store:
 	stride -= (smax<<2);
 	bl = s_blocklights;
 
-	monolightmap = gl_monolightmap->string[0];
+	monolightmap = vk_monolightmap->string[0];
 
 	if ( monolightmap == '0' )
 	{

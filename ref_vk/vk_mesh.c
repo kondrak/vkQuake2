@@ -568,7 +568,7 @@ void R_DrawAliasModel (entity_t *e)
 
 		}
 		
-		if ( gl_monolightmap->string[0] != '0' )
+		if ( vk_monolightmap->string[0] != '0' )
 		{
 			float s = shadelight[0];
 

@@ -29,4 +29,5 @@ Features:
 - vk_modulate - equivalent to GL
 - vk_strings - prints some Vulkan stats
 - vk_msaa - multisampling control (0 - off, 1 - x2, 2 - x4, 3 - x8)
+- vk_monolightmap - equivalent to GL
 - skipped 8-bit textures - no modern hardware even supports it these days
