@@ -12,7 +12,6 @@ Original code changes:
 - Calling M_DrawTextBox properly without using explicit endframe calls (required for Vulkan)
 - added custom debug Windows console for debug builds
 - added 1920x1080 screen resolution
-- Vulkan comes with a slightly better quality of displayed textures - this is due to slighlty different mipmap calculations
 
 Features:
 ===

@@ -112,10 +112,13 @@ qvkpipeline_t vk_drawTexQuadPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawColorQuadPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawModelPipelineStrip = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawModelPipelineFan = QVKPIPELINE_INIT;
+qvkpipeline_t vk_drawLefthandModelPipelineStrip = QVKPIPELINE_INIT;
+qvkpipeline_t vk_drawLefthandModelPipelineFan = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawNullModel = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawParticlesPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawPointParticlesPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawSpritePipeline = QVKPIPELINE_INIT;
+qvkpipeline_t vk_drawBeamPipeline = QVKPIPELINE_INIT;
 
 #define VK_INPUTBIND_DESC(s) { \
 	.binding = 0, \
@@ -461,10 +464,6 @@ static void CreatePipelines()
 	vk_drawParticlesPipeline.depthTestEnable = VK_TRUE;
 	vk_drawParticlesPipeline.depthWriteEnable = VK_FALSE;
 	vk_drawParticlesPipeline.blendOpts.blendEnable = VK_TRUE;
-	vk_drawParticlesPipeline.blendOpts.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-	vk_drawParticlesPipeline.blendOpts.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-	vk_drawParticlesPipeline.blendOpts.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-	vk_drawParticlesPipeline.blendOpts.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 
 	VkDescriptorSetLayout particleDsLayouts[] = { vk_uboDescSetLayout, vk_samplerDescSetLayout };
 	QVk_CreatePipeline(particleDsLayouts, 2, &particleVertexInputInfo, &vk_drawParticlesPipeline, shaders, 2);
@@ -496,10 +495,6 @@ static void CreatePipelines()
 	vk_drawPointParticlesPipeline.depthTestEnable = VK_TRUE;
 	vk_drawPointParticlesPipeline.depthWriteEnable = VK_FALSE;
 	vk_drawPointParticlesPipeline.blendOpts.blendEnable = VK_TRUE;
-	vk_drawPointParticlesPipeline.blendOpts.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-	vk_drawPointParticlesPipeline.blendOpts.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-	vk_drawPointParticlesPipeline.blendOpts.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-	vk_drawPointParticlesPipeline.blendOpts.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 
 	VkDescriptorSetLayout pointParticleDsLayouts[] = { vk_uboDescSetLayout };
 	QVk_CreatePipeline(pointParticleDsLayouts, 1, &pointParticleVertexInputInfo, &vk_drawPointParticlesPipeline, shaders, 2);
@@ -528,10 +523,7 @@ static void CreatePipelines()
 
 	vk_drawColorQuadPipeline.depthTestEnable = VK_FALSE;
 	vk_drawColorQuadPipeline.blendOpts.blendEnable = VK_TRUE;
-	vk_drawColorQuadPipeline.blendOpts.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-	vk_drawColorQuadPipeline.blendOpts.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-	vk_drawColorQuadPipeline.blendOpts.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-	vk_drawColorQuadPipeline.blendOpts.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+
 	VkDescriptorSetLayout dsLayoutsColorQuad[] = { vk_uboDescSetLayout };
 	QVk_CreatePipeline(dsLayoutsColorQuad, 1, &colorQuadVertInfo, &vk_drawColorQuadPipeline, shaders, 2);
 
@@ -589,9 +581,19 @@ static void CreatePipelines()
 
 	VkDescriptorSetLayout dsLayoutsModel[] = { vk_uboDescSetLayout, vk_samplerDescSetLayout };
 	vk_drawModelPipelineStrip.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+	vk_drawModelPipelineStrip.blendOpts.blendEnable = VK_TRUE;
 	QVk_CreatePipeline(dsLayoutsModel, 2, &modelVertInfo, &vk_drawModelPipelineStrip, shaders, 2);
 	vk_drawModelPipelineFan.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+	vk_drawModelPipelineFan.blendOpts.blendEnable = VK_TRUE;
 	QVk_CreatePipeline(dsLayoutsModel, 2, &modelVertInfo, &vk_drawModelPipelineFan, shaders, 2);
+
+	// dedicated model pipelines for when left-handed weapon model is drawn
+	vk_drawLefthandModelPipelineStrip.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+	vk_drawLefthandModelPipelineStrip.cullMode = VK_CULL_MODE_FRONT_BIT;
+	QVk_CreatePipeline(dsLayoutsModel, 2, &modelVertInfo, &vk_drawLefthandModelPipelineStrip, shaders, 2);
+	vk_drawLefthandModelPipelineFan.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+	vk_drawLefthandModelPipelineFan.cullMode = VK_CULL_MODE_FRONT_BIT;
+	QVk_CreatePipeline(dsLayoutsModel, 2, &modelVertInfo, &vk_drawLefthandModelPipelineFan, shaders, 2);
 
 	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
 	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
@@ -618,13 +620,39 @@ static void CreatePipelines()
 
 	vk_drawSpritePipeline.depthTestEnable = VK_TRUE;
 	vk_drawSpritePipeline.blendOpts.blendEnable = VK_TRUE;
-	vk_drawSpritePipeline.blendOpts.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-	vk_drawSpritePipeline.blendOpts.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-	vk_drawSpritePipeline.blendOpts.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-	vk_drawSpritePipeline.blendOpts.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 
 	VkDescriptorSetLayout spriteDsLayouts[] = { vk_uboDescSetLayout, vk_samplerDescSetLayout };
 	QVk_CreatePipeline(spriteDsLayouts, 2, &spriteVertexInputInfo, &vk_drawSpritePipeline, shaders, 2);
+
+	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
+	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
+
+	// draw beam pipeline
+	VkVertexInputBindingDescription beamBindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 3);
+	VkVertexInputAttributeDescription beamAttributeDescriptions[] = {
+		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0)
+	};
+
+	VkPipelineVertexInputStateCreateInfo beamVertexInputInfo = {
+		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+		.pNext = NULL,
+		.flags = 0,
+		.vertexBindingDescriptionCount = 1,
+		.pVertexBindingDescriptions = &beamBindingDesc,
+		.vertexAttributeDescriptionCount = sizeof(beamAttributeDescriptions) / sizeof(beamAttributeDescriptions[0]),
+		.pVertexAttributeDescriptions = beamAttributeDescriptions
+	};
+
+	shaders[0] = QVk_CreateShader(beam_vert_spv, beam_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
+	shaders[1] = QVk_CreateShader(beam_frag_spv, beam_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
+
+	vk_drawBeamPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+	vk_drawBeamPipeline.depthTestEnable = VK_TRUE;
+	vk_drawBeamPipeline.depthWriteEnable = VK_FALSE;
+	vk_drawBeamPipeline.blendOpts.blendEnable = VK_TRUE;
+
+	VkDescriptorSetLayout beamDsLayouts[] = { vk_uboDescSetLayout };
+	QVk_CreatePipeline(beamDsLayouts, 1, &beamVertexInputInfo, &vk_drawBeamPipeline, shaders, 2);
 
 	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
 	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
@@ -646,9 +674,12 @@ void QVk_Shutdown( void )
 		QVk_DestroyPipeline(&vk_drawNullModel);
 		QVk_DestroyPipeline(&vk_drawModelPipelineStrip);
 		QVk_DestroyPipeline(&vk_drawModelPipelineFan);
+		QVk_DestroyPipeline(&vk_drawLefthandModelPipelineStrip);
+		QVk_DestroyPipeline(&vk_drawLefthandModelPipelineFan);
 		QVk_DestroyPipeline(&vk_drawParticlesPipeline);
 		QVk_DestroyPipeline(&vk_drawPointParticlesPipeline);
 		QVk_DestroyPipeline(&vk_drawSpritePipeline);
+		QVk_DestroyPipeline(&vk_drawBeamPipeline);
 		QVk_FreeBuffer(&vk_texRectVbo);
 		QVk_FreeBuffer(&vk_colorRectVbo);
 		QVk_FreeBuffer(&vk_rectIbo);

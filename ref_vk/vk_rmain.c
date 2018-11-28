@@ -223,7 +223,6 @@ void R_DrawSpriteModel (entity_t *e)
 						  spriteQuad[0][0], spriteQuad[0][1], spriteQuad[0][2], 0.f, 1.f,
 						  spriteQuad[2][0], spriteQuad[2][1], spriteQuad[2][2], 1.f, 0.f,
 						  spriteQuad[3][0], spriteQuad[3][1], spriteQuad[3][2], 1.f, 1.f };
-
 	float viewproj[16];
 	float model[16];
 	memcpy(model, r_world_matrix, sizeof(float) * 16);
@@ -1311,10 +1310,6 @@ void R_DrawBeam( entity_t *e )
 		VectorAdd(start_points[i], direction, end_points[i]);
 	}
 
-	//qglDisable(GL_TEXTURE_2D);
-	//qglEnable(GL_BLEND);
-	//qglDepthMask(GL_FALSE);
-
 	r = (d_8to24table[e->skinnum & 0xFF]) & 0xFF;
 	g = (d_8to24table[e->skinnum & 0xFF] >> 8) & 0xFF;
 	b = (d_8to24table[e->skinnum & 0xFF] >> 16) & 0xFF;
@@ -1323,21 +1318,62 @@ void R_DrawBeam( entity_t *e )
 	g *= 1 / 255.0F;
 	b *= 1 / 255.0F;
 
-	/*qglColor4f(r, g, b, e->alpha);
+	struct {
+		float mvp[16];
+		float color[4];
+	} beamUbo;
 
-	qglBegin(GL_TRIANGLE_STRIP);
+	beamUbo.color[0] = r;
+	beamUbo.color[1] = g;
+	beamUbo.color[2] = b;
+	beamUbo.color[3] = e->alpha;
+
+	struct {
+		float v[3];
+	} beamvertex[NUM_BEAM_SEGS*4];
+
 	for (i = 0; i < NUM_BEAM_SEGS; i++)
 	{
-		qglVertex3fv(start_points[i]);
-		qglVertex3fv(end_points[i]);
-		qglVertex3fv(start_points[(i + 1) % NUM_BEAM_SEGS]);
-		qglVertex3fv(end_points[(i + 1) % NUM_BEAM_SEGS]);
-	}
-	qglEnd();
+		int idx = i * 4;
+		beamvertex[idx].v[0] = start_points[i][0];
+		beamvertex[idx].v[1] = start_points[i][1];
+		beamvertex[idx].v[2] = start_points[i][2];
 
-	qglEnable(GL_TEXTURE_2D);
-	qglDisable(GL_BLEND);
-	qglDepthMask(GL_TRUE); */
+		beamvertex[idx + 1].v[0] = end_points[i][0];
+		beamvertex[idx + 1].v[1] = end_points[i][1];
+		beamvertex[idx + 1].v[2] = end_points[i][2];
+
+		beamvertex[idx + 2].v[0] = start_points[(i + 1) % NUM_BEAM_SEGS][0];
+		beamvertex[idx + 2].v[1] = start_points[(i + 1) % NUM_BEAM_SEGS][1];
+		beamvertex[idx + 2].v[2] = start_points[(i + 1) % NUM_BEAM_SEGS][2];
+
+		beamvertex[idx + 3].v[0] = end_points[(i + 1) % NUM_BEAM_SEGS][0];
+		beamvertex[idx + 3].v[1] = end_points[(i + 1) % NUM_BEAM_SEGS][1];
+		beamvertex[idx + 3].v[2] = end_points[(i + 1) % NUM_BEAM_SEGS][2];
+	}
+
+	float viewproj[16];
+	float model[16];
+	memcpy(model, r_world_matrix, sizeof(float) * 16);
+	Mat_Mul(r_view_matrix, r_projection_matrix, viewproj);
+	Mat_Mul(model, viewproj, beamUbo.mvp);
+
+	QVk_BindPipeline(&vk_drawBeamPipeline);
+
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(beamUbo), &uboOffset, &uboDescriptorSet);
+	memcpy(uboData, &beamUbo, sizeof(beamUbo));
+
+	VkBuffer vbo;
+	VkDeviceSize vboOffset;
+	uint8_t *data = QVk_GetVertexBuffer(sizeof(beamvertex), &vbo, &vboOffset);
+	memcpy(data, beamvertex, sizeof(beamvertex));
+
+	VkDescriptorSet descriptorSets[] = { uboDescriptorSet };
+	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawBeamPipeline.layout, 0, 1, descriptorSets, 1, &uboOffset);
+	vkCmdDraw(vk_activeCmdbuffer, NUM_BEAM_SEGS * 4, 1, 0, 0);
 }
 
 //===================================================================

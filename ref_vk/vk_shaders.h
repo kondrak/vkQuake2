@@ -70,4 +70,11 @@ extern const size_t sprite_vert_size;
 
 extern const uint32_t sprite_frag_spv[];
 extern const size_t sprite_frag_size;
+
+// beam
+extern const uint32_t beam_vert_spv[];
+extern const size_t beam_vert_size;
+
+extern const uint32_t beam_frag_spv[];
+extern const size_t beam_frag_size;
 #endif

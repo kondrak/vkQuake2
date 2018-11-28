@@ -173,11 +173,11 @@ typedef struct
 	.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, \
 	.blendOpts = { \
 		.blendEnable = VK_FALSE, \
-		.srcColorBlendFactor = VK_BLEND_FACTOR_ONE, \
-		.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO, \
+		.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA, \
+		.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, \
 		.colorBlendOp = VK_BLEND_OP_ADD, \
-		.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE, \
-		.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO, \
+		.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA, \
+		.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, \
 		.alphaBlendOp = VK_BLEND_OP_ADD, \
 		.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT \
 	}, \
@@ -222,10 +222,13 @@ extern qvkpipeline_t vk_drawTexQuadPipeline;
 extern qvkpipeline_t vk_drawColorQuadPipeline;
 extern qvkpipeline_t vk_drawModelPipelineStrip;
 extern qvkpipeline_t vk_drawModelPipelineFan;
+extern qvkpipeline_t vk_drawLefthandModelPipelineStrip;
+extern qvkpipeline_t vk_drawLefthandModelPipelineFan;
 extern qvkpipeline_t vk_drawNullModel;
 extern qvkpipeline_t vk_drawParticlesPipeline;
 extern qvkpipeline_t vk_drawPointParticlesPipeline;
 extern qvkpipeline_t vk_drawSpritePipeline;
+extern qvkpipeline_t vk_drawBeamPipeline;
 
 // function pointers
 extern PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;
