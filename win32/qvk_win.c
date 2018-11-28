@@ -112,6 +112,8 @@ qvkpipeline_t vk_drawTexQuadPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawColorQuadPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawModelPipelineStrip = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawModelPipelineFan = QVKPIPELINE_INIT;
+qvkpipeline_t vk_drawNoDepthModelPipelineStrip = QVKPIPELINE_INIT;
+qvkpipeline_t vk_drawNoDepthModelPipelineFan = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawLefthandModelPipelineStrip = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawLefthandModelPipelineFan = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawNullModel = QVKPIPELINE_INIT;
@@ -461,7 +463,6 @@ static void CreatePipelines()
 	shaders[0] = QVk_CreateShader(particle_vert_spv, particle_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
 	shaders[1] = QVk_CreateShader(particle_frag_spv, particle_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
 
-	vk_drawParticlesPipeline.depthTestEnable = VK_TRUE;
 	vk_drawParticlesPipeline.depthWriteEnable = VK_FALSE;
 	vk_drawParticlesPipeline.blendOpts.blendEnable = VK_TRUE;
 
@@ -492,7 +493,6 @@ static void CreatePipelines()
 	shaders[1] = QVk_CreateShader(point_particle_frag_spv, point_particle_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
 
 	vk_drawPointParticlesPipeline.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
-	vk_drawPointParticlesPipeline.depthTestEnable = VK_TRUE;
 	vk_drawPointParticlesPipeline.depthWriteEnable = VK_FALSE;
 	vk_drawPointParticlesPipeline.blendOpts.blendEnable = VK_TRUE;
 
@@ -550,7 +550,7 @@ static void CreatePipelines()
 	shaders[0] = QVk_CreateShader(nullmodel_vert_spv, nullmodel_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
 	shaders[1] = QVk_CreateShader(nullmodel_frag_spv, nullmodel_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
 
-	vk_drawNullModel.cullMode = VK_CULL_MODE_FRONT_BIT;
+	vk_drawNullModel.cullMode = VK_CULL_MODE_NONE;
 	vk_drawNullModel.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
 	VkDescriptorSetLayout dsLayoutsNullModel[] = { vk_uboDescSetLayout };
 	QVk_CreatePipeline(dsLayoutsNullModel, 1, &nullVertInfo, &vk_drawNullModel, shaders, 2);
@@ -587,6 +587,16 @@ static void CreatePipelines()
 	vk_drawModelPipelineFan.blendOpts.blendEnable = VK_TRUE;
 	QVk_CreatePipeline(dsLayoutsModel, 2, &modelVertInfo, &vk_drawModelPipelineFan, shaders, 2);
 
+	// dedicated model pipelines for translucent objects with depth write disabled
+	vk_drawNoDepthModelPipelineStrip.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+	vk_drawNoDepthModelPipelineStrip.depthWriteEnable = VK_FALSE;
+	vk_drawNoDepthModelPipelineStrip.blendOpts.blendEnable = VK_TRUE;
+	QVk_CreatePipeline(dsLayoutsModel, 2, &modelVertInfo, &vk_drawNoDepthModelPipelineStrip, shaders, 2);
+	vk_drawNoDepthModelPipelineFan.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+	vk_drawNoDepthModelPipelineFan.depthWriteEnable = VK_FALSE;
+	vk_drawNoDepthModelPipelineFan.blendOpts.blendEnable = VK_TRUE;
+	QVk_CreatePipeline(dsLayoutsModel, 2, &modelVertInfo, &vk_drawNoDepthModelPipelineFan, shaders, 2);
+
 	// dedicated model pipelines for when left-handed weapon model is drawn
 	vk_drawLefthandModelPipelineStrip.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
 	vk_drawLefthandModelPipelineStrip.cullMode = VK_CULL_MODE_FRONT_BIT;
@@ -618,7 +628,6 @@ static void CreatePipelines()
 	shaders[0] = QVk_CreateShader(sprite_vert_spv, sprite_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
 	shaders[1] = QVk_CreateShader(sprite_frag_spv, sprite_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
 
-	vk_drawSpritePipeline.depthTestEnable = VK_TRUE;
 	vk_drawSpritePipeline.blendOpts.blendEnable = VK_TRUE;
 
 	VkDescriptorSetLayout spriteDsLayouts[] = { vk_uboDescSetLayout, vk_samplerDescSetLayout };
@@ -647,7 +656,6 @@ static void CreatePipelines()
 	shaders[1] = QVk_CreateShader(beam_frag_spv, beam_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
 
 	vk_drawBeamPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
-	vk_drawBeamPipeline.depthTestEnable = VK_TRUE;
 	vk_drawBeamPipeline.depthWriteEnable = VK_FALSE;
 	vk_drawBeamPipeline.blendOpts.blendEnable = VK_TRUE;
 
@@ -674,6 +682,8 @@ void QVk_Shutdown( void )
 		QVk_DestroyPipeline(&vk_drawNullModel);
 		QVk_DestroyPipeline(&vk_drawModelPipelineStrip);
 		QVk_DestroyPipeline(&vk_drawModelPipelineFan);
+		QVk_DestroyPipeline(&vk_drawNoDepthModelPipelineStrip);
+		QVk_DestroyPipeline(&vk_drawNoDepthModelPipelineFan);
 		QVk_DestroyPipeline(&vk_drawLefthandModelPipelineStrip);
 		QVk_DestroyPipeline(&vk_drawLefthandModelPipelineFan);
 		QVk_DestroyPipeline(&vk_drawParticlesPipeline);

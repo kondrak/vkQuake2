@@ -222,6 +222,8 @@ extern qvkpipeline_t vk_drawTexQuadPipeline;
 extern qvkpipeline_t vk_drawColorQuadPipeline;
 extern qvkpipeline_t vk_drawModelPipelineStrip;
 extern qvkpipeline_t vk_drawModelPipelineFan;
+extern qvkpipeline_t vk_drawNoDepthModelPipelineStrip;
+extern qvkpipeline_t vk_drawNoDepthModelPipelineFan;
 extern qvkpipeline_t vk_drawLefthandModelPipelineStrip;
 extern qvkpipeline_t vk_drawLefthandModelPipelineFan;
 extern qvkpipeline_t vk_drawNullModel;

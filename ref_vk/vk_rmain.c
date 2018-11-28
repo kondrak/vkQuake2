@@ -376,7 +376,6 @@ void R_DrawEntitiesOnList (void)
 
 	// draw transparent entities
 	// we could sort these if it ever becomes a problem...
-	//qglDepthMask(0);		// no z writes
 	for (i = 0; i<r_newrefdef.num_entities; i++)
 	{
 		currententity = &r_newrefdef.entities[i];
@@ -413,7 +412,6 @@ void R_DrawEntitiesOnList (void)
 			}
 		}
 	}
-	//qglDepthMask(1);		// back to writing
 }
 
 /*

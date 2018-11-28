@@ -90,7 +90,7 @@ interpolates between two frames and origins
 FIXME: batch lerp all vertexes
 =============
 */
-void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *skin, float *modelMatrix, int leftHandOffset)
+void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *skin, float *modelMatrix, int leftHandOffset, int translucentIdx)
 {
 	float 	l;
 	daliasframe_t	*frame, *oldframe;
@@ -255,7 +255,9 @@ void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *skin, fl
 	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(meshUbo), &uboOffset, &uboDescriptorSet);
 	memcpy(uboData, &meshUbo, sizeof(meshUbo));
 
-	qvkpipeline_t pipelines[] = { vk_drawModelPipelineStrip, vk_drawModelPipelineFan, vk_drawLefthandModelPipelineStrip, vk_drawLefthandModelPipelineFan };
+	// non-depth write alias models don't occur with RF_WEAPONMODEL set, so no need for additional left-handed pipelines
+	qvkpipeline_t pipelines[2][4] = { { vk_drawModelPipelineStrip, vk_drawModelPipelineFan, vk_drawLefthandModelPipelineStrip, vk_drawLefthandModelPipelineFan },
+									  { vk_drawNoDepthModelPipelineStrip, vk_drawNoDepthModelPipelineFan, vk_drawLefthandModelPipelineStrip, vk_drawLefthandModelPipelineFan } };
 	for (int p = 0; p < 2; p++)
 	{
 		VkDeviceSize vaoSize = sizeof(modelvert) * vertCounts[p];
@@ -264,9 +266,9 @@ void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *skin, fl
 		uint8_t *data = QVk_GetVertexBuffer(vaoSize, &vbo, &vboOffset);
 		memcpy(data, vertList[p], vaoSize);
 
-		QVk_BindPipeline(&pipelines[p + leftHandOffset]);
+		QVk_BindPipeline(&pipelines[translucentIdx][p + leftHandOffset]);
 		VkDescriptorSet descriptorSets[] = { uboDescriptorSet, skin->vk_texture.descriptorSet };
-		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[p + leftHandOffset].layout, 0, 2, descriptorSets, 1, &uboOffset);
+		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[translucentIdx][p + leftHandOffset].layout, 0, 2, descriptorSets, 1, &uboOffset);
 		vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 		for (int i = 0; i < pipeCounters[p]; i++)
 		{
@@ -699,7 +701,7 @@ void R_DrawAliasModel (entity_t *e)
 
 	if ( !r_lerpmodels->value )
 		currententity->backlerp = 0;
-	Vk_DrawAliasFrameLerp (paliashdr, currententity->backlerp, skin, model, leftHandOffset);
+	Vk_DrawAliasFrameLerp (paliashdr, currententity->backlerp, skin, model, leftHandOffset, currententity->flags & RF_TRANSLUCENT ? 1 : 0);
 
 	//GL_TexEnv( GL_REPLACE );
 	//qglShadeModel (GL_FLAT);
