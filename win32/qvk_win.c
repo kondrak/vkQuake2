@@ -104,6 +104,8 @@ VkCommandBuffer vk_activeCmdbuffer = VK_NULL_HANDLE;
 int vk_activeBufferIdx = 0;
 // index of currently acquired image
 int vk_imageIndex = 0;
+// started rendering frame?
+static qboolean vk_frame_started = false;
 
 PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;
 PFN_vkDestroyDebugUtilsMessengerEXT qvkDestroyDebugUtilsMessengerEXT;
@@ -1058,11 +1060,16 @@ VkResult QVk_BeginFrame()
 	vkCmdSetScissor(vk_commandbuffers[vk_activeBufferIdx], 0, 1, &vk_scissor);
 #endif
 
+	vk_frame_started = true;
 	return VK_SUCCESS;
 }
 
 VkResult QVk_EndFrame()
 {
+	// continue only if QVk_BeginFrame() had been previously issued
+	if (!vk_frame_started)
+		return VK_NOT_READY;
+
 	// submit
 	vkCmdEndRenderPass(vk_commandbuffers[vk_activeBufferIdx]);
 	VK_VERIFY(vkEndCommandBuffer(vk_commandbuffers[vk_activeBufferIdx]));
@@ -1104,6 +1111,7 @@ VkResult QVk_EndFrame()
 
 	vk_activeBufferIdx = (vk_activeBufferIdx + 1) % NUM_CMDBUFFERS;
 
+	vk_frame_started = false;
 	return renderResult;
 }
 
