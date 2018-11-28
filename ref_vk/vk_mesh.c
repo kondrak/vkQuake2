@@ -651,7 +651,7 @@ void R_DrawAliasModel (entity_t *e)
 	//
 	// draw all the triangles
 	//
-	if (currententity->flags & RF_DEPTHHACK) { // hack the depth range to prevent view model from poking into walls
+	if (currententity->flags & RF_DEPTHHACK || r_newrefdef.rdflags & RDF_NOWORLDMODEL) { // hack the depth range to prevent view model from poking into walls
 		memcpy(prev_projection, r_projection_matrix, sizeof(r_projection_matrix));
 		Mat_Perspective(r_projection_matrix, r_vulkan_correction_dh, r_newrefdef.fov_y, (float)r_newrefdef.width / r_newrefdef.height, 4, 4096);
 	}
@@ -720,7 +720,7 @@ void R_DrawAliasModel (entity_t *e)
 		Mat_Scale(r_projection_matrix, -1.f, 1.f, 1.f);
 	}
 
-	if (currententity->flags & RF_DEPTHHACK)
+	if (currententity->flags & RF_DEPTHHACK || r_newrefdef.rdflags & RDF_NOWORLDMODEL)
 	{
 		memcpy(r_projection_matrix, prev_projection, sizeof(prev_projection));
 	}
