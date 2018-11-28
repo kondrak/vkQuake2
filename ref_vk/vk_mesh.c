@@ -54,6 +54,13 @@ float	*shadedots = r_avertexnormal_dots[0];
 extern float r_view_matrix[16];
 extern float r_projection_matrix[16];
 
+// correction matrix with "hacked depth" for models with RF_DEPTHHACK flag set
+static float r_vulkan_correction_dh[16] = { 1.f,  0.f, 0.f, 0.f,
+											0.f, -1.f, 0.f, 0.f,
+											0.f,  0.f, .3f, 0.f,
+											0.f,  0.f, .3f, 1.f
+										  };
+
 void Vk_LerpVerts( int nverts, dtrivertx_t *v, dtrivertx_t *ov, dtrivertx_t *verts, float *lerp, float move[3], float frontv[3], float backv[3] )
 {
 	int i;
@@ -498,6 +505,7 @@ void R_DrawAliasModel (entity_t *e)
 	float		an;
 	vec3_t		bbox[8];
 	image_t		*skin;
+	float		prev_projection[16];
 
 	if ( !( e->flags & RF_WEAPONMODEL ) )
 	{
@@ -644,7 +652,8 @@ void R_DrawAliasModel (entity_t *e)
 	// draw all the triangles
 	//
 	if (currententity->flags & RF_DEPTHHACK) { // hack the depth range to prevent view model from poking into walls
-	//	qglDepthRange(gldepthmin, gldepthmin + 0.3*(gldepthmax - gldepthmin));
+		memcpy(prev_projection, r_projection_matrix, sizeof(r_projection_matrix));
+		Mat_Perspective(r_projection_matrix, r_vulkan_correction_dh, r_newrefdef.fov_y, (float)r_newrefdef.width / r_newrefdef.height, 4, 4096);
 	}
 
 	if ( ( currententity->flags & RF_WEAPONMODEL ) && ( r_lefthand->value == 1.0F ) )
@@ -713,7 +722,7 @@ void R_DrawAliasModel (entity_t *e)
 
 	if (currententity->flags & RF_DEPTHHACK)
 	{
-	//	qglDepthRange(gldepthmin, gldepthmax);
+		memcpy(r_projection_matrix, prev_projection, sizeof(prev_projection));
 	}
 
 	if (vk_shadows->value && !(currententity->flags & (RF_TRANSLUCENT | RF_WEAPONMODEL)))

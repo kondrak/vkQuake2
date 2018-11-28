@@ -29,8 +29,6 @@ refimport_t	ri;
 
 model_t		*r_worldmodel;
 
-float		gldepthmin, gldepthmax;
-
 vkconfig_t vk_config;
 vkstate_t  vk_state;
 
@@ -63,12 +61,11 @@ float	r_world_matrix[16];
 float	r_projection_matrix[16];
 float	r_view_matrix[16];
 // correction matrix for perspective in Vulkan
-float	r_vulkan_correction[16] = { 1.f,  0.f, 0.f, 0.f,
-									0.f, -1.f, 0.f, 0.f,
-									0.f,  0.f, .5f, 0.f,
-									0.f,  0.f, .5f, 1.f
-								  };
-
+static float r_vulkan_correction[16] = { 1.f,  0.f, 0.f, 0.f,
+										 0.f, -1.f, 0.f, 0.f,
+										 0.f,  0.f, .5f, 0.f,
+										 0.f,  0.f, .5f, 1.f
+										};
 //
 // screen size info
 //
@@ -782,7 +779,7 @@ void Mat_Scale(float *matrix, float x, float y, float z)
 	Mat_Mul(matrix, s, matrix);
 }
 
-void Mat_Perspective(float *matrix, float fovy, float aspect,
+void Mat_Perspective(float *matrix, float *correction_matrix, float fovy, float aspect,
 	float zNear, float zFar)
 {
 	float xmin, xmax, ymin, ymax;
@@ -807,7 +804,7 @@ void Mat_Perspective(float *matrix, float fovy, float aspect,
 	proj[14] = -2.f * zFar * zNear / (zFar - zNear);
 
 	// Convert projection matrix to Vulkan coordinate system (https://matthewwellings.com/blog/the-new-vulkan-coordinate-system/)
-	Mat_Mul(proj, r_vulkan_correction, matrix);
+	Mat_Mul(proj, correction_matrix, matrix);
 }
 
 void Mat_Ortho(float *matrix, float left, float right, float bottom, float top,
@@ -835,7 +832,6 @@ R_SetupVulkan
 */
 void R_SetupVulkan (void)
 {
-	float	screenaspect;
 	int		x, x2, y2, y, w, h;
 
 	//
@@ -860,9 +856,7 @@ void R_SetupVulkan (void)
 	vkCmdSetViewport(vk_activeCmdbuffer, 0, 1, &viewport);
 
 	// set up projection matrix
-	screenaspect = (float)r_newrefdef.width / r_newrefdef.height;
-	Mat_Identity(r_projection_matrix);
-	Mat_Perspective(r_projection_matrix, r_newrefdef.fov_y, screenaspect, 4, 4096);
+	Mat_Perspective(r_projection_matrix, r_vulkan_correction, r_newrefdef.fov_y, (float)r_newrefdef.width / r_newrefdef.height, 4, 4096);
 
 	// set up view matrix
 	Mat_Identity(r_view_matrix);
