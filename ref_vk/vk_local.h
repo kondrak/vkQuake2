@@ -201,6 +201,7 @@ extern	cvar_t	*vk_particle_size;
 extern	cvar_t	*vk_particle_min_size;
 extern	cvar_t	*vk_particle_max_size;
 extern	cvar_t	*vk_point_particle;
+extern	cvar_t	*vk_dynamic;
 
 extern cvar_t	*gl_ext_swapinterval;
 extern cvar_t	*gl_ext_pointparameters;
@@ -211,7 +212,6 @@ extern cvar_t	*gl_particle_att_b;
 extern cvar_t	*gl_particle_att_c;
 
 extern	cvar_t	*gl_lightmap;
-extern	cvar_t	*gl_dynamic;
 extern	cvar_t	*gl_nobind;
 extern	cvar_t	*gl_skymip;
 extern	cvar_t	*gl_showtris;

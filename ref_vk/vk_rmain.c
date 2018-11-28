@@ -105,6 +105,7 @@ cvar_t	*vk_particle_size;
 cvar_t	*vk_particle_min_size;
 cvar_t	*vk_particle_max_size;
 cvar_t	*vk_point_particle;
+cvar_t	*vk_dynamic;
 cvar_t	*vk_msaa;
 
 cvar_t	*gl_particle_att_a;
@@ -116,7 +117,6 @@ cvar_t	*gl_ext_pointparameters;
 cvar_t	*gl_ext_compiled_vertex_array;
 
 cvar_t	*gl_lightmap;
-cvar_t	*gl_dynamic;
 cvar_t	*gl_nobind;
 cvar_t	*gl_skymip;
 cvar_t	*gl_showtris;
@@ -1067,6 +1067,7 @@ void R_Register( void )
 	vk_particle_min_size = ri.Cvar_Get("vk_particle_min_size", "2", CVAR_ARCHIVE);
 	vk_particle_max_size = ri.Cvar_Get("vk_particle_max_size", "40", CVAR_ARCHIVE);
 	vk_point_particle = ri.Cvar_Get("vk_point_particle", "1", CVAR_ARCHIVE);
+	vk_dynamic = ri.Cvar_Get("vk_dynamic", "1", 0);
 	vk_msaa = ri.Cvar_Get("vk_msaa", "0", CVAR_ARCHIVE);
 	if (vk_msaa->value < 0)
 		ri.Cvar_Set("vk_msaa", "0");
