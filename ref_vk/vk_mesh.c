@@ -53,6 +53,7 @@ float	*shadedots = r_avertexnormal_dots[0];
 
 extern float r_view_matrix[16];
 extern float r_projection_matrix[16];
+extern float r_viewproj_matrix[16];
 
 // correction matrix with "hacked depth" for models with RF_DEPTHHACK flag set
 static float r_vulkan_correction_dh[16] = { 1.f,  0.f, 0.f, 0.f,
@@ -253,9 +254,7 @@ void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *skin, fl
 		}
 	}
 
-	float viewproj[16];
-	Mat_Mul(r_view_matrix, r_projection_matrix, viewproj);
-	Mat_Mul(modelMatrix, viewproj, meshUbo.mvp);
+	Mat_Mul(modelMatrix, r_viewproj_matrix, meshUbo.mvp);
 
 	uint32_t uboOffset;
 	VkDescriptorSet uboDescriptorSet;
@@ -505,7 +504,7 @@ void R_DrawAliasModel (entity_t *e)
 	float		an;
 	vec3_t		bbox[8];
 	image_t		*skin;
-	float		prev_projection[16];
+	float		prev_viewproj[16];
 
 	if ( !( e->flags & RF_WEAPONMODEL ) )
 	{
@@ -656,13 +655,14 @@ void R_DrawAliasModel (entity_t *e)
 		r_vulkan_correction_dh[10] = 0.3f - (r_newrefdef.rdflags & RDF_NOWORLDMODEL) * 0.1f;
 		r_vulkan_correction_dh[14] = 0.3f - (r_newrefdef.rdflags & RDF_NOWORLDMODEL) * 0.1f;
 
-		memcpy(prev_projection, r_projection_matrix, sizeof(r_projection_matrix));
+		memcpy(prev_viewproj, r_viewproj_matrix, sizeof(r_viewproj_matrix));
 		Mat_Perspective(r_projection_matrix, r_vulkan_correction_dh, r_newrefdef.fov_y, (float)r_newrefdef.width / r_newrefdef.height, 4, 4096);
+		Mat_Mul(r_view_matrix, r_projection_matrix, r_viewproj_matrix);
 	}
 
 	if ( ( currententity->flags & RF_WEAPONMODEL ) && ( r_lefthand->value == 1.0F ) )
 	{
-		Mat_Scale(r_projection_matrix, -1.f, 1.f, 1.f);
+		Mat_Scale(r_viewproj_matrix, -1.f, 1.f, 1.f);
 		leftHandOffset = 2;
 	}
 
@@ -721,12 +721,12 @@ void R_DrawAliasModel (entity_t *e)
 
 	if ( ( currententity->flags & RF_WEAPONMODEL ) && ( r_lefthand->value == 1.0F ) )
 	{
-		Mat_Scale(r_projection_matrix, -1.f, 1.f, 1.f);
+		Mat_Scale(r_viewproj_matrix, -1.f, 1.f, 1.f);
 	}
 
 	if (currententity->flags & RF_DEPTHHACK || r_newrefdef.rdflags & RDF_NOWORLDMODEL)
 	{
-		memcpy(r_projection_matrix, prev_projection, sizeof(prev_projection));
+		memcpy(r_viewproj_matrix, prev_viewproj, sizeof(prev_viewproj));
 	}
 
 	if (vk_shadows->value && !(currententity->flags & (RF_TRANSLUCENT | RF_WEAPONMODEL)))

@@ -60,6 +60,7 @@ vec3_t	r_origin;
 float	r_world_matrix[16];
 float	r_projection_matrix[16];
 float	r_view_matrix[16];
+float	r_viewproj_matrix[16];
 // correction matrix for perspective in Vulkan
 static float r_vulkan_correction[16] = { 1.f,  0.f, 0.f, 0.f,
 										 0.f, -1.f, 0.f, 0.f,
@@ -220,11 +221,9 @@ void R_DrawSpriteModel (entity_t *e)
 						  spriteQuad[0][0], spriteQuad[0][1], spriteQuad[0][2], 0.f, 1.f,
 						  spriteQuad[2][0], spriteQuad[2][1], spriteQuad[2][2], 1.f, 0.f,
 						  spriteQuad[3][0], spriteQuad[3][1], spriteQuad[3][2], 1.f, 1.f };
-	float viewproj[16];
 	float model[16];
 	memcpy(model, r_world_matrix, sizeof(float) * 16);
-	Mat_Mul(r_view_matrix, r_projection_matrix, viewproj);
-	Mat_Mul(model, viewproj, spriteUbo.mvp);
+	Mat_Mul(model, r_viewproj_matrix, spriteUbo.mvp);
 
 	QVk_BindPipeline(&vk_drawSpritePipeline);
 
@@ -262,12 +261,10 @@ void R_DrawNullModel (void)
 		R_LightPoint(currententity->origin, shadelight);
 
 	float mvp[16];
-	float viewproj[16];
 	float model[16];
 	memcpy(model, r_world_matrix, sizeof(float) * 16);
 	R_RotateForEntity(currententity, model);
-	Mat_Mul(r_view_matrix, r_projection_matrix, viewproj);
-	Mat_Mul(model, viewproj, mvp);
+	Mat_Mul(model, r_viewproj_matrix, mvp);
 
 	vec3_t verts[24];
 	verts[0][0] = 0.f;
@@ -486,11 +483,9 @@ void Vk_DrawParticles( int num_particles, const particle_t particles[], const un
 	}
 
 	float mvp[16];
-	float viewproj[16];
 	float model[16];
 	memcpy(model, r_world_matrix, sizeof(float) * 16);
-	Mat_Mul(r_view_matrix, r_projection_matrix, viewproj);
-	Mat_Mul(model, viewproj, mvp);
+	Mat_Mul(model, r_viewproj_matrix, mvp);
 
 	QVk_BindPipeline(&vk_drawParticlesPipeline);
 
@@ -559,11 +554,9 @@ void R_DrawParticles (void)
 			visibleParticles[i].a = p->alpha;
 		}
 
-		float viewproj[16];
 		float model[16];
 		memcpy(model, r_world_matrix, sizeof(float) * 16);
-		Mat_Mul(r_view_matrix, r_projection_matrix, viewproj);
-		Mat_Mul(model, viewproj, particleUbo.mvp);
+		Mat_Mul(model, r_viewproj_matrix, particleUbo.mvp);
 
 		QVk_BindPipeline(&vk_drawPointParticlesPipeline);
 
@@ -869,6 +862,9 @@ void R_SetupVulkan (void)
 	Mat_Rotate(r_view_matrix, -r_newrefdef.viewangles[2], 1.f, 0.f, 0.f);
 	Mat_Rotate(r_view_matrix, 90.f, 0.f, 0.f, 1.f);
 	Mat_Rotate(r_view_matrix, -90.f, 1.f, 0.f, 0.f);
+
+	// precalculate view-projection matrix
+	Mat_Mul(r_view_matrix, r_projection_matrix, r_viewproj_matrix);
 
 	//
 	// set drawing parms
@@ -1347,11 +1343,9 @@ void R_DrawBeam( entity_t *e )
 		beamvertex[idx + 3].v[2] = end_points[(i + 1) % NUM_BEAM_SEGS][2];
 	}
 
-	float viewproj[16];
 	float model[16];
 	memcpy(model, r_world_matrix, sizeof(float) * 16);
-	Mat_Mul(r_view_matrix, r_projection_matrix, viewproj);
-	Mat_Mul(model, viewproj, beamUbo.mvp);
+	Mat_Mul(model, r_viewproj_matrix, beamUbo.mvp);
 
 	QVk_BindPipeline(&vk_drawBeamPipeline);
 
