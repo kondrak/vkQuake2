@@ -469,9 +469,44 @@ void R_ClearSkyBox (void)
 }
 
 
-void MakeSkyVec (float s, float t, int axis)
+void MakeSkyVec (float s, float t, int axis, float *vertexData)
 {
+	vec3_t		v, b;
+	int			j, k;
 
+	b[0] = s * 2300;
+	b[1] = t * 2300;
+	b[2] = 2300;
+
+	for (j = 0; j<3; j++)
+	{
+		k = st_to_vec[axis][j];
+		if (k < 0)
+			v[j] = -b[-k - 1];
+		else
+			v[j] = b[k - 1];
+	}
+
+	// avoid bilerp seam
+	s = (s + 1)*0.5;
+	t = (t + 1)*0.5;
+
+	if (s < sky_min)
+		s = sky_min;
+	else if (s > sky_max)
+		s = sky_max;
+	if (t < sky_min)
+		t = sky_min;
+	else if (t > sky_max)
+		t = sky_max;
+
+	t = 1.0 - t;
+
+	vertexData[0] = v[0];
+	vertexData[1] = v[1];
+	vertexData[2] = v[2];
+	vertexData[3] = s;
+	vertexData[4] = t;
 }
 
 /*
@@ -482,7 +517,73 @@ R_DrawSkyBox
 int	skytexorder[6] = {0,2,1,3,4,5};
 void R_DrawSkyBox (void)
 {
+	int		i;
 
+	if (skyrotate)
+	{	// check for no sky at all
+		for (i = 0; i<6; i++)
+			if (skymins[0][i] < skymaxs[0][i]
+				&& skymins[1][i] < skymaxs[1][i])
+				break;
+		if (i == 6)
+			return;		// nothing visible
+	}
+
+	float mvp[16];
+	float model[16];
+	memcpy(model, r_world_matrix, sizeof(float) * 16);
+	Mat_Rotate(model, r_newrefdef.time * skyrotate, skyaxis[0], skyaxis[1], skyaxis[2]);
+	Mat_Translate(model, r_origin[0], r_origin[1], r_origin[2]);
+	Mat_Mul(model, r_viewproj_matrix, mvp);
+
+	struct {
+		float data[5];
+	} skyVerts[4];
+
+	QVk_BindPipeline(&vk_drawSkyboxPipeline);
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(mvp), &uboOffset, &uboDescriptorSet);
+	memcpy(uboData, mvp, sizeof(mvp));
+
+	for (i = 0; i<6; i++)
+	{
+		if (skyrotate)
+		{	// hack, forces full sky to draw when rotating
+			skymins[0][i] = -1;
+			skymins[1][i] = -1;
+			skymaxs[0][i] = 1;
+			skymaxs[1][i] = 1;
+		}
+
+		if (skymins[0][i] >= skymaxs[0][i]
+			|| skymins[1][i] >= skymaxs[1][i])
+			continue;
+
+		MakeSkyVec(skymins[0][i], skymins[1][i], i, skyVerts[0].data);
+		MakeSkyVec(skymins[0][i], skymaxs[1][i], i, skyVerts[1].data);
+		MakeSkyVec(skymaxs[0][i], skymaxs[1][i], i, skyVerts[2].data);
+		MakeSkyVec(skymaxs[0][i], skymins[1][i], i, skyVerts[3].data);
+
+		float verts[] = {
+			skyVerts[0].data[0], skyVerts[0].data[1], skyVerts[0].data[2], skyVerts[0].data[3], skyVerts[0].data[4],
+			skyVerts[1].data[0], skyVerts[1].data[1], skyVerts[1].data[2], skyVerts[1].data[3], skyVerts[1].data[4],
+			skyVerts[2].data[0], skyVerts[2].data[1], skyVerts[2].data[2], skyVerts[2].data[3], skyVerts[2].data[4],
+			skyVerts[0].data[0], skyVerts[0].data[1], skyVerts[0].data[2], skyVerts[0].data[3], skyVerts[0].data[4],
+			skyVerts[2].data[0], skyVerts[2].data[1], skyVerts[2].data[2], skyVerts[2].data[3], skyVerts[2].data[4],
+			skyVerts[3].data[0], skyVerts[3].data[1], skyVerts[3].data[2], skyVerts[3].data[3], skyVerts[3].data[4]
+		};
+
+		VkBuffer vbo;
+		VkDeviceSize vboOffset;
+		uint8_t *data = QVk_GetVertexBuffer(sizeof(verts), &vbo, &vboOffset);
+		memcpy(data, verts, sizeof(verts));
+		
+		VkDescriptorSet descriptorSets[] = { uboDescriptorSet, sky_images[skytexorder[i]]->vk_texture.descriptorSet };
+		vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
+		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawSkyboxPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
+		vkCmdDraw(vk_activeCmdbuffer, 6, 1, 0, 0);
+	}
 }
 
 
@@ -495,4 +596,35 @@ R_SetSky
 char	*suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
 void R_SetSky (char *name, float rotate, vec3_t axis)
 {
+	int		i;
+	char	pathname[MAX_QPATH];
+
+	strncpy(skyname, name, sizeof(skyname) - 1);
+	skyrotate = rotate;
+	VectorCopy(axis, skyaxis);
+
+	for (i = 0; i<6; i++)
+	{
+		// chop down rotating skies for less memory
+		if (vk_skymip->value || skyrotate)
+			vk_picmip->value++;
+
+		Com_sprintf(pathname, sizeof(pathname), "env/%s%s.tga", skyname, suf[i]);
+
+		sky_images[i] = Vk_FindImage(pathname, it_sky, NULL);
+		if (!sky_images[i])
+			sky_images[i] = r_notexture;
+
+		if (vk_skymip->value || skyrotate)
+		{	// take less memory
+			vk_picmip->value--;
+			sky_min = 1.0 / 256;
+			sky_max = 255.0 / 256;
+		}
+		else
+		{
+			sky_min = 1.0 / 512;
+			sky_max = 511.0 / 512;
+		}
+	}
 }

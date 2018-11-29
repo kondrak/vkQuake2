@@ -20,6 +20,7 @@ Features:
 - updated with Knightmare software renderer with color
 - vk_validation command to enable layers (0 - off, 1 - warnings and errors, 2 - full validation, defaults to 2 in debug builds and 0 in release)
 - vk_picmip and vk_round_down GL equivalents
+- vk_skymip - equivalent to GL
 - vk_log - redirects layer messages to file
 - vk_flashblend - dynamic light drawing control (lightmap or really dynamic)
 - vk_finish - basically inserts vkDeviceWaitIdle when necessary - added for completness' sake (a glFinish() equivalent in the original) but really, don't use it!

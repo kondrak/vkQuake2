@@ -37,6 +37,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "spirv/sprite_frag.c"
 #include "spirv/beam_vert.c"
 #include "spirv/beam_frag.c"
+#include "spirv/skybox_vert.c"
+#include "spirv/skybox_frag.c"
 
 const size_t basic_vert_size = sizeof(basic_vert_spv);
 const size_t basic_frag_size = sizeof(basic_frag_spv);
@@ -61,3 +63,6 @@ const size_t sprite_frag_size = sizeof(sprite_frag_spv);
 
 const size_t beam_vert_size = sizeof(beam_vert_spv);
 const size_t beam_frag_size = sizeof(beam_frag_spv);
+
+const size_t skybox_vert_size = sizeof(skybox_vert_spv);
+const size_t skybox_frag_size = sizeof(skybox_frag_spv);

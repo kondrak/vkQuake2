@@ -77,4 +77,11 @@ extern const size_t beam_vert_size;
 
 extern const uint32_t beam_frag_spv[];
 extern const size_t beam_frag_size;
+
+// skybox
+extern const uint32_t skybox_vert_spv[];
+extern const size_t skybox_vert_size;
+
+extern const uint32_t skybox_frag_spv[];
+extern const size_t skybox_frag_size;
 #endif

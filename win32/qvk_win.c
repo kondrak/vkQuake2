@@ -123,6 +123,7 @@ qvkpipeline_t vk_drawParticlesPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawPointParticlesPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawSpritePipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawBeamPipeline = QVKPIPELINE_INIT;
+qvkpipeline_t vk_drawSkyboxPipeline = QVKPIPELINE_INIT;
 
 #define VK_INPUTBIND_DESC(s) { \
 	.binding = 0, \
@@ -666,6 +667,32 @@ static void CreatePipelines()
 
 	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
 	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
+
+	// draw skybox pipeline
+	VkVertexInputBindingDescription skyboxBindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 5);
+	VkVertexInputAttributeDescription skyboxAttributeDescriptions[] = {
+		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
+		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 3)
+	};
+
+	VkPipelineVertexInputStateCreateInfo skyboxVertexInputInfo = {
+		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+		.pNext = NULL,
+		.flags = 0,
+		.vertexBindingDescriptionCount = 1,
+		.pVertexBindingDescriptions = &skyboxBindingDesc,
+		.vertexAttributeDescriptionCount = sizeof(skyboxAttributeDescriptions) / sizeof(skyboxAttributeDescriptions[0]),
+		.pVertexAttributeDescriptions = skyboxAttributeDescriptions
+	};
+
+	shaders[0] = QVk_CreateShader(skybox_vert_spv, skybox_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
+	shaders[1] = QVk_CreateShader(skybox_frag_spv, skybox_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
+
+	VkDescriptorSetLayout skyboxDsLayouts[] = { vk_uboDescSetLayout, vk_samplerDescSetLayout };
+	QVk_CreatePipeline(skyboxDsLayouts, 2, &skyboxVertexInputInfo, &vk_drawSkyboxPipeline, shaders, 2);
+
+	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
+	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
 }
 
 /*
@@ -692,6 +719,7 @@ void QVk_Shutdown( void )
 		QVk_DestroyPipeline(&vk_drawPointParticlesPipeline);
 		QVk_DestroyPipeline(&vk_drawSpritePipeline);
 		QVk_DestroyPipeline(&vk_drawBeamPipeline);
+		QVk_DestroyPipeline(&vk_drawSkyboxPipeline);
 		QVk_FreeBuffer(&vk_texRectVbo);
 		QVk_FreeBuffer(&vk_colorRectVbo);
 		QVk_FreeBuffer(&vk_rectIbo);

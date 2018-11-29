@@ -91,6 +91,7 @@ cvar_t	*vk_mode;
 cvar_t	*vk_bitdepth;
 cvar_t	*vk_log;
 cvar_t	*vk_picmip;
+cvar_t	*vk_skymip;
 cvar_t	*vk_round_down;
 cvar_t	*vk_flashblend;
 cvar_t	*vk_finish;
@@ -116,7 +117,6 @@ cvar_t	*gl_ext_compiled_vertex_array;
 
 cvar_t	*gl_lightmap;
 cvar_t	*gl_nobind;
-cvar_t	*gl_skymip;
 cvar_t	*gl_showtris;
 cvar_t	*gl_cull;
 cvar_t	*gl_playermip;
@@ -601,7 +601,17 @@ void R_PolyBlend (void)
 
 int SignbitsForPlane (cplane_t *out)
 {
-    return 0;
+	int	bits, j;
+
+	// for fast box on planeside test
+
+	bits = 0;
+	for (j = 0; j<3; j++)
+	{
+		if (out->normal[j] < 0)
+			bits |= 1 << j;
+	}
+	return bits;
 }
 
 
@@ -1043,6 +1053,7 @@ void R_Register( void )
 	vk_bitdepth = ri.Cvar_Get("vk_bitdepth", "0", 0);
 	vk_log = ri.Cvar_Get("vk_log", "0", 0);
 	vk_picmip = ri.Cvar_Get("vk_picmip", "0", 0);
+	vk_skymip = ri.Cvar_Get("vk_skymip", "0", 0);
 	vk_round_down = ri.Cvar_Get("vk_round_down", "1", 0);
 	vk_flashblend = ri.Cvar_Get("vk_flashblend", "0", 0);
 	vk_finish = ri.Cvar_Get("vk_finish", "0", CVAR_ARCHIVE);

@@ -187,6 +187,7 @@ extern cvar_t	*vk_mode;
 extern cvar_t	*vk_bitdepth;
 extern cvar_t	*vk_log;
 extern	cvar_t	*vk_picmip;
+extern	cvar_t	*vk_skymip;
 extern	cvar_t	*vk_round_down;
 extern	cvar_t	*vk_flashblend;
 extern	cvar_t	*vk_finish;
@@ -211,7 +212,6 @@ extern cvar_t	*gl_particle_att_c;
 
 extern	cvar_t	*gl_lightmap;
 extern	cvar_t	*gl_nobind;
-extern	cvar_t	*gl_skymip;
 extern	cvar_t	*gl_showtris;
 extern	cvar_t	*gl_cull;
 extern	cvar_t	*gl_poly;
@@ -238,6 +238,7 @@ extern	int		c_visible_lightmaps;
 extern	int		c_visible_textures;
 
 extern	float	r_world_matrix[16];
+extern	float	r_viewproj_matrix[16];
 
 void R_TranslatePlayerSkin (int playernum);
 void R_LightPoint (vec3_t p, vec3_t color);
