@@ -199,7 +199,7 @@ extern	cvar_t	*vk_shadows;
 extern	cvar_t	*vk_particle_size;
 extern	cvar_t	*vk_particle_min_size;
 extern	cvar_t	*vk_particle_max_size;
-extern	cvar_t	*vk_point_particle;
+extern	cvar_t	*vk_point_particles;
 extern	cvar_t	*vk_dynamic;
 
 extern cvar_t	*gl_ext_swapinterval;

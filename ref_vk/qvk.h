@@ -232,6 +232,7 @@ extern qvkpipeline_t vk_drawPointParticlesPipeline;
 extern qvkpipeline_t vk_drawSpritePipeline;
 extern qvkpipeline_t vk_drawBeamPipeline;
 extern qvkpipeline_t vk_drawSkyboxPipeline;
+extern qvkpipeline_t vk_drawDLightPipeline;
 
 // function pointers
 extern PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;

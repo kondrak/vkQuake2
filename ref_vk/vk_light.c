@@ -45,21 +45,49 @@ void R_RenderDlight (dlight_t *light)
 
 	VectorSubtract (light->origin, r_origin, v);
 
-	/*qglBegin (GL_TRIANGLE_FAN);
-	qglColor3f (light->color[0]*0.2, light->color[1]*0.2, light->color[2]*0.2);
-	for (i=0 ; i<3 ; i++)
-		v[i] = light->origin[i] - vpn[i]*rad;
-	qglVertex3fv (v);
-	qglColor3f (0,0,0);
-	for (i=16 ; i>=0 ; i--)
+	struct {
+		vec3_t verts;
+		float color[3];
+	} lightVerts[18];
+
+	for (i = 0; i < 3; i++)
+		lightVerts[0].verts[i] = light->origin[i] - vpn[i] * rad;
+
+	lightVerts[0].color[0] = light->color[0] * 0.2;
+	lightVerts[0].color[1] = light->color[1] * 0.2;
+	lightVerts[0].color[2] = light->color[2] * 0.2;
+
+	for (i = 16; i >= 0; i--)
 	{
-		a = i/16.0 * M_PI*2;
-		for (j=0 ; j<3 ; j++)
-			v[j] = light->origin[j] + vright[j]*cos(a)*rad
-				+ vup[j]*sin(a)*rad;
-		qglVertex3fv (v);
+		a = i / 16.0 * M_PI * 2;
+		for (j = 0; j < 3; j++)
+		{
+			lightVerts[i+1].verts[j] = light->origin[j] + vright[j] * cos(a)*rad
+			+ vup[j] * sin(a)*rad;
+			lightVerts[i+1].color[j] = 0.f;
+		}
 	}
-	qglEnd ();*/
+
+	float mvp[16];
+	float model[16];
+	memcpy(model, r_world_matrix, sizeof(float) * 16);
+	Mat_Mul(model, r_viewproj_matrix, mvp);
+
+	QVk_BindPipeline(&vk_drawDLightPipeline);
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(mvp), &uboOffset, &uboDescriptorSet);
+	memcpy(uboData, mvp, sizeof(mvp));
+
+	VkBuffer vbo;
+	VkDeviceSize vboOffset;
+	uint8_t *data = QVk_GetVertexBuffer(sizeof(lightVerts), &vbo, &vboOffset);
+	memcpy(data, lightVerts, sizeof(lightVerts));
+
+	VkDescriptorSet descriptorSets[] = { uboDescriptorSet };
+	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawDLightPipeline.layout, 0, 1, descriptorSets, 1, &uboOffset);
+	vkCmdDraw(vk_activeCmdbuffer, 18, 1, 0, 0);
 }
 
 /*
@@ -77,21 +105,9 @@ void R_RenderDlights (void)
 
 	r_dlightframecount = r_framecount + 1;	// because the count hasn't
 											//  advanced yet for this frame
-	/*qglDepthMask (0);
-	qglDisable (GL_TEXTURE_2D);
-	qglShadeModel (GL_SMOOTH);
-	qglEnable (GL_BLEND);
-	qglBlendFunc (GL_ONE, GL_ONE);
-
 	l = r_newrefdef.dlights;
 	for (i=0 ; i<r_newrefdef.num_dlights ; i++, l++)
 		R_RenderDlight (l);
-
-	qglColor3f (1,1,1);
-	qglDisable (GL_BLEND);
-	qglEnable (GL_TEXTURE_2D);
-	qglBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	qglDepthMask (1);*/
 }
 
 

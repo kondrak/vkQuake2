@@ -124,6 +124,7 @@ qvkpipeline_t vk_drawPointParticlesPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawSpritePipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawBeamPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawSkyboxPipeline = QVKPIPELINE_INIT;
+qvkpipeline_t vk_drawDLightPipeline = QVKPIPELINE_INIT;
 
 #define VK_INPUTBIND_DESC(s) { \
 	.binding = 0, \
@@ -693,6 +694,41 @@ static void CreatePipelines()
 
 	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
 	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
+
+	// draw dynamic light pipeline
+	VkVertexInputBindingDescription dLightBindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 6);
+	VkVertexInputAttributeDescription dLightAttributeDescriptions[] = {
+		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
+		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 3)
+	};
+
+	VkPipelineVertexInputStateCreateInfo dLightVertexInputInfo = {
+		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+		.pNext = NULL,
+		.flags = 0,
+		.vertexBindingDescriptionCount = 1,
+		.pVertexBindingDescriptions = &dLightBindingDesc,
+		.vertexAttributeDescriptionCount = sizeof(dLightAttributeDescriptions) / sizeof(dLightAttributeDescriptions[0]),
+		.pVertexAttributeDescriptions = dLightAttributeDescriptions
+	};
+
+	shaders[0] = QVk_CreateShader(d_light_vert_spv, d_light_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
+	shaders[1] = QVk_CreateShader(d_light_frag_spv, d_light_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
+
+	vk_drawDLightPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+	vk_drawDLightPipeline.depthWriteEnable = VK_FALSE;
+	vk_drawDLightPipeline.cullMode = VK_CULL_MODE_FRONT_BIT;
+	vk_drawDLightPipeline.blendOpts.blendEnable = VK_TRUE;
+	vk_drawDLightPipeline.blendOpts.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+	vk_drawDLightPipeline.blendOpts.dstColorBlendFactor = VK_BLEND_FACTOR_ONE;
+	vk_drawDLightPipeline.blendOpts.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+	vk_drawDLightPipeline.blendOpts.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+
+	VkDescriptorSetLayout dLightDsLayouts[] = { vk_uboDescSetLayout };
+	QVk_CreatePipeline(dLightDsLayouts, 1, &dLightVertexInputInfo, &vk_drawDLightPipeline, shaders, 2);
+
+	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
+	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
 }
 
 /*
@@ -720,6 +756,7 @@ void QVk_Shutdown( void )
 		QVk_DestroyPipeline(&vk_drawSpritePipeline);
 		QVk_DestroyPipeline(&vk_drawBeamPipeline);
 		QVk_DestroyPipeline(&vk_drawSkyboxPipeline);
+		QVk_DestroyPipeline(&vk_drawDLightPipeline);
 		QVk_FreeBuffer(&vk_texRectVbo);
 		QVk_FreeBuffer(&vk_colorRectVbo);
 		QVk_FreeBuffer(&vk_rectIbo);

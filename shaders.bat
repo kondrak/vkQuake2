@@ -16,3 +16,5 @@
 %VULKAN_SDK%\bin32\glslangValidator.exe --variable-name beam_frag_spv -V shaders/beam.frag -o ref_vk/spirv/beam_frag.c
 %VULKAN_SDK%\bin32\glslangValidator.exe --variable-name skybox_vert_spv -V shaders/skybox.vert -o ref_vk/spirv/skybox_vert.c
 %VULKAN_SDK%\bin32\glslangValidator.exe --variable-name skybox_frag_spv -V shaders/skybox.frag -o ref_vk/spirv/skybox_frag.c
+%VULKAN_SDK%\bin32\glslangValidator.exe --variable-name d_light_vert_spv -V shaders/d_light.vert -o ref_vk/spirv/d_light_vert.c
+%VULKAN_SDK%\bin32\glslangValidator.exe --variable-name d_light_frag_spv -V shaders/d_light.frag -o ref_vk/spirv/d_light_frag.c

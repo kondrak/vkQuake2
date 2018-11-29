@@ -84,4 +84,11 @@ extern const size_t skybox_vert_size;
 
 extern const uint32_t skybox_frag_spv[];
 extern const size_t skybox_frag_size;
+
+// dynamic lights
+extern const uint32_t d_light_vert_spv[];
+extern const size_t d_light_vert_size;
+
+extern const uint32_t d_light_frag_spv[];
+extern const size_t d_light_frag_size;
 #endif

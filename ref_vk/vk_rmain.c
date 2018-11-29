@@ -103,7 +103,7 @@ cvar_t	*vk_shadows;
 cvar_t	*vk_particle_size;
 cvar_t	*vk_particle_min_size;
 cvar_t	*vk_particle_max_size;
-cvar_t	*vk_point_particle;
+cvar_t	*vk_point_particles;
 cvar_t	*vk_dynamic;
 cvar_t	*vk_msaa;
 
@@ -512,7 +512,7 @@ R_DrawParticles
 */
 void R_DrawParticles (void)
 {
-	if (vk_point_particle->value)
+	if (vk_point_particles->value)
 	{
 		int i;
 		unsigned char color[4];
@@ -1065,7 +1065,7 @@ void R_Register( void )
 	vk_particle_size = ri.Cvar_Get("vk_particle_size", "40", CVAR_ARCHIVE);
 	vk_particle_min_size = ri.Cvar_Get("vk_particle_min_size", "2", CVAR_ARCHIVE);
 	vk_particle_max_size = ri.Cvar_Get("vk_particle_max_size", "40", CVAR_ARCHIVE);
-	vk_point_particle = ri.Cvar_Get("vk_point_particle", "1", CVAR_ARCHIVE);
+	vk_point_particles = ri.Cvar_Get("vk_point_particles", "1", CVAR_ARCHIVE);
 	vk_dynamic = ri.Cvar_Get("vk_dynamic", "1", 0);
 	vk_msaa = ri.Cvar_Get("vk_msaa", "0", CVAR_ARCHIVE);
 	if (vk_msaa->value < 0)
