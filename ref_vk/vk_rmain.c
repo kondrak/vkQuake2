@@ -761,14 +761,16 @@ void Mat_Rotate(float *matrix, float deg, float x, float y, float z)
 	double c = cos(deg * M_PI / 180.0);
 	double s = sin(deg * M_PI / 180.0);
 	double cd = 1.0 - c;
+	vec3_t r = { x, y, z };
+	VectorNormalize(r);
 
-	float r[16] = { x*x*cd + c,   y*x*cd + z*s, x*z*cd - y*s,  0.f,
-					x*y*cd - z*s, y*y*cd + c,	 y*z*cd + x*s, 0.f,
-					x*z*cd + y*s, y*z*cd - x*s, z*z*cd + c,	   0.f,
-					0.f,		  0.f,			0.f,		   1.f
+	float rot[16] = { r[0]*r[0]*cd + c,		 r[1]*r[0]*cd + r[2]*s, r[0]*r[2]*cd - r[1]*s,	0.f,
+					  r[0]*r[1]*cd - r[2]*s, r[1]*r[1]*cd + c,		r[1]*r[2]*cd + r[0]*s,	0.f,
+					  r[0]*r[2]*cd + r[1]*s, r[1]*r[2]*cd - r[0]*s, r[2]*r[2]*cd + c,		0.f,
+					  0.f,					 0.f,					0.f,					1.f
 	};
 
-	Mat_Mul(matrix, r, matrix);
+	Mat_Mul(matrix, rot, matrix);
 }
 
 void Mat_Scale(float *matrix, float x, float y, float z)
