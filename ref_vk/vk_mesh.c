@@ -690,10 +690,6 @@ void R_DrawAliasModel (entity_t *e)
 		skin = r_notexture;	// fallback...
 
 	// draw it
-
-	//qglShadeModel (GL_SMOOTH);
-
-	//GL_TexEnv( GL_MODULATE );
 	if ( (currententity->frame >= paliashdr->num_frames) 
 		|| (currententity->frame < 0) )
 	{
@@ -715,9 +711,6 @@ void R_DrawAliasModel (entity_t *e)
 	if ( !r_lerpmodels->value )
 		currententity->backlerp = 0;
 	Vk_DrawAliasFrameLerp (paliashdr, currententity->backlerp, skin, model, leftHandOffset, currententity->flags & RF_TRANSLUCENT ? 1 : 0);
-
-	//GL_TexEnv( GL_REPLACE );
-	//qglShadeModel (GL_FLAT);
 
 	if ( ( currententity->flags & RF_WEAPONMODEL ) && ( r_lefthand->value == 1.0F ) )
 	{

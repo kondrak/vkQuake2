@@ -139,6 +139,22 @@ qvkpipeline_t vk_drawDLightPipeline = QVKPIPELINE_INIT;
 	.offset = o \
 }
 
+#define VK_VERTEXINPUT_CINF(b, a) { \
+	.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO, \
+	.pNext = NULL, \
+	.flags = 0, \
+	.vertexBindingDescriptionCount = 1, \
+	.pVertexBindingDescriptions = &b, \
+	.vertexAttributeDescriptionCount = sizeof(a) / sizeof(a[0]), \
+	.pVertexAttributeDescriptions = a \
+}
+
+#define VK_LOAD_VERTFRAG_SHADERS(shaders, name) \
+	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL); \
+	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL); \
+	shaders[0] = QVk_CreateShader(name##_vert_spv, name##_vert_size, VK_SHADER_STAGE_VERTEX_BIT); \
+	shaders[1] = QVk_CreateShader(name##_frag_spv, name##_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
+
 // global static buffers (reused, never changing)
 qvkbuffer_t vk_texRectVbo;
 qvkbuffer_t vk_colorRectVbo;
@@ -418,7 +434,7 @@ static void CreateStaticBuffers()
 
 static void CreatePipelines()
 {
-	qvkshader_t shaders[2];
+	qvkshader_t shaders[2] = { VK_NULL_HANDLE, VK_NULL_HANDLE };
 	// textured quad pipeline
 	VkVertexInputBindingDescription bindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 4);
 	VkVertexInputAttributeDescription attributeDescriptions[] = {
@@ -426,25 +442,12 @@ static void CreatePipelines()
 		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 2),
 	};
 
-	VkPipelineVertexInputStateCreateInfo vertexInputInfo = {
-		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-		.pNext = NULL,
-		.flags = 0,
-		.vertexBindingDescriptionCount = 1,
-		.pVertexBindingDescriptions = &bindingDesc,
-		.vertexAttributeDescriptionCount = sizeof(attributeDescriptions) / sizeof(attributeDescriptions[0]),
-		.pVertexAttributeDescriptions = attributeDescriptions
-	};
-
-	shaders[0] = QVk_CreateShader(basic_vert_spv, basic_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
-	shaders[1] = QVk_CreateShader(basic_frag_spv, basic_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
+	VkPipelineVertexInputStateCreateInfo vertexInputInfo = VK_VERTEXINPUT_CINF(bindingDesc, attributeDescriptions);
+	VK_LOAD_VERTFRAG_SHADERS(shaders, basic);
 
 	vk_drawTexQuadPipeline.depthTestEnable = VK_FALSE;
 	VkDescriptorSetLayout dsLayouts[] = { vk_uboDescSetLayout, vk_samplerDescSetLayout };
 	QVk_CreatePipeline(dsLayouts, 2, &vertexInputInfo, &vk_drawTexQuadPipeline, shaders, 2);
-
-	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
-	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
 
 	// draw particles pipeline (using a texture)
 	VkVertexInputBindingDescription particleBindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 9);
@@ -454,27 +457,14 @@ static void CreatePipelines()
 		VK_INPUTATTR_DESC(2, VK_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 5),
 	};
 
-	VkPipelineVertexInputStateCreateInfo particleVertexInputInfo = {
-		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-		.pNext = NULL,
-		.flags = 0,
-		.vertexBindingDescriptionCount = 1,
-		.pVertexBindingDescriptions = &particleBindingDesc,
-		.vertexAttributeDescriptionCount = sizeof(particleAttributeDescriptions) / sizeof(particleAttributeDescriptions[0]),
-		.pVertexAttributeDescriptions = particleAttributeDescriptions
-	};
-
-	shaders[0] = QVk_CreateShader(particle_vert_spv, particle_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
-	shaders[1] = QVk_CreateShader(particle_frag_spv, particle_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
+	VkPipelineVertexInputStateCreateInfo particleVertexInputInfo = VK_VERTEXINPUT_CINF(particleBindingDesc, particleAttributeDescriptions);
+	VK_LOAD_VERTFRAG_SHADERS(shaders, particle);
 
 	vk_drawParticlesPipeline.depthWriteEnable = VK_FALSE;
 	vk_drawParticlesPipeline.blendOpts.blendEnable = VK_TRUE;
 
 	VkDescriptorSetLayout particleDsLayouts[] = { vk_uboDescSetLayout, vk_samplerDescSetLayout };
 	QVk_CreatePipeline(particleDsLayouts, 2, &particleVertexInputInfo, &vk_drawParticlesPipeline, shaders, 2);
-
-	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
-	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
 
 	// draw particles pipeline (using point list)
 	VkVertexInputBindingDescription pointParticleBindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 7);
@@ -483,18 +473,8 @@ static void CreatePipelines()
 		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 3),
 	};
 
-	VkPipelineVertexInputStateCreateInfo pointParticleVertexInputInfo = {
-		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-		.pNext = NULL,
-		.flags = 0,
-		.vertexBindingDescriptionCount = 1,
-		.pVertexBindingDescriptions = &pointParticleBindingDesc,
-		.vertexAttributeDescriptionCount = sizeof(pointParticleAttributeDescriptions) / sizeof(pointParticleAttributeDescriptions[0]),
-		.pVertexAttributeDescriptions = pointParticleAttributeDescriptions
-	};
-
-	shaders[0] = QVk_CreateShader(point_particle_vert_spv, point_particle_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
-	shaders[1] = QVk_CreateShader(point_particle_frag_spv, point_particle_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
+	VkPipelineVertexInputStateCreateInfo pointParticleVertexInputInfo = VK_VERTEXINPUT_CINF(pointParticleBindingDesc, pointParticleAttributeDescriptions);
+	VK_LOAD_VERTFRAG_SHADERS(shaders, point_particle);
 
 	vk_drawPointParticlesPipeline.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
 	vk_drawPointParticlesPipeline.depthWriteEnable = VK_FALSE;
@@ -503,36 +483,20 @@ static void CreatePipelines()
 	VkDescriptorSetLayout pointParticleDsLayouts[] = { vk_uboDescSetLayout };
 	QVk_CreatePipeline(pointParticleDsLayouts, 1, &pointParticleVertexInputInfo, &vk_drawPointParticlesPipeline, shaders, 2);
 
-	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
-	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
-
 	// colored quad pipeline
 	VkVertexInputBindingDescription colorQuadDesc = VK_INPUTBIND_DESC(sizeof(float) * 2);
 	VkVertexInputAttributeDescription colorQuadAttrDesc[] = {
 		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32_SFLOAT, 0)
 	};
 
-	VkPipelineVertexInputStateCreateInfo colorQuadVertInfo = {
-		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-		.pNext = NULL,
-		.flags = 0,
-		.vertexBindingDescriptionCount = 1,
-		.pVertexBindingDescriptions = &colorQuadDesc,
-		.vertexAttributeDescriptionCount = sizeof(colorQuadAttrDesc) / sizeof(colorQuadAttrDesc[0]),
-		.pVertexAttributeDescriptions = colorQuadAttrDesc
-	};
-
-	shaders[0] = QVk_CreateShader(basic_color_quad_vert_spv, basic_color_quad_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
-	shaders[1] = QVk_CreateShader(basic_color_quad_frag_spv, basic_color_quad_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
+	VkPipelineVertexInputStateCreateInfo colorQuadVertInfo = VK_VERTEXINPUT_CINF(colorQuadDesc, colorQuadAttrDesc);
+	VK_LOAD_VERTFRAG_SHADERS(shaders, basic_color_quad);
 
 	vk_drawColorQuadPipeline.depthTestEnable = VK_FALSE;
 	vk_drawColorQuadPipeline.blendOpts.blendEnable = VK_TRUE;
 
 	VkDescriptorSetLayout dsLayoutsColorQuad[] = { vk_uboDescSetLayout };
 	QVk_CreatePipeline(dsLayoutsColorQuad, 1, &colorQuadVertInfo, &vk_drawColorQuadPipeline, shaders, 2);
-
-	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
-	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
 
 	// untextured null model
 	VkVertexInputBindingDescription nullBind = VK_INPUTBIND_DESC(sizeof(float) * 6);
@@ -541,26 +505,13 @@ static void CreatePipelines()
 		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 3),
 	};
 
-	VkPipelineVertexInputStateCreateInfo nullVertInfo = {
-		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-		.pNext = NULL,
-		.flags = 0,
-		.vertexBindingDescriptionCount = 1,
-		.pVertexBindingDescriptions = &nullBind,
-		.vertexAttributeDescriptionCount = sizeof(nullAttrDesc) / sizeof(nullAttrDesc[0]),
-		.pVertexAttributeDescriptions = nullAttrDesc
-	};
-
-	shaders[0] = QVk_CreateShader(nullmodel_vert_spv, nullmodel_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
-	shaders[1] = QVk_CreateShader(nullmodel_frag_spv, nullmodel_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
+	VkPipelineVertexInputStateCreateInfo nullVertInfo = VK_VERTEXINPUT_CINF(nullBind, nullAttrDesc);
+	VK_LOAD_VERTFRAG_SHADERS(shaders, nullmodel);
 
 	vk_drawNullModel.cullMode = VK_CULL_MODE_NONE;
 	vk_drawNullModel.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
 	VkDescriptorSetLayout dsLayoutsNullModel[] = { vk_uboDescSetLayout };
 	QVk_CreatePipeline(dsLayoutsNullModel, 1, &nullVertInfo, &vk_drawNullModel, shaders, 2);
-
-	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
-	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
 
 	// textured model
 	VkVertexInputBindingDescription modelBind = VK_INPUTBIND_DESC(sizeof(float) * 9);
@@ -570,18 +521,8 @@ static void CreatePipelines()
 		VK_INPUTATTR_DESC(2, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 7),
 	};
 
-	VkPipelineVertexInputStateCreateInfo modelVertInfo = {
-		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-		.pNext = NULL,
-		.flags = 0,
-		.vertexBindingDescriptionCount = 1,
-		.pVertexBindingDescriptions = &modelBind,
-		.vertexAttributeDescriptionCount = sizeof(modelAttrDesc) / sizeof(modelAttrDesc[0]),
-		.pVertexAttributeDescriptions = modelAttrDesc
-	};
-
-	shaders[0] = QVk_CreateShader(model_vert_spv, model_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
-	shaders[1] = QVk_CreateShader(model_frag_spv, model_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
+	VkPipelineVertexInputStateCreateInfo modelVertInfo = VK_VERTEXINPUT_CINF(modelBind, modelAttrDesc);
+	VK_LOAD_VERTFRAG_SHADERS(shaders, model);
 
 	VkDescriptorSetLayout dsLayoutsModel[] = { vk_uboDescSetLayout, vk_samplerDescSetLayout };
 	vk_drawModelPipelineStrip.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
@@ -609,9 +550,6 @@ static void CreatePipelines()
 	vk_drawLefthandModelPipelineFan.cullMode = VK_CULL_MODE_FRONT_BIT;
 	QVk_CreatePipeline(dsLayoutsModel, 2, &modelVertInfo, &vk_drawLefthandModelPipelineFan, shaders, 2);
 
-	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
-	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
-
 	// draw sprite pipeline
 	VkVertexInputBindingDescription spriteBindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 5);
 	VkVertexInputAttributeDescription spriteAttributeDescriptions[] = {
@@ -619,26 +557,13 @@ static void CreatePipelines()
 		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 3)
 	};
 
-	VkPipelineVertexInputStateCreateInfo spriteVertexInputInfo = {
-		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-		.pNext = NULL,
-		.flags = 0,
-		.vertexBindingDescriptionCount = 1,
-		.pVertexBindingDescriptions = &spriteBindingDesc,
-		.vertexAttributeDescriptionCount = sizeof(spriteAttributeDescriptions) / sizeof(spriteAttributeDescriptions[0]),
-		.pVertexAttributeDescriptions = spriteAttributeDescriptions
-	};
-
-	shaders[0] = QVk_CreateShader(sprite_vert_spv, sprite_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
-	shaders[1] = QVk_CreateShader(sprite_frag_spv, sprite_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
+	VkPipelineVertexInputStateCreateInfo spriteVertexInputInfo = VK_VERTEXINPUT_CINF(spriteBindingDesc, spriteAttributeDescriptions);
+	VK_LOAD_VERTFRAG_SHADERS(shaders, sprite);
 
 	vk_drawSpritePipeline.blendOpts.blendEnable = VK_TRUE;
 
 	VkDescriptorSetLayout spriteDsLayouts[] = { vk_uboDescSetLayout, vk_samplerDescSetLayout };
 	QVk_CreatePipeline(spriteDsLayouts, 2, &spriteVertexInputInfo, &vk_drawSpritePipeline, shaders, 2);
-
-	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
-	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
 
 	// draw beam pipeline
 	VkVertexInputBindingDescription beamBindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 3);
@@ -646,18 +571,8 @@ static void CreatePipelines()
 		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0)
 	};
 
-	VkPipelineVertexInputStateCreateInfo beamVertexInputInfo = {
-		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-		.pNext = NULL,
-		.flags = 0,
-		.vertexBindingDescriptionCount = 1,
-		.pVertexBindingDescriptions = &beamBindingDesc,
-		.vertexAttributeDescriptionCount = sizeof(beamAttributeDescriptions) / sizeof(beamAttributeDescriptions[0]),
-		.pVertexAttributeDescriptions = beamAttributeDescriptions
-	};
-
-	shaders[0] = QVk_CreateShader(beam_vert_spv, beam_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
-	shaders[1] = QVk_CreateShader(beam_frag_spv, beam_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
+	VkPipelineVertexInputStateCreateInfo beamVertexInputInfo = VK_VERTEXINPUT_CINF(beamBindingDesc, beamAttributeDescriptions);
+	VK_LOAD_VERTFRAG_SHADERS(shaders, beam);
 
 	vk_drawBeamPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
 	vk_drawBeamPipeline.depthWriteEnable = VK_FALSE;
@@ -666,9 +581,6 @@ static void CreatePipelines()
 	VkDescriptorSetLayout beamDsLayouts[] = { vk_uboDescSetLayout };
 	QVk_CreatePipeline(beamDsLayouts, 1, &beamVertexInputInfo, &vk_drawBeamPipeline, shaders, 2);
 
-	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
-	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
-
 	// draw skybox pipeline
 	VkVertexInputBindingDescription skyboxBindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 5);
 	VkVertexInputAttributeDescription skyboxAttributeDescriptions[] = {
@@ -676,24 +588,11 @@ static void CreatePipelines()
 		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 3)
 	};
 
-	VkPipelineVertexInputStateCreateInfo skyboxVertexInputInfo = {
-		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-		.pNext = NULL,
-		.flags = 0,
-		.vertexBindingDescriptionCount = 1,
-		.pVertexBindingDescriptions = &skyboxBindingDesc,
-		.vertexAttributeDescriptionCount = sizeof(skyboxAttributeDescriptions) / sizeof(skyboxAttributeDescriptions[0]),
-		.pVertexAttributeDescriptions = skyboxAttributeDescriptions
-	};
-
-	shaders[0] = QVk_CreateShader(skybox_vert_spv, skybox_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
-	shaders[1] = QVk_CreateShader(skybox_frag_spv, skybox_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
+	VkPipelineVertexInputStateCreateInfo skyboxVertexInputInfo = VK_VERTEXINPUT_CINF(skyboxBindingDesc, skyboxAttributeDescriptions);
+	VK_LOAD_VERTFRAG_SHADERS(shaders, skybox);
 
 	VkDescriptorSetLayout skyboxDsLayouts[] = { vk_uboDescSetLayout, vk_samplerDescSetLayout };
 	QVk_CreatePipeline(skyboxDsLayouts, 2, &skyboxVertexInputInfo, &vk_drawSkyboxPipeline, shaders, 2);
-
-	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
-	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
 
 	// draw dynamic light pipeline
 	VkVertexInputBindingDescription dLightBindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 6);
@@ -702,18 +601,8 @@ static void CreatePipelines()
 		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 3)
 	};
 
-	VkPipelineVertexInputStateCreateInfo dLightVertexInputInfo = {
-		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-		.pNext = NULL,
-		.flags = 0,
-		.vertexBindingDescriptionCount = 1,
-		.pVertexBindingDescriptions = &dLightBindingDesc,
-		.vertexAttributeDescriptionCount = sizeof(dLightAttributeDescriptions) / sizeof(dLightAttributeDescriptions[0]),
-		.pVertexAttributeDescriptions = dLightAttributeDescriptions
-	};
-
-	shaders[0] = QVk_CreateShader(d_light_vert_spv, d_light_vert_size, VK_SHADER_STAGE_VERTEX_BIT);
-	shaders[1] = QVk_CreateShader(d_light_frag_spv, d_light_frag_size, VK_SHADER_STAGE_FRAGMENT_BIT);
+	VkPipelineVertexInputStateCreateInfo dLightVertexInputInfo = VK_VERTEXINPUT_CINF(dLightBindingDesc, dLightAttributeDescriptions);
+	VK_LOAD_VERTFRAG_SHADERS(shaders, d_light);
 
 	vk_drawDLightPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
 	vk_drawDLightPipeline.depthWriteEnable = VK_FALSE;
@@ -727,6 +616,7 @@ static void CreatePipelines()
 	VkDescriptorSetLayout dLightDsLayouts[] = { vk_uboDescSetLayout };
 	QVk_CreatePipeline(dLightDsLayouts, 1, &dLightVertexInputInfo, &vk_drawDLightPipeline, shaders, 2);
 
+	// final cleanup
 	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
 	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
 }
