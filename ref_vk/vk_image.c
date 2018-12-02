@@ -1556,7 +1556,25 @@ will be freed.
 */
 void Vk_FreeUnusedImages (void)
 {
+	int		i;
+	image_t	*image;
 
+	// never free r_notexture or particle texture
+	r_notexture->registration_sequence = registration_sequence;
+	r_particletexture->registration_sequence = registration_sequence;
+
+	for (i = 0, image = vktextures; i < numvktextures; i++, image++)
+	{
+		if (image->registration_sequence == registration_sequence)
+			continue;		// used this sequence
+		if (!image->registration_sequence)
+			continue;		// free image_t slot
+		if (image->type == it_pic)
+			continue;		// don't free pics
+		// free it
+		QVk_ReleaseTexture(&image->vk_texture);
+		memset(image, 0, sizeof(*image));
+	}
 }
 
 
