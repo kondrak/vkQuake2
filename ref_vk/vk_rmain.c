@@ -111,17 +111,12 @@ cvar_t	*gl_particle_att_a;
 cvar_t	*gl_particle_att_b;
 cvar_t	*gl_particle_att_c;
 
-cvar_t	*gl_ext_swapinterval;
-cvar_t	*gl_ext_pointparameters;
-cvar_t	*gl_ext_compiled_vertex_array;
-
 cvar_t	*gl_lightmap;
 cvar_t	*gl_nobind;
 cvar_t	*gl_showtris;
 cvar_t	*gl_cull;
 cvar_t	*gl_playermip;
 cvar_t  *gl_saturatelighting;
-cvar_t	*gl_swapinterval;
 cvar_t	*gl_texturemode;
 cvar_t	*gl_texturealphamode;
 cvar_t	*gl_texturesolidmode;
@@ -1080,6 +1075,7 @@ void R_Register( void )
 	vid_ref = ri.Cvar_Get("vid_ref", "soft", CVAR_ARCHIVE);
 
 	ri.Cmd_AddCommand("vk_strings", Vk_Strings_f);
+	ri.Cmd_AddCommand("imagelist", Vk_ImageList_f);
 }
 
 /*
@@ -1182,6 +1178,7 @@ R_Shutdown
 void R_Shutdown (void)
 {
 	ri.Cmd_RemoveCommand("vk_strings");
+	ri.Cmd_RemoveCommand("imagelist");
 
 	vkDeviceWaitIdle(vk_device.logical);
 

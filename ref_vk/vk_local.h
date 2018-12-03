@@ -123,7 +123,6 @@ void Vk_BeginRendering (int *x, int *y, int *width, int *height);
 void Vk_EndRendering (void);
 
 void Vk_SetDefaultState( void );
-void Vk_UpdateSwapInterval( void );
 
 typedef struct
 {
@@ -202,10 +201,6 @@ extern	cvar_t	*vk_particle_max_size;
 extern	cvar_t	*vk_point_particles;
 extern	cvar_t	*vk_dynamic;
 
-extern cvar_t	*gl_ext_swapinterval;
-extern cvar_t	*gl_ext_pointparameters;
-extern cvar_t	*gl_ext_compiled_vertex_array;
-
 extern cvar_t	*gl_particle_att_a;
 extern cvar_t	*gl_particle_att_b;
 extern cvar_t	*gl_particle_att_c;
@@ -217,7 +212,6 @@ extern	cvar_t	*gl_cull;
 extern	cvar_t	*gl_poly;
 extern	cvar_t	*gl_lightmaptype;
 extern	cvar_t	*gl_playermip;
-extern	cvar_t	*gl_swapinterval;
 extern	cvar_t	*gl_texturemode;
 extern	cvar_t	*gl_texturealphamode;
 extern	cvar_t	*gl_texturesolidmode;

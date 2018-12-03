@@ -641,7 +641,41 @@ Vk_ImageList_f
 */
 void	Vk_ImageList_f (void)
 {
+	int		i;
+	image_t	*image;
+	int		texels;
 
+	ri.Con_Printf(PRINT_ALL, "------------------\n");
+	texels = 0;
+
+	for (i = 0, image = vktextures; i < numvktextures; i++, image++)
+	{
+		if (image->vk_texture.image == VK_NULL_HANDLE)
+			continue;
+		texels += image->upload_width*image->upload_height;
+		switch (image->type)
+		{
+		case it_skin:
+			ri.Con_Printf(PRINT_ALL, "M");
+			break;
+		case it_sprite:
+			ri.Con_Printf(PRINT_ALL, "S");
+			break;
+		case it_wall:
+			ri.Con_Printf(PRINT_ALL, "W");
+			break;
+		case it_pic:
+			ri.Con_Printf(PRINT_ALL, "P");
+			break;
+		default:
+			ri.Con_Printf(PRINT_ALL, " ");
+			break;
+		}
+
+		ri.Con_Printf(PRINT_ALL, " %3i %3i RGB: %s\n",
+			image->upload_width, image->upload_height, image->name);
+	}
+	ri.Con_Printf(PRINT_ALL, "Total texel count (not counting mipmaps): %i\n", texels);
 }
 
 
@@ -1201,7 +1235,7 @@ void Vk_LightScaleTexture (unsigned *in, int inwidth, int inheight, qboolean onl
 
 /*
 ===============
-GL_Upload32
+Vk_Upload32
 
 Returns number of mip levels
 ===============
@@ -1247,7 +1281,7 @@ uint32_t Vk_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
 	upload_height = scaled_height;
 
 	if (scaled_width * scaled_height > sizeof(scaled) / 4)
-		ri.Sys_Error(ERR_DROP, "GL_Upload32: too big");
+		ri.Sys_Error(ERR_DROP, "Vk_Upload32: too big");
 
 	if (scaled_width == width && scaled_height == height)
 	{
@@ -1303,7 +1337,7 @@ uint32_t Vk_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboole
 	s = width * height;
 
 	if (s > sizeof(trans) / 4)
-		ri.Sys_Error(ERR_DROP, "GL_Upload8: too large");
+		ri.Sys_Error(ERR_DROP, "Vk_Upload8: too large");
 
 	for (i = 0; i < s; i++)
 	{
