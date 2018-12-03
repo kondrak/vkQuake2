@@ -40,6 +40,7 @@ static cvar_t *gl_ext_palettedtexture;
 static cvar_t *gl_finish;
 static cvar_t *vk_finish;
 static cvar_t *vk_msaa;
+static cvar_t *vk_picmip;
 
 static cvar_t *sw_mode;
 static cvar_t *sw_stipplealpha;
@@ -69,6 +70,7 @@ static int				s_current_menu_index;
 static menulist_s		s_mode_list[3];
 static menulist_s		s_ref_list[3];
 static menuslider_s		s_tq_slider;
+static menuslider_s		s_tqvk_slider;
 static menuslider_s		s_screensize_slider[3];
 static menuslider_s		s_brightness_slider[3];
 static menulist_s  		s_fs_box[3];
@@ -165,6 +167,7 @@ static void ApplyChanges( void *unused )
 	Cvar_SetValue( "gl_mode", s_mode_list[OPENGL_MENU].curvalue );
 	Cvar_SetValue( "vk_mode", s_mode_list[VULKAN_MENU].curvalue );
 	Cvar_SetValue( "vk_msaa", s_msaa_mode.curvalue);
+	Cvar_SetValue( "vk_picmip", 3 - s_tqvk_slider.curvalue );
 
 	switch ( s_ref_list[s_current_menu_index].curvalue )
 	{
@@ -301,6 +304,8 @@ void VID_MenuInit( void )
 		vk_finish = Cvar_Get( "vk_finish", "0", CVAR_ARCHIVE );
 	if ( !vk_msaa )
 		vk_msaa = Cvar_Get( "vk_msaa", "0", CVAR_ARCHIVE );
+	if ( !vk_picmip )
+		vk_picmip = Cvar_Get( "vk_picmip", "0", CVAR_ARCHIVE );
 	if ( !sw_stipplealpha )
 		sw_stipplealpha = Cvar_Get( "sw_stipplealpha", "0", CVAR_ARCHIVE );
 
@@ -418,6 +423,14 @@ void VID_MenuInit( void )
 	s_tq_slider.maxvalue = 3;
 	s_tq_slider.curvalue = 3-gl_picmip->value;
 
+	s_tqvk_slider.generic.type = MTYPE_SLIDER;
+	s_tqvk_slider.generic.x = 0;
+	s_tqvk_slider.generic.y = 60;
+	s_tqvk_slider.generic.name = "texture quality";
+	s_tqvk_slider.minvalue = 0;
+	s_tqvk_slider.maxvalue = 3;
+	s_tqvk_slider.curvalue = 3-vk_picmip->value;
+
 	s_paletted_texture_box.generic.type = MTYPE_SPINCONTROL;
 	s_paletted_texture_box.generic.x	= 0;
 	s_paletted_texture_box.generic.y	= 70;
@@ -467,7 +480,7 @@ void VID_MenuInit( void )
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_screensize_slider[VULKAN_MENU]);
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_brightness_slider[VULKAN_MENU]);
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_fs_box[VULKAN_MENU]);
-	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_tq_slider);
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_tqvk_slider);
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_msaa_mode);
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_vkfinish_box);
 

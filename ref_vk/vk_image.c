@@ -1300,9 +1300,8 @@ uint32_t Vk_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
 	memcpy(texBuffer, scaled, sizeof(scaled));
 	if (mipmap)
 	{
-		int		miplevel;
+		int		miplevel = 1;
 
-		miplevel = 0;
 		while (scaled_width > 1 || scaled_height > 1)
 		{
 			scaled_width >>= 1;
