@@ -467,7 +467,7 @@ void QVk_CreateTexture(qvktexture_t *texture, const unsigned char *data, uint32_
 	vkUpdateDescriptorSets(vk_device.logical, 1, &descriptorWrite, 0, NULL);
 }
 
-void QVk_UpdateTexture(qvktexture_t *texture, const unsigned char *data, uint32_t width, uint32_t height)
+void QVk_UpdateTexture(qvktexture_t *texture, const unsigned char *data, uint32_t offset_x, uint32_t offset_y, uint32_t width, uint32_t height)
 {
 	qvkbuffer_t stagingBuffer;
 	int unifiedTransferAndGfx = vk_device.transferQueue == vk_device.gfxQueue ? 1 : 0;
@@ -495,7 +495,7 @@ void QVk_UpdateTexture(qvktexture_t *texture, const unsigned char *data, uint32_
 		.imageSubresource.mipLevel = 0,
 		.imageSubresource.baseArrayLayer = 0,
 		.imageSubresource.layerCount = 1,
-		.imageOffset = { 0, 0, 0 },
+		.imageOffset = { offset_x, offset_y, 0 },
 		.imageExtent = { width, height, 1 }
 	};
 
@@ -1438,7 +1438,7 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 		
 		if (vk_scrapTextures[texnum].image != VK_NULL_HANDLE)
 		{
-			QVk_UpdateTexture(&vk_scrapTextures[texnum], (unsigned char*)texBuffer, image->upload_width, image->upload_height);
+			QVk_UpdateTexture(&vk_scrapTextures[texnum], (unsigned char*)texBuffer, 0, 0, image->upload_width, image->upload_height);
 		}
 		else
 		{
