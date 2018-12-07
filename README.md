@@ -4,7 +4,8 @@ Vulkan port of id Software's Quake 2
 Setup:
 ===
 - install Visual Studio 2017 Community (because of MFC and resources)
-- install Windows SDK 10.0.17134.0 and MFC in Visual Studio installer
+- install MFC package in Visual Studio Installer
+- install Windows Universal CRT SDK and Windows SDK 8.1, alternatively install only any latest Windows 10 SDK and retarget the solution to build
 
 Original code changes:
 ===
