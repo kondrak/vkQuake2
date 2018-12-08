@@ -536,17 +536,14 @@ void CalcSurfaceExtents (msurface_t *s)
 
 		s->texturemins[i] = bmins[i] * 16;
 		s->extents[i] = (bmaxs[i] - bmins[i]) * 16;
-
-//		if ( !(tex->flags & TEX_SPECIAL) && s->extents[i] > 512 /* 256 */ )
-//			ri.Sys_Error (ERR_DROP, "Bad surface extents");
 	}
 }
 
 
 void Vk_BuildPolygonFromSurface(msurface_t *fa);
 void Vk_CreateSurfaceLightmap (msurface_t *surf);
-void GL_EndBuildingLightmaps (void);
-void GL_BeginBuildingLightmaps (model_t *m);
+void Vk_EndBuildingLightmaps (void);
+void Vk_BeginBuildingLightmaps (model_t *m);
 
 /*
 =================
@@ -572,7 +569,7 @@ void Mod_LoadFaces (lump_t *l)
 
 	currentmodel = loadmodel;
 
-	GL_BeginBuildingLightmaps(loadmodel);
+	Vk_BeginBuildingLightmaps(loadmodel);
 
 	for (surfnum = 0; surfnum<count; surfnum++, in++, out++)
 	{
@@ -619,15 +616,15 @@ void Mod_LoadFaces (lump_t *l)
 		}
 
 		// create lightmaps and polygons
-		//if (!(out->texinfo->flags & (SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP)))
-		//	Vk_CreateSurfaceLightmap(out);
+		if (!(out->texinfo->flags & (SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP)))
+			Vk_CreateSurfaceLightmap(out);
 
 		if (!(out->texinfo->flags & SURF_WARP))
 			Vk_BuildPolygonFromSurface(out);
 
 	}
 
-	GL_EndBuildingLightmaps();
+	Vk_EndBuildingLightmaps();
 }
 
 

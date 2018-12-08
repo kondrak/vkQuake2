@@ -335,6 +335,8 @@ typedef struct
 	const char *layers[256];
 } vkconfig_t;
 
+#define MAX_LIGHTMAPS 128
+
 typedef struct
 {
 	float inverse_intensity;
@@ -344,7 +346,7 @@ typedef struct
 
 	unsigned char *d_16to8table;
 
-	int lightmap_textures;
+	qvktexture_t lightmap_textures[MAX_LIGHTMAPS];
 
 	int	currenttextures[2];
 	int currenttmu;

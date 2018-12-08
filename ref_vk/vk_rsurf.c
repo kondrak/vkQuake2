@@ -35,7 +35,6 @@ msurface_t	*r_alpha_surfaces;
 #define	BLOCK_WIDTH		128
 #define	BLOCK_HEIGHT	128
 
-#define	MAX_LIGHTMAPS	128
 
 int		c_visible_lightmaps;
 int		c_visible_textures;
@@ -728,7 +727,6 @@ static void LM_InitBlock( void )
 
 static void LM_UploadBlock( qboolean dynamic )
 {
-	/*
 	int texture;
 	int height = 0;
 
@@ -738,12 +736,8 @@ static void LM_UploadBlock( qboolean dynamic )
 	}
 	else
 	{
-		texture = gl_lms.current_lightmap_texture;
+		texture = vk_lms.current_lightmap_texture;
 	}
-
-	GL_Bind( gl_state.lightmap_textures + texture );
-	qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	if ( dynamic )
 	{
@@ -751,32 +745,22 @@ static void LM_UploadBlock( qboolean dynamic )
 
 		for ( i = 0; i < BLOCK_WIDTH; i++ )
 		{
-			if ( gl_lms.allocated[i] > height )
-				height = gl_lms.allocated[i];
+			if ( vk_lms.allocated[i] > height )
+				height = vk_lms.allocated[i];
 		}
 
-		qglTexSubImage2D( GL_TEXTURE_2D, 
-						  0,
-						  0, 0,
-						  BLOCK_WIDTH, height,
-						  GL_LIGHTMAP_FORMAT,
-						  GL_UNSIGNED_BYTE,
-						  gl_lms.lightmap_buffer );
+		QVk_UpdateTexture(&vk_state.lightmap_textures[texture], (unsigned char *)vk_lms.lightmap_buffer, 0, 0, BLOCK_WIDTH, height);
 	}
 	else
 	{
-		qglTexImage2D( GL_TEXTURE_2D, 
-					   0, 
-					   gl_lms.internal_format,
-					   BLOCK_WIDTH, BLOCK_HEIGHT, 
-					   0, 
-					   GL_LIGHTMAP_FORMAT, 
-					   GL_UNSIGNED_BYTE, 
-					   gl_lms.lightmap_buffer );
-		if ( ++gl_lms.current_lightmap_texture == MAX_LIGHTMAPS )
+		QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[texture]);
+		vk_state.lightmap_textures[texture].format = VK_LIGHTMAP_FORMAT;
+		qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
+		QVk_CreateTexture(&vk_state.lightmap_textures[texture], (unsigned char*)vk_lms.lightmap_buffer, BLOCK_WIDTH, BLOCK_HEIGHT, &defaultTexOpts);
+
+		if ( ++vk_lms.current_lightmap_texture == MAX_LIGHTMAPS )
 			ri.Sys_Error( ERR_DROP, "LM_UploadBlock() - MAX_LIGHTMAPS exceeded\n" );
 	}
-	*/
 }
 
 // returns a texture number and the position inside it
@@ -930,21 +914,87 @@ void Vk_CreateSurfaceLightmap (msurface_t *surf)
 
 /*
 ==================
-GL_BeginBuildingLightmaps
+Vk_BeginBuildingLightmaps
 
 ==================
 */
-void GL_BeginBuildingLightmaps (model_t *m)
+void Vk_BeginBuildingLightmaps (model_t *m)
 {
+	static lightstyle_t	lightstyles[MAX_LIGHTSTYLES];
+	int				i;
+	unsigned		dummy[BLOCK_WIDTH * BLOCK_HEIGHT];
 
+	memset(vk_lms.allocated, 0, sizeof(vk_lms.allocated));
+
+	r_framecount = 1;		// no dlightcache
+
+	/*
+	** setup the base lightstyles so the lightmaps won't have to be regenerated
+	** the first time they're seen
+	*/
+	for (i = 0; i < MAX_LIGHTSTYLES; i++)
+	{
+		lightstyles[i].rgb[0] = 1;
+		lightstyles[i].rgb[1] = 1;
+		lightstyles[i].rgb[2] = 1;
+		lightstyles[i].white = 3;
+	}
+	r_newrefdef.lightstyles = lightstyles;
+
+	vk_lms.current_lightmap_texture = 1;
+
+	/*
+	** if mono lightmaps are enabled and we want to use alpha
+	** blending (a,1-a) then we're likely running on a 3DLabs
+	** Permedia2.  In a perfect world we'd use a GL_ALPHA lightmap
+	** in order to conserve space and maximize bandwidth, however
+	** this isn't a perfect world.
+	**
+	** So we have to use alpha lightmaps, but stored in GL_RGBA format,
+	** which means we only get 1/16th the color resolution we should when
+	** using alpha lightmaps.  If we find another board that supports
+	** only alpha lightmaps but that can at least support the GL_ALPHA
+	** format then we should change this code to use real alpha maps.
+	*/
+	if (toupper(vk_monolightmap->string[0]) == 'A')
+	{
+		vk_lms.internal_format = gl_tex_alpha_format;
+	}
+	/*
+	** try to do hacked colored lighting with a blended texture
+	*/
+	else if (toupper(vk_monolightmap->string[0]) == 'C')
+	{
+		vk_lms.internal_format = gl_tex_alpha_format;
+	}
+	else if (toupper(vk_monolightmap->string[0]) == 'I')
+	{
+		//vk_lms.internal_format = GL_INTENSITY8;
+	}
+	else if (toupper(vk_monolightmap->string[0]) == 'L')
+	{
+		//vk_lms.internal_format = GL_LUMINANCE8;
+	}
+	else
+	{
+		vk_lms.internal_format = gl_tex_solid_format;
+	}
+
+	/*
+	** initialize the dynamic lightmap texture
+	*/
+	QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[0]);
+	vk_state.lightmap_textures[0].format = VK_LIGHTMAP_FORMAT;
+	qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
+	QVk_CreateTexture(&vk_state.lightmap_textures[0], (unsigned char*)dummy, BLOCK_WIDTH, BLOCK_HEIGHT, &defaultTexOpts);
 }
 
 /*
 =======================
-GL_EndBuildingLightmaps
+Vk_EndBuildingLightmaps
 =======================
 */
-void GL_EndBuildingLightmaps (void)
+void Vk_EndBuildingLightmaps (void)
 {
 	LM_UploadBlock( false );
 }
