@@ -761,8 +761,8 @@ static void LM_UploadBlock( qboolean dynamic )
 		{
 			// few GPUs support true 24bit textures, so we need to convert lightmaps to 32bit for Vulkan to work
 			unsigned char rgba_lmap[4 * BLOCK_WIDTH * BLOCK_HEIGHT];
-			memset(rgba_lmap, 255, 4 * BLOCK_WIDTH * BLOCK_HEIGHT);
-			for (int i = 0; i < 4 * BLOCK_WIDTH * BLOCK_HEIGHT; i += 4)
+			memset(rgba_lmap, 255, sizeof(rgba_lmap));
+			for (int i = 0; i < sizeof(vk_lms.lightmap_buffer); i += 4)
 				memcpy(rgba_lmap + i, vk_lms.lightmap_buffer + i, 3);
 
 			QVk_CreateTexture(&vk_state.lightmap_textures[texture], rgba_lmap, BLOCK_WIDTH, BLOCK_HEIGHT, &defaultTexOpts);
