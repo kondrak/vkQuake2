@@ -749,15 +749,28 @@ static void LM_UploadBlock( qboolean dynamic )
 				height = vk_lms.allocated[i];
 		}
 
-		QVk_UpdateTexture(&vk_state.lightmap_textures[texture], (unsigned char *)vk_lms.lightmap_buffer, 0, 0, BLOCK_WIDTH, height);
+		QVk_UpdateTexture(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer, 0, 0, BLOCK_WIDTH, height);
 	}
 	else
 	{
 		QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[texture]);
 		vk_state.lightmap_textures[texture].format = VK_LIGHTMAP_FORMAT;
 		qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
-		QVk_CreateTexture(&vk_state.lightmap_textures[texture], (unsigned char*)vk_lms.lightmap_buffer, BLOCK_WIDTH, BLOCK_HEIGHT, &defaultTexOpts);
 
+		if (vk_lms.internal_format != gl_tex_alpha_format)
+		{
+			// few GPUs support true 24bit textures, so we need to convert lightmaps to 32bit for Vulkan to work
+			unsigned char rgba_lmap[4 * BLOCK_WIDTH * BLOCK_HEIGHT];
+			memset(rgba_lmap, 255, 4 * BLOCK_WIDTH * BLOCK_HEIGHT);
+			for (int i = 0; i < 4 * BLOCK_WIDTH * BLOCK_HEIGHT; i += 4)
+				memcpy(rgba_lmap + i, vk_lms.lightmap_buffer + i, 3);
+
+			QVk_CreateTexture(&vk_state.lightmap_textures[texture], rgba_lmap, BLOCK_WIDTH, BLOCK_HEIGHT, &defaultTexOpts);
+		}
+		else
+		{
+			QVk_CreateTexture(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer, BLOCK_WIDTH, BLOCK_HEIGHT, &defaultTexOpts);
+		}
 		if ( ++vk_lms.current_lightmap_texture == MAX_LIGHTMAPS )
 			ri.Sys_Error( ERR_DROP, "LM_UploadBlock() - MAX_LIGHTMAPS exceeded\n" );
 	}
