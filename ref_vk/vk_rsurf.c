@@ -61,6 +61,7 @@ static vklightmapstate_t vk_lms;
 static void		LM_InitBlock( void );
 static void		LM_UploadBlock( qboolean dynamic );
 static qboolean	LM_AllocBlock (int w, int h, int *x, int *y);
+static void		RgbToRgba(unsigned char *src, unsigned char *dst, size_t size);
 
 extern void R_SetCacheState( msurface_t *surf );
 extern void R_BuildLightMap (msurface_t *surf, byte *dest, int stride);
@@ -230,14 +231,18 @@ void R_RenderBrushPoly (msurface_t *fa)
 			R_BuildLightMap(fa, (void *)temp, smax * 4);
 			R_SetCacheState(fa);
 
-			/*GL_Bind(gl_state.lightmap_textures + fa->lightmaptexturenum);
+			if (vk_lms.internal_format != gl_tex_alpha_format)
+			{
+				unsigned char rgba_lmap[4 * 34 * 34];
+				RgbToRgba((unsigned char *)temp, rgba_lmap, 4 * 34 * 34);
 
-			qglTexSubImage2D(GL_TEXTURE_2D, 0,
-				fa->light_s, fa->light_t,
-				smax, tmax,
-				GL_LIGHTMAP_FORMAT,
-				GL_UNSIGNED_BYTE, temp);
-				*/
+				QVk_UpdateTexture(&vk_state.lightmap_textures[fa->lightmaptexturenum], (unsigned char*)rgba_lmap, fa->light_s, fa->light_t, smax, tmax);
+			}
+			else
+			{
+				QVk_UpdateTexture(&vk_state.lightmap_textures[fa->lightmaptexturenum], (unsigned char*)temp, fa->light_s, fa->light_t, smax, tmax);
+			}
+			
 			fa->lightmapchain = vk_lms.lightmap_surfaces[fa->lightmaptexturenum];
 			vk_lms.lightmap_surfaces[fa->lightmaptexturenum] = fa;
 		}
@@ -749,27 +754,46 @@ static void LM_UploadBlock( qboolean dynamic )
 				height = vk_lms.allocated[i];
 		}
 
-		QVk_UpdateTexture(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer, 0, 0, BLOCK_WIDTH, height);
-	}
-	else
-	{
-		QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[texture]);
-		vk_state.lightmap_textures[texture].format = VK_LIGHTMAP_FORMAT;
-		qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
-
 		if (vk_lms.internal_format != gl_tex_alpha_format)
 		{
-			// few GPUs support true 24bit textures, so we need to convert lightmaps to 32bit for Vulkan to work
 			unsigned char rgba_lmap[4 * BLOCK_WIDTH * BLOCK_HEIGHT];
-			memset(rgba_lmap, 255, sizeof(rgba_lmap));
-			for (int i = 0; i < sizeof(vk_lms.lightmap_buffer); i += 4)
-				memcpy(rgba_lmap + i, vk_lms.lightmap_buffer + i, 3);
+			RgbToRgba(vk_lms.lightmap_buffer, rgba_lmap, 4 * BLOCK_WIDTH * BLOCK_HEIGHT);
 
-			QVk_CreateTexture(&vk_state.lightmap_textures[texture], rgba_lmap, BLOCK_WIDTH, BLOCK_HEIGHT, &defaultTexOpts);
+			QVk_UpdateTexture(&vk_state.lightmap_textures[texture], rgba_lmap, 0, 0, BLOCK_WIDTH, height);
 		}
 		else
 		{
-			QVk_CreateTexture(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer, BLOCK_WIDTH, BLOCK_HEIGHT, &defaultTexOpts);
+			QVk_UpdateTexture(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer, 0, 0, BLOCK_WIDTH, height);
+		}
+	}
+	else
+	{
+		if (vk_lms.internal_format != gl_tex_alpha_format)
+		{
+			unsigned char rgba_lmap[4 * BLOCK_WIDTH * BLOCK_HEIGHT];
+			RgbToRgba(vk_lms.lightmap_buffer, rgba_lmap, 4 * BLOCK_WIDTH * BLOCK_HEIGHT);
+
+			if(vk_state.lightmap_textures[texture].image != VK_NULL_HANDLE)
+				QVk_UpdateTexture(&vk_state.lightmap_textures[texture], rgba_lmap, 0, 0, BLOCK_WIDTH, BLOCK_HEIGHT);
+			else
+			{
+				QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[texture]);
+				vk_state.lightmap_textures[texture].format = VK_LIGHTMAP_FORMAT;
+				qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
+				QVk_CreateTexture(&vk_state.lightmap_textures[texture], rgba_lmap, BLOCK_WIDTH, BLOCK_HEIGHT, &defaultTexOpts);
+			}
+		}
+		else
+		{
+			if (vk_state.lightmap_textures[texture].image != VK_NULL_HANDLE)
+				QVk_UpdateTexture(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer, 0, 0, BLOCK_WIDTH, BLOCK_HEIGHT);
+			else
+			{
+				QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[texture]);
+				vk_state.lightmap_textures[texture].format = VK_LIGHTMAP_FORMAT;
+				qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
+				QVk_CreateTexture(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer, BLOCK_WIDTH, BLOCK_HEIGHT, &defaultTexOpts);
+			}
 		}
 		if ( ++vk_lms.current_lightmap_texture == MAX_LIGHTMAPS )
 			ri.Sys_Error( ERR_DROP, "LM_UploadBlock() - MAX_LIGHTMAPS exceeded\n" );
@@ -809,6 +833,14 @@ static qboolean LM_AllocBlock (int w, int h, int *x, int *y)
 		vk_lms.allocated[*x + i] = best + h;
 
 	return true;
+}
+
+static void RgbToRgba(unsigned char *src, unsigned char *dst, size_t size)
+{
+	// few GPUs support true 24bit textures, so we need to convert lightmaps to 32bit for Vulkan to work
+	memset(dst, 255, size);
+	for (int i = 0; i < size; i += 4)
+		memcpy(dst + i, src + i, 3);
 }
 
 /*
@@ -996,10 +1028,13 @@ void Vk_BeginBuildingLightmaps (model_t *m)
 	/*
 	** initialize the dynamic lightmap texture
 	*/
-	QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[0]);
-	vk_state.lightmap_textures[0].format = VK_LIGHTMAP_FORMAT;
-	qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
-	QVk_CreateTexture(&vk_state.lightmap_textures[0], (unsigned char*)dummy, BLOCK_WIDTH, BLOCK_HEIGHT, &defaultTexOpts);
+	if (vk_state.lightmap_textures[0].image == VK_NULL_HANDLE)
+	{
+		QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[0]);
+		vk_state.lightmap_textures[0].format = VK_LIGHTMAP_FORMAT;
+		qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
+		QVk_CreateTexture(&vk_state.lightmap_textures[0], (unsigned char*)dummy, BLOCK_WIDTH, BLOCK_HEIGHT, &defaultTexOpts);
+	}
 }
 
 /*

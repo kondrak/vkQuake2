@@ -1608,9 +1608,6 @@ void Vk_FreeUnusedImages (void)
 		QVk_ReleaseTexture(&image->vk_texture);
 		memset(image, 0, sizeof(*image));
 	}
-
-	for (i = 0; i < MAX_LIGHTMAPS; i++)
-		QVk_ReleaseTexture(&vk_state.lightmap_textures[i]);
 }
 
 
