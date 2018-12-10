@@ -122,6 +122,7 @@ qvkpipeline_t vk_drawNullModel = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawParticlesPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawPointParticlesPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawSpritePipeline = QVKPIPELINE_INIT;
+qvkpipeline_t vk_drawPolyPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawBeamPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawSkyboxPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawDLightPipeline = QVKPIPELINE_INIT;
@@ -565,6 +566,14 @@ static void CreatePipelines()
 	VkDescriptorSetLayout spriteDsLayouts[] = { vk_uboDescSetLayout, vk_samplerDescSetLayout };
 	QVk_CreatePipeline(spriteDsLayouts, 2, &spriteVertexInputInfo, &vk_drawSpritePipeline, shaders, 2);
 
+	// draw polygon pipeline
+	VK_LOAD_VERTFRAG_SHADERS(shaders, polygon);
+
+	vk_drawPolyPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+	vk_drawPolyPipeline.blendOpts.blendEnable = VK_TRUE;
+
+	QVk_CreatePipeline(spriteDsLayouts, 2, &spriteVertexInputInfo, &vk_drawPolyPipeline, shaders, 2);
+
 	// draw beam pipeline
 	VkVertexInputBindingDescription beamBindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 3);
 	VkVertexInputAttributeDescription beamAttributeDescriptions[] = {
@@ -644,6 +653,7 @@ void QVk_Shutdown( void )
 		QVk_DestroyPipeline(&vk_drawParticlesPipeline);
 		QVk_DestroyPipeline(&vk_drawPointParticlesPipeline);
 		QVk_DestroyPipeline(&vk_drawSpritePipeline);
+		QVk_DestroyPipeline(&vk_drawPolyPipeline);
 		QVk_DestroyPipeline(&vk_drawBeamPipeline);
 		QVk_DestroyPipeline(&vk_drawSkyboxPipeline);
 		QVk_DestroyPipeline(&vk_drawDLightPipeline);

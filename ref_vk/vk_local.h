@@ -261,7 +261,7 @@ void R_DrawBeam( entity_t *e );
 void R_DrawWorld (void);
 void R_RenderDlights (void);
 void R_DrawAlphaSurfaces (void);
-void R_RenderBrushPoly (msurface_t *fa);
+void R_RenderBrushPoly (msurface_t *fa, float alpha);
 void R_InitParticleTexture (void);
 void Draw_InitLocal (void);
 void Vk_SubdivideSurface (msurface_t *fa);
@@ -270,7 +270,7 @@ void R_RotateForEntity (entity_t *e, float *mvMatrix);
 void R_MarkLeaves (void);
 
 vkpoly_t *WaterWarpPolyVerts (vkpoly_t *p);
-void EmitWaterPolys (msurface_t *fa);
+void EmitWaterPolys (msurface_t *fa, image_t *texture, float *color);
 void R_AddSkySurface (msurface_t *fa);
 void R_ClearSkyBox (void);
 void R_DrawSkyBox (void);

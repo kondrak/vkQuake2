@@ -209,9 +209,90 @@ EmitWaterPolys
 Does a water warp on the pre-fragmented glpoly_t chain
 =============
 */
-void EmitWaterPolys (msurface_t *fa)
+void EmitWaterPolys (msurface_t *fa, image_t *texture, float *color)
 {
+	vkpoly_t	*p, *bp;
+	float		*v;
+	int			i;
+	float		s, t, os, ot;
+	float		scroll;
+	float		rdt = r_newrefdef.time;
 
+	typedef struct {
+		float vertex[3];
+		float texCoord[2];
+	} polyvert;
+
+	struct {
+		float mvp[16];
+		float color[4];
+	} polyUbo;
+
+	polyUbo.color[0] = color[0];
+	polyUbo.color[1] = color[1];
+	polyUbo.color[2] = color[2];
+	polyUbo.color[3] = color[3];
+
+	polyvert verts[MAX_VERTS];
+
+	if (fa->texinfo->flags & SURF_FLOWING)
+		scroll = -64 * ((r_newrefdef.time*0.5) - (int)(r_newrefdef.time*0.5));
+	else
+		scroll = 0;
+
+	float model[16];
+	memcpy(model, r_world_matrix, sizeof(float) * 16);
+	Mat_Mul(model, r_viewproj_matrix, polyUbo.mvp);
+
+	QVk_BindPipeline(&vk_drawPolyPipeline);
+
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(polyUbo), &uboOffset, &uboDescriptorSet);
+	memcpy(uboData, &polyUbo, sizeof(polyUbo));
+
+	VkBuffer vbo;
+	VkDeviceSize vboOffset;
+	VkDescriptorSet descriptorSets[] = { uboDescriptorSet, texture->vk_texture.descriptorSet };
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
+
+	for (bp = fa->polys; bp; bp = bp->next)
+	{
+		p = bp;
+
+		for (i = 0, v = p->verts[0]; i < p->numverts; i++, v += VERTEXSIZE)
+		{
+			os = v[3];
+			ot = v[4];
+
+#if !id386
+			s = os + r_turbsin[(int)((ot*0.125 + r_newrefdef.time) * TURBSCALE) & 255];
+#else
+			s = os + r_turbsin[Q_ftol(((ot*0.125 + rdt) * TURBSCALE)) & 255];
+#endif
+			s += scroll;
+			s *= (1.0 / 64);
+
+#if !id386
+			t = ot + r_turbsin[(int)((os*0.125 + rdt) * TURBSCALE) & 255];
+#else
+			t = ot + r_turbsin[Q_ftol(((os*0.125 + rdt) * TURBSCALE)) & 255];
+#endif
+			t *= (1.0 / 64);
+
+			verts[i].vertex[0] = v[0];
+			verts[i].vertex[1] = v[1];
+			verts[i].vertex[2] = v[2];
+			verts[i].texCoord[0] = s;
+			verts[i].texCoord[1] = t;
+		}
+
+		uint8_t *data = QVk_GetVertexBuffer(sizeof(polyvert) * p->numverts, &vbo, &vboOffset);
+		memcpy(data, verts, sizeof(polyvert) * p->numverts);
+
+		vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
+		vkCmdDraw(vk_activeCmdbuffer, p->numverts, 1, 0, 0);
+	}
 }
 
 

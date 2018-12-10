@@ -103,9 +103,58 @@ image_t *R_TextureAnimation (mtexinfo_t *tex)
 DrawVkPoly
 ================
 */
-void DrawVkPoly (vkpoly_t *p)
+void DrawVkPoly (vkpoly_t *p, image_t *texture, float *color)
 {
+	int		i;
+	float	*v;
 
+	typedef struct {
+		float vertex[3];
+		float texCoord[2];
+	} polyvert;
+
+	struct {
+		float mvp[16];
+		float color[4];
+	} polyUbo;
+
+	polyUbo.color[0] = color[0];
+	polyUbo.color[1] = color[1];
+	polyUbo.color[2] = color[2];
+	polyUbo.color[3] = color[3];
+
+	polyvert verts[MAX_VERTS];
+
+	v = p->verts[0];
+	for (i = 0; i < p->numverts; i++, v += VERTEXSIZE)
+	{
+		verts[i].vertex[0] = v[0];
+		verts[i].vertex[1] = v[1];
+		verts[i].vertex[2] = v[2];
+		verts[i].texCoord[0] = v[3];
+		verts[i].texCoord[1] = v[4];
+	}
+
+	float model[16];
+	memcpy(model, r_world_matrix, sizeof(float) * 16);
+	Mat_Mul(model, r_viewproj_matrix, polyUbo.mvp);
+
+	QVk_BindPipeline(&vk_drawPolyPipeline);
+
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(polyUbo), &uboOffset, &uboDescriptorSet);
+	memcpy(uboData, &polyUbo, sizeof(polyUbo));
+
+	VkBuffer vbo;
+	VkDeviceSize vboOffset;
+	uint8_t *data = QVk_GetVertexBuffer(sizeof(polyvert) * p->numverts, &vbo, &vboOffset);
+	memcpy(data, verts, sizeof(polyvert) * p->numverts);
+
+	VkDescriptorSet descriptorSets[] = { uboDescriptorSet, texture->vk_texture.descriptorSet };
+	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
+	vkCmdDraw(vk_activeCmdbuffer, p->numverts, 1, 0, 0);
 }
 
 //============
@@ -115,9 +164,66 @@ void DrawVkPoly (vkpoly_t *p)
 DrawVkFlowingPoly -- version of DrawVkPoly that handles scrolling texture
 ================
 */
-void DrawVkFlowingPoly (msurface_t *fa)
+void DrawVkFlowingPoly (msurface_t *fa, image_t *texture, float *color)
 {
+	int		i;
+	float	*v;
+	vkpoly_t *p;
+	float	scroll;
 
+	typedef struct {
+		float vertex[3];
+		float texCoord[2];
+	} polyvert;
+
+	struct {
+		float mvp[16];
+		float color[4];
+	} polyUbo;
+
+	polyUbo.color[0] = color[0];
+	polyUbo.color[1] = color[1];
+	polyUbo.color[2] = color[2];
+	polyUbo.color[3] = color[3];
+
+	polyvert verts[MAX_VERTS];
+
+	p = fa->polys;
+
+	scroll = -64 * ((r_newrefdef.time / 40.0) - (int)(r_newrefdef.time / 40.0));
+	if (scroll == 0.0)
+		scroll = -64.0;
+
+	v = p->verts[0];
+	for (i = 0; i < p->numverts; i++, v += VERTEXSIZE)
+	{
+		verts[i].vertex[0] = v[0];
+		verts[i].vertex[1] = v[1];
+		verts[i].vertex[2] = v[2];
+		verts[i].texCoord[0] = v[3] + scroll;
+		verts[i].texCoord[1] = v[4];
+	}
+
+	float model[16];
+	memcpy(model, r_world_matrix, sizeof(float) * 16);
+	Mat_Mul(model, r_viewproj_matrix, polyUbo.mvp);
+
+	QVk_BindPipeline(&vk_drawPolyPipeline);
+
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(polyUbo), &uboOffset, &uboDescriptorSet);
+	memcpy(uboData, &polyUbo, sizeof(polyUbo));
+
+	VkBuffer vbo;
+	VkDeviceSize vboOffset;
+	uint8_t *data = QVk_GetVertexBuffer(sizeof(polyvert) * p->numverts, &vbo, &vboOffset);
+	memcpy(data, verts, sizeof(polyvert) * p->numverts);
+
+	VkDescriptorSet descriptorSets[] = { uboDescriptorSet, texture->vk_texture.descriptorSet };
+	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
+	vkCmdDraw(vk_activeCmdbuffer, p->numverts, 1, 0, 0);
 }
 //PGM
 //============
@@ -131,11 +237,94 @@ void R_DrawTriangleOutlines (void)
 }
 
 /*
-** DrawGLPolyChain
+** DrawVkPolyChain
 */
-void DrawGLPolyChain( vkpoly_t *p, float soffset, float toffset )
+void DrawVkPolyChain( vkpoly_t *p, float soffset, float toffset, image_t *texture, float *color )
 {
+	int polycount = 0;
 
+	typedef struct {
+		float vertex[3];
+		float texCoord[2];
+	} polyvert;
+
+	struct {
+		float mvp[16];
+		float color[4];
+	} polyUbo;
+
+	polyUbo.color[0] = color[0];
+	polyUbo.color[1] = color[1];
+	polyUbo.color[2] = color[2];
+	polyUbo.color[3] = color[3];
+
+	polyvert verts[MAX_VERTS];
+
+	float model[16];
+	memcpy(model, r_world_matrix, sizeof(float) * 16);
+	Mat_Mul(model, r_viewproj_matrix, polyUbo.mvp);
+
+	QVk_BindPipeline(&vk_drawPolyPipeline);
+
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(polyUbo), &uboOffset, &uboDescriptorSet);
+	memcpy(uboData, &polyUbo, sizeof(polyUbo));
+
+	VkBuffer vbo;
+	VkDeviceSize vboOffset;
+	VkDescriptorSet descriptorSets[] = { uboDescriptorSet, texture->vk_texture.descriptorSet };
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
+
+
+	if (soffset == 0 && toffset == 0)
+	{
+		for (; p != 0; p = p->chain)
+		{
+			float *v;
+			int j;
+
+			v = p->verts[0];
+			for (j = 0; j < p->numverts; j++, v += VERTEXSIZE)
+			{
+				verts[j].vertex[0] = v[0];
+				verts[j].vertex[1] = v[1];
+				verts[j].vertex[2] = v[2];
+				verts[j].texCoord[0] = v[5];
+				verts[j].texCoord[1] = v[6];
+			}
+
+			uint8_t *data = QVk_GetVertexBuffer(sizeof(polyvert) * p->numverts, &vbo, &vboOffset);
+			memcpy(data, verts, sizeof(polyvert) * p->numverts);
+
+			vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
+			vkCmdDraw(vk_activeCmdbuffer, p->numverts, 1, 0, 0);
+		}
+	}
+	else
+	{
+		for (; p != 0; p = p->chain)
+		{
+			float *v;
+			int j;
+
+			v = p->verts[0];
+			for (j = 0; j < p->numverts; j++, v += VERTEXSIZE)
+			{
+				verts[j].vertex[0] = v[0];
+				verts[j].vertex[1] = v[1];
+				verts[j].vertex[2] = v[2];
+				verts[j].texCoord[0] = v[5] - soffset;
+				verts[j].texCoord[1] = v[6] - toffset;
+			}
+
+			uint8_t *data = QVk_GetVertexBuffer(sizeof(polyvert) * p->numverts, &vbo, &vboOffset);
+			memcpy(data, verts, sizeof(polyvert) * p->numverts);
+
+			vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
+			vkCmdDraw(vk_activeCmdbuffer, p->numverts, 1, 0, 0);
+		}
+	}
 }
 
 /*
@@ -154,45 +343,31 @@ void R_BlendLightmaps (void)
 R_RenderBrushPoly
 ================
 */
-void R_RenderBrushPoly (msurface_t *fa)
+void R_RenderBrushPoly (msurface_t *fa, float alpha)
 {
 	int			maps;
 	image_t		*image;
 	qboolean is_dynamic = false;
-
+	float		color[4] = { 1.f, 1.f, 1.f, alpha };
 	c_brush_polys++;
 
 	image = R_TextureAnimation(fa->texinfo);
 
 	if (fa->flags & SURF_DRAWTURB)
 	{
-	/*	GL_Bind(image->texnum);
-
+		color[0] = color[1] = color[2] = vk_state.inverse_intensity;
+		color[3] = 1.f;
 		// warp texture, no lightmaps
-		GL_TexEnv(GL_MODULATE);
-		qglColor4f(gl_state.inverse_intensity,
-			gl_state.inverse_intensity,
-			gl_state.inverse_intensity,
-			1.0F);
-		EmitWaterPolys(fa);
-		GL_TexEnv(GL_REPLACE);
-		*/
+		EmitWaterPolys(fa, image, color);
 		return;
-	}
-	else
-	{
-		/*GL_Bind(image->texnum);
-
-		GL_TexEnv(GL_REPLACE);
-		*/
 	}
 
 	//======
 	//PGM
 	if (fa->texinfo->flags & SURF_FLOWING)
-		DrawVkFlowingPoly(fa);
+		DrawVkFlowingPoly(fa, image, color);
 	else
-		DrawVkPoly(fa->polys);
+		DrawVkPoly(fa->polys, image, color);
 	//PGM
 	//======
 
@@ -271,7 +446,31 @@ of alpha_surfaces will draw back to front, giving proper ordering.
 */
 void R_DrawAlphaSurfaces (void)
 {
+	msurface_t	*s;
+	float		intens;
 
+	// the textures are prescaled up for a better lighting range,
+	// so scale it back down
+	intens = vk_state.inverse_intensity;
+	float color[4] = { intens, intens, intens, 1.f };
+
+	for (s = r_alpha_surfaces; s; s = s->texturechain)
+	{
+		c_brush_polys++;
+		if (s->texinfo->flags & SURF_TRANS33)
+			color[3] = 0.33f;
+		else if (s->texinfo->flags & SURF_TRANS66)
+			color[3] = 0.66f;
+
+		if (s->flags & SURF_DRAWTURB)
+			EmitWaterPolys(s, s->texinfo->image, color);
+		else if (s->texinfo->flags & SURF_FLOWING)			// PGM	9/16/98
+			DrawVkFlowingPoly(s, s->texinfo->image, color);	// PGM
+		else
+			DrawVkPoly(s->polys, s->texinfo->image, color);
+	}
+
+	r_alpha_surfaces = NULL;
 }
 
 /*
@@ -298,11 +497,10 @@ void DrawTextureChains (void)
 		for (s = image->texturechain; s; s = s->texturechain)
 		{
 			if (!(s->flags & SURF_DRAWTURB))
-				R_RenderBrushPoly(s);
+				R_RenderBrushPoly(s, 1.f);
 		}
 	}
 
-	//GL_EnableMultitexture(false);
 	for (i = 0, image = vktextures; i < numvktextures; i++, image++)
 	{
 		if (!image->registration_sequence)
@@ -314,17 +512,15 @@ void DrawTextureChains (void)
 		for (; s; s = s->texturechain)
 		{
 			if (s->flags & SURF_DRAWTURB)
-				R_RenderBrushPoly(s);
+				R_RenderBrushPoly(s, 1.f);
 		}
 
 		image->texturechain = NULL;
 	}
-
-	//GL_TexEnv(GL_REPLACE);
 }
 
 
-static void GL_RenderLightmappedPoly( msurface_t *surf )
+static void Vk_RenderLightmappedPoly( msurface_t *surf, float alpha )
 {
 
 }
@@ -341,6 +537,7 @@ void R_DrawInlineBModel (void)
 	float		dot;
 	msurface_t	*psurf;
 	dlight_t	*lt;
+	float		alpha = 1.f;
 
 	// calculate dynamic lighting for bmodel
 	if (!vk_flashblend->value)
@@ -356,9 +553,7 @@ void R_DrawInlineBModel (void)
 
 	if (currententity->flags & RF_TRANSLUCENT)
 	{
-		//qglEnable(GL_BLEND);
-		//qglColor4f(1, 1, 1, 0.25);
-		//GL_TexEnv(GL_MODULATE);
+		alpha = .25f;
 	}
 
 	//
@@ -382,22 +577,13 @@ void R_DrawInlineBModel (void)
 			}
 			else if (!(psurf->flags & SURF_DRAWTURB))
 			{
-				GL_RenderLightmappedPoly(psurf);
+				Vk_RenderLightmappedPoly(psurf, alpha);
 			}
 			else
 			{
-				//GL_EnableMultitexture(false);
-				R_RenderBrushPoly(psurf);
-				//GL_EnableMultitexture(true);
+				R_RenderBrushPoly(psurf, alpha);
 			}
 		}
-	}
-
-	if (currententity->flags & RF_TRANSLUCENT)
-	{
-		//qglDisable(GL_BLEND);
-		//qglColor4f(1, 1, 1, 1);
-		//GL_TexEnv(GL_REPLACE);
 	}
 }
 

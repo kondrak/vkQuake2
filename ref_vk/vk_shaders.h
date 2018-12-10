@@ -91,4 +91,11 @@ extern const size_t d_light_vert_size;
 
 extern const uint32_t d_light_frag_spv[];
 extern const size_t d_light_frag_size;
+
+// textured, alpha blended polygon
+extern const uint32_t polygon_vert_spv[];
+extern const size_t polygon_vert_size;
+
+extern const uint32_t polygon_frag_spv[];
+extern const size_t polygon_frag_size;
 #endif
