@@ -411,7 +411,7 @@ void R_RenderBrushPoly (msurface_t *fa, float alpha)
 				unsigned char rgba_lmap[4 * 34 * 34];
 				RgbToRgba((unsigned char *)temp, rgba_lmap, 4 * 34 * 34);
 
-				QVk_UpdateTexture(&vk_state.lightmap_textures[fa->lightmaptexturenum], (unsigned char*)rgba_lmap, fa->light_s, fa->light_t, smax, tmax);
+				QVk_UpdateTexture(&vk_state.lightmap_textures[fa->lightmaptexturenum], rgba_lmap, fa->light_s, fa->light_t, smax, tmax);
 			}
 			else
 			{
@@ -522,7 +522,241 @@ void DrawTextureChains (void)
 
 static void Vk_RenderLightmappedPoly( msurface_t *surf, float alpha )
 {
+	int		i, nv = surf->polys->numverts;
+	int		map;
+	float	*v;
+	image_t *image = R_TextureAnimation(surf->texinfo);
+	qboolean is_dynamic = false;
+	unsigned lmtex = surf->lightmaptexturenum;
+	vkpoly_t *p;
 
+	typedef struct {
+		float vertex[3];
+		float texCoord[2];
+		float texCoordLmap[2];
+	} lmappolyvert;
+
+	lmappolyvert verts[MAX_VERTS];
+
+	struct {
+		float mvp[16];
+	} lmapPolyUbo;
+
+	float model[16];
+	memcpy(model, r_world_matrix, sizeof(float) * 16);
+	Mat_Mul(model, r_viewproj_matrix, lmapPolyUbo.mvp);
+
+	QVk_BindPipeline(&vk_drawPolyLmapPipeline);
+
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(lmapPolyUbo), &uboOffset, &uboDescriptorSet);
+	memcpy(uboData, &lmapPolyUbo, sizeof(lmapPolyUbo));
+
+	for (map = 0; map < MAXLIGHTMAPS && surf->styles[map] != 255; map++)
+	{
+		if (r_newrefdef.lightstyles[surf->styles[map]].white != surf->cached_light[map])
+			goto dynamic;
+	}
+
+	// dynamic this frame or dynamic previously
+	if ((surf->dlightframe == r_framecount))
+	{
+	dynamic:
+		if (vk_dynamic->value)
+		{
+			if (!(surf->texinfo->flags & (SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP)))
+			{
+				is_dynamic = true;
+			}
+		}
+	}
+
+	if (is_dynamic)
+	{
+		unsigned	temp[128 * 128];
+		int			smax, tmax;
+
+		if ((surf->styles[map] >= 32 || surf->styles[map] == 0) && (surf->dlightframe != r_framecount))
+		{
+			smax = (surf->extents[0] >> 4) + 1;
+			tmax = (surf->extents[1] >> 4) + 1;
+
+			R_BuildLightMap(surf, (void *)temp, smax * 4);
+			R_SetCacheState(surf);
+
+			lmtex = surf->lightmaptexturenum;
+
+			if (vk_lms.internal_format != gl_tex_alpha_format)
+			{
+				unsigned char rgba_lmap[4 * 128 * 128];
+				RgbToRgba((unsigned char *)temp, rgba_lmap, 4 * 128 * 128);
+
+				QVk_UpdateTexture(&vk_state.lightmap_textures[surf->lightmaptexturenum], rgba_lmap, surf->light_s, surf->light_t, smax, tmax);
+			}
+			else
+			{
+				QVk_UpdateTexture(&vk_state.lightmap_textures[surf->lightmaptexturenum], (unsigned char *)temp, surf->light_s, surf->light_t, smax, tmax);
+			}
+		}
+		else
+		{
+			smax = (surf->extents[0] >> 4) + 1;
+			tmax = (surf->extents[1] >> 4) + 1;
+
+			R_BuildLightMap(surf, (void *)temp, smax * 4);
+
+			lmtex = 0;
+
+			if (vk_lms.internal_format != gl_tex_alpha_format)
+			{
+				unsigned char rgba_lmap[4 * 128 * 128];
+				RgbToRgba((unsigned char *)temp, rgba_lmap, 4 * 128 * 128);
+
+				QVk_UpdateTexture(&vk_state.lightmap_textures[lmtex], rgba_lmap, surf->light_s, surf->light_t, smax, tmax);
+			}
+			else
+			{
+				QVk_UpdateTexture(&vk_state.lightmap_textures[lmtex], (unsigned char *)temp, surf->light_s, surf->light_t, smax, tmax);
+			}
+		}
+
+		c_brush_polys++;
+
+		//==========
+		//PGM
+		if (surf->texinfo->flags & SURF_FLOWING)
+		{
+			float scroll;
+
+			scroll = -64 * ((r_newrefdef.time / 40.0) - (int)(r_newrefdef.time / 40.0));
+			if (scroll == 0.0)
+				scroll = -64.0;
+
+			for (p = surf->polys; p; p = p->chain)
+			{
+				v = p->verts[0];
+				for (i = 0; i < nv; i++, v += VERTEXSIZE)
+				{
+					verts[i].vertex[0] = v[0];
+					verts[i].vertex[1] = v[1];
+					verts[i].vertex[2] = v[2];
+					verts[i].texCoord[0] = v[3] + scroll;
+					verts[i].texCoord[1] = v[4];
+					verts[i].texCoordLmap[0] = v[5];
+					verts[i].texCoordLmap[1] = v[6];
+				}
+				VkBuffer vbo;
+				VkDeviceSize vboOffset;
+				uint8_t *data = QVk_GetVertexBuffer(sizeof(lmappolyvert) * nv, &vbo, &vboOffset);
+				memcpy(data, verts, sizeof(lmappolyvert) * nv);
+
+				VkDescriptorSet descriptorSets[] = { uboDescriptorSet, image->vk_texture.descriptorSet, vk_state.lightmap_textures[lmtex].descriptorSet };
+				vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
+				vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyLmapPipeline.layout, 0, 3, descriptorSets, 1, &uboOffset);
+				vkCmdDraw(vk_activeCmdbuffer, nv, 1, 0, 0);
+			}
+		}
+		else
+		{
+			for (p = surf->polys; p; p = p->chain)
+			{
+				v = p->verts[0];
+				for (i = 0; i < nv; i++, v += VERTEXSIZE)
+				{
+					verts[i].vertex[0] = v[0];
+					verts[i].vertex[1] = v[1];
+					verts[i].vertex[2] = v[2];
+					verts[i].texCoord[0] = v[3];
+					verts[i].texCoord[1] = v[4];
+					verts[i].texCoordLmap[0] = v[5];
+					verts[i].texCoordLmap[1] = v[6];
+				}
+				VkBuffer vbo;
+				VkDeviceSize vboOffset;
+				uint8_t *data = QVk_GetVertexBuffer(sizeof(lmappolyvert) * nv, &vbo, &vboOffset);
+				memcpy(data, verts, sizeof(lmappolyvert) * nv);
+
+				VkDescriptorSet descriptorSets[] = { uboDescriptorSet, image->vk_texture.descriptorSet, vk_state.lightmap_textures[lmtex].descriptorSet };
+				vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
+				vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyLmapPipeline.layout, 0, 3, descriptorSets, 1, &uboOffset);
+				vkCmdDraw(vk_activeCmdbuffer, nv, 1, 0, 0);
+			}
+		}
+		//PGM
+		//==========
+	}
+	else
+	{
+		c_brush_polys++;
+
+		//==========
+		//PGM
+		if (surf->texinfo->flags & SURF_FLOWING)
+		{
+			float scroll;
+
+			scroll = -64 * ((r_newrefdef.time / 40.0) - (int)(r_newrefdef.time / 40.0));
+			if (scroll == 0.0)
+				scroll = -64.0;
+
+			for (p = surf->polys; p; p = p->chain)
+			{
+				v = p->verts[0];
+				for (i = 0; i < nv; i++, v += VERTEXSIZE)
+				{
+					verts[i].vertex[0] = v[0];
+					verts[i].vertex[1] = v[1];
+					verts[i].vertex[2] = v[2];
+					verts[i].texCoord[0] = v[3] + scroll;
+					verts[i].texCoord[1] = v[4];
+					verts[i].texCoordLmap[0] = v[5];
+					verts[i].texCoordLmap[1] = v[6];
+				}
+				VkBuffer vbo;
+				VkDeviceSize vboOffset;
+				uint8_t *data = QVk_GetVertexBuffer(sizeof(lmappolyvert) * nv, &vbo, &vboOffset);
+				memcpy(data, verts, sizeof(lmappolyvert) * nv);
+
+				VkDescriptorSet descriptorSets[] = { uboDescriptorSet, image->vk_texture.descriptorSet, vk_state.lightmap_textures[lmtex].descriptorSet };
+				vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
+				vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyLmapPipeline.layout, 0, 3, descriptorSets, 1, &uboOffset);
+				vkCmdDraw(vk_activeCmdbuffer, nv, 1, 0, 0);
+			}
+		}
+		else
+		{
+			//PGM
+			//==========
+			for (p = surf->polys; p; p = p->chain)
+			{
+				v = p->verts[0];
+				for (i = 0; i < nv; i++, v += VERTEXSIZE)
+				{
+					verts[i].vertex[0] = v[0];
+					verts[i].vertex[1] = v[1];
+					verts[i].vertex[2] = v[2];
+					verts[i].texCoord[0] = v[3];
+					verts[i].texCoord[1] = v[4];
+					verts[i].texCoordLmap[0] = v[5];
+					verts[i].texCoordLmap[1] = v[6];
+				}
+				VkBuffer vbo;
+				VkDeviceSize vboOffset;
+				uint8_t *data = QVk_GetVertexBuffer(sizeof(lmappolyvert) * nv, &vbo, &vboOffset);
+				memcpy(data, verts, sizeof(lmappolyvert) * nv);
+
+				VkDescriptorSet descriptorSets[] = { uboDescriptorSet, image->vk_texture.descriptorSet, vk_state.lightmap_textures[lmtex].descriptorSet };
+				vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
+				vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyLmapPipeline.layout, 0, 3, descriptorSets, 1, &uboOffset);
+				vkCmdDraw(vk_activeCmdbuffer, nv, 1, 0, 0);
+			}
+			//==========
+			//PGM
+		}
+		//PGM
+		//==========
+	}
 }
 
 /*
@@ -772,12 +1006,19 @@ void R_RecursiveWorldNode (mnode_t *node)
 		}
 		else
 		{
-			// the polygon is visible, so add it to the texture
-			// sorted chain
-			// FIXME: this is a hack for animation
-			image = R_TextureAnimation(surf->texinfo);
-			surf->texturechain = image->texturechain;
-			image->texturechain = surf;
+			if (!(surf->flags & SURF_DRAWTURB))
+			{
+				Vk_RenderLightmappedPoly(surf, 1.f);
+			}
+			else
+			{
+				// the polygon is visible, so add it to the texture
+				// sorted chain
+				// FIXME: this is a hack for animation
+				image = R_TextureAnimation(surf->texinfo);
+				surf->texturechain = image->texturechain;
+				image->texturechain = surf;
+			}
 		}
 	}
 
@@ -811,8 +1052,6 @@ void R_DrawWorld (void)
 	currententity = &ent;
 
 	//gl_state.currenttextures[0] = gl_state.currenttextures[1] = -1;
-
-	//qglColor3f (1,1,1);
 	memset (vk_lms.lightmap_surfaces, 0, sizeof(vk_lms.lightmap_surfaces));
 	R_ClearSkyBox ();
 
@@ -822,8 +1061,8 @@ void R_DrawWorld (void)
 	** theoretically nothing should happen in the next two functions
 	** if multitexture is enabled
 	*/
-	DrawTextureChains ();
-	R_BlendLightmaps ();
+	//DrawTextureChains ();
+	//R_BlendLightmaps ();
 	
 	R_DrawSkyBox ();
 

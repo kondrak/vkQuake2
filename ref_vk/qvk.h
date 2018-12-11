@@ -231,6 +231,7 @@ extern qvkpipeline_t vk_drawParticlesPipeline;
 extern qvkpipeline_t vk_drawPointParticlesPipeline;
 extern qvkpipeline_t vk_drawSpritePipeline;
 extern qvkpipeline_t vk_drawPolyPipeline;
+extern qvkpipeline_t vk_drawPolyLmapPipeline;
 extern qvkpipeline_t vk_drawBeamPipeline;
 extern qvkpipeline_t vk_drawSkyboxPipeline;
 extern qvkpipeline_t vk_drawDLightPipeline;

@@ -123,6 +123,7 @@ qvkpipeline_t vk_drawParticlesPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawPointParticlesPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawSpritePipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawPolyPipeline = QVKPIPELINE_INIT;
+qvkpipeline_t vk_drawPolyLmapPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawBeamPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawSkyboxPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawDLightPipeline = QVKPIPELINE_INIT;
@@ -176,6 +177,7 @@ static int vk_activeDynBufferIdx = 0;
 // we will need multiple of these
 VkDescriptorSetLayout vk_uboDescSetLayout;
 VkDescriptorSetLayout vk_samplerDescSetLayout;
+VkDescriptorSetLayout vk_samplerLightmapDescSetLayout;
 
 VkFormat QVk_FindDepthFormat()
 {
@@ -343,6 +345,8 @@ static void CreateDescriptorSetLayouts()
 	layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	layoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 	VK_VERIFY(vkCreateDescriptorSetLayout(vk_device.logical, &layoutInfo, NULL, &vk_samplerDescSetLayout));
+	// secondary sampler: lightmaps
+	VK_VERIFY(vkCreateDescriptorSetLayout(vk_device.logical, &layoutInfo, NULL, &vk_samplerLightmapDescSetLayout));
 }
 
 static void CreateDescriptorPool()
@@ -574,6 +578,22 @@ static void CreatePipelines()
 
 	QVk_CreatePipeline(spriteDsLayouts, 2, &spriteVertexInputInfo, &vk_drawPolyPipeline, shaders, 2);
 
+	// draw lightmapped polygon
+	VkVertexInputBindingDescription polyLmapBindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 7);
+	VkVertexInputAttributeDescription polyLmapAttributeDescriptions[] = {
+		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
+		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 3),
+		VK_INPUTATTR_DESC(2, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 5)
+	};
+
+	VkPipelineVertexInputStateCreateInfo polyLmapVertexInputInfo = VK_VERTEXINPUT_CINF(polyLmapBindingDesc, polyLmapAttributeDescriptions);
+	VK_LOAD_VERTFRAG_SHADERS(shaders, polygon_lmap);
+
+	vk_drawPolyLmapPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+
+	VkDescriptorSetLayout polyLmapDsLayouts[] = { vk_uboDescSetLayout, vk_samplerDescSetLayout, vk_samplerLightmapDescSetLayout };
+	QVk_CreatePipeline(polyLmapDsLayouts, 3, &polyLmapVertexInputInfo, &vk_drawPolyLmapPipeline, shaders, 2);
+
 	// draw beam pipeline
 	VkVertexInputBindingDescription beamBindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 3);
 	VkVertexInputAttributeDescription beamAttributeDescriptions[] = {
@@ -654,6 +674,7 @@ void QVk_Shutdown( void )
 		QVk_DestroyPipeline(&vk_drawPointParticlesPipeline);
 		QVk_DestroyPipeline(&vk_drawSpritePipeline);
 		QVk_DestroyPipeline(&vk_drawPolyPipeline);
+		QVk_DestroyPipeline(&vk_drawPolyLmapPipeline);
 		QVk_DestroyPipeline(&vk_drawBeamPipeline);
 		QVk_DestroyPipeline(&vk_drawSkyboxPipeline);
 		QVk_DestroyPipeline(&vk_drawDLightPipeline);
@@ -669,6 +690,7 @@ void QVk_Shutdown( void )
 		vkDestroyDescriptorPool(vk_device.logical, vk_descriptorPool, NULL);
 		vkDestroyDescriptorSetLayout(vk_device.logical, vk_uboDescSetLayout, NULL);
 		vkDestroyDescriptorSetLayout(vk_device.logical, vk_samplerDescSetLayout, NULL);
+		vkDestroyDescriptorSetLayout(vk_device.logical, vk_samplerLightmapDescSetLayout, NULL);
 
 		for (int i = 0; i < RT_COUNT; i++)
 		{

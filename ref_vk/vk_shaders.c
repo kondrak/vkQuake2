@@ -43,6 +43,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "spirv/d_light_frag.c"
 #include "spirv/polygon_vert.c"
 #include "spirv/polygon_frag.c"
+#include "spirv/polygon_lmap_vert.c"
+#include "spirv/polygon_lmap_frag.c"
 
 const size_t basic_vert_size = sizeof(basic_vert_spv);
 const size_t basic_frag_size = sizeof(basic_frag_spv);
@@ -76,3 +78,6 @@ const size_t d_light_frag_size = sizeof(d_light_frag_spv);
 
 const size_t polygon_vert_size = sizeof(polygon_vert_spv);
 const size_t polygon_frag_size = sizeof(polygon_frag_spv);
+
+const size_t polygon_lmap_vert_size = sizeof(polygon_lmap_vert_spv);
+const size_t polygon_lmap_frag_size = sizeof(polygon_lmap_frag_spv);
