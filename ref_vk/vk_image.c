@@ -1247,8 +1247,6 @@ uint32_t Vk_Upload32 (unsigned *data, int width, int height,  qboolean mipmap)
 {
 	unsigned	scaled[256 * 256];
 	int			scaled_width, scaled_height;
-	int			i, c;
-	byte		*scan;
 
 	for (scaled_width = 1; scaled_width < width; scaled_width <<= 1)
 		;
