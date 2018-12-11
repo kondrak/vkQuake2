@@ -328,17 +328,6 @@ void DrawVkPolyChain( vkpoly_t *p, float soffset, float toffset, image_t *textur
 }
 
 /*
-** R_BlendLightMaps
-**
-** This routine takes all the given light mapped surfaces in the world and
-** blends them into the framebuffer.
-*/
-void R_BlendLightmaps (void)
-{
-
-}
-
-/*
 ================
 R_RenderBrushPoly
 ================
@@ -472,53 +461,6 @@ void R_DrawAlphaSurfaces (void)
 
 	r_alpha_surfaces = NULL;
 }
-
-/*
-================
-DrawTextureChains
-================
-*/
-void DrawTextureChains (void)
-{
-	int		i;
-	msurface_t	*s;
-	image_t		*image;
-
-	c_visible_textures = 0;
-
-	for (i = 0, image = vktextures; i < numvktextures; i++, image++)
-	{
-		if (!image->registration_sequence)
-			continue;
-		if (!image->texturechain)
-			continue;
-		c_visible_textures++;
-
-		for (s = image->texturechain; s; s = s->texturechain)
-		{
-			if (!(s->flags & SURF_DRAWTURB))
-				R_RenderBrushPoly(s, 1.f);
-		}
-	}
-
-	for (i = 0, image = vktextures; i < numvktextures; i++, image++)
-	{
-		if (!image->registration_sequence)
-			continue;
-		s = image->texturechain;
-		if (!s)
-			continue;
-
-		for (; s; s = s->texturechain)
-		{
-			if (s->flags & SURF_DRAWTURB)
-				R_RenderBrushPoly(s, 1.f);
-		}
-
-		image->texturechain = NULL;
-	}
-}
-
 
 static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, float alpha )
 {
@@ -1057,13 +999,6 @@ void R_DrawWorld (void)
 
 	R_RecursiveWorldNode (r_worldmodel->nodes);
 
-	/*
-	** theoretically nothing should happen in the next two functions
-	** if multitexture is enabled
-	*/
-	//DrawTextureChains ();
-	//R_BlendLightmaps ();
-	
 	R_DrawSkyBox ();
 
 	R_DrawTriangleOutlines ();
