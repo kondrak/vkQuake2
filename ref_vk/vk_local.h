@@ -231,7 +231,6 @@ extern	int		gl_tex_alpha_format;
 extern	int		c_visible_lightmaps;
 extern	int		c_visible_textures;
 
-extern	float	r_world_matrix[16];
 extern	float	r_viewproj_matrix[16];
 
 void R_TranslatePlayerSkin (int playernum);

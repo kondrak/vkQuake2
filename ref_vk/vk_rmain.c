@@ -57,7 +57,6 @@ vec3_t	vpn;
 vec3_t	vright;
 vec3_t	r_origin;
 
-float	r_world_matrix[16];
 float	r_projection_matrix[16];
 float	r_view_matrix[16];
 float	r_viewproj_matrix[16];
@@ -216,9 +215,7 @@ void R_DrawSpriteModel (entity_t *e)
 						  spriteQuad[0][0], spriteQuad[0][1], spriteQuad[0][2], 0.f, 1.f,
 						  spriteQuad[2][0], spriteQuad[2][1], spriteQuad[2][2], 1.f, 0.f,
 						  spriteQuad[3][0], spriteQuad[3][1], spriteQuad[3][2], 1.f, 1.f };
-	float model[16];
-	memcpy(model, r_world_matrix, sizeof(float) * 16);
-	Mat_Mul(model, r_viewproj_matrix, spriteUbo.mvp);
+	memcpy(spriteUbo.mvp, r_viewproj_matrix, sizeof(r_viewproj_matrix));
 
 	QVk_BindPipeline(&vk_drawSpritePipeline);
 
@@ -257,7 +254,7 @@ void R_DrawNullModel (void)
 
 	float mvp[16];
 	float model[16];
-	memcpy(model, r_world_matrix, sizeof(float) * 16);
+	Mat_Identity(model);
 	R_RotateForEntity(currententity, model);
 	Mat_Mul(model, r_viewproj_matrix, mvp);
 
@@ -477,17 +474,12 @@ void Vk_DrawParticles( int num_particles, const particle_t particles[], const un
 		visibleParticles[idx + 2].a = p->alpha;
 	}
 
-	float mvp[16];
-	float model[16];
-	memcpy(model, r_world_matrix, sizeof(float) * 16);
-	Mat_Mul(model, r_viewproj_matrix, mvp);
-
 	QVk_BindPipeline(&vk_drawParticlesPipeline);
 
 	uint32_t uboOffset;
 	VkDescriptorSet uboDescriptorSet;
-	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(mvp), &uboOffset, &uboDescriptorSet);
-	memcpy(uboData, &mvp, sizeof(mvp));
+	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(r_viewproj_matrix), &uboOffset, &uboDescriptorSet);
+	memcpy(uboData, &r_viewproj_matrix, sizeof(r_viewproj_matrix));
 
 	VkBuffer vbo;
 	VkDeviceSize vboOffset;
@@ -548,10 +540,7 @@ void R_DrawParticles (void)
 			visibleParticles[i].b = b;
 			visibleParticles[i].a = p->alpha;
 		}
-
-		float model[16];
-		memcpy(model, r_world_matrix, sizeof(float) * 16);
-		Mat_Mul(model, r_viewproj_matrix, particleUbo.mvp);
+		memcpy(particleUbo.mvp, r_viewproj_matrix, sizeof(r_viewproj_matrix));
 
 		QVk_BindPipeline(&vk_drawPointParticlesPipeline);
 
@@ -860,8 +849,6 @@ void R_SetupVulkan (void)
 
 	// set up view matrix
 	Mat_Identity(r_view_matrix);
-	// set up model matrix
-	Mat_Identity(r_world_matrix);
 	// put Z going up
 	Mat_Translate(r_view_matrix, -r_newrefdef.vieworg[0], -r_newrefdef.vieworg[1], -r_newrefdef.vieworg[2]);
 	Mat_Rotate(r_view_matrix, -r_newrefdef.viewangles[1], 0.f, 0.f, 1.f);
@@ -1352,10 +1339,7 @@ void R_DrawBeam( entity_t *e )
 		beamvertex[idx + 3].v[1] = end_points[(i + 1) % NUM_BEAM_SEGS][1];
 		beamvertex[idx + 3].v[2] = end_points[(i + 1) % NUM_BEAM_SEGS][2];
 	}
-
-	float model[16];
-	memcpy(model, r_world_matrix, sizeof(float) * 16);
-	Mat_Mul(model, r_viewproj_matrix, beamUbo.mvp);
+	memcpy(beamUbo.mvp, r_viewproj_matrix, sizeof(r_viewproj_matrix));
 
 	QVk_BindPipeline(&vk_drawBeamPipeline);
 

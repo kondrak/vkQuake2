@@ -68,16 +68,11 @@ void R_RenderDlight (dlight_t *light)
 		}
 	}
 
-	float mvp[16];
-	float model[16];
-	memcpy(model, r_world_matrix, sizeof(float) * 16);
-	Mat_Mul(model, r_viewproj_matrix, mvp);
-
 	QVk_BindPipeline(&vk_drawDLightPipeline);
 	uint32_t uboOffset;
 	VkDescriptorSet uboDescriptorSet;
-	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(mvp), &uboOffset, &uboDescriptorSet);
-	memcpy(uboData, mvp, sizeof(mvp));
+	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(r_viewproj_matrix), &uboOffset, &uboDescriptorSet);
+	memcpy(uboData, r_viewproj_matrix, sizeof(r_viewproj_matrix));
 
 	VkBuffer vbo;
 	VkDeviceSize vboOffset;

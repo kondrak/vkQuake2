@@ -240,9 +240,7 @@ void EmitWaterPolys (msurface_t *fa, image_t *texture, float *color)
 	else
 		scroll = 0;
 
-	float model[16];
-	memcpy(model, r_world_matrix, sizeof(float) * 16);
-	Mat_Mul(model, r_viewproj_matrix, polyUbo.mvp);
+	memcpy(polyUbo.mvp, r_viewproj_matrix, sizeof(r_viewproj_matrix));
 
 	QVk_BindPipeline(&vk_drawPolyPipeline);
 
@@ -612,7 +610,7 @@ void R_DrawSkyBox (void)
 
 	float mvp[16];
 	float model[16];
-	memcpy(model, r_world_matrix, sizeof(float) * 16);
+	Mat_Identity(model);
 	Mat_Rotate(model, r_newrefdef.time * skyrotate, skyaxis[0], skyaxis[1], skyaxis[2]);
 	Mat_Translate(model, r_origin[0], r_origin[1], r_origin[2]);
 	Mat_Mul(model, r_viewproj_matrix, mvp);

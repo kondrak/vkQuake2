@@ -668,7 +668,7 @@ void R_DrawAliasModel (entity_t *e)
 
 	e->angles[PITCH] = -e->angles[PITCH];	// sigh.
 	float model[16];
-	memcpy(model, r_world_matrix, sizeof(float) * 16);
+	Mat_Identity(model);
 	R_RotateForEntity (e, model);
 	e->angles[PITCH] = -e->angles[PITCH];	// sigh.
 

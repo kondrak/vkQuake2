@@ -135,9 +135,7 @@ void DrawVkPoly (vkpoly_t *p, image_t *texture, float *color)
 		verts[i].texCoord[1] = v[4];
 	}
 
-	float model[16];
-	memcpy(model, r_world_matrix, sizeof(float) * 16);
-	Mat_Mul(model, r_viewproj_matrix, polyUbo.mvp);
+	memcpy(polyUbo.mvp, r_viewproj_matrix, sizeof(r_viewproj_matrix));
 
 	QVk_BindPipeline(&vk_drawPolyPipeline);
 
@@ -204,9 +202,7 @@ void DrawVkFlowingPoly (msurface_t *fa, image_t *texture, float *color)
 		verts[i].texCoord[1] = v[4];
 	}
 
-	float model[16];
-	memcpy(model, r_world_matrix, sizeof(float) * 16);
-	Mat_Mul(model, r_viewproj_matrix, polyUbo.mvp);
+	memcpy(polyUbo.mvp, r_viewproj_matrix, sizeof(r_viewproj_matrix));
 
 	QVk_BindPipeline(&vk_drawPolyPipeline);
 
@@ -259,10 +255,7 @@ void DrawVkPolyChain( vkpoly_t *p, float soffset, float toffset, image_t *textur
 	polyUbo.color[3] = color[3];
 
 	polyvert verts[MAX_VERTS];
-
-	float model[16];
-	memcpy(model, r_world_matrix, sizeof(float) * 16);
-	Mat_Mul(model, r_viewproj_matrix, polyUbo.mvp);
+	memcpy(polyUbo.mvp, r_viewproj_matrix, sizeof(r_viewproj_matrix));
 
 	QVk_BindPipeline(&vk_drawPolyPipeline);
 
@@ -797,7 +790,6 @@ void R_DrawBrushModel (entity_t *e)
 	if (R_CullBox(mins, maxs))
 		return;
 
-	//qglColor3f(1, 1, 1);
 	memset(vk_lms.lightmap_surfaces, 0, sizeof(vk_lms.lightmap_surfaces));
 
 	VectorSubtract(r_newrefdef.vieworg, e->origin, modelorg);
@@ -813,25 +805,15 @@ void R_DrawBrushModel (entity_t *e)
 		modelorg[2] = DotProduct(temp, up);
 	}
 
-	//qglPushMatrix();
 	e->angles[0] = -e->angles[0];	// stupid quake bug
 	e->angles[2] = -e->angles[2];	// stupid quake bug
-	float mtx[16];
-	memcpy(mtx, r_world_matrix, sizeof(float) * 16);
-	R_RotateForEntity(e, mtx);
+	float model[16];
+	Mat_Identity(model);
+	R_RotateForEntity(e, model);
 	e->angles[0] = -e->angles[0];	// stupid quake bug
 	e->angles[2] = -e->angles[2];	// stupid quake bug
 
-	/*GL_EnableMultitexture(true);
-	GL_SelectTexture(GL_TEXTURE0);
-	GL_TexEnv(GL_REPLACE);
-	GL_SelectTexture(GL_TEXTURE1);
-	GL_TexEnv(GL_MODULATE); */
-
-	R_DrawInlineBModel(mtx);
-	/*GL_EnableMultitexture(false);
-
-	qglPopMatrix();*/
+	R_DrawInlineBModel(model);
 }
 
 /*
@@ -949,7 +931,7 @@ void R_RecursiveWorldNode (mnode_t *node)
 			if (!(surf->flags & SURF_DRAWTURB))
 			{
 				float model[16];
-				memcpy(model, r_world_matrix, sizeof(float) * 16);
+				Mat_Identity(model);
 				Vk_RenderLightmappedPoly(surf, model, 1.f);
 			}
 			else
