@@ -193,15 +193,6 @@ void Vk_SubdivideSurface (msurface_t *fa)
 
 //=========================================================
 
-
-
-// speed up sin calculations - Ed
-float	r_turbsin[] =
-{
-	#include "warpsin.h"
-};
-#define TURBSCALE (256.0 / (2 * M_PI))
-
 /*
 =============
 EmitWaterPolys
@@ -209,14 +200,11 @@ EmitWaterPolys
 Does a water warp on the pre-fragmented glpoly_t chain
 =============
 */
-void EmitWaterPolys (msurface_t *fa, image_t *texture, float *color)
+void EmitWaterPolys (msurface_t *fa, image_t *texture, float *modelMatrix, float *color)
 {
 	vkpoly_t	*p, *bp;
 	float		*v;
 	int			i;
-	float		s, t, os, ot;
-	float		scroll;
-	float		rdt = r_newrefdef.time;
 
 	typedef struct {
 		float vertex[3];
@@ -226,23 +214,33 @@ void EmitWaterPolys (msurface_t *fa, image_t *texture, float *color)
 	struct {
 		float mvp[16];
 		float color[4];
+		float time;
+		float scroll;
 	} polyUbo;
 
 	polyUbo.color[0] = color[0];
 	polyUbo.color[1] = color[1];
 	polyUbo.color[2] = color[2];
 	polyUbo.color[3] = color[3];
+	polyUbo.time = r_newrefdef.time;
 
 	polyvert verts[MAX_VERTS];
 
 	if (fa->texinfo->flags & SURF_FLOWING)
-		scroll = -64 * ((r_newrefdef.time*0.5) - (int)(r_newrefdef.time*0.5));
+		polyUbo.scroll = (-64 * ((r_newrefdef.time*0.5) - (int)(r_newrefdef.time*0.5))) / 64.f;
 	else
-		scroll = 0;
+		polyUbo.scroll = 0;
 
-	memcpy(polyUbo.mvp, r_viewproj_matrix, sizeof(r_viewproj_matrix));
+	if (modelMatrix)
+	{
+		Mat_Mul(modelMatrix, r_viewproj_matrix, polyUbo.mvp);
+	}
+	else
+	{
+		memcpy(polyUbo.mvp, r_viewproj_matrix, sizeof(r_viewproj_matrix));
+	}
 
-	QVk_BindPipeline(&vk_drawPolyPipeline);
+	QVk_BindPipeline(&vk_drawPolyWarpPipeline);
 
 	uint32_t uboOffset;
 	VkDescriptorSet uboDescriptorSet;
@@ -252,7 +250,7 @@ void EmitWaterPolys (msurface_t *fa, image_t *texture, float *color)
 	VkBuffer vbo;
 	VkDeviceSize vboOffset;
 	VkDescriptorSet descriptorSets[] = { uboDescriptorSet, texture->vk_texture.descriptorSet };
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyWarpPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
 
 	for (bp = fa->polys; bp; bp = bp->next)
 	{
@@ -260,29 +258,11 @@ void EmitWaterPolys (msurface_t *fa, image_t *texture, float *color)
 
 		for (i = 0, v = p->verts[0]; i < p->numverts; i++, v += VERTEXSIZE)
 		{
-			os = v[3];
-			ot = v[4];
-
-#if !id386
-			s = os + r_turbsin[(int)((ot*0.125 + r_newrefdef.time) * TURBSCALE) & 255];
-#else
-			s = os + r_turbsin[Q_ftol(((ot*0.125 + rdt) * TURBSCALE)) & 255];
-#endif
-			s += scroll;
-			s *= (1.0 / 64);
-
-#if !id386
-			t = ot + r_turbsin[(int)((os*0.125 + rdt) * TURBSCALE) & 255];
-#else
-			t = ot + r_turbsin[Q_ftol(((os*0.125 + rdt) * TURBSCALE)) & 255];
-#endif
-			t *= (1.0 / 64);
-
 			verts[i].vertex[0] = v[0];
 			verts[i].vertex[1] = v[1];
 			verts[i].vertex[2] = v[2];
-			verts[i].texCoord[0] = s;
-			verts[i].texCoord[1] = t;
+			verts[i].texCoord[0] = v[3] / 64.f;
+			verts[i].texCoord[1] = v[4] / 64.f;
 		}
 
 		uint8_t *data = QVk_GetVertexBuffer(sizeof(polyvert) * p->numverts, &vbo, &vboOffset);

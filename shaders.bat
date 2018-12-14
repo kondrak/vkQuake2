@@ -22,3 +22,5 @@
 %VULKAN_SDK%\bin32\glslangValidator.exe --variable-name polygon_frag_spv -V shaders/polygon.frag -o ref_vk/spirv/polygon_frag.c
 %VULKAN_SDK%\bin32\glslangValidator.exe --variable-name polygon_lmap_vert_spv -V shaders/polygon_lmap.vert -o ref_vk/spirv/polygon_lmap_vert.c
 %VULKAN_SDK%\bin32\glslangValidator.exe --variable-name polygon_lmap_frag_spv -V shaders/polygon_lmap.frag -o ref_vk/spirv/polygon_lmap_frag.c
+%VULKAN_SDK%\bin32\glslangValidator.exe --variable-name polygon_warp_vert_spv -V shaders/polygon_warp.vert -o ref_vk/spirv/polygon_warp_vert.c
+%VULKAN_SDK%\bin32\glslangValidator.exe --variable-name polygon_warp_frag_spv -V shaders/polygon_warp.frag -o ref_vk/spirv/polygon_warp_frag.c

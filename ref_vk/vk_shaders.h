@@ -105,4 +105,11 @@ extern const size_t polygon_lmap_vert_size;
 
 extern const uint32_t polygon_lmap_frag_spv[];
 extern const size_t polygon_lmap_frag_size;
+
+// warped polygon (liquids)
+extern const uint32_t polygon_warp_vert_spv[];
+extern const size_t polygon_warp_vert_size;
+
+extern const uint32_t polygon_warp_frag_spv[];
+extern const size_t polygon_warp_frag_size;
 #endif

@@ -124,6 +124,7 @@ qvkpipeline_t vk_drawPointParticlesPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawSpritePipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawPolyPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawPolyLmapPipeline = QVKPIPELINE_INIT;
+qvkpipeline_t vk_drawPolyWarpPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawBeamPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawSkyboxPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawDLightPipeline = QVKPIPELINE_INIT;
@@ -594,6 +595,14 @@ static void CreatePipelines()
 	VkDescriptorSetLayout polyLmapDsLayouts[] = { vk_uboDescSetLayout, vk_samplerDescSetLayout, vk_samplerLightmapDescSetLayout };
 	QVk_CreatePipeline(polyLmapDsLayouts, 3, &polyLmapVertexInputInfo, &vk_drawPolyLmapPipeline, shaders, 2);
 
+	// draw polygon with warp effect (liquid) pipeline
+	VK_LOAD_VERTFRAG_SHADERS(shaders, polygon_warp);
+
+	vk_drawPolyWarpPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+	vk_drawPolyWarpPipeline.blendOpts.blendEnable = VK_TRUE;
+
+	QVk_CreatePipeline(spriteDsLayouts, 2, &spriteVertexInputInfo, &vk_drawPolyWarpPipeline, shaders, 2);
+
 	// draw beam pipeline
 	VkVertexInputBindingDescription beamBindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 3);
 	VkVertexInputAttributeDescription beamAttributeDescriptions[] = {
@@ -675,6 +684,7 @@ void QVk_Shutdown( void )
 		QVk_DestroyPipeline(&vk_drawSpritePipeline);
 		QVk_DestroyPipeline(&vk_drawPolyPipeline);
 		QVk_DestroyPipeline(&vk_drawPolyLmapPipeline);
+		QVk_DestroyPipeline(&vk_drawPolyWarpPipeline);
 		QVk_DestroyPipeline(&vk_drawBeamPipeline);
 		QVk_DestroyPipeline(&vk_drawSkyboxPipeline);
 		QVk_DestroyPipeline(&vk_drawDLightPipeline);

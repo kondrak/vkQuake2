@@ -325,7 +325,7 @@ void DrawVkPolyChain( vkpoly_t *p, float soffset, float toffset, image_t *textur
 R_RenderBrushPoly
 ================
 */
-void R_RenderBrushPoly (msurface_t *fa, float alpha)
+void R_RenderBrushPoly (msurface_t *fa, float *modelMatrix, float alpha)
 {
 	int			maps;
 	image_t		*image;
@@ -340,7 +340,7 @@ void R_RenderBrushPoly (msurface_t *fa, float alpha)
 		color[0] = color[1] = color[2] = vk_state.inverse_intensity;
 		color[3] = 1.f;
 		// warp texture, no lightmaps
-		EmitWaterPolys(fa, image, color);
+		EmitWaterPolys(fa, image, modelMatrix, color);
 		return;
 	}
 
@@ -445,7 +445,7 @@ void R_DrawAlphaSurfaces (void)
 			color[3] = 0.66f;
 
 		if (s->flags & SURF_DRAWTURB)
-			EmitWaterPolys(s, s->texinfo->image, color);
+			EmitWaterPolys(s, s->texinfo->image, NULL, color);
 		else if (s->texinfo->flags & SURF_FLOWING)			// PGM	9/16/98
 			DrawVkFlowingPoly(s, s->texinfo->image, color);	// PGM
 		else
@@ -479,7 +479,7 @@ void DrawTextureChains (void)
 		for (s = image->texturechain; s; s = s->texturechain)
 		{
 			if (!(s->flags & SURF_DRAWTURB))
-				R_RenderBrushPoly(s, 1.f);
+				R_RenderBrushPoly(s, NULL, 1.f);
 		}
 	}
 
@@ -494,7 +494,7 @@ void DrawTextureChains (void)
 		for (; s; s = s->texturechain)
 		{
 			if (s->flags & SURF_DRAWTURB)
-				R_RenderBrushPoly(s, 1.f);
+				R_RenderBrushPoly(s, NULL, 1.f);
 		}
 
 		image->texturechain = NULL;
@@ -524,7 +524,14 @@ static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, floa
 		float mvp[16];
 	} lmapPolyUbo;
 
-	Mat_Mul(modelMatrix, r_viewproj_matrix, lmapPolyUbo.mvp);
+	if (modelMatrix)
+	{
+		Mat_Mul(modelMatrix, r_viewproj_matrix, lmapPolyUbo.mvp);
+	}
+	else
+	{
+		memcpy(lmapPolyUbo.mvp, r_viewproj_matrix, sizeof(r_viewproj_matrix));
+	}
 
 	QVk_BindPipeline(&vk_drawPolyLmapPipeline);
 
@@ -613,6 +620,11 @@ static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, floa
 			if (scroll == 0.0)
 				scroll = -64.0;
 
+			VkBuffer vbo;
+			VkDeviceSize vboOffset;
+			VkDescriptorSet descriptorSets[] = { uboDescriptorSet, image->vk_texture.descriptorSet, vk_state.lightmap_textures[lmtex].descriptorSet };
+			vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyLmapPipeline.layout, 0, 3, descriptorSets, 1, &uboOffset);
+
 			for (p = surf->polys; p; p = p->chain)
 			{
 				v = p->verts[0];
@@ -626,19 +638,21 @@ static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, floa
 					verts[i].texCoordLmap[0] = v[5];
 					verts[i].texCoordLmap[1] = v[6];
 				}
-				VkBuffer vbo;
-				VkDeviceSize vboOffset;
+
 				uint8_t *data = QVk_GetVertexBuffer(sizeof(lmappolyvert) * nv, &vbo, &vboOffset);
 				memcpy(data, verts, sizeof(lmappolyvert) * nv);
 
-				VkDescriptorSet descriptorSets[] = { uboDescriptorSet, image->vk_texture.descriptorSet, vk_state.lightmap_textures[lmtex].descriptorSet };
 				vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
-				vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyLmapPipeline.layout, 0, 3, descriptorSets, 1, &uboOffset);
 				vkCmdDraw(vk_activeCmdbuffer, nv, 1, 0, 0);
 			}
 		}
 		else
 		{
+			VkBuffer vbo;
+			VkDeviceSize vboOffset;
+			VkDescriptorSet descriptorSets[] = { uboDescriptorSet, image->vk_texture.descriptorSet, vk_state.lightmap_textures[lmtex].descriptorSet };
+			vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyLmapPipeline.layout, 0, 3, descriptorSets, 1, &uboOffset);
+
 			for (p = surf->polys; p; p = p->chain)
 			{
 				v = p->verts[0];
@@ -652,14 +666,11 @@ static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, floa
 					verts[i].texCoordLmap[0] = v[5];
 					verts[i].texCoordLmap[1] = v[6];
 				}
-				VkBuffer vbo;
-				VkDeviceSize vboOffset;
+
 				uint8_t *data = QVk_GetVertexBuffer(sizeof(lmappolyvert) * nv, &vbo, &vboOffset);
 				memcpy(data, verts, sizeof(lmappolyvert) * nv);
 
-				VkDescriptorSet descriptorSets[] = { uboDescriptorSet, image->vk_texture.descriptorSet, vk_state.lightmap_textures[lmtex].descriptorSet };
 				vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
-				vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyLmapPipeline.layout, 0, 3, descriptorSets, 1, &uboOffset);
 				vkCmdDraw(vk_activeCmdbuffer, nv, 1, 0, 0);
 			}
 		}
@@ -795,7 +806,7 @@ void R_DrawInlineBModel (float *modelMatrix)
 			}
 			else
 			{
-				R_RenderBrushPoly(psurf, alpha);
+				R_RenderBrushPoly(psurf, modelMatrix, alpha);
 			}
 		}
 	}
@@ -977,9 +988,7 @@ void R_RecursiveWorldNode (mnode_t *node)
 		{
 			if (!(surf->flags & SURF_DRAWTURB))
 			{
-				float model[16];
-				Mat_Identity(model);
-				Vk_RenderLightmappedPoly(surf, model, 1.f);
+				Vk_RenderLightmappedPoly(surf, NULL, 1.f);
 			}
 			else
 			{
