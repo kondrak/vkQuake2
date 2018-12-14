@@ -94,9 +94,6 @@
     <ClInclude Include="anormtab.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="warpsin.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\game\q_shared.h">
       <Filter>Header Files</Filter>
     </ClInclude>

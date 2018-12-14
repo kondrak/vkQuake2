@@ -133,7 +133,6 @@
     <ClInclude Include="qvk.h" />
     <ClInclude Include="vk_local.h" />
     <ClInclude Include="vk_shaders.h" />
-    <ClInclude Include="warpsin.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
