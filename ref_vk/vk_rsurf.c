@@ -388,17 +388,7 @@ void R_RenderBrushPoly (msurface_t *fa, float *modelMatrix, float alpha)
 			R_BuildLightMap(fa, (void *)temp, smax * 4);
 			R_SetCacheState(fa);
 
-			if (vk_lms.internal_format != gl_tex_alpha_format)
-			{
-				unsigned char rgba_lmap[4 * 34 * 34];
-				RgbToRgba((unsigned char *)temp, rgba_lmap, 4 * 34 * 34);
-
-				QVk_UpdateTexture(&vk_state.lightmap_textures[fa->lightmaptexturenum], rgba_lmap, fa->light_s, fa->light_t, smax, tmax);
-			}
-			else
-			{
-				QVk_UpdateTexture(&vk_state.lightmap_textures[fa->lightmaptexturenum], (unsigned char*)temp, fa->light_s, fa->light_t, smax, tmax);
-			}
+			QVk_UpdateTexture(&vk_state.lightmap_textures[fa->lightmaptexturenum], (unsigned char*)temp, fa->light_s, fa->light_t, smax, tmax);
 			
 			fa->lightmapchain = vk_lms.lightmap_surfaces[fa->lightmaptexturenum];
 			vk_lms.lightmap_surfaces[fa->lightmaptexturenum] = fa;
@@ -573,18 +563,7 @@ static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, floa
 			R_SetCacheState(surf);
 
 			lmtex = surf->lightmaptexturenum;
-
-			if (vk_lms.internal_format != gl_tex_alpha_format)
-			{
-				unsigned char rgba_lmap[4 * 128 * 128];
-				RgbToRgba((unsigned char *)temp, rgba_lmap, 4 * 128 * 128);
-
-				QVk_UpdateTexture(&vk_state.lightmap_textures[surf->lightmaptexturenum], rgba_lmap, surf->light_s, surf->light_t, smax, tmax);
-			}
-			else
-			{
-				QVk_UpdateTexture(&vk_state.lightmap_textures[surf->lightmaptexturenum], (unsigned char *)temp, surf->light_s, surf->light_t, smax, tmax);
-			}
+			QVk_UpdateTexture(&vk_state.lightmap_textures[surf->lightmaptexturenum], (unsigned char *)temp, surf->light_s, surf->light_t, smax, tmax);
 		}
 		else
 		{
@@ -594,18 +573,7 @@ static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, floa
 			R_BuildLightMap(surf, (void *)temp, smax * 4);
 
 			lmtex = 0;
-
-			if (vk_lms.internal_format != gl_tex_alpha_format)
-			{
-				unsigned char rgba_lmap[4 * 128 * 128];
-				RgbToRgba((unsigned char *)temp, rgba_lmap, 4 * 128 * 128);
-
-				QVk_UpdateTexture(&vk_state.lightmap_textures[lmtex], rgba_lmap, surf->light_s, surf->light_t, smax, tmax);
-			}
-			else
-			{
-				QVk_UpdateTexture(&vk_state.lightmap_textures[lmtex], (unsigned char *)temp, surf->light_s, surf->light_t, smax, tmax);
-			}
+			QVk_UpdateTexture(&vk_state.lightmap_textures[lmtex], (unsigned char *)temp, surf->light_s, surf->light_t, smax, tmax);
 		}
 
 		c_brush_polys++;
@@ -1157,47 +1125,18 @@ static void LM_UploadBlock( qboolean dynamic )
 			if ( vk_lms.allocated[i] > height )
 				height = vk_lms.allocated[i];
 		}
-
-		if (vk_lms.internal_format != gl_tex_alpha_format)
-		{
-			unsigned char rgba_lmap[4 * BLOCK_WIDTH * BLOCK_HEIGHT];
-			RgbToRgba(vk_lms.lightmap_buffer, rgba_lmap, 4 * BLOCK_WIDTH * BLOCK_HEIGHT);
-
-			QVk_UpdateTexture(&vk_state.lightmap_textures[texture], rgba_lmap, 0, 0, BLOCK_WIDTH, height);
-		}
-		else
-		{
-			QVk_UpdateTexture(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer, 0, 0, BLOCK_WIDTH, height);
-		}
+		QVk_UpdateTexture(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer, 0, 0, BLOCK_WIDTH, height);
 	}
 	else
 	{
-		if (vk_lms.internal_format != gl_tex_alpha_format)
-		{
-			unsigned char rgba_lmap[4 * BLOCK_WIDTH * BLOCK_HEIGHT];
-			RgbToRgba(vk_lms.lightmap_buffer, rgba_lmap, 4 * BLOCK_WIDTH * BLOCK_HEIGHT);
-
-			if(vk_state.lightmap_textures[texture].image != VK_NULL_HANDLE)
-				QVk_UpdateTexture(&vk_state.lightmap_textures[texture], rgba_lmap, 0, 0, BLOCK_WIDTH, BLOCK_HEIGHT);
-			else
-			{
-				QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[texture]);
-				vk_state.lightmap_textures[texture].format = VK_LIGHTMAP_FORMAT;
-				qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
-				QVk_CreateTexture(&vk_state.lightmap_textures[texture], rgba_lmap, BLOCK_WIDTH, BLOCK_HEIGHT, &defaultTexOpts);
-			}
-		}
+		if (vk_state.lightmap_textures[texture].image != VK_NULL_HANDLE)
+			QVk_UpdateTexture(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer, 0, 0, BLOCK_WIDTH, BLOCK_HEIGHT);
 		else
 		{
-			if (vk_state.lightmap_textures[texture].image != VK_NULL_HANDLE)
-				QVk_UpdateTexture(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer, 0, 0, BLOCK_WIDTH, BLOCK_HEIGHT);
-			else
-			{
-				QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[texture]);
-				vk_state.lightmap_textures[texture].format = VK_LIGHTMAP_FORMAT;
-				qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
-				QVk_CreateTexture(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer, BLOCK_WIDTH, BLOCK_HEIGHT, &defaultTexOpts);
-			}
+			QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[texture]);
+			vk_state.lightmap_textures[texture].format = VK_LIGHTMAP_FORMAT;
+			qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
+			QVk_CreateTexture(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer, BLOCK_WIDTH, BLOCK_HEIGHT, &defaultTexOpts);
 		}
 		if ( ++vk_lms.current_lightmap_texture == MAX_LIGHTMAPS )
 			ri.Sys_Error( ERR_DROP, "LM_UploadBlock() - MAX_LIGHTMAPS exceeded\n" );
