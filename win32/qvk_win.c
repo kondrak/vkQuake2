@@ -72,6 +72,7 @@ qvkrenderpass_t vk_renderpasses[RT_COUNT] = {
 
 VkCommandPool vk_commandPool = VK_NULL_HANDLE;
 VkCommandPool vk_transferCommandPool = VK_NULL_HANDLE;
+static VkCommandPool vk_stagingCommandPool = VK_NULL_HANDLE;
 VkDescriptorPool vk_descriptorPool = VK_NULL_HANDLE;
 
 // Vulkan image views
@@ -104,6 +105,8 @@ VkCommandBuffer vk_activeCmdbuffer = VK_NULL_HANDLE;
 int vk_activeBufferIdx = 0;
 // index of currently acquired image
 int vk_imageIndex = 0;
+// index of currently used staging buffer
+int vk_activeStagingBuffer = 0;
 // started rendering frame?
 static qboolean vk_frame_started = false;
 
@@ -169,11 +172,13 @@ static qvkbuffer_t vk_dynVertexBuffers[NUM_DYNBUFFERS];
 static qvkbuffer_t vk_dynIndexBuffers[NUM_DYNBUFFERS];
 static qvkbuffer_t vk_dynUniformBuffers[NUM_DYNBUFFERS];
 static VkDescriptorSet vk_uboDescriptorSets[NUM_DYNBUFFERS];
+static qvkstagingbuffer_t vk_stagingBuffers[NUM_DYNBUFFERS];
 static int vk_activeDynBufferIdx = 0;
 
 #define VERTEX_BUFFER_MAXSIZE 2048
 #define INDEX_BUFFER_MAXSIZE 2048
 #define UNIFORM_BUFFER_MAXSIZE 4096
+#define STAGING_BUFFER_MAXSIZE 16384
 
 // we will need multiple of these
 VkDescriptorSetLayout vk_uboDescSetLayout;
@@ -417,6 +422,50 @@ static void CreateDynamicBuffers()
 
 		vkUpdateDescriptorSets(vk_device.logical, 1, &descriptorWrite, 0, NULL);
 	}
+}
+
+static void CreateStagingBuffers()
+{
+	QVk_CreateCommandPool(&vk_stagingCommandPool, vk_device.gfxFamilyIndex);
+
+	VkFenceCreateInfo fCreateInfo = {
+		.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+		.flags = 0
+	};
+
+	for (int i = 0; i < NUM_DYNBUFFERS; ++i)
+	{
+		QVk_CreateStagingBuffer(STAGING_BUFFER_MAXSIZE * 1024, &vk_stagingBuffers[i].buffer, VMA_ALLOCATION_CREATE_MAPPED_BIT);
+		vk_stagingBuffers[i].submitted = false;
+
+		VK_VERIFY(vkCreateFence(vk_device.logical, &fCreateInfo, NULL, &vk_stagingBuffers[i].fence));
+
+		vk_stagingBuffers[i].cmdBuffer = QVk_CreateCommandBuffer(&vk_stagingCommandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+		VK_VERIFY(QVk_BeginCommand(&vk_stagingBuffers[i].cmdBuffer));
+	}
+}
+
+static void SubmitStagingBuffer(int index)
+{
+	VkMemoryBarrier memory_barrier;
+	memset(&memory_barrier, 0, sizeof(memory_barrier));
+	memory_barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+	memory_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+	memory_barrier.dstAccessMask = VK_ACCESS_INDEX_READ_BIT | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+	vkCmdPipelineBarrier(vk_stagingBuffers[index].cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 0, &memory_barrier, 0, NULL, 0, NULL);
+
+	vkEndCommandBuffer(vk_stagingBuffers[index].cmdBuffer);
+
+	VkSubmitInfo submit_info;
+	memset(&submit_info, 0, sizeof(submit_info));
+	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submit_info.commandBufferCount = 1;
+	submit_info.pCommandBuffers = &vk_stagingBuffers[index].cmdBuffer;
+
+	vkQueueSubmit(vk_device.gfxQueue, 1, &submit_info, vk_stagingBuffers[index].fence);
+
+	vk_stagingBuffers[index].submitted = true;
+	vk_activeStagingBuffer = (vk_activeStagingBuffer + 1) % NUM_DYNBUFFERS;
 }
 
 static void CreateStaticBuffers()
@@ -696,6 +745,8 @@ void QVk_Shutdown( void )
 			QVk_FreeBuffer(&vk_dynVertexBuffers[i]);
 			QVk_FreeBuffer(&vk_dynIndexBuffers[i]);
 			QVk_FreeBuffer(&vk_dynUniformBuffers[i]);
+			QVk_FreeBuffer(&vk_stagingBuffers[i].buffer);
+			vkDestroyFence(vk_device.logical, vk_stagingBuffers[i].fence, NULL);
 		}
 		vkDestroyDescriptorPool(vk_device.logical, vk_descriptorPool, NULL);
 		vkDestroyDescriptorSetLayout(vk_device.logical, vk_uboDescSetLayout, NULL);
@@ -718,6 +769,8 @@ void QVk_Shutdown( void )
 			vkDestroyCommandPool(vk_device.logical, vk_commandPool, NULL);
 		if (vk_transferCommandPool != VK_NULL_HANDLE)
 			vkDestroyCommandPool(vk_device.logical, vk_transferCommandPool, NULL);
+		if(vk_stagingCommandPool != VK_NULL_HANDLE)
+			vkDestroyCommandPool(vk_device.logical, vk_stagingCommandPool, NULL);
 		DestroyFramebuffers();
 		DestroyImageViews();
 		DestroyDrawBuffers();
@@ -993,6 +1046,8 @@ qboolean QVk_Init()
 	CreateStaticBuffers();
 	// create vertex, index and uniform buffer pools
 	CreateDynamicBuffers();
+	// create staging buffers
+	CreateStagingBuffers();
 	CreatePipelines();
 
 	return true;
@@ -1068,6 +1123,8 @@ VkResult QVk_EndFrame()
 		return VK_NOT_READY;
 
 	// submit
+	QVk_SubmitStagingBuffers();
+
 	vkCmdEndRenderPass(vk_commandbuffers[vk_activeBufferIdx]);
 	VK_VERIFY(vkEndCommandBuffer(vk_commandbuffers[vk_activeBufferIdx]));
 
@@ -1167,6 +1224,58 @@ uint8_t *QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescript
 		Sys_Error("Out of uniform buffer object memory!");
 
 	return (uint8_t *)vk_dynUniformBuffers[vk_activeDynBufferIdx].allocInfo.pMappedData + (*dstOffset);
+}
+
+uint8_t *QVk_GetStagingBuffer(VkDeviceSize size, int alignment, VkCommandBuffer *cmdBuffer, VkBuffer *buffer, uint32_t *dstOffset)
+{
+	qvkstagingbuffer_t * staging_buffer = &vk_stagingBuffers[vk_activeStagingBuffer];
+	const int align_mod = staging_buffer->buffer.currentOffset % alignment;
+	staging_buffer->buffer.currentOffset = ((staging_buffer->buffer.currentOffset % alignment) == 0)
+		? staging_buffer->buffer.currentOffset : (staging_buffer->buffer.currentOffset + alignment - align_mod);
+
+	if (size > STAGING_BUFFER_MAXSIZE * 1024)
+		Sys_Error("Cannot allocate staging buffer space");
+
+	if ((staging_buffer->buffer.currentOffset + size) >= (STAGING_BUFFER_MAXSIZE * 1024) && !staging_buffer->submitted)
+		SubmitStagingBuffer(vk_activeStagingBuffer);
+
+	staging_buffer = &vk_stagingBuffers[vk_activeStagingBuffer];
+	if (staging_buffer->submitted)
+	{
+		VK_VERIFY(vkWaitForFences(vk_device.logical, 1, &staging_buffer->fence, VK_TRUE, UINT64_MAX));
+		VK_VERIFY(vkResetFences(vk_device.logical, 1, &staging_buffer->fence));
+
+		staging_buffer->buffer.currentOffset = 0;
+		staging_buffer->submitted = false;
+
+		VkCommandBufferBeginInfo command_buffer_begin_info;
+		memset(&command_buffer_begin_info, 0, sizeof(command_buffer_begin_info));
+		command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		command_buffer_begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+		VK_VERIFY(vkBeginCommandBuffer(staging_buffer->cmdBuffer, &command_buffer_begin_info));
+	}
+
+	if (cmdBuffer)
+		*cmdBuffer = staging_buffer->cmdBuffer;
+	if (buffer)
+		*buffer = staging_buffer->buffer.buffer;
+	if (dstOffset)
+		*dstOffset = staging_buffer->buffer.currentOffset;
+
+	unsigned char *data = (uint8_t *)staging_buffer->buffer.allocInfo.pMappedData + staging_buffer->buffer.currentOffset;
+	staging_buffer->buffer.currentOffset += size;
+
+	return data;
+}
+
+void QVk_SubmitStagingBuffers()
+{
+	for (int i = 0; i < NUM_DYNBUFFERS; ++i)
+	{
+		if (!vk_stagingBuffers[i].submitted && vk_stagingBuffers[i].buffer.currentOffset > 0)
+			SubmitStagingBuffer(i);
+	}
 }
 
 void QVk_DrawColorRect(float *ubo, VkDeviceSize uboSize)

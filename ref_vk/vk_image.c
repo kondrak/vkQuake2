@@ -238,16 +238,14 @@ static void generateMipmaps(const VkCommandBuffer *cmdBuffer, const qvktexture_t
 
 static void createTextureImage(qvktexture_t *dstTex, const unsigned char *data, uint32_t width, uint32_t height)
 {
-	qvkbuffer_t stagingBuffer;
 	int unifiedTransferAndGfx = vk_device.transferQueue == vk_device.gfxQueue ? 1 : 0;
 	uint32_t imageSize = width * height * (dstTex->format == VK_FORMAT_R8G8B8_UNORM ? 3 : 4);
 
-	VK_VERIFY(QVk_CreateStagingBuffer(imageSize, &stagingBuffer));
-
-	void *imgData;
-	vmaMapMemory(vk_malloc, stagingBuffer.allocation, &imgData);
+	VkBuffer staging_buffer;
+	VkCommandBuffer command_buffer;
+	uint32_t staging_offset;
+	void *imgData = QVk_GetStagingBuffer(imageSize, 4, &command_buffer, &staging_buffer, &staging_offset);
 	memcpy(imgData, data, (size_t)imageSize);
-	vmaUnmapMemory(vk_malloc, stagingBuffer.allocation);
 
 	VkImageUsageFlags imageUsage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 	// set extra image usage flag if we're dealing with mipmapped image - will need it for copying data between mip levels
@@ -256,15 +254,10 @@ static void createTextureImage(qvktexture_t *dstTex, const unsigned char *data, 
 
 	VK_VERIFY(QVk_CreateImage(width, height, dstTex->format, VK_IMAGE_TILING_OPTIMAL, imageUsage, VMA_MEMORY_USAGE_GPU_ONLY, dstTex));
 
-	// copy buffers
-	VkCommandBuffer transferCmdBuffer = QVk_CreateCommandBuffer(&vk_transferCommandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
-	VkCommandBuffer drawCmdBuffer = unifiedTransferAndGfx ? transferCmdBuffer : QVk_CreateCommandBuffer(&vk_commandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
-
-	QVk_BeginCommand(&transferCmdBuffer);
-	transitionImageLayout(&transferCmdBuffer, &vk_device.transferQueue, dstTex, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	transitionImageLayout(&command_buffer, &vk_device.transferQueue, dstTex, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 	// copy buffer to image
 	VkBufferImageCopy region = {
-		.bufferOffset = 0,
+		.bufferOffset = staging_offset,
 		.bufferRowLength = 0,
 		.bufferImageHeight = 0,
 		.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
@@ -275,41 +268,24 @@ static void createTextureImage(qvktexture_t *dstTex, const unsigned char *data, 
 		.imageExtent = { width, height, 1 }
 	};
 
-	vkCmdCopyBufferToImage(transferCmdBuffer, stagingBuffer.buffer, dstTex->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+	vkCmdCopyBufferToImage(command_buffer, staging_buffer, dstTex->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
 	if (dstTex->mipLevels > 1)
 	{
-		// if transfer and graphics queue are different we have to submit the transfer queue before continuing
-		if (!unifiedTransferAndGfx)
-		{
-			QVk_SubmitCommand(&transferCmdBuffer, &vk_device.transferQueue);
-			QVk_BeginCommand(&drawCmdBuffer);
-		}
-
 		// vkCmdBlitImage requires a queue with GRAPHICS_BIT present
-		generateMipmaps(&drawCmdBuffer, dstTex, width, height);
-		QVk_SubmitCommand(&drawCmdBuffer, &vk_device.gfxQueue);
+		generateMipmaps(&command_buffer, dstTex, width, height);
 	}
 	else
 	{
 		// for non-unified transfer and graphics, this step begins queue ownership transfer to graphics queue (for exclusive sharing only)
 		if (unifiedTransferAndGfx || dstTex->sharingMode == VK_SHARING_MODE_EXCLUSIVE)
-			transitionImageLayout(&transferCmdBuffer, &vk_device.transferQueue, dstTex, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-		QVk_SubmitCommand(&transferCmdBuffer, &vk_device.transferQueue);
+			transitionImageLayout(&command_buffer, &vk_device.transferQueue, dstTex, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 		if (!unifiedTransferAndGfx)
 		{
-			QVk_BeginCommand(&drawCmdBuffer);
-			transitionImageLayout(&drawCmdBuffer, &vk_device.gfxQueue, dstTex, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-			QVk_SubmitCommand(&drawCmdBuffer, &vk_device.gfxQueue);
+			transitionImageLayout(&command_buffer, &vk_device.gfxQueue, dstTex, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		}
 	}
-
-	vkFreeCommandBuffers(vk_device.logical, vk_transferCommandPool, 1, &transferCmdBuffer);
-	if (!unifiedTransferAndGfx)
-		vkFreeCommandBuffers(vk_device.logical, vk_commandPool, 1, &drawCmdBuffer);
-
-	QVk_FreeBuffer(&stagingBuffer);
 }
 
 VkResult QVk_CreateImageView(const VkImage *image, VkImageAspectFlags aspectFlags, VkImageView *imageView, VkFormat format, uint32_t mipLevels)
@@ -469,26 +445,19 @@ void QVk_CreateTexture(qvktexture_t *texture, const unsigned char *data, uint32_
 
 void QVk_UpdateTexture(qvktexture_t *texture, const unsigned char *data, uint32_t offset_x, uint32_t offset_y, uint32_t width, uint32_t height)
 {
-	qvkbuffer_t stagingBuffer;
 	int unifiedTransferAndGfx = vk_device.transferQueue == vk_device.gfxQueue ? 1 : 0;
 	uint32_t imageSize = width * height * (texture->format == VK_FORMAT_R8G8B8_UNORM ? 3 : 4);
 
-	VK_VERIFY(QVk_CreateStagingBuffer(imageSize, &stagingBuffer));
-
-	void *imgData;
-	vmaMapMemory(vk_malloc, stagingBuffer.allocation, &imgData);
+	VkBuffer staging_buffer;
+	VkCommandBuffer command_buffer;
+	uint32_t staging_offset;
+	void *imgData = QVk_GetStagingBuffer(imageSize, 4, &command_buffer, &staging_buffer, &staging_offset);
 	memcpy(imgData, data, (size_t)imageSize);
-	vmaUnmapMemory(vk_malloc, stagingBuffer.allocation);
 
-	// copy buffers
-	VkCommandBuffer transferCmdBuffer = QVk_CreateCommandBuffer(&vk_transferCommandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
-	VkCommandBuffer drawCmdBuffer = unifiedTransferAndGfx ? transferCmdBuffer : QVk_CreateCommandBuffer(&vk_commandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
-
-	QVk_BeginCommand(&transferCmdBuffer);
-	transitionImageLayout(&transferCmdBuffer, &vk_device.transferQueue, texture, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	transitionImageLayout(&command_buffer, &vk_device.transferQueue, texture, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 	// copy buffer to image
 	VkBufferImageCopy region = {
-		.bufferOffset = 0,
+		.bufferOffset = staging_offset,
 		.bufferRowLength = 0,
 		.bufferImageHeight = 0,
 		.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
@@ -499,45 +468,31 @@ void QVk_UpdateTexture(qvktexture_t *texture, const unsigned char *data, uint32_
 		.imageExtent = { width, height, 1 }
 	};
 
-	vkCmdCopyBufferToImage(transferCmdBuffer, stagingBuffer.buffer, texture->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+	vkCmdCopyBufferToImage(command_buffer, staging_buffer, texture->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
 	if (texture->mipLevels > 1)
 	{
-		// if transfer and graphics queue are different we have to submit the transfer queue before continuing
-		if (!unifiedTransferAndGfx)
-		{
-			QVk_SubmitCommand(&transferCmdBuffer, &vk_device.transferQueue);
-			QVk_BeginCommand(&drawCmdBuffer);
-		}
-
 		// vkCmdBlitImage requires a queue with GRAPHICS_BIT present
-		generateMipmaps(&drawCmdBuffer, texture, width, height);
-		QVk_SubmitCommand(&drawCmdBuffer, &vk_device.gfxQueue);
+		generateMipmaps(&command_buffer, texture, width, height);
 	}
 	else
 	{
 		// for non-unified transfer and graphics, this step begins queue ownership transfer to graphics queue (for exclusive sharing only)
 		if (unifiedTransferAndGfx || texture->sharingMode == VK_SHARING_MODE_EXCLUSIVE)
-			transitionImageLayout(&transferCmdBuffer, &vk_device.transferQueue, texture, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-		QVk_SubmitCommand(&transferCmdBuffer, &vk_device.transferQueue);
+			transitionImageLayout(&command_buffer, &vk_device.transferQueue, texture, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 		if (!unifiedTransferAndGfx)
 		{
-			QVk_BeginCommand(&drawCmdBuffer);
-			transitionImageLayout(&drawCmdBuffer, &vk_device.gfxQueue, texture, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-			QVk_SubmitCommand(&drawCmdBuffer, &vk_device.gfxQueue);
+			transitionImageLayout(&command_buffer, &vk_device.gfxQueue, texture, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		}
 	}
-
-	vkFreeCommandBuffers(vk_device.logical, vk_transferCommandPool, 1, &transferCmdBuffer);
-	if (!unifiedTransferAndGfx)
-		vkFreeCommandBuffers(vk_device.logical, vk_commandPool, 1, &drawCmdBuffer);
-
-	QVk_FreeBuffer(&stagingBuffer);
 }
 
 void QVk_ReleaseTexture(qvktexture_t *texture)
 {
+	QVk_SubmitStagingBuffers();
+	vkDeviceWaitIdle(vk_device.logical);
+
 	if (texture->image != VK_NULL_HANDLE)
 		vmaDestroyImage(vk_malloc, texture->image, texture->allocation);
 	if (texture->imageView != VK_NULL_HANDLE)

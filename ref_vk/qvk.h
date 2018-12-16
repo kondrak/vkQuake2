@@ -134,6 +134,14 @@ typedef struct
 
 typedef struct
 {
+	qvkbuffer_t buffer;
+	VkCommandBuffer cmdBuffer;
+	VkFence fence;
+	qboolean submitted;
+} qvkstagingbuffer_t;
+
+typedef struct
+{
 	VkBufferUsageFlags usage;
 	VkMemoryPropertyFlags memFlags;
 	VmaMemoryUsage vmaUsage;
@@ -265,7 +273,7 @@ VkResult	QVk_BeginFrame();
 VkResult	QVk_EndFrame();
 void		QVk_RecreateSwapchain();
 void		QVk_FreeBuffer(qvkbuffer_t *buffer);
-VkResult	QVk_CreateStagingBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer);
+VkResult	QVk_CreateStagingBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, VmaAllocationCreateFlags vmaFlags);
 VkResult	QVk_CreateUniformBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, VmaAllocationCreateFlags vmaFlags);
 void		QVk_CreateVertexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, qvkbuffer_t *stagingBuffer, VmaAllocationCreateFlags vmaFlags);
 void		QVk_CreateIndexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, qvkbuffer_t *stagingBuffer, VmaAllocationCreateFlags vmaFlags);
@@ -275,7 +283,9 @@ void		QVk_DestroyPipeline(qvkpipeline_t *pipeline);
 uint8_t*	QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, VkDeviceSize *dstOffset);
 uint8_t*	QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset);
 uint8_t*	QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescriptorSet *dstUboDescriptorSet);
+uint8_t*	QVk_GetStagingBuffer(VkDeviceSize size, int alignment, VkCommandBuffer *cmdBuffer, VkBuffer *buffer, uint32_t *dstOffset);
 void		QVk_DrawColorRect(float *ubo, VkDeviceSize uboSize);
 void		QVk_DrawTexRect(float *ubo, VkDeviceSize uboSize, qvktexture_t *texture);
 void		QVk_BindPipeline(qvkpipeline_t *pipeline);
+void		QVk_SubmitStagingBuffers();
 #endif

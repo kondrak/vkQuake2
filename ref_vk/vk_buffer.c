@@ -81,7 +81,7 @@ static void createStagedBuffer(const void *data, VkDeviceSize size, qvkbuffer_t 
 	if (!stagingBuffer)
 	{
 		stgBuffer = (qvkbuffer_t *)malloc(sizeof(qvkbuffer_t));
-		VK_VERIFY(QVk_CreateStagingBuffer(size, stgBuffer));
+		VK_VERIFY(QVk_CreateStagingBuffer(size, stgBuffer, 0));
 	}
 
 	if (data)
@@ -110,13 +110,13 @@ void QVk_FreeBuffer(qvkbuffer_t *buffer)
 	buffer->currentOffset = 0;
 }
 
-VkResult QVk_CreateStagingBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer)
+VkResult QVk_CreateStagingBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, VmaAllocationCreateFlags vmaFlags)
 {
 	qvkbufferopts_t stagingOpts = {
 		.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 		.memFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 		.vmaUsage = VMA_MEMORY_USAGE_CPU_ONLY,
-		.vmaFlags = 0
+		.vmaFlags = vmaFlags
 	};
 
 	return createBuffer(size, dstBuffer, stagingOpts);
