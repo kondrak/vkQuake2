@@ -572,7 +572,7 @@ static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, floa
 
 			R_BuildLightMap(surf, (void *)temp, smax * 4);
 
-			lmtex = 0;
+			lmtex = surf->lightmaptexturenum + DYNLIGHTMAP_OFFSET;
 			QVk_UpdateTexture(&vk_state.lightmap_textures[lmtex], (unsigned char *)temp, surf->light_s, surf->light_t, smax, tmax);
 		}
 
@@ -1329,7 +1329,7 @@ void Vk_BeginBuildingLightmaps (model_t *m)
 	}
 	r_newrefdef.lightstyles = lightstyles;
 
-	vk_lms.current_lightmap_texture = 1;
+	//vk_lms.current_lightmap_texture = 1;
 
 	/*
 	** if mono lightmaps are enabled and we want to use alpha
@@ -1369,14 +1369,17 @@ void Vk_BeginBuildingLightmaps (model_t *m)
 	}
 
 	/*
-	** initialize the dynamic lightmap texture
+	** initialize the dynamic lightmap textures
 	*/
-	if (vk_state.lightmap_textures[0].image == VK_NULL_HANDLE)
+	if (vk_state.lightmap_textures[DYNLIGHTMAP_OFFSET].image == VK_NULL_HANDLE)
 	{
-		QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[0]);
-		vk_state.lightmap_textures[0].format = VK_LIGHTMAP_FORMAT;
 		qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
-		QVk_CreateTexture(&vk_state.lightmap_textures[0], (unsigned char*)dummy, BLOCK_WIDTH, BLOCK_HEIGHT, &defaultTexOpts);
+		for (i = DYNLIGHTMAP_OFFSET; i < MAX_LIGHTMAPS*2; i++)
+		{
+			QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[i]);
+			vk_state.lightmap_textures[i].format = VK_LIGHTMAP_FORMAT;
+			QVk_CreateTexture(&vk_state.lightmap_textures[i], (unsigned char*)dummy, BLOCK_WIDTH, BLOCK_HEIGHT, &defaultTexOpts);
+		}
 	}
 }
 

@@ -1677,7 +1677,7 @@ void	Vk_ShutdownImages (void)
 	for(i = 0; i < MAX_SCRAPS; i++)
 		QVk_ReleaseTexture(&vk_scrapTextures[i]);
 
-	for(i = 0; i < MAX_LIGHTMAPS; i++)
+	for(i = 0; i < MAX_LIGHTMAPS*2; i++)
 		QVk_ReleaseTexture(&vk_state.lightmap_textures[i]);
 }
 

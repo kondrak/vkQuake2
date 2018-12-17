@@ -335,6 +335,7 @@ typedef struct
 } vkconfig_t;
 
 #define MAX_LIGHTMAPS 128
+#define DYNLIGHTMAP_OFFSET MAX_LIGHTMAPS
 
 typedef struct
 {
@@ -345,7 +346,7 @@ typedef struct
 
 	unsigned char *d_16to8table;
 
-	qvktexture_t lightmap_textures[MAX_LIGHTMAPS];
+	qvktexture_t lightmap_textures[MAX_LIGHTMAPS*2];
 
 	int	currenttextures[2];
 	int currenttmu;
