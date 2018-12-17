@@ -11,7 +11,7 @@ layout(location = 0) out vec4 fragmentColor;
 void main()
 {
     if(textured != 0)
-        fragmentColor = texture(sTexture, texCoord) * color;
+        fragmentColor = texture(sTexture, texCoord) * clamp(color, 0.0, 1.0);
     else
         fragmentColor = color;
 }
