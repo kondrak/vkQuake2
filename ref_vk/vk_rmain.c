@@ -106,12 +106,12 @@ cvar_t	*vk_point_particles;
 cvar_t	*vk_dynamic;
 cvar_t	*vk_msaa;
 cvar_t	*vk_showtris;
+cvar_t	*vk_lightmap;
 
 cvar_t	*gl_particle_att_a;
 cvar_t	*gl_particle_att_b;
 cvar_t	*gl_particle_att_c;
 
-cvar_t	*gl_lightmap;
 cvar_t	*gl_nobind;
 cvar_t	*gl_cull;
 cvar_t	*gl_playermip;
@@ -1053,6 +1053,7 @@ void R_Register( void )
 	vk_dynamic = ri.Cvar_Get("vk_dynamic", "1", 0);
 	vk_msaa = ri.Cvar_Get("vk_msaa", "0", CVAR_ARCHIVE);
 	vk_showtris = ri.Cvar_Get("vk_showtris", "0", 0);
+	vk_lightmap = ri.Cvar_Get("vk_lightmap", "0", 0);
 	if (vk_msaa->value < 0)
 		ri.Cvar_Set("vk_msaa", "0");
 	else if (vk_msaa->value > 3)

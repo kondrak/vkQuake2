@@ -567,7 +567,10 @@ static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, floa
 
 	struct {
 		float mvp[16];
+		float viewLightmaps;
 	} lmapPolyUbo;
+
+	lmapPolyUbo.viewLightmaps = vk_lightmap->value ? 1.f : 0.f;
 
 	if (modelMatrix)
 	{

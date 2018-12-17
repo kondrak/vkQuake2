@@ -39,4 +39,5 @@ Features:
 - vk_point_particles - (default 1) - use POINT_LIST to render particles vs texture
 - vk_dynamic - equivalent to GL
 - vk_showtris - equivalent to GL
+- vk_lightmap - equivalent to GL
 - skipped 8-bit textures - no modern hardware even supports it these days

@@ -8,10 +8,12 @@ layout(location = 2) in vec2 inTexCoordLmap;
 layout(binding = 0) uniform UniformBufferObject
 {
     mat4 mvpMatrix;
+    float viewLightmaps;
 } ubo;
 
 layout(location = 0) out vec2 texCoord;
 layout(location = 1) out vec2 texCoordLmap;
+layout(location = 2) out float viewLightmaps;
 
 out gl_PerVertex {
     vec4 gl_Position;
@@ -21,4 +23,5 @@ void main() {
     gl_Position = ubo.mvpMatrix * vec4(inVertex, 1.0);
     texCoord = inTexCoord;
     texCoordLmap = inTexCoordLmap;
+    viewLightmaps = ubo.viewLightmaps;
 }

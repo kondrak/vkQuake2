@@ -201,12 +201,12 @@ extern	cvar_t	*vk_particle_max_size;
 extern	cvar_t	*vk_point_particles;
 extern	cvar_t	*vk_dynamic;
 extern	cvar_t	*vk_showtris;
+extern	cvar_t	*vk_lightmap;
 
 extern cvar_t	*gl_particle_att_a;
 extern cvar_t	*gl_particle_att_b;
 extern cvar_t	*gl_particle_att_c;
 
-extern	cvar_t	*gl_lightmap;
 extern	cvar_t	*gl_nobind;
 extern	cvar_t	*gl_cull;
 extern	cvar_t	*gl_poly;
