@@ -206,11 +206,11 @@ void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *skin, fl
 			do
 			{
 				int vertIdx = vertCounts[pipelineIdx];
-				index_xyz = order[2];
-				order += 3;
 				// unused in this case, since texturing is disabled
 				vertList[pipelineIdx][vertIdx].texCoord[0] = 0.f;
 				vertList[pipelineIdx][vertIdx].texCoord[1] = 0.f;
+				index_xyz = order[2];
+				order += 3;
 
 				vertList[pipelineIdx][vertIdx].color[0] = shadelight[0];
 				vertList[pipelineIdx][vertIdx].color[1] = shadelight[1];
@@ -248,10 +248,10 @@ void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *skin, fl
 				vertList[pipelineIdx][vertIdx].vertex[2] = s_lerped[index_xyz][2];
 				vertCounts[pipelineIdx]++;
 			} while (--count);
-
-			pipeCounters[pipelineIdx]++;
-			drawInfo[pipelineIdx][pipeCounters[pipelineIdx]].firstVertex = vertCounts[pipelineIdx];
 		}
+
+		pipeCounters[pipelineIdx]++;
+		drawInfo[pipelineIdx][pipeCounters[pipelineIdx]].firstVertex = vertCounts[pipelineIdx];
 	}
 
 	Mat_Mul(modelMatrix, r_viewproj_matrix, meshUbo.mvp);
