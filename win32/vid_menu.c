@@ -293,7 +293,7 @@ void VID_MenuInit( void )
 	if ( !gl_picmip )
 		gl_picmip = Cvar_Get( "gl_picmip", "0", 0 );
 	if ( !gl_mode )
-		gl_mode = Cvar_Get( "gl_mode", "3", 0 );
+		gl_mode = Cvar_Get( "gl_mode", "6", 0 );
 	if ( !sw_mode )
 		sw_mode = Cvar_Get( "sw_mode", "0", 0 );
 	if ( !gl_ext_palettedtexture )
@@ -310,7 +310,7 @@ void VID_MenuInit( void )
 		sw_stipplealpha = Cvar_Get( "sw_stipplealpha", "0", CVAR_ARCHIVE );
 
 	if( !vk_mode )
-		vk_mode = Cvar_Get( "vk_mode", "6", 0 );
+		vk_mode = Cvar_Get( "vk_mode", "10", 0 );
 	if( !vk_driver )
 		vk_driver = Cvar_Get( "vk_driver", "vulkan", 0 );
 

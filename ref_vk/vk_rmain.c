@@ -1033,7 +1033,7 @@ void R_Register( void )
 #else
 	vk_validation = ri.Cvar_Get("vk_validation", "0", 0);
 #endif
-	vk_mode = ri.Cvar_Get("vk_mode", "3", CVAR_ARCHIVE);
+	vk_mode = ri.Cvar_Get("vk_mode", "10", CVAR_ARCHIVE);
 	vk_bitdepth = ri.Cvar_Get("vk_bitdepth", "0", 0);
 	vk_log = ri.Cvar_Get("vk_log", "0", 0);
 	vk_picmip = ri.Cvar_Get("vk_picmip", "0", 0);
