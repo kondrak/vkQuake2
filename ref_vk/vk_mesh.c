@@ -291,14 +291,26 @@ Vk_DrawAliasShadow
 */
 extern	vec3_t			lightspot;
 
-void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum)
+void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatrix)
 {
 	dtrivertx_t	*verts;
 	int		*order;
 	vec3_t	point;
 	float	height, lheight;
 	int		count;
+	int		i;
 	daliasframe_t	*frame;
+	float mvp[16];
+	qvkpipeline_t pipelines[2] = { vk_shadowsPipelineStrip, vk_shadowsPipelineFan };
+
+	enum {
+		TRIANGLE_STRIP = 0,
+		TRIANGLE_FAN = 1
+	} pipelineIdx;
+
+	typedef struct {
+		vec3_t vertex;
+	} shadowvert;
 
 	lheight = currententity->origin[2] - lightspot[2];
 
@@ -312,8 +324,18 @@ void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum)
 
 	height = -lheight + 1.0;
 
+	Mat_Mul(modelMatrix, r_viewproj_matrix, mvp);
+
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(mvp), &uboOffset, &uboDescriptorSet);
+	memcpy(uboData, &mvp, sizeof(mvp));
+	VkDescriptorSet descriptorSets[] = { uboDescriptorSet };
+
+	shadowvert shadowverts[MAX_VERTS];
 	while (1)
 	{
+		i = 0;
 		// get the vertex count and primitive type
 		count = *order++;
 		if (!count)
@@ -321,29 +343,44 @@ void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum)
 		if (count < 0)
 		{
 			count = -count;
-			//qglBegin (GL_TRIANGLE_FAN);
+			pipelineIdx = TRIANGLE_FAN;
 		}
 		else
 		{
-			//qglBegin(GL_TRIANGLE_STRIP);
+			pipelineIdx = TRIANGLE_STRIP;
 		}
 
 		do
 		{
 			// normals and vertexes come from the frame list
-			memcpy( point, s_lerped[order[2]], sizeof( point )  );
+			memcpy( point, s_lerped[order[2]], sizeof( point ) );
 
 			point[0] -= shadevector[0]*(point[2]+lheight);
 			point[1] -= shadevector[1]*(point[2]+lheight);
 			point[2] = height;
-			//qglVertex3fv (point);
+
+			shadowverts[i].vertex[0] = point[0];
+			shadowverts[i].vertex[1] = point[1];
+			shadowverts[i].vertex[2] = point[2];
 
 			order += 3;
-
+			i++;
 		} while (--count);
 
-		//qglEnd ();
-	}	
+		if (i > 0)
+		{
+			VkDeviceSize vaoSize = sizeof(shadowvert) * i;
+			VkBuffer vbo;
+			VkDeviceSize vboOffset;
+			uint8_t *data = QVk_GetVertexBuffer(vaoSize, &vbo, &vboOffset);
+			memcpy(data, shadowverts, vaoSize);
+
+			QVk_BindPipeline(&pipelines[pipelineIdx]);
+			vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[pipelineIdx].layout, 0, 1, descriptorSets, 1, &uboOffset);
+			vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
+			vkCmdDraw(vk_activeCmdbuffer, i, 1, 0, 0);
+		}
+	}
 }
 
 
@@ -724,15 +761,10 @@ void R_DrawAliasModel (entity_t *e)
 
 	if (vk_shadows->value && !(currententity->flags & (RF_TRANSLUCENT | RF_WEAPONMODEL)))
 	{
-		/*qglPushMatrix ();
-		R_RotateForEntity (e);
-		qglDisable (GL_TEXTURE_2D);
-		qglEnable (GL_BLEND);
-		qglColor4f (0,0,0,0.5);
-		Vk_DrawAliasShadow (paliashdr, currententity->frame );
-		qglEnable (GL_TEXTURE_2D);
-		qglDisable (GL_BLEND);
-		qglPopMatrix ();*/
+		float model[16];
+		Mat_Identity(model);
+		R_RotateForEntity(e, model);
+		Vk_DrawAliasShadow (paliashdr, currententity->frame, model);
 	}
 }
 

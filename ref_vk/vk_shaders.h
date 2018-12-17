@@ -119,4 +119,11 @@ extern const size_t showtris_vert_size;
 
 extern const uint32_t showtris_frag_spv[];
 extern const size_t showtris_frag_size;
+
+// entity shadows
+extern const uint32_t shadows_vert_spv[];
+extern const size_t shadows_vert_size;
+
+extern const uint32_t shadows_frag_spv[];
+extern const size_t shadows_frag_size;
 #endif

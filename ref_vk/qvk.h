@@ -245,6 +245,8 @@ extern qvkpipeline_t vk_drawBeamPipeline;
 extern qvkpipeline_t vk_drawSkyboxPipeline;
 extern qvkpipeline_t vk_drawDLightPipeline;
 extern qvkpipeline_t vk_showTrisPipeline;
+extern qvkpipeline_t vk_shadowsPipelineStrip;
+extern qvkpipeline_t vk_shadowsPipelineFan;
 
 // function pointers
 extern PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;

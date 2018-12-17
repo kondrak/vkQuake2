@@ -112,10 +112,6 @@ cvar_t	*gl_particle_att_a;
 cvar_t	*gl_particle_att_b;
 cvar_t	*gl_particle_att_c;
 
-cvar_t	*gl_nobind;
-cvar_t	*gl_cull;
-cvar_t	*gl_playermip;
-cvar_t  *gl_saturatelighting;
 cvar_t	*gl_texturemode;
 cvar_t	*gl_texturealphamode;
 cvar_t	*gl_texturesolidmode;
@@ -859,18 +855,6 @@ void R_SetupVulkan (void)
 
 	// precalculate view-projection matrix
 	Mat_Mul(r_view_matrix, r_projection_matrix, r_viewproj_matrix);
-
-	//
-	// set drawing parms
-	//
-	/*if (gl_cull->value)
-		qglEnable(GL_CULL_FACE);
-	else
-		qglDisable(GL_CULL_FACE);
-
-	qglDisable(GL_BLEND);
-	qglDisable(GL_ALPHA_TEST);
-	qglEnable(GL_DEPTH_TEST);*/
 }
 
 /*

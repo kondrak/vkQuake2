@@ -1387,7 +1387,7 @@ void Vk_BeginBuildingLightmaps (model_t *m)
 	}
 	r_newrefdef.lightstyles = lightstyles;
 
-	//vk_lms.current_lightmap_texture = 1;
+	vk_lms.current_lightmap_texture = 0;
 
 	/*
 	** if mono lightmaps are enabled and we want to use alpha

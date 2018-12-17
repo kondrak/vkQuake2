@@ -181,10 +181,10 @@ extern	cvar_t	*r_lerpmodels;
 
 extern	cvar_t	*r_lightlevel;	// FIXME: This is a HACK to get the client's light level
 
-extern cvar_t	*vk_validation;
-extern cvar_t	*vk_mode;
-extern cvar_t	*vk_bitdepth;
-extern cvar_t	*vk_log;
+extern	cvar_t	*vk_validation;
+extern	cvar_t	*vk_mode;
+extern	cvar_t	*vk_bitdepth;
+extern	cvar_t	*vk_log;
 extern	cvar_t	*vk_picmip;
 extern	cvar_t	*vk_skymip;
 extern	cvar_t	*vk_round_down;
@@ -203,24 +203,19 @@ extern	cvar_t	*vk_dynamic;
 extern	cvar_t	*vk_showtris;
 extern	cvar_t	*vk_lightmap;
 
-extern cvar_t	*gl_particle_att_a;
-extern cvar_t	*gl_particle_att_b;
-extern cvar_t	*gl_particle_att_c;
+extern	cvar_t	*gl_particle_att_a;
+extern	cvar_t	*gl_particle_att_b;
+extern	cvar_t	*gl_particle_att_c;
 
-extern	cvar_t	*gl_nobind;
-extern	cvar_t	*gl_cull;
-extern	cvar_t	*gl_poly;
 extern	cvar_t	*gl_lightmaptype;
-extern	cvar_t	*gl_playermip;
 extern	cvar_t	*gl_texturemode;
 extern	cvar_t	*gl_texturealphamode;
 extern	cvar_t	*gl_texturesolidmode;
-extern  cvar_t  *gl_saturatelighting;
 
 extern	cvar_t	*vid_fullscreen;
 extern	cvar_t	*vid_gamma;
 
-extern	cvar_t		*intensity;
+extern	cvar_t	*intensity;
 
 extern	int		gl_lightmap_format;
 extern	int		gl_solid_format;
@@ -233,7 +228,6 @@ extern	int		c_visible_textures;
 
 extern	float	r_viewproj_matrix[16];
 
-void R_TranslatePlayerSkin (int playernum);
 void R_LightPoint (vec3_t p, vec3_t color);
 void R_PushDlights (void);
 
@@ -244,9 +238,6 @@ extern	model_t	*r_worldmodel;
 extern	unsigned	d_8to24table[256];
 
 extern	int		registration_sequence;
-
-
-void V_AddBlend (float r, float g, float b, float a, float *v_blend);
 
 qboolean R_Init( void *hinstance, void *hWnd );
 void	 R_Shutdown( void );

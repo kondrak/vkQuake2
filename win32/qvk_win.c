@@ -132,6 +132,8 @@ qvkpipeline_t vk_drawBeamPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawSkyboxPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawDLightPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_showTrisPipeline = QVKPIPELINE_INIT;
+qvkpipeline_t vk_shadowsPipelineStrip = QVKPIPELINE_INIT;
+qvkpipeline_t vk_shadowsPipelineFan = QVKPIPELINE_INIT;
 
 #define VK_INPUTBIND_DESC(s) { \
 	.binding = 0, \
@@ -720,6 +722,16 @@ static void CreatePipelines()
 	VkDescriptorSetLayout showtrisLayouts[] = { vk_uboDescSetLayout };
 	QVk_CreatePipeline(showtrisLayouts, 1, &showtrisVertInfo, &vk_showTrisPipeline, shaders, 2);
 
+	//vk_shadows render pipeline
+	VK_LOAD_VERTFRAG_SHADERS(shaders, shadows);
+
+	vk_shadowsPipelineStrip.blendOpts.blendEnable = VK_TRUE;
+	vk_shadowsPipelineStrip.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+	QVk_CreatePipeline(showtrisLayouts, 1, &showtrisVertInfo, &vk_shadowsPipelineStrip, shaders, 2);
+	vk_shadowsPipelineFan.blendOpts.blendEnable = VK_TRUE;
+	vk_shadowsPipelineFan.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+	QVk_CreatePipeline(showtrisLayouts, 1, &showtrisVertInfo, &vk_shadowsPipelineFan, shaders, 2);
+
 	// final cleanup
 	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
 	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
@@ -755,6 +767,8 @@ void QVk_Shutdown( void )
 		QVk_DestroyPipeline(&vk_drawSkyboxPipeline);
 		QVk_DestroyPipeline(&vk_drawDLightPipeline);
 		QVk_DestroyPipeline(&vk_showTrisPipeline);
+		QVk_DestroyPipeline(&vk_shadowsPipelineStrip);
+		QVk_DestroyPipeline(&vk_shadowsPipelineFan);
 		QVk_FreeBuffer(&vk_texRectVbo);
 		QVk_FreeBuffer(&vk_colorRectVbo);
 		QVk_FreeBuffer(&vk_rectIbo);
