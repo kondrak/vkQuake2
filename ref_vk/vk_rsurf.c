@@ -229,7 +229,62 @@ void DrawVkFlowingPoly (msurface_t *fa, image_t *texture, float *color)
 */
 void R_DrawTriangleOutlines (void)
 {
+	int			i, j, k;
+	vkpoly_t	*p;
 
+	if (!vk_showtris->value)
+		return;
+
+	VkBuffer vbo;
+	VkDeviceSize vboOffset;
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	vec3_t verts[4];
+
+	QVk_BindPipeline(&vk_showTrisPipeline);
+
+	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(r_viewproj_matrix), &uboOffset, &uboDescriptorSet);
+	memcpy(uboData, &r_viewproj_matrix, sizeof(r_viewproj_matrix));
+
+	VkDescriptorSet descriptorSets[] = { uboDescriptorSet };
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_showTrisPipeline.layout, 0, 1, descriptorSets, 1, &uboOffset);
+
+	for (i = 0; i < MAX_LIGHTMAPS; i++)
+	{
+		msurface_t *surf;
+
+		for (surf = vk_lms.lightmap_surfaces[i]; surf != 0; surf = surf->lightmapchain)
+		{
+			p = surf->polys;
+			for (; p; p = p->chain)
+			{
+				for (j = 2, k = 0; j < p->numverts; j++, k++)
+				{
+					verts[0][0] = p->verts[0][0];
+					verts[0][1] = p->verts[0][1];
+					verts[0][2] = p->verts[0][2];
+
+					verts[1][0] = p->verts[j - 1][0];
+					verts[1][1] = p->verts[j - 1][1];
+					verts[1][2] = p->verts[j - 1][2];
+
+					verts[2][0] = p->verts[j][0];
+					verts[2][1] = p->verts[j][1];
+					verts[2][2] = p->verts[j][2];
+
+					verts[3][0] = p->verts[0][0];
+					verts[3][1] = p->verts[0][1];
+					verts[3][2] = p->verts[0][2];
+
+					uint8_t *data = QVk_GetVertexBuffer(4 * sizeof(vec3_t), &vbo, &vboOffset);
+					memcpy(data, verts, sizeof(vec3_t) * 4);
+
+					vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
+					vkCmdDraw(vk_activeCmdbuffer, 4, 1, 0, 0);
+				}
+			}
+		}
+	}
 }
 
 /*
@@ -768,7 +823,7 @@ void R_DrawInlineBModel (float *modelMatrix)
 				psurf->texturechain = r_alpha_surfaces;
 				r_alpha_surfaces = psurf;
 			}
-			else if (!(psurf->flags & SURF_DRAWTURB))
+			else if (!(psurf->flags & SURF_DRAWTURB) && !vk_showtris->value)
 			{
 				Vk_RenderLightmappedPoly(psurf, modelMatrix, alpha);
 			}
@@ -954,7 +1009,7 @@ void R_RecursiveWorldNode (mnode_t *node)
 		}
 		else
 		{
-			if (!(surf->flags & SURF_DRAWTURB))
+			if (!(surf->flags & SURF_DRAWTURB) && !vk_showtris->value)
 			{
 				Vk_RenderLightmappedPoly(surf, NULL, 1.f);
 			}

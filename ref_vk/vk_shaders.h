@@ -112,4 +112,11 @@ extern const size_t polygon_warp_vert_size;
 
 extern const uint32_t polygon_warp_frag_spv[];
 extern const size_t polygon_warp_frag_size;
+
+// debug triangle rendering
+extern const uint32_t showtris_vert_spv[];
+extern const size_t showtris_vert_size;
+
+extern const uint32_t showtris_frag_spv[];
+extern const size_t showtris_frag_size;
 #endif

@@ -131,6 +131,7 @@ qvkpipeline_t vk_drawPolyWarpPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawBeamPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawSkyboxPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawDLightPipeline = QVKPIPELINE_INIT;
+qvkpipeline_t vk_showTrisPipeline = QVKPIPELINE_INIT;
 
 #define VK_INPUTBIND_DESC(s) { \
 	.binding = 0, \
@@ -703,6 +704,22 @@ static void CreatePipelines()
 	VkDescriptorSetLayout dLightDsLayouts[] = { vk_uboDescSetLayout };
 	QVk_CreatePipeline(dLightDsLayouts, 1, &dLightVertexInputInfo, &vk_drawDLightPipeline, shaders, 2);
 
+	// vk_showtris render pipeline
+	VkVertexInputBindingDescription showtrisBind = VK_INPUTBIND_DESC(sizeof(float) * 3);
+	VkVertexInputAttributeDescription showtrisAttrDesc[] = {
+		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0)
+	};
+
+	VkPipelineVertexInputStateCreateInfo showtrisVertInfo = VK_VERTEXINPUT_CINF(showtrisBind, showtrisAttrDesc);
+	VK_LOAD_VERTFRAG_SHADERS(shaders, showtris);
+
+	vk_showTrisPipeline.cullMode = VK_CULL_MODE_NONE;
+	vk_showTrisPipeline.depthTestEnable = VK_FALSE;
+	vk_showTrisPipeline.depthWriteEnable = VK_FALSE;
+	vk_showTrisPipeline.topology = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+	VkDescriptorSetLayout showtrisLayouts[] = { vk_uboDescSetLayout };
+	QVk_CreatePipeline(showtrisLayouts, 1, &showtrisVertInfo, &vk_showTrisPipeline, shaders, 2);
+
 	// final cleanup
 	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
 	vkDestroyShaderModule(vk_device.logical, shaders[1].module, NULL);
@@ -737,6 +754,7 @@ void QVk_Shutdown( void )
 		QVk_DestroyPipeline(&vk_drawBeamPipeline);
 		QVk_DestroyPipeline(&vk_drawSkyboxPipeline);
 		QVk_DestroyPipeline(&vk_drawDLightPipeline);
+		QVk_DestroyPipeline(&vk_showTrisPipeline);
 		QVk_FreeBuffer(&vk_texRectVbo);
 		QVk_FreeBuffer(&vk_colorRectVbo);
 		QVk_FreeBuffer(&vk_rectIbo);
