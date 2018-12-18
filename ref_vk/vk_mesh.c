@@ -308,10 +308,6 @@ void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatrix)
 		TRIANGLE_FAN = 1
 	} pipelineIdx;
 
-	typedef struct {
-		vec3_t vertex;
-	} shadowvert;
-
 	lheight = currententity->origin[2] - lightspot[2];
 
 	frame = (daliasframe_t *)((byte *)paliashdr + paliashdr->ofs_frames 
@@ -332,7 +328,7 @@ void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatrix)
 	memcpy(uboData, &mvp, sizeof(mvp));
 	VkDescriptorSet descriptorSets[] = { uboDescriptorSet };
 
-	shadowvert shadowverts[MAX_VERTS];
+	vec3_t shadowverts[MAX_VERTS];
 	while (1)
 	{
 		i = 0;
@@ -359,9 +355,9 @@ void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatrix)
 			point[1] -= shadevector[1]*(point[2]+lheight);
 			point[2] = height;
 
-			shadowverts[i].vertex[0] = point[0];
-			shadowverts[i].vertex[1] = point[1];
-			shadowverts[i].vertex[2] = point[2];
+			shadowverts[i][0] = point[0];
+			shadowverts[i][1] = point[1];
+			shadowverts[i][2] = point[2];
 
 			order += 3;
 			i++;
@@ -369,7 +365,7 @@ void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatrix)
 
 		if (i > 0)
 		{
-			VkDeviceSize vaoSize = sizeof(shadowvert) * i;
+			VkDeviceSize vaoSize = sizeof(vec3_t) * i;
 			VkBuffer vbo;
 			VkDeviceSize vboOffset;
 			uint8_t *data = QVk_GetVertexBuffer(vaoSize, &vbo, &vboOffset);

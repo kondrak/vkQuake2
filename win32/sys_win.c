@@ -670,7 +670,8 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 
 		//	_controlfp( ~( _EM_ZERODIVIDE /*| _EM_INVALID*/ ), _MCW_EM );
 		_controlfp( _PC_24, _MCW_PC );
-		Qcommon_Frame (time);
+		if (ActiveApp)
+			Qcommon_Frame(time);
 
 		oldtime = newtime;
 	}
