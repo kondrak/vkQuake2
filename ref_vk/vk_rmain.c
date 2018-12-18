@@ -113,8 +113,6 @@ cvar_t	*gl_particle_att_b;
 cvar_t	*gl_particle_att_c;
 
 cvar_t	*gl_texturemode;
-cvar_t	*gl_texturealphamode;
-cvar_t	*gl_texturesolidmode;
 
 cvar_t	*vid_fullscreen;
 cvar_t	*vid_gamma;

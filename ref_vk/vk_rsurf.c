@@ -39,11 +39,8 @@ msurface_t	*r_alpha_surfaces;
 int		c_visible_lightmaps;
 int		c_visible_textures;
 
-#define VK_LIGHTMAP_FORMAT VK_FORMAT_R8G8B8A8_UNORM
-
 typedef struct
 {
-	int internal_format;
 	int	current_lightmap_texture;
 
 	msurface_t	*lightmap_surfaces[MAX_LIGHTMAPS];
@@ -61,7 +58,6 @@ static vklightmapstate_t vk_lms;
 static void		LM_InitBlock( void );
 static void		LM_UploadBlock( qboolean dynamic );
 static qboolean	LM_AllocBlock (int w, int h, int *x, int *y);
-static void		RgbToRgba(unsigned char *src, unsigned char *dst, size_t size);
 
 extern void R_SetCacheState( msurface_t *surf );
 extern void R_BuildLightMap (msurface_t *surf, byte *dest, int stride);
@@ -1192,7 +1188,6 @@ static void LM_UploadBlock( qboolean dynamic )
 		else
 		{
 			QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[texture]);
-			vk_state.lightmap_textures[texture].format = VK_LIGHTMAP_FORMAT;
 			qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
 			QVk_CreateTexture(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer, BLOCK_WIDTH, BLOCK_HEIGHT, &defaultTexOpts);
 		}
@@ -1234,14 +1229,6 @@ static qboolean LM_AllocBlock (int w, int h, int *x, int *y)
 		vk_lms.allocated[*x + i] = best + h;
 
 	return true;
-}
-
-static void RgbToRgba(unsigned char *src, unsigned char *dst, size_t size)
-{
-	// few GPUs support true 24bit textures, so we need to convert lightmaps to 32bit for Vulkan to work
-	memset(dst, 255, size);
-	for (int i = 0; i < size; i += 4)
-		memcpy(dst + i, src + i, 3);
 }
 
 /*
@@ -1390,43 +1377,6 @@ void Vk_BeginBuildingLightmaps (model_t *m)
 	vk_lms.current_lightmap_texture = 0;
 
 	/*
-	** if mono lightmaps are enabled and we want to use alpha
-	** blending (a,1-a) then we're likely running on a 3DLabs
-	** Permedia2.  In a perfect world we'd use a GL_ALPHA lightmap
-	** in order to conserve space and maximize bandwidth, however
-	** this isn't a perfect world.
-	**
-	** So we have to use alpha lightmaps, but stored in GL_RGBA format,
-	** which means we only get 1/16th the color resolution we should when
-	** using alpha lightmaps.  If we find another board that supports
-	** only alpha lightmaps but that can at least support the GL_ALPHA
-	** format then we should change this code to use real alpha maps.
-	*/
-	if (toupper(vk_monolightmap->string[0]) == 'A')
-	{
-		vk_lms.internal_format = gl_tex_alpha_format;
-	}
-	/*
-	** try to do hacked colored lighting with a blended texture
-	*/
-	else if (toupper(vk_monolightmap->string[0]) == 'C')
-	{
-		vk_lms.internal_format = gl_tex_alpha_format;
-	}
-	else if (toupper(vk_monolightmap->string[0]) == 'I')
-	{
-		//vk_lms.internal_format = GL_INTENSITY8;
-	}
-	else if (toupper(vk_monolightmap->string[0]) == 'L')
-	{
-		//vk_lms.internal_format = GL_LUMINANCE8;
-	}
-	else
-	{
-		vk_lms.internal_format = gl_tex_solid_format;
-	}
-
-	/*
 	** initialize the dynamic lightmap textures
 	*/
 	if (vk_state.lightmap_textures[DYNLIGHTMAP_OFFSET].image == VK_NULL_HANDLE)
@@ -1435,7 +1385,6 @@ void Vk_BeginBuildingLightmaps (model_t *m)
 		for (i = DYNLIGHTMAP_OFFSET; i < MAX_LIGHTMAPS*2; i++)
 		{
 			QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[i]);
-			vk_state.lightmap_textures[i].format = VK_LIGHTMAP_FORMAT;
 			QVk_CreateTexture(&vk_state.lightmap_textures[i], (unsigned char*)dummy, BLOCK_WIDTH, BLOCK_HEIGHT, &defaultTexOpts);
 		}
 	}

@@ -152,9 +152,6 @@ extern	int			r_framecount;
 extern	cplane_t	frustum[4];
 extern	int			c_brush_polys, c_alias_polys;
 
-
-extern	int			gl_filter_min, gl_filter_max;
-
 //
 // view origin
 //
@@ -207,21 +204,12 @@ extern	cvar_t	*gl_particle_att_a;
 extern	cvar_t	*gl_particle_att_b;
 extern	cvar_t	*gl_particle_att_c;
 
-extern	cvar_t	*gl_lightmaptype;
 extern	cvar_t	*gl_texturemode;
-extern	cvar_t	*gl_texturealphamode;
-extern	cvar_t	*gl_texturesolidmode;
 
 extern	cvar_t	*vid_fullscreen;
 extern	cvar_t	*vid_gamma;
 
 extern	cvar_t	*intensity;
-
-extern	int		gl_lightmap_format;
-extern	int		gl_solid_format;
-extern	int		gl_alpha_format;
-extern	int		gl_tex_solid_format;
-extern	int		gl_tex_alpha_format;
 
 extern	int		c_visible_lightmaps;
 extern	int		c_visible_textures;
@@ -297,9 +285,6 @@ void	Vk_InitImages (void);
 void	Vk_ShutdownImages (void);
 
 void	Vk_FreeUnusedImages (void);
-
-void Vk_TextureAlphaMode( char *string );
-void Vk_TextureSolidMode( char *string );
 
 void Vk_DrawParticles( int n, const particle_t particles[], const unsigned colortable[768] );
 

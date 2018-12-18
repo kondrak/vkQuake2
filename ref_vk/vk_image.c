@@ -38,15 +38,6 @@ uint32_t Vk_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboole
 uint32_t Vk_Upload32 (unsigned *data, int width, int height,  qboolean mipmap);
 
 
-int		gl_solid_format = 3;
-int		gl_alpha_format = 4;
-
-int		gl_tex_solid_format = 3;
-int		gl_tex_alpha_format = 4;
-
-int		gl_filter_min = VK_FILTER_NEAREST; // GL_LINEAR_MIPMAP_NEAREST;
-int		gl_filter_max = VK_FILTER_LINEAR; // GL_LINEAR;
-
 static VkImageAspectFlags getDepthStencilAspect(VkFormat depthFormat)
 {
 	switch (depthFormat)
@@ -239,7 +230,8 @@ static void generateMipmaps(const VkCommandBuffer *cmdBuffer, const qvktexture_t
 static void createTextureImage(qvktexture_t *dstTex, const unsigned char *data, uint32_t width, uint32_t height)
 {
 	int unifiedTransferAndGfx = vk_device.transferQueue == vk_device.gfxQueue ? 1 : 0;
-	uint32_t imageSize = width * height * (dstTex->format == VK_FORMAT_R8G8B8_UNORM ? 3 : 4);
+	// assuming 32bit images
+	uint32_t imageSize = width * height * 4;
 
 	VkBuffer staging_buffer;
 	VkCommandBuffer command_buffer;
@@ -446,7 +438,8 @@ void QVk_CreateTexture(qvktexture_t *texture, const unsigned char *data, uint32_
 void QVk_UpdateTexture(qvktexture_t *texture, const unsigned char *data, uint32_t offset_x, uint32_t offset_y, uint32_t width, uint32_t height)
 {
 	int unifiedTransferAndGfx = vk_device.transferQueue == vk_device.gfxQueue ? 1 : 0;
-	uint32_t imageSize = width * height * (texture->format == VK_FORMAT_R8G8B8_UNORM ? 3 : 4);
+	// assuming 32bit images
+	uint32_t imageSize = width * height * 4;
 
 	VkBuffer staging_buffer;
 	VkCommandBuffer command_buffer;
@@ -508,83 +501,12 @@ void QVk_ReleaseTexture(qvktexture_t *texture)
 	texture->descriptorSet = VK_NULL_HANDLE;
 }
 
-// need Vulkan equivalent
-/*
-typedef struct
-{
-	char *name;
-	int	minimize, maximize;
-} glmode_t;
-
-glmode_t modes[] = {
-	{"GL_NEAREST", GL_NEAREST, GL_NEAREST},
-	{"GL_LINEAR", GL_LINEAR, GL_LINEAR},
-	{"GL_NEAREST_MIPMAP_NEAREST", GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST},
-	{"GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR},
-	{"GL_NEAREST_MIPMAP_LINEAR", GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST},
-	{"GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR}
-};
-
-#define NUM_GL_MODES (sizeof(modes) / sizeof (glmode_t))
-
-typedef struct
-{
-	char *name;
-	int mode;
-} gltmode_t;
-
-gltmode_t gl_alpha_modes[] = {
-	{"default", 4},
-	{"GL_RGBA", GL_RGBA},
-	{"GL_RGBA8", GL_RGBA8},
-	{"GL_RGB5_A1", GL_RGB5_A1},
-	{"GL_RGBA4", GL_RGBA4},
-	{"GL_RGBA2", GL_RGBA2},
-};
-
-#define NUM_GL_ALPHA_MODES (sizeof(gl_alpha_modes) / sizeof (gltmode_t))
-
-gltmode_t gl_solid_modes[] = {
-	{"default", 3},
-	{"GL_RGB", GL_RGB},
-	{"GL_RGB8", GL_RGB8},
-	{"GL_RGB5", GL_RGB5},
-	{"GL_RGB4", GL_RGB4},
-	{"GL_R3_G3_B2", GL_R3_G3_B2},
-#ifdef GL_RGB2_EXT
-	{"GL_RGB2", GL_RGB2_EXT},
-#endif
-};
-
-#define NUM_GL_SOLID_MODES (sizeof(gl_solid_modes) / sizeof (gltmode_t))
-*/
-
 /*
 ===============
 Vk_TextureMode
 ===============
 */
 void Vk_TextureMode( char *string )
-{
-
-}
-
-/*
-===============
-Vk_TextureAlphaMode
-===============
-*/
-void Vk_TextureAlphaMode( char *string )
-{
-
-}
-
-/*
-===============
-Vk_TextureSolidMode
-===============
-*/
-void Vk_TextureSolidMode( char *string )
 {
 
 }
