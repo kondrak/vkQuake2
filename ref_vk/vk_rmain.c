@@ -100,6 +100,9 @@ cvar_t	*vk_modulate;
 cvar_t	*vk_monolightmap;
 cvar_t	*vk_shadows;
 cvar_t	*vk_particle_size;
+cvar_t	*vk_particle_att_a;
+cvar_t	*vk_particle_att_b;
+cvar_t	*vk_particle_att_c;
 cvar_t	*vk_particle_min_size;
 cvar_t	*vk_particle_max_size;
 cvar_t	*vk_point_particles;
@@ -107,10 +110,6 @@ cvar_t	*vk_dynamic;
 cvar_t	*vk_msaa;
 cvar_t	*vk_showtris;
 cvar_t	*vk_lightmap;
-
-cvar_t	*gl_particle_att_a;
-cvar_t	*gl_particle_att_b;
-cvar_t	*gl_particle_att_c;
 
 cvar_t	*gl_texturemode;
 
@@ -511,11 +510,17 @@ void R_DrawParticles (void)
 			float particleSize;
 			float minPointSize;
 			float maxPointSize;
+			float att_a;
+			float att_b;
+			float att_c;
 		} particleUbo;
 
 		particleUbo.particleSize = vk_particle_size->value;
 		particleUbo.minPointSize = vk_particle_min_size->value;
 		particleUbo.maxPointSize = vk_particle_max_size->value;
+		particleUbo.att_a = vk_particle_att_a->value;
+		particleUbo.att_b = vk_particle_att_b->value;
+		particleUbo.att_c = vk_particle_att_c->value;
 		ppoint visibleParticles[MAX_PARTICLES];
 
 		for (i = 0, p = r_newrefdef.particles; i < r_newrefdef.num_particles; i++, p++)
@@ -1029,6 +1034,9 @@ void R_Register( void )
 	vk_monolightmap = ri.Cvar_Get("vk_monolightmap", "0", 0);
 	vk_shadows = ri.Cvar_Get("vk_shadows", "0", CVAR_ARCHIVE);
 	vk_particle_size = ri.Cvar_Get("vk_particle_size", "40", CVAR_ARCHIVE);
+	vk_particle_att_a = ri.Cvar_Get("vk_particle_att_a", "0.01", CVAR_ARCHIVE);
+	vk_particle_att_b = ri.Cvar_Get("vk_particle_att_b", "0.0", CVAR_ARCHIVE);
+	vk_particle_att_c = ri.Cvar_Get("vk_particle_att_c", "0.01", CVAR_ARCHIVE);
 	vk_particle_min_size = ri.Cvar_Get("vk_particle_min_size", "2", CVAR_ARCHIVE);
 	vk_particle_max_size = ri.Cvar_Get("vk_particle_max_size", "40", CVAR_ARCHIVE);
 	vk_point_particles = ri.Cvar_Get("vk_point_particles", "1", CVAR_ARCHIVE);

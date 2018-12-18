@@ -34,6 +34,9 @@ Features:
 - vk_monolightmap - equivalent to GL
 - vk_shadows - equivalent to GL
 - vk_particle_size - size of particle
+- vk_particle_att_a - equivalent to GL
+- vk_particle_att_b - equivalent to GL
+- vk_particle_att_c - equivalent to GL
 - vk_particle_min_size - min size of point particle
 - vk_particle_max_size - max size of point particle
 - vk_point_particles - (default 1) - use POINT_LIST to render particles vs texture
