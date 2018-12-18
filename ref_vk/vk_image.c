@@ -501,6 +501,25 @@ void QVk_ReleaseTexture(qvktexture_t *texture)
 	texture->descriptorSet = VK_NULL_HANDLE;
 }
 
+typedef struct
+{
+	char *name;
+	VkFilter minFilter, magFilter;
+	VkFilter mipFilter;
+	VkSamplerMipmapMode	mipMode;
+} vkmode_t;
+
+vkmode_t modes[] = {
+	{"VK_NEAREST", VK_FILTER_NEAREST, VK_FILTER_NEAREST, VK_FILTER_NEAREST, VK_SAMPLER_MIPMAP_MODE_NEAREST },
+	{"VK_LINEAR", VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_LINEAR },
+	{"VK_MIPMAP_MODE_NEAREST", VK_FILTER_NEAREST, VK_FILTER_NEAREST, VK_FILTER_NEAREST, VK_SAMPLER_MIPMAP_MODE_NEAREST},
+	{"VK_MIPMAP_MODE_LINEAR", VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_LINEAR},
+	{"VK_NEAREST_MIPMAP_LINEAR", VK_FILTER_NEAREST, VK_FILTER_NEAREST, VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_LINEAR},
+	{"VK_LINEAR_MIPMAP_LINEAR", VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_LINEAR}
+};
+
+#define NUM_VK_MODES (sizeof(modes) / sizeof (vkmode_t))
+
 /*
 ===============
 Vk_TextureMode
@@ -508,7 +527,30 @@ Vk_TextureMode
 */
 void Vk_TextureMode( char *string )
 {
+	int		i, j;
+	image_t	*vkt;
 
+	for (i = 0; i < NUM_VK_MODES; i++)
+	{
+		if (!Q_stricmp(modes[i].name, string))
+			break;
+	}
+
+	if (i == NUM_VK_MODES)
+	{
+		ri.Con_Printf(PRINT_ALL, "bad filter name\n");
+		return;
+	}
+
+	// change all the existing mipmap texture objects
+	for (j = 0, vkt = vktextures; j < numvktextures; j++, vkt++)
+	{
+		if (vkt->type != it_pic && vkt->type != it_sky)
+		{
+			vkt->vk_texture.mipmapFilter = modes[j].mipFilter;
+			vkt->vk_texture.mipmapMode = modes[j].mipMode;
+		}
+	}
 }
 
 /*
