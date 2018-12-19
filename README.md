@@ -56,3 +56,5 @@ TODO:
 ==
 - implement screenshots
 - implement water warp effect
+- implement vk_clear
+- Linux and MacOS versions
