@@ -67,8 +67,8 @@ void R_InitParticleTexture (void)
 		for (y=0 ; y<8 ; y++)
 		{
 			data[y][x][0] = dottexture[x&3][y&3]*255;
-			data[y][x][1] = 0; // dottexture[x&3][y&3]*255;
-			data[y][x][2] = 0; //dottexture[x&3][y&3]*255;
+			data[y][x][1] = 0;
+			data[y][x][2] = 0;
 			data[y][x][3] = 255;
 		}
 	}
@@ -144,12 +144,4 @@ void Vk_Strings_f(void)
 		ri.Con_Printf(PRINT_ALL, "%s ", vk_config.layers[i++]);
 	}
 	ri.Con_Printf(PRINT_ALL, "\n");
-}
-
-/*
-** Vk_SetDefaultState
-*/
-void Vk_SetDefaultState( void )
-{
-
 }

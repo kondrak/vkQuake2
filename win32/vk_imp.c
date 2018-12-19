@@ -378,7 +378,7 @@ void Vkimp_BeginFrame( float camera_separation )
 		if (vk_bitdepth->value != 0 && !vkw_state.allowdisplaydepthchange)
 		{
 			ri.Cvar_SetValue("vk_bitdepth", 0);
-			ri.Con_Printf(PRINT_ALL, "gl_bitdepth requires Win95 OSR2.x or WinNT 4.x\n");
+			ri.Con_Printf(PRINT_ALL, "vk_bitdepth requires Win95 OSR2.x or WinNT 4.x\n");
 		}
 		vk_bitdepth->modified = false;
 	}

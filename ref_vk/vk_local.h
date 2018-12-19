@@ -120,19 +120,6 @@ typedef enum
 
 #include "vk_model.h"
 
-void Vk_BeginRendering (int *x, int *y, int *width, int *height);
-void Vk_EndRendering (void);
-
-void Vk_SetDefaultState( void );
-
-typedef struct
-{
-	float	x, y, z;
-	float	s, t;
-	float	r, g, b;
-} glvert_t;
-
-
 #define	MAX_LBM_HEIGHT		480
 
 #define BACKFACE_EPSILON	0.01
@@ -142,7 +129,6 @@ typedef struct
 
 extern	image_t		vktextures[MAX_VKTEXTURES];
 extern	int			numvktextures;
-
 
 extern	image_t		*r_notexture;
 extern	image_t		*r_particletexture;
@@ -282,10 +268,8 @@ void	Vk_ImageList_f (void);
 
 void	Vk_InitImages (void);
 void	Vk_ShutdownImages (void);
-
 void	Vk_FreeUnusedImages (void);
-
-void Vk_DrawParticles( int n, const particle_t particles[], const unsigned colortable[768] );
+void	Vk_DrawParticles( int n, const particle_t particles[], const unsigned colortable[768] );
 
 void Mat_Identity(float *matrix);
 void Mat_Mul(float *m1, float *m2, float *res);

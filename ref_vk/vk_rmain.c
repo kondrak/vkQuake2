@@ -936,17 +936,6 @@ void R_SetVulkan2D (void)
 {
 	extern VkViewport vk_viewport;
 	vkCmdSetViewport(vk_activeCmdbuffer, 0, 1, &vk_viewport);
-	/*
-	qglMatrixMode(GL_PROJECTION);
-	qglLoadIdentity ();
-	qglOrtho  (0, vid.width, vid.height, 0, -99999, 99999);
-	qglMatrixMode(GL_MODELVIEW);
-	qglLoadIdentity ();
-	qglDisable (GL_DEPTH_TEST);
-	qglDisable (GL_CULL_FACE);
-	qglDisable (GL_BLEND);
-	qglEnable (GL_ALPHA_TEST);
-	*/
 }
 
 
