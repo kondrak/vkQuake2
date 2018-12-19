@@ -611,20 +611,17 @@ void R_DrawAliasModel (entity_t *e)
 			}
 
 		}
-		
-		if ( vk_monolightmap->string[0] != '0' )
-		{
-			float s = shadelight[0];
 
-			if ( s < shadelight[1] )
-				s = shadelight[1];
-			if ( s < shadelight[2] )
-				s = shadelight[2];
+		float s = shadelight[0];
 
-			shadelight[0] = s;
-			shadelight[1] = s;
-			shadelight[2] = s;
-		}
+		if (s < shadelight[1])
+			s = shadelight[1];
+		if (s < shadelight[2])
+			s = shadelight[2];
+
+		shadelight[0] = s;
+		shadelight[1] = s;
+		shadelight[2] = s;
 	}
 
 	if ( currententity->flags & RF_MINLIGHT )

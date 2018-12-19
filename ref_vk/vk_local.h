@@ -190,7 +190,6 @@ extern	cvar_t	*vk_finish;
 extern	cvar_t	*vk_lockpvs;
 extern	cvar_t	*vk_polyblend;
 extern	cvar_t	*vk_modulate;
-extern	cvar_t	*vk_monolightmap;
 extern	cvar_t	*vk_shadows;
 extern	cvar_t	*vk_particle_size;
 extern	cvar_t	*vk_particle_att_a;

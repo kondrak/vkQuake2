@@ -97,7 +97,6 @@ cvar_t	*vk_finish;
 cvar_t	*vk_lockpvs;
 cvar_t	*vk_polyblend;
 cvar_t	*vk_modulate;
-cvar_t	*vk_monolightmap;
 cvar_t	*vk_shadows;
 cvar_t	*vk_particle_size;
 cvar_t	*vk_particle_att_a;
@@ -1030,7 +1029,6 @@ void R_Register( void )
 	vk_lockpvs = ri.Cvar_Get("vk_lockpvs", "0", 0);
 	vk_polyblend = ri.Cvar_Get("vk_polyblend", "1", 0);
 	vk_modulate = ri.Cvar_Get("vk_modulate", "1", CVAR_ARCHIVE);
-	vk_monolightmap = ri.Cvar_Get("vk_monolightmap", "0", 0);
 	vk_shadows = ri.Cvar_Get("vk_shadows", "0", CVAR_ARCHIVE);
 	vk_particle_size = ri.Cvar_Get("vk_particle_size", "40", CVAR_ARCHIVE);
 	vk_particle_att_a = ri.Cvar_Get("vk_particle_att_a", "0.01", CVAR_ARCHIVE);
