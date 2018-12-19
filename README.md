@@ -20,7 +20,7 @@ Console commands:
 
 |                       |                                                         |
 |-----------------------|:--------------------------------------------------------|
-| vk_validation         | Toggles validation layers.<br>0 - disabled (default in Release)<br> 1 - only errors and warnings<br>2 - full validation (default in Debug) |
+| vk_validation         | Toggle validation layers.<br>0 - disabled (default in Release)<br> 1 - only errors and warnings<br>2 - full validation (default in Debug) |
 | vk_strings            | Print some basic Vulkan/GPU information.                                    |
 | vk_msaa               | Toggle MSAA.<br>0 - off (default)<br>1 - MSAAx2<br>2 - MSAAx4<br>3 - MSAAx8 |
 | vk_flashblend         | Toggle the blending of lights onto the environment. (default: 0)            |

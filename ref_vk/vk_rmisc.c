@@ -108,6 +108,12 @@ void Vk_ScreenShot_f (void)
 */
 void Vk_Strings_f(void)
 {
+	int i = 0;
+	char ver[] = { "vkQuake2 v"VKQUAKE2_VERSION };
+	for (i = 0; i < strlen(ver); i++)
+		ver[i] += 128;
+
+	ri.Con_Printf(PRINT_ALL, "\n%s\n", ver);
 	ri.Con_Printf(PRINT_ALL, "------------------------------------\n");
 	ri.Con_Printf(PRINT_ALL, "Vulkan API: %d.%d\n",  VK_VERSION_MAJOR(vk_config.vk_version),
 													 VK_VERSION_MINOR(vk_config.vk_version));
@@ -125,7 +131,7 @@ void Vk_Strings_f(void)
 																	vk_config.device_type,
 																	vk_config.gfx_family_idx, vk_config.present_family_idx, vk_config.transfer_family_idx);
 	ri.Con_Printf(PRINT_ALL, "Enabled extensions: ");
-	int i = 0;
+	i = 0;
 	while(vk_config.extensions[i])
 	{
 		ri.Con_Printf(PRINT_ALL, "%s ", vk_config.extensions[i++]);
