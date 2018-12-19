@@ -1188,8 +1188,7 @@ static void LM_UploadBlock( qboolean dynamic )
 		else
 		{
 			QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[texture]);
-			qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
-			QVk_CreateTexture(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer, BLOCK_WIDTH, BLOCK_HEIGHT, &defaultTexOpts);
+			QVk_CreateTexture(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer, BLOCK_WIDTH, BLOCK_HEIGHT, &vk_global_tex_opts);
 		}
 		if ( ++vk_lms.current_lightmap_texture == MAX_LIGHTMAPS )
 			ri.Sys_Error( ERR_DROP, "LM_UploadBlock() - MAX_LIGHTMAPS exceeded\n" );
@@ -1381,11 +1380,10 @@ void Vk_BeginBuildingLightmaps (model_t *m)
 	*/
 	if (vk_state.lightmap_textures[DYNLIGHTMAP_OFFSET].image == VK_NULL_HANDLE)
 	{
-		qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
 		for (i = DYNLIGHTMAP_OFFSET; i < MAX_LIGHTMAPS*2; i++)
 		{
 			QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[i]);
-			QVk_CreateTexture(&vk_state.lightmap_textures[i], (unsigned char*)dummy, BLOCK_WIDTH, BLOCK_HEIGHT, &defaultTexOpts);
+			QVk_CreateTexture(&vk_state.lightmap_textures[i], (unsigned char*)dummy, BLOCK_WIDTH, BLOCK_HEIGHT, &vk_global_tex_opts);
 		}
 	}
 }

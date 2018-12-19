@@ -37,6 +37,12 @@ unsigned	d_8to24table[256];
 uint32_t Vk_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboolean is_sky );
 uint32_t Vk_Upload32 (unsigned *data, int width, int height,  qboolean mipmap);
 
+qvktextureopts_t vk_global_tex_opts = {
+	.minFilter = VK_FILTER_LINEAR,
+	.magFilter = VK_FILTER_LINEAR,
+	.mipmapFilter = VK_FILTER_LINEAR,
+	.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR
+};
 
 static VkImageAspectFlags getDepthStencilAspect(VkFormat depthFormat)
 {
@@ -510,12 +516,10 @@ typedef struct
 } vkmode_t;
 
 vkmode_t modes[] = {
-	{"VK_NEAREST", VK_FILTER_NEAREST, VK_FILTER_NEAREST, VK_FILTER_NEAREST, VK_SAMPLER_MIPMAP_MODE_NEAREST },
-	{"VK_LINEAR", VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_LINEAR },
-	{"VK_MIPMAP_MODE_NEAREST", VK_FILTER_NEAREST, VK_FILTER_NEAREST, VK_FILTER_NEAREST, VK_SAMPLER_MIPMAP_MODE_NEAREST},
-	{"VK_MIPMAP_MODE_LINEAR", VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_LINEAR},
-	{"VK_NEAREST_MIPMAP_LINEAR", VK_FILTER_NEAREST, VK_FILTER_NEAREST, VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_LINEAR},
-	{"VK_LINEAR_MIPMAP_LINEAR", VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_LINEAR}
+	{"VK_NEAREST", VK_FILTER_NEAREST, VK_FILTER_NEAREST, VK_FILTER_NEAREST, VK_SAMPLER_MIPMAP_MODE_MAX_ENUM },
+	{"VK_LINEAR", VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_MAX_ENUM },
+	{"VK_MIPMAP_NEAREST", VK_FILTER_NEAREST, VK_FILTER_NEAREST, VK_FILTER_NEAREST, VK_SAMPLER_MIPMAP_MODE_NEAREST},
+	{"VK_MIPMAP_LINEAR", VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_LINEAR}
 };
 
 #define NUM_VK_MODES (sizeof(modes) / sizeof (vkmode_t))
@@ -525,10 +529,10 @@ vkmode_t modes[] = {
 Vk_TextureMode
 ===============
 */
-void Vk_TextureMode( char *string )
+qboolean Vk_TextureMode( char *string )
 {
-	int		i, j;
-	image_t	*vkt;
+	int		i;
+	static char prev_mode[32] = { "VK_MIPMAP_LINEAR" };
 
 	for (i = 0; i < NUM_VK_MODES; i++)
 	{
@@ -538,19 +542,21 @@ void Vk_TextureMode( char *string )
 
 	if (i == NUM_VK_MODES)
 	{
-		ri.Con_Printf(PRINT_ALL, "bad filter name\n");
-		return;
+		ri.Con_Printf(PRINT_ALL, "bad filter name (valid values: VK_NEAREST, VK_LINEAR, VK_MIPMAP_NEAREST, VK_MIPMAP_LINEAR)\n");
+		ri.Cvar_Set("vk_texturemode", prev_mode);
+		vk_texturemode->modified = false;
+		return false;
 	}
 
-	// change all the existing mipmap texture objects
-	for (j = 0, vkt = vktextures; j < numvktextures; j++, vkt++)
-	{
-		if (vkt->type != it_pic && vkt->type != it_sky)
-		{
-			vkt->vk_texture.mipmapFilter = modes[j].mipFilter;
-			vkt->vk_texture.mipmapMode = modes[j].mipMode;
-		}
-	}
+	memcpy(prev_mode, string, strlen(string));
+	prev_mode[strlen(string)] = '\0';
+
+	vk_global_tex_opts.minFilter = modes[i].minFilter;
+	vk_global_tex_opts.magFilter = modes[i].magFilter;
+	vk_global_tex_opts.mipmapFilter = modes[i].mipFilter;
+	vk_global_tex_opts.mipmapMode = modes[i].mipMode;
+
+	return true;
 }
 
 /*
@@ -1351,8 +1357,7 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 
 		// update scrap data
 		Vk_Upload8(scrap_texels[texnum], BLOCK_WIDTH, BLOCK_HEIGHT, false, false);
-		qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
-		
+
 		if (vk_scrapTextures[texnum].image != VK_NULL_HANDLE)
 		{
 			QVk_UpdateTexture(&vk_scrapTextures[texnum], (unsigned char*)texBuffer, 0, 0, image->upload_width, image->upload_height);
@@ -1360,8 +1365,7 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 		else
 		{
 			QVVKTEXTURE_CLEAR(vk_scrapTextures[texnum]);
-			qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
-			QVk_CreateTexture(&vk_scrapTextures[texnum], (unsigned char*)texBuffer, image->upload_width, image->upload_height, texOpts ? texOpts : &defaultTexOpts);
+			QVk_CreateTexture(&vk_scrapTextures[texnum], (unsigned char*)texBuffer, image->upload_width, image->upload_height, texOpts ? texOpts : &vk_global_tex_opts);
 		}
 
 		image->vk_texture = vk_scrapTextures[texnum];
@@ -1374,6 +1378,12 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 			image->vk_texture.mipLevels = Vk_Upload8(pic, width, height, (image->type != it_pic && image->type != it_sky), image->type == it_sky);
 		else
 			image->vk_texture.mipLevels = Vk_Upload32((unsigned *)pic, width, height, (image->type != it_pic && image->type != it_sky));
+
+		// check if vk_texturemode explicitly disable mipmaps
+		if (vk_global_tex_opts.mipmapMode == VK_SAMPLER_MIPMAP_MODE_MAX_ENUM)
+			image->vk_texture.mipLevels = 1;
+
+		image->vk_texture.mipmapFilter = vk_global_tex_opts.mipmapFilter;
 		image->upload_width = upload_width;		// after power of 2 and scales
 		image->upload_height = upload_height;
 		image->sl = 0;
@@ -1381,8 +1391,7 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 		image->tl = 0;
 		image->th = 1;
 
-		qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
-		QVk_CreateTexture(&image->vk_texture, (unsigned char*)texBuffer, image->upload_width, image->upload_height, texOpts ? texOpts : &defaultTexOpts);
+		QVk_CreateTexture(&image->vk_texture, (unsigned char*)texBuffer, image->upload_width, image->upload_height, texOpts ? texOpts : &vk_global_tex_opts);
 	}
 
 	return image;

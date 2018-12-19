@@ -202,8 +202,7 @@ extern	cvar_t	*vk_point_particles;
 extern	cvar_t	*vk_dynamic;
 extern	cvar_t	*vk_showtris;
 extern	cvar_t	*vk_lightmap;
-
-extern	cvar_t	*gl_texturemode;
+extern	cvar_t	*vk_texturemode;
 
 extern	cvar_t	*vid_fullscreen;
 extern	cvar_t	*vid_gamma;
@@ -225,6 +224,7 @@ extern	model_t	*r_worldmodel;
 extern	unsigned	d_8to24table[256];
 
 extern	int		registration_sequence;
+extern	qvktextureopts_t vk_global_tex_opts;
 
 qboolean R_Init( void *hinstance, void *hWnd );
 void	 R_Shutdown( void );
@@ -277,7 +277,7 @@ struct image_s *R_RegisterSkin (char *name);
 void LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *height);
 image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type, int bits, qvktextureopts_t *texOpts);
 image_t	*Vk_FindImage (char *name, imagetype_t type, qvktextureopts_t *texOpts);
-void	Vk_TextureMode( char *string );
+qboolean Vk_TextureMode( char *string );
 void	Vk_ImageList_f (void);
 
 void	Vk_InitImages (void);

@@ -43,4 +43,5 @@ Features:
 - vk_dynamic - equivalent to GL
 - vk_showtris - equivalent to GL
 - vk_lightmap - equivalent to GL
+- vk_texturemode - equivalent to GL
 - skipped 8-bit textures - no modern hardware even supports it these days

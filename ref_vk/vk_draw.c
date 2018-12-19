@@ -273,8 +273,7 @@ void Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data
 	else
 	{
 		QVVKTEXTURE_CLEAR(vk_rawTexture);
-		qvktextureopts_t defaultTexOpts = QVVKTEXTUREOPTS_INIT;
-		QVk_CreateTexture(&vk_rawTexture, (unsigned char*)&image32, 256, 256, &defaultTexOpts);
+		QVk_CreateTexture(&vk_rawTexture, (unsigned char*)&image32, 256, 256, &vk_global_tex_opts);
 	}
 
 	float imgTransform[] = { (float)x / vid.width, (float)y / vid.height,

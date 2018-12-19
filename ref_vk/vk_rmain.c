@@ -110,8 +110,7 @@ cvar_t	*vk_dynamic;
 cvar_t	*vk_msaa;
 cvar_t	*vk_showtris;
 cvar_t	*vk_lightmap;
-
-cvar_t	*gl_texturemode;
+cvar_t	*vk_texturemode;
 
 cvar_t	*vid_fullscreen;
 cvar_t	*vid_gamma;
@@ -1044,6 +1043,7 @@ void R_Register( void )
 	vk_msaa = ri.Cvar_Get("vk_msaa", "0", CVAR_ARCHIVE);
 	vk_showtris = ri.Cvar_Get("vk_showtris", "0", 0);
 	vk_lightmap = ri.Cvar_Get("vk_lightmap", "0", 0);
+	vk_texturemode = ri.Cvar_Get("vk_texturemode", "VK_MIPMAP_LINEAR", CVAR_ARCHIVE);
 	if (vk_msaa->value < 0)
 		ri.Cvar_Set("vk_msaa", "0");
 	else if (vk_msaa->value > 3)
@@ -1073,6 +1073,12 @@ qboolean R_SetMode (void)
 	vk_mode->modified = false;
 	vk_msaa->modified = false;
 	vk_validation->modified = false;
+
+	if (vk_texturemode->modified)
+	{
+		Vk_TextureMode(vk_texturemode->string);
+		vk_texturemode->modified = false;
+	}
 
 	if ((err = Vkimp_SetMode(&vid.width, &vid.height, vk_mode->value, fullscreen)) == rserr_ok)
 	{
@@ -1184,10 +1190,22 @@ void R_BeginFrame( float camera_separation )
 	/*
 	** change modes if necessary
 	*/
-	if (vk_mode->modified || vid_fullscreen->modified || vk_msaa->modified || vk_validation->modified)
+	if (vk_mode->modified || vid_fullscreen->modified || vk_msaa->modified || vk_validation->modified || vk_texturemode->modified)
 	{
-		cvar_t	*ref = ri.Cvar_Get("vid_ref", "vk", 0);
-		ref->modified = true;
+		if (vk_texturemode->modified)
+		{
+			if (Vk_TextureMode(vk_texturemode->string))
+			{
+				cvar_t	*ref = ri.Cvar_Get("vid_ref", "vk", 0);
+				ref->modified = true;
+			}
+
+		}
+		else
+		{
+			cvar_t	*ref = ri.Cvar_Get("vid_ref", "vk", 0);
+			ref->modified = true;
+		}
 	}
 
 	if (vk_log->modified)

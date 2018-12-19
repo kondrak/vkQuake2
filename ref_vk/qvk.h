@@ -61,12 +61,9 @@ typedef struct
 {
 	VkFilter  minFilter;
 	VkFilter  magFilter;
+	VkFilter  mipmapFilter;
+	VkSamplerMipmapMode mipmapMode;
 } qvktextureopts_t;
-
-#define QVVKTEXTUREOPTS_INIT     { \
-	.minFilter = VK_FILTER_LINEAR, \
-	.magFilter = VK_FILTER_LINEAR, \
-}
 
 typedef struct 
 {
