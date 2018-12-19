@@ -51,3 +51,8 @@ Features:
 - using VK_EXT_debug_utils instead of VK_EXT_debug_report
 - updated with Knightmare software renderer with color
 - skipped 8-bit textures - no modern hardware even supports it these days
+
+TODO:
+==
+- implement screenshots
+- implement water warp effect
