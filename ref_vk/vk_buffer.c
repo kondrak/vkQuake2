@@ -51,9 +51,9 @@ static VkResult createBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, const qv
 	};
 
 	// separate transfer queue makes sense only if the buffer is targetted for being transfered to GPU, so ignore it if it's CPU-only
+	uint32_t queueFamilies[] = { (uint32_t)vk_device.gfxFamilyIndex, (uint32_t)vk_device.transferFamilyIndex };
 	if (options.vmaUsage != VMA_MEMORY_USAGE_CPU_ONLY && vk_device.gfxFamilyIndex != vk_device.transferFamilyIndex)
 	{
-		uint32_t queueFamilies[] = { (uint32_t)vk_device.gfxFamilyIndex, (uint32_t)vk_device.transferFamilyIndex };
 		bcInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
 		bcInfo.queueFamilyIndexCount = 2;
 		bcInfo.pQueueFamilyIndices = queueFamilies;
