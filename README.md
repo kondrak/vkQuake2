@@ -2,13 +2,13 @@
 
 Overview
 ===
-This is the official Quake 2 code v3.21 with additional Vulkan renderer. The goal is to maintain as much compatibility as possible with the original game, so there are no fancy visual upgrades here - just pure vanilla Quake 2 experience as we knew it back in 1997. There are, however, a few notable differences that made the cut for various reasons:
+This is the official Quake 2 code v3.21 with additional Vulkan renderer. The goal is to maintain as much compatibility as possible with the original game, so there are no fancy visual upgrades here - just pure, vanilla Quake 2 experience as we knew it back in 1997. There are, however, a few notable differences that made the cut for various reasons:
 
 - original compiler warnings have been fixed
 - `M_DrawTextBox` function is being called slightly differently without resorting to ending the frame prematurely
 - debug build comes with additional cmd console for debugging purposes when no visuals are available
 - 1920x1080 screen resolution has been added
-- warped texture effect (lava, water, slime) is now properly drawn (though only with Vulkan!)
+- warped texture effect (lava, water, slime) is now properly drawn (though only with Vulkan and software renderer!)
 - software renderer has been completely replaced with [KolorSoft 1.1](https://github.com/qbism/Quake2-colored-refsoft) - this adds colored lighting and fixes severe instabilities of the original renderer
 - on first launch, the game attempts to use Vulkan at 1920x1080 resolution by default and reverts to software renderer on failure
 
