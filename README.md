@@ -22,9 +22,9 @@ With this setup, the game should build out of the box with no additional depende
 
 Running
 ===
-If Visual Studio is not installed, the Visual Studio 2017 C++ Redistrbutable package [(32 bit)](https://go.microsoft.com/fwlink/?LinkId=746571) is required to run the application.
+The Visual Studio 2017 C++ Redistributable [(32 bit)](https://go.microsoft.com/fwlink/?LinkId=746571) is required to run the application.
 
-The bundled release package comes with a sample pak file used in the demo version - for full experience, copy all retail Quake 2 paks into the `baseq2` folder and run the executable. Expansion paks have not been tested but should work just as well.
+The release package comes with game data used in the demo version - for full experience, copy all retail Quake 2 data paks (`pak0.pak`, `pak1.pak`, `pak2.pak`) into the `baseq2` folder and run the executable. The mission packs have not been tested but should work just as well.
 
 Console commands
 ===
