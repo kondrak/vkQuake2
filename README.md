@@ -1,25 +1,31 @@
-# vkQuake2 - vanilla Quake 2 with Vulkan support
-
 ![Logo](vkQuake2.png)
 
-Setup:
+Overview
 ===
-- install Visual Studio 2017 Community (because of MFC and resources)
-- install MFC package in Visual Studio Installer
-- install Windows Universal CRT SDK and Windows SDK 8.1, alternatively install only any latest Windows 10 SDK and retarget the solution to build
+This is original Quake 2 code v3.21 with additional Vulkan renderer. The goal is to maintain as much compatibility as possible with the original game, so there are no fancy visual upgrades here - just pure vanilla Quake 2 experience as we knew it back in 1997. There are, however, a few notable differences that made the cut for various reasons:
 
-Original code changes:
+- original compiler warnings have been fixed
+- `M_DrawTextBox` function is being called slightly differently without resorting to ending the frame prematurely
+- debug build comes with additional cmd console for debugging purposes when no visuals are available
+- 1920x1080 screen resolution has been added
+- warped texture effect (lava, water, slime) is now properly drawn (though only with Vulkan!)
+- software renderer has been completely replaced with [KolorSoft 1.1](https://github.com/qbism/Quake2-colored-refsoft) - this adds colored lighting and fixes severe instabilities of the original renderer
+- on first launch, the game attempts to use Vulkan at FullHD by default and reverts to software renderer on failure
+
+Building
 ===
-- fixed compiler warnings
-- Calling M_DrawTextBox properly without using explicit endframe calls (required for Vulkan)
-- added custom debug Windows console for debug builds
-- added 1920x1080 screen resolution
-- warped texture effect (liquids) is properly drawn with Vulkan renderer
+- download and install [Vulkan SDK](https://vulkan.lunarg.com/) - make sure that the `VULKAN_SDK` env variable is set afterwards
+- install Visual Studio 2017 Community with the MFC package selected
+- install Windows Universal CRT SDK and Windows SDK 8.1 or alternatively only any latest Windows 10 SDK (this will require retargetting the solution)
 
-Console commands:
+With this setup, the game should build out of the box with no additional dependencies.
+
+Console commands
 ===
 
-|                       |                                                         |
+The Vulkan rendered comes with a set of its own additional console commands:
+
+| Command               | Action                                                  |
 |-----------------------|:--------------------------------------------------------|
 | vk_validation         | Toggle validation layers.<br>0 - disabled (default in Release)<br> 1 - only errors and warnings<br>2 - full validation (default in Debug) |
 | vk_strings            | Print some basic Vulkan/GPU information.                                    |
@@ -46,14 +52,7 @@ Console commands:
 | vk_lightmap           | Display lightmaps. (default: 0)                         |
 | vk_texturemode        | Change current texture filtering.<br>VK_NEAREST - nearest filter, no mipmaps<br>VK_LINEAR - linear filter, no mipmaps<br>VK_MIPMAP_NEAREST - nearest filter with mipmaps<br>VK_MIPMAP_LINEAR - linear filter with mipamps (default) |
 
-Features:
-===
-- using Vulkan 1.1
-- using VK_EXT_debug_utils instead of VK_EXT_debug_report
-- updated with Knightmare software renderer with color
-- skipped 8-bit textures - no modern hardware even supports it these days
-
-TODO:
+TODO
 ==
 - implement screenshots
 - implement water warp effect
