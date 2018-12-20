@@ -1,8 +1,8 @@
-![Logo](vkQuake2.png)
+<p align="center"><img src="vkQuake2.png"></p>
 
 Overview
 ===
-This is original Quake 2 code v3.21 with additional Vulkan renderer. The goal is to maintain as much compatibility as possible with the original game, so there are no fancy visual upgrades here - just pure vanilla Quake 2 experience as we knew it back in 1997. There are, however, a few notable differences that made the cut for various reasons:
+This is the official Quake 2 code v3.21 with additional Vulkan renderer. The goal is to maintain as much compatibility as possible with the original game, so there are no fancy visual upgrades here - just pure vanilla Quake 2 experience as we knew it back in 1997. There are, however, a few notable differences that made the cut for various reasons:
 
 - original compiler warnings have been fixed
 - `M_DrawTextBox` function is being called slightly differently without resorting to ending the frame prematurely
@@ -10,13 +10,13 @@ This is original Quake 2 code v3.21 with additional Vulkan renderer. The goal is
 - 1920x1080 screen resolution has been added
 - warped texture effect (lava, water, slime) is now properly drawn (though only with Vulkan!)
 - software renderer has been completely replaced with [KolorSoft 1.1](https://github.com/qbism/Quake2-colored-refsoft) - this adds colored lighting and fixes severe instabilities of the original renderer
-- on first launch, the game attempts to use Vulkan at FullHD by default and reverts to software renderer on failure
+- on first launch, the game attempts to use Vulkan at 1920x1080 resolution by default and reverts to software renderer on failure
 
 Building
 ===
-- download and install [Vulkan SDK](https://vulkan.lunarg.com/) - make sure that the `VULKAN_SDK` env variable is set afterwards
-- install Visual Studio 2017 Community with the MFC package selected
-- install Windows Universal CRT SDK and Windows SDK 8.1 or alternatively only any latest Windows 10 SDK (this will require retargetting the solution)
+- download and install [Vulkan SDK](https://vulkan.lunarg.com/) - make sure that the `VULKAN_SDK` environment variable is set afterwards
+- install [Visual Studio Community](https://www.visualstudio.com/products/free-developer-offers-vs) with the MFC package
+- install Windows Universal CRT SDK and Windows SDK 8.1 or alternatively the latest Windows 10 SDK (this will require retargetting the solution)
 
 With this setup, the game should build out of the box with no additional dependencies.
 
