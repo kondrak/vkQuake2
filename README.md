@@ -23,7 +23,7 @@ With this setup, the game should build out of the box with no additional depende
 Console commands
 ===
 
-The Vulkan rendered comes with a set of its own additional console commands:
+The Vulkan renderer comes with a set of its own additional console commands:
 
 | Command               | Action                                                  |
 |-----------------------|:--------------------------------------------------------|
