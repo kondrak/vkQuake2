@@ -20,6 +20,10 @@ Building
 
 With this setup, the game should build out of the box with no additional dependencies.
 
+Running
+===
+If Visual Studio is not installed, the Visual Studio 2017 C++ Redistrbutable package [(32 bit)](https://go.microsoft.com/fwlink/?LinkId=746571) is required to run the application.
+
 Console commands
 ===
 
