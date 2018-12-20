@@ -1,5 +1,6 @@
-# vkQuake2
-Vulkan port of id Software's Quake 2
+# vkQuake2 - vanilla Quake 2 with Vulkan support
+
+![Logo](vkQuake2.png)
 
 Setup:
 ===
