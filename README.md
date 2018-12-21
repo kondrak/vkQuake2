@@ -48,6 +48,7 @@ The Vulkan renderer comes with a set of its own additional console commands:
 | vk_particle_min_size  | The minimum size for a rendered particle. (default: 2)  |
 | vk_particle_max_size  | The maximum size for a rendered particle. (default: 40) |
 | vk_lockpvs            | Lock current PVS table. (default: 0)                    |
+| vk_clear              | Clear the color buffer each frame. (default: 0)         |
 | vk_modulate           | Texture brightness modifier. (default: 1)               |
 | vk_shadows            | Draw experimental entity shadows. (default: 0)          |
 | vk_picmip             | Shrink factor for the textures. (default: 0)            |
@@ -66,7 +67,6 @@ TODO
 ===
 - implement screenshots
 - implement water warp effect
-- implement vk_clear
 - add music
 - use push constants
 - Linux and MacOS versions

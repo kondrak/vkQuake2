@@ -21,8 +21,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // r_main.c
 #include "vk_local.h"
 
-void R_Clear (void);
-
 viddef_t	vid;
 
 refimport_t	ri;
@@ -94,6 +92,7 @@ cvar_t	*vk_skymip;
 cvar_t	*vk_round_down;
 cvar_t	*vk_flashblend;
 cvar_t	*vk_finish;
+cvar_t	*vk_clear;
 cvar_t	*vk_lockpvs;
 cvar_t	*vk_polyblend;
 cvar_t	*vk_modulate;
@@ -858,15 +857,6 @@ void R_SetupVulkan (void)
 	Mat_Mul(r_view_matrix, r_projection_matrix, r_viewproj_matrix);
 }
 
-/*
-=============
-R_Clear
-=============
-*/
-void R_Clear (void)
-{
-}
-
 void R_Flash( void )
 {
 	R_PolyBlend ();
@@ -1015,6 +1005,7 @@ void R_Register( void )
 	vk_round_down = ri.Cvar_Get("vk_round_down", "1", 0);
 	vk_flashblend = ri.Cvar_Get("vk_flashblend", "0", 0);
 	vk_finish = ri.Cvar_Get("vk_finish", "0", CVAR_ARCHIVE);
+	vk_clear = ri.Cvar_Get("vk_clear", "0", CVAR_ARCHIVE);
 	vk_lockpvs = ri.Cvar_Get("vk_lockpvs", "0", 0);
 	vk_polyblend = ri.Cvar_Get("vk_polyblend", "1", 0);
 	vk_modulate = ri.Cvar_Get("vk_modulate", "1", CVAR_ARCHIVE);
@@ -1059,6 +1050,7 @@ qboolean R_SetMode (void)
 	vid_fullscreen->modified = false;
 	vk_mode->modified = false;
 	vk_msaa->modified = false;
+	vk_clear->modified = false;
 	vk_validation->modified = false;
 
 	if (vk_texturemode->modified)
@@ -1177,7 +1169,7 @@ void R_BeginFrame( float camera_separation )
 	/*
 	** change modes if necessary
 	*/
-	if (vk_mode->modified || vid_fullscreen->modified || vk_msaa->modified || vk_validation->modified || vk_texturemode->modified)
+	if (vk_mode->modified || vid_fullscreen->modified || vk_msaa->modified || vk_clear->modified || vk_validation->modified || vk_texturemode->modified)
 	{
 		if (vk_texturemode->modified)
 		{

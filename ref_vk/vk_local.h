@@ -174,6 +174,7 @@ extern	cvar_t	*vk_skymip;
 extern	cvar_t	*vk_round_down;
 extern	cvar_t	*vk_flashblend;
 extern	cvar_t	*vk_finish;
+extern	cvar_t	*vk_clear;
 extern	cvar_t	*vk_lockpvs;
 extern	cvar_t	*vk_polyblend;
 extern	cvar_t	*vk_modulate;

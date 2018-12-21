@@ -977,6 +977,11 @@ qboolean QVk_Init()
 	ri.Con_Printf(PRINT_ALL, "...created synchronization objects\n");
 
 	// setup render passes
+	for (int i = 0; i < RT_COUNT; ++i)
+	{
+		vk_renderpasses[i].colorLoadOp = vk_clear->value ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	}
+
 	res = QVk_CreateRenderpass(&vk_renderpasses[0]);
 	if (res != VK_SUCCESS)
 	{
