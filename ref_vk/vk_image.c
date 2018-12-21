@@ -337,8 +337,7 @@ VkResult QVk_CreateImage(uint32_t width, uint32_t height, VkFormat format, VkIma
 	}
 
 	VmaAllocationCreateInfo vmallocInfo = {
-		// make sure memory regions for loaded images do not overlap
-		.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
+		.flags = 0,
 		.usage = memUsage
 	};
 
