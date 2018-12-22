@@ -1033,6 +1033,7 @@ void R_Register( void )
 
 	ri.Cmd_AddCommand("vk_strings", Vk_Strings_f);
 	ri.Cmd_AddCommand("imagelist", Vk_ImageList_f);
+	ri.Cmd_AddCommand("screenshot", Vk_ScreenShot_f);
 }
 
 /*
@@ -1143,6 +1144,7 @@ void R_Shutdown (void)
 {
 	ri.Cmd_RemoveCommand("vk_strings");
 	ri.Cmd_RemoveCommand("imagelist");
+	ri.Cmd_RemoveCommand("screenshot");
 
 	vkDeviceWaitIdle(vk_device.logical);
 
