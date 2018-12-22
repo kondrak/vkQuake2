@@ -100,7 +100,65 @@ Vk_ScreenShot_f
 */  
 void Vk_ScreenShot_f (void) 
 {
+	byte		*buffer;
+	char		picname[80];
+	char		checkname[MAX_OSPATH];
+	int			i, c, temp;
+	FILE		*f;
 
+	// create the scrnshots directory if it doesn't exist
+	Com_sprintf(checkname, sizeof(checkname), "%s/scrnshot", ri.FS_Gamedir());
+	Sys_Mkdir(checkname);
+
+	// 
+	// find a file name to save it to 
+	// 
+	strcpy(picname, "quake00.tga");
+
+	for (i = 0; i <= 99; i++)
+	{
+		picname[5] = i / 10 + '0';
+		picname[6] = i % 10 + '0';
+		Com_sprintf(checkname, sizeof(checkname), "%s/scrnshot/%s", ri.FS_Gamedir(), picname);
+		f = fopen(checkname, "rb");
+		if (!f)
+			break;	// file doesn't exist
+		fclose(f);
+	}
+	if (i == 100)
+	{
+		ri.Con_Printf(PRINT_ALL, "SCR_ScreenShot_f: Couldn't create a file\n");
+		return;
+	}
+
+
+	buffer = malloc(vid.width*vid.height * 3 + 18);
+	memset(buffer, 0, 18);
+	buffer[2] = 2;		// uncompressed type
+	buffer[12] = vid.width & 255;
+	buffer[13] = vid.width >> 8;
+	buffer[14] = vid.height & 255;
+	buffer[15] = vid.height >> 8;
+	buffer[16] = 24;	// pixel size
+
+	// TODO: read swapchain image in Vulkan
+	//qglReadPixels(0, 0, vid.width, vid.height, GL_RGB, GL_UNSIGNED_BYTE, buffer + 18);
+
+	// swap rgb to bgr
+	c = 18 + vid.width*vid.height * 3;
+	for (i = 18; i < c; i += 3)
+	{
+		temp = buffer[i];
+		buffer[i] = buffer[i + 2];
+		buffer[i + 2] = temp;
+	}
+
+	f = fopen(checkname, "wb");
+	fwrite(buffer, 1, c, f);
+	fclose(f);
+
+	free(buffer);
+	ri.Con_Printf(PRINT_ALL, "Wrote %s\n", picname);
 } 
 
 /*
