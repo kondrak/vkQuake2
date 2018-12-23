@@ -37,7 +37,36 @@ static void copyBuffer(const VkBuffer *src, VkBuffer *dst, VkDeviceSize size)
 	vkFreeCommandBuffers(vk_device.logical, vk_transferCommandPool, 1, &commandBuffer);
 }
 
-static VkResult createBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, const qvkbufferopts_t options)
+// internal helper
+static void createStagedBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, qvkbufferopts_t bufferOpts, qvkbuffer_t *stagingBuffer)
+{
+	qvkbuffer_t *stgBuffer = stagingBuffer;
+	// create/release internal staging buffer if NULL has been passed
+	if (!stagingBuffer)
+	{
+		stgBuffer = (qvkbuffer_t *)malloc(sizeof(qvkbuffer_t));
+		VK_VERIFY(QVk_CreateStagingBuffer(size, stgBuffer, 0));
+	}
+
+	if (data)
+	{
+		void *dst;
+		vmaMapMemory(vk_malloc, stgBuffer->allocation, &dst);
+		memcpy(dst, data, (size_t)size);
+		vmaUnmapMemory(vk_malloc, stgBuffer->allocation);
+	}
+
+	VK_VERIFY(QVk_CreateBuffer(size, dstBuffer, bufferOpts));
+	copyBuffer(&stgBuffer->buffer, &dstBuffer->buffer, size);
+
+	if (!stagingBuffer)
+	{
+		QVk_FreeBuffer(stgBuffer);
+		free(stgBuffer);
+	}
+}
+
+VkResult QVk_CreateBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, const qvkbufferopts_t options)
 {
 	VkBufferCreateInfo bcInfo = {
 		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
@@ -73,35 +102,6 @@ static VkResult createBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, const qv
 	return vmaCreateBuffer(vk_malloc, &bcInfo, &vmallocInfo, &dstBuffer->buffer, &dstBuffer->allocation, &dstBuffer->allocInfo);
 }
 
-// internal helper
-static void createStagedBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, qvkbufferopts_t bufferOpts, qvkbuffer_t *stagingBuffer)
-{
-	qvkbuffer_t *stgBuffer = stagingBuffer;
-	// create/release internal staging buffer if NULL has been passed
-	if (!stagingBuffer)
-	{
-		stgBuffer = (qvkbuffer_t *)malloc(sizeof(qvkbuffer_t));
-		VK_VERIFY(QVk_CreateStagingBuffer(size, stgBuffer, 0));
-	}
-
-	if (data)
-	{
-		void *dst;
-		vmaMapMemory(vk_malloc, stgBuffer->allocation, &dst);
-		memcpy(dst, data, (size_t)size);
-		vmaUnmapMemory(vk_malloc, stgBuffer->allocation);
-	}
-
-	VK_VERIFY(createBuffer(size, dstBuffer, bufferOpts));
-	copyBuffer(&stgBuffer->buffer, &dstBuffer->buffer, size);
-
-	if (!stagingBuffer)
-	{
-		QVk_FreeBuffer(stgBuffer);
-		free(stgBuffer);
-	}
-}
-
 void QVk_FreeBuffer(qvkbuffer_t *buffer)
 {
 	vmaDestroyBuffer(vk_malloc, buffer->buffer, buffer->allocation);
@@ -119,7 +119,7 @@ VkResult QVk_CreateStagingBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, VmaA
 		.vmaFlags = vmaFlags
 	};
 
-	return createBuffer(size, dstBuffer, stagingOpts);
+	return QVk_CreateBuffer(size, dstBuffer, stagingOpts);
 }
 
 VkResult QVk_CreateUniformBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, VmaAllocationCreateFlags vmaFlags)
@@ -131,7 +131,7 @@ VkResult QVk_CreateUniformBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, VmaA
 	dstOpts.vmaFlags = vmaFlags
 	};
 
-	return createBuffer(size, dstBuffer, dstOpts);
+	return QVk_CreateBuffer(size, dstBuffer, dstOpts);
 }
 
 void QVk_CreateVertexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dstBuffer, qvkbuffer_t *stagingBuffer, VmaAllocationCreateFlags vmaFlags)

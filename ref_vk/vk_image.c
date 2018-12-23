@@ -64,6 +64,7 @@ static void transitionImageLayout(const VkCommandBuffer *cmdBuffer, const VkQueu
 
 	VkImageMemoryBarrier imgBarrier = {
 		.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+		.pNext = NULL,
 		.oldLayout = oldLayout,
 		.newLayout = newLayout,
 		.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
@@ -504,6 +505,64 @@ void QVk_ReleaseTexture(qvktexture_t *texture)
 	texture->imageView = VK_NULL_HANDLE;
 	texture->sampler = VK_NULL_HANDLE;
 	texture->descriptorSet = VK_NULL_HANDLE;
+}
+
+void QVk_ReadPixels(uint8_t *dstBuffer, uint32_t width, uint32_t height)
+{
+	qvkbuffer_t buff;
+	VkCommandBuffer cmdBuffer;
+	qvkbufferopts_t buffOpts = {
+		.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+		.memFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		.vmaUsage = VMA_MEMORY_USAGE_CPU_ONLY,
+		.vmaFlags = VMA_ALLOCATION_CREATE_MAPPED_BIT
+	};
+
+	VK_VERIFY(QVk_CreateBuffer(width * height * 4, &buff, buffOpts));
+	cmdBuffer = QVk_CreateCommandBuffer(&vk_commandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+	VK_VERIFY(QVk_BeginCommand(&cmdBuffer));
+	
+	// transition the current swapchain image to be a source of data transfer to our buffer
+	extern int vk_activeBufferIdx;
+	VkImageMemoryBarrier imgBarrier = {
+		.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+		.pNext = NULL,
+		.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+		.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+		.oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+		.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+		.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+		.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+		.image = vk_swapchain.images[vk_activeBufferIdx],
+		.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+		.subresourceRange.baseMipLevel = 0,
+		.subresourceRange.baseArrayLayer = 0,
+		.subresourceRange.layerCount = 1,
+		.subresourceRange.levelCount = 1
+	};
+
+	vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 1, &imgBarrier);
+
+	VkBufferImageCopy region = {
+		.bufferOffset = 0,
+		.bufferRowLength = width,
+		.bufferImageHeight = height,
+		.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+		.imageSubresource.mipLevel = 0,
+		.imageSubresource.baseArrayLayer = 0,
+		.imageSubresource.layerCount = 1,
+		.imageOffset = { 0, 0, 0 },
+		.imageExtent = { width, height, 1 }
+	};
+
+	// copy the swapchain image
+	vkCmdCopyImageToBuffer(cmdBuffer, vk_swapchain.images[vk_activeBufferIdx], VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, buff.buffer, 1, &region);
+	QVk_SubmitCommand(&cmdBuffer, &vk_device.gfxQueue);
+
+	// store image in destination buffer
+	memcpy(dstBuffer, (uint8_t *)buff.allocInfo.pMappedData, width * height * 4);
+
+	QVk_FreeBuffer(&buff);
 }
 
 typedef struct

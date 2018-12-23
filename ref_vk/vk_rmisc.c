@@ -103,8 +103,9 @@ void Vk_ScreenShot_f (void)
 	byte		*buffer;
 	char		picname[80];
 	char		checkname[MAX_OSPATH];
-	int			i, c, temp;
+	int			i, temp;
 	FILE		*f;
+	size_t		buffSize = vid.width * vid.height * 4 + 18;
 
 	// create the scrnshots directory if it doesn't exist
 	Com_sprintf(checkname, sizeof(checkname), "%s/scrnshot", ri.FS_Gamedir());
@@ -131,30 +132,31 @@ void Vk_ScreenShot_f (void)
 		return;
 	}
 
-
-	buffer = malloc(vid.width*vid.height * 3 + 18);
+	buffer = malloc(buffSize);
 	memset(buffer, 0, 18);
 	buffer[2] = 2;		// uncompressed type
 	buffer[12] = vid.width & 255;
 	buffer[13] = vid.width >> 8;
 	buffer[14] = vid.height & 255;
 	buffer[15] = vid.height >> 8;
-	buffer[16] = 24;	// pixel size
+	buffer[16] = 32;	// pixel size
+	buffer[17] = 0x20; // image is upside-down
 
-	// TODO: read swapchain image in Vulkan
-	//qglReadPixels(0, 0, vid.width, vid.height, GL_RGB, GL_UNSIGNED_BYTE, buffer + 18);
+	QVk_ReadPixels(buffer + 18, vid.width, vid.height);
 
 	// swap rgb to bgr
-	c = 18 + vid.width*vid.height * 3;
-	for (i = 18; i < c; i += 3)
+	if (vk_swapchain.format == VK_FORMAT_R8G8B8A8_UNORM || vk_swapchain.format == VK_FORMAT_R8G8B8A8_SRGB)
 	{
-		temp = buffer[i];
-		buffer[i] = buffer[i + 2];
-		buffer[i + 2] = temp;
+		for (i = 18; i < buffSize; i += 4)
+		{
+			temp = buffer[i];
+			buffer[i] = buffer[i + 2];
+			buffer[i + 2] = temp;
+		}
 	}
 
 	f = fopen(checkname, "wb");
-	fwrite(buffer, 1, c, f);
+	fwrite(buffer, 1, buffSize, f);
 	fclose(f);
 
 	free(buffer);

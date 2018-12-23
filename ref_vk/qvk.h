@@ -265,6 +265,7 @@ void		QVk_CreateColorBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *col
 void		QVk_CreateTexture(qvktexture_t *texture, const unsigned char *data, uint32_t width, uint32_t height, qvktextureopts_t *texOpts);
 void		QVk_UpdateTexture(qvktexture_t *texture, const unsigned char *data, uint32_t offset_x, uint32_t offset_y, uint32_t width, uint32_t height);
 void		QVk_ReleaseTexture(qvktexture_t *texture);
+void		QVk_ReadPixels(uint8_t *dstBuffer, uint32_t width, uint32_t height);
 VkResult	QVk_BeginCommand(const VkCommandBuffer *commandBuffer);
 void		QVk_SubmitCommand(const VkCommandBuffer *commandBuffer, const VkQueue *queue);
 VkCommandBuffer QVk_CreateCommandBuffer(const VkCommandPool *commandPool, VkCommandBufferLevel level);
@@ -272,6 +273,7 @@ const char*	QVk_GetError(VkResult errorCode);
 VkResult	QVk_BeginFrame();
 VkResult	QVk_EndFrame();
 void		QVk_RecreateSwapchain();
+VkResult	QVk_CreateBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, const qvkbufferopts_t options);
 void		QVk_FreeBuffer(qvkbuffer_t *buffer);
 VkResult	QVk_CreateStagingBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, VmaAllocationCreateFlags vmaFlags);
 VkResult	QVk_CreateUniformBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, VmaAllocationCreateFlags vmaFlags);

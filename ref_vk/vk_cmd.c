@@ -32,7 +32,7 @@ VkResult QVk_BeginCommand(const VkCommandBuffer *commandBuffer)
 
 void QVk_SubmitCommand(const VkCommandBuffer *commandBuffer, const VkQueue *queue)
 {
-	vkEndCommandBuffer(*commandBuffer);
+	VK_VERIFY(vkEndCommandBuffer(*commandBuffer));
 
 	VkSubmitInfo submitInfo = {
 		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,

@@ -65,7 +65,6 @@ Known Issues
 
 TODO
 ===
-- implement screenshots
 - implement water warp effect
 - add music
 - use push constants
