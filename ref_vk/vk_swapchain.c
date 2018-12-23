@@ -141,9 +141,13 @@ VkResult QVk_CreateSwapchain()
 		extent.height = max(surfaceCaps.minImageExtent.height, min(surfaceCaps.maxImageExtent.width, vid.height));
 	}
 
-	uint32_t imageCount = surfaceCaps.minImageCount;
+	// request at least 2 images - this fixes fullscreen crashes on AMD when launching the game in fullscreen
+	uint32_t imageCount = max(2, surfaceCaps.minImageCount);
 	if (swapPresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
-		imageCount++;
+		imageCount = max(3, surfaceCaps.minImageCount);
+
+	if (surfaceCaps.maxImageCount > 0)
+		imageCount = min(imageCount, surfaceCaps.maxImageCount);
 
 	VkSwapchainKHR oldSwapchain = vk_swapchain.sc;
 	VkSwapchainCreateInfoKHR scCreateInfo = {
