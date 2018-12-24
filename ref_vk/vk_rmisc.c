@@ -152,6 +152,14 @@ void Vk_ScreenShot_f (void)
 			temp = buffer[i];
 			buffer[i] = buffer[i + 2];
 			buffer[i + 2] = temp;
+			buffer[i + 3] = 255; // alpha component
+		}
+	}
+	else
+	{
+		for (i = 18; i < buffSize; i += 4)
+		{
+			buffer[i + 3] = 255;
 		}
 	}
 
