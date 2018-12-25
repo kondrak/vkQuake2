@@ -609,19 +609,7 @@ void R_DrawAliasModel (entity_t *e)
 				else
 					r_lightlevel->value = 150*shadelight[2];
 			}
-
 		}
-
-		float s = shadelight[0];
-
-		if (s < shadelight[1])
-			s = shadelight[1];
-		if (s < shadelight[2])
-			s = shadelight[2];
-
-		shadelight[0] = s;
-		shadelight[1] = s;
-		shadelight[2] = s;
 	}
 
 	if ( currententity->flags & RF_MINLIGHT )
