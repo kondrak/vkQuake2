@@ -924,8 +924,9 @@ qboolean QVk_Init()
 	}
 	ri.Con_Printf(PRINT_ALL, "...created Vulkan surface\n");
 
-	// create Vulkan device
-	QVk_CreateDevice();
+	// create Vulkan device - see if the user prefers any specific device if there's more than one GPU in the system
+	extern cvar_t vk_device_idx;
+	QVk_CreateDevice((int)vk_device_idx.value);
 	// create memory allocator
 	VmaAllocatorCreateInfo allocInfo = {
 		.physicalDevice = vk_device.physical,

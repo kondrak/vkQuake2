@@ -109,6 +109,7 @@ cvar_t	*vk_msaa;
 cvar_t	*vk_showtris;
 cvar_t	*vk_lightmap;
 cvar_t	*vk_texturemode;
+cvar_t	*vk_device_idx;
 
 cvar_t	*vid_fullscreen;
 cvar_t	*vid_gamma;
@@ -1022,6 +1023,7 @@ void R_Register( void )
 	vk_showtris = ri.Cvar_Get("vk_showtris", "0", 0);
 	vk_lightmap = ri.Cvar_Get("vk_lightmap", "0", 0);
 	vk_texturemode = ri.Cvar_Get("vk_texturemode", "VK_MIPMAP_LINEAR", CVAR_ARCHIVE);
+	vk_device_idx = ri.Cvar_Get("vk_device", "-1", 0);
 	if (vk_msaa->value < 0)
 		ri.Cvar_Set("vk_msaa", "0");
 	else if (vk_msaa->value > 3)

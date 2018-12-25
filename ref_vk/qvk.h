@@ -253,7 +253,7 @@ qboolean	QVk_Init();
 void		QVk_Shutdown( void );
 void		QVk_CreateValidationLayers();
 void		QVk_DestroyValidationLayers();
-qboolean	QVk_CreateDevice();
+qboolean	QVk_CreateDevice(int preferredDeviceIdx);
 VkResult	QVk_CreateSwapchain();
 VkResult	QVk_CreateRenderpass(qvkrenderpass_t *renderpass);
 VkFormat	QVk_FindDepthFormat();

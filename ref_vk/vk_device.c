@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 static const char *devExtensions[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
-static qboolean deviceExtensionsSupported(const VkPhysicalDevice *physicalDevice, const char **requested, size_t count)
+static qboolean deviceExtensionsSupported(const VkPhysicalDevice *physicalDevice, const char **requested, int count)
 {
 	uint32_t extCount;
 	vkEnumerateDeviceExtensionProperties(*physicalDevice, NULL, &extCount, NULL);
@@ -49,13 +49,13 @@ static qboolean deviceExtensionsSupported(const VkPhysicalDevice *physicalDevice
 	return true;
 }
 
-static void getBestPhysicalDevice(const VkPhysicalDevice *devices, size_t count)
+static void getBestPhysicalDevice(const VkPhysicalDevice *devices, int preferredIdx, int count)
 {
 	VkPhysicalDeviceProperties deviceProperties;
 	VkPhysicalDeviceFeatures deviceFeatures;
 	uint32_t queueFamilyCount = 0;
 
-	for (size_t i = 0; i < count; ++i)
+	for (int i = 0; i < count; ++i)
 	{
 		vkGetPhysicalDeviceProperties(devices[i], &deviceProperties);
 		vkGetPhysicalDeviceFeatures(devices[i], &deviceFeatures);
@@ -65,7 +65,9 @@ static void getBestPhysicalDevice(const VkPhysicalDevice *devices, size_t count)
 			continue;
 
 		// prefer discrete GPU but if it's the only one available then don't be picky
-		if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU || count == 1)
+		// also - if the user specifies a preferred device, select it
+		qboolean bestProperties = deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
+		if (preferredIdx == i || (bestProperties && preferredIdx < 0) || count == 1)
 		{
 			uint32_t formatCount = 0;
 			uint32_t presentModesCount = 0;
@@ -130,7 +132,7 @@ static void getBestPhysicalDevice(const VkPhysicalDevice *devices, size_t count)
 	}
 }
 
-qboolean selectPhysicalDevice()
+qboolean selectPhysicalDevice(int preferredDeviceIdx)
 {
 	uint32_t physicalDeviceCount = 0;
 	VK_VERIFY(vkEnumeratePhysicalDevices(vk_instance, &physicalDeviceCount, NULL));
@@ -146,7 +148,7 @@ qboolean selectPhysicalDevice()
 	VkPhysicalDevice *physicalDevices = (VkPhysicalDevice *)malloc(physicalDeviceCount * sizeof(VkPhysicalDevice));
 	VK_VERIFY(vkEnumeratePhysicalDevices(vk_instance, &physicalDeviceCount, physicalDevices));
 
-	getBestPhysicalDevice(physicalDevices, physicalDeviceCount);
+	getBestPhysicalDevice(physicalDevices, preferredDeviceIdx, physicalDeviceCount);
 	free(physicalDevices);
 
 	if (vk_device.physical == VK_NULL_HANDLE)
@@ -252,9 +254,9 @@ static const char *vendorNameString(uint32_t vendorId)
 	}
 }
 
-qboolean QVk_CreateDevice()
+qboolean QVk_CreateDevice(int preferredDeviceIdx)
 {
-	if (!selectPhysicalDevice())
+	if (!selectPhysicalDevice(preferredDeviceIdx))
 		return false;
 
 	vk_config.api_version = vk_device.properties.apiVersion;
