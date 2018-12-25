@@ -238,6 +238,20 @@ static const char *deviceTypeString(VkPhysicalDeviceType dType)
 	return "UNKNOWN DEVICE";
 }
 
+static const char *vendorNameString(uint32_t vendorId)
+{
+	switch (vendorId)
+	{
+	case 0x1002: return "AMD";
+	case 0x1010: return "ImgTec";
+	case 0x10DE: return "NVIDIA";
+	case 0x13B5: return "ARM";
+	case 0x5143: return "Qualcomm";
+	case 0x8086: return "Intel";
+	default:     return "unknown";
+	}
+}
+
 qboolean QVk_CreateDevice()
 {
 	if (!selectPhysicalDevice())
@@ -245,27 +259,19 @@ qboolean QVk_CreateDevice()
 
 	vk_config.api_version = vk_device.properties.apiVersion;
 	vk_config.device_id = vk_device.properties.deviceID;
+	vk_config.vendor_id = vk_device.properties.vendorID;
+	vk_config.driver_version = vk_device.properties.driverVersion;
+	vk_config.vendor_name = vendorNameString(vk_device.properties.vendorID);
 	vk_config.device_name = vk_device.properties.deviceName;
 	vk_config.device_type = deviceTypeString(vk_device.properties.deviceType);
 	vk_config.gfx_family_idx = vk_device.gfxFamilyIndex;
 	vk_config.present_family_idx = vk_device.presentFamilyIndex;
 	vk_config.transfer_family_idx = vk_device.transferFamilyIndex;
 
-	ri.Con_Printf(PRINT_ALL, "Vulkan API: %d.%d\n",  VK_VERSION_MAJOR(vk_config.vk_version),
-													 VK_VERSION_MINOR(vk_config.vk_version));
-	ri.Con_Printf(PRINT_ALL, "Header version: %d\n", VK_HEADER_VERSION);
-	ri.Con_Printf(PRINT_ALL, "Physical device:\n");
-	ri.Con_Printf(PRINT_ALL, "   apiVersion: %d.%d.%d\n"
-							 "   deviceID: %d\n"
-							 "   deviceName: %s\n"
-							 "   deviceType: %s\n"
-							 "   gfx/present/transfer: %d/%d/%d\n", VK_VERSION_MAJOR(vk_config.api_version),
-																	VK_VERSION_MINOR(vk_config.api_version),
-																	VK_VERSION_PATCH(vk_config.api_version),
-																	vk_config.device_id,
-																	vk_config.device_name,
-																	vk_config.device_type,
-																	vk_config.gfx_family_idx, vk_config.present_family_idx, vk_config.transfer_family_idx);
+	// use the Quake 2 function to print device info to console
+	extern void Vk_Strings_f(void);
+	Vk_Strings_f();
+
 	VkResult res = createLogicalDevice();
 	if (res != VK_SUCCESS)
 	{

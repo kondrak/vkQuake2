@@ -285,6 +285,9 @@ typedef struct
 	uint32_t    vk_version;
 	uint32_t    api_version;
 	uint32_t    device_id;
+	uint32_t    vendor_id;
+	uint32_t    driver_version;
+	const char *vendor_name;
 	const char *device_name;
 	const char *device_type;
 	int         gfx_family_idx;

@@ -189,13 +189,20 @@ void Vk_Strings_f(void)
 	ri.Con_Printf(PRINT_ALL, "Physical device:\n");
 	ri.Con_Printf(PRINT_ALL, "   apiVersion: %d.%d.%d\n"
 							 "   deviceID: %d\n"
+							 "   vendorID: 0x%X (%s)\n"
 							 "   deviceName: %s\n"
+							 "   driverVersion: %d.%d.%d\n"
 							 "   deviceType: %s\n"
 							 "   gfx/present/transfer: %d/%d/%d\n", VK_VERSION_MAJOR(vk_config.api_version),
 																	VK_VERSION_MINOR(vk_config.api_version),
 																	VK_VERSION_PATCH(vk_config.api_version),
 																	vk_config.device_id,
+																	vk_config.vendor_id,
+																	vk_config.vendor_name,
 																	vk_config.device_name,
+																	VK_VERSION_MAJOR(vk_config.driver_version),
+																	VK_VERSION_MINOR(vk_config.driver_version),
+																	VK_VERSION_PATCH(vk_config.driver_version),
 																	vk_config.device_type,
 																	vk_config.gfx_family_idx, vk_config.present_family_idx, vk_config.transfer_family_idx);
 	ri.Con_Printf(PRINT_ALL, "Enabled extensions: ");

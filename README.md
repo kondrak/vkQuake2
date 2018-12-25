@@ -57,7 +57,7 @@ The Vulkan renderer comes with a set of its own additional console commands:
 | vk_dynamic            | Use dynamic lighting. (default: 1)                      |
 | vk_showtris           | Display mesh triangles. (default: 0)                    |
 | vk_lightmap           | Display lightmaps. (default: 0)                         |
-| vk_texturemode        | Change current texture filtering.<br>VK_NEAREST - nearest filter, no mipmaps<br>VK_LINEAR - linear filter, no mipmaps<br>VK_MIPMAP_NEAREST - nearest filter with mipmaps<br>VK_MIPMAP_LINEAR - linear filter with mipamps (default) |
+| vk_texturemode        | Change current texture filtering.<br>VK_NEAREST - nearest filter, no mipmaps<br>VK_LINEAR - linear filter, no mipmaps<br>VK_MIPMAP_NEAREST - nearest filter with mipmaps<br>VK_MIPMAP_LINEAR - linear filter with mipmaps (default) |
 
 Known Issues
 ===
