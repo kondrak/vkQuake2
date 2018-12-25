@@ -1023,7 +1023,7 @@ void R_Register( void )
 	vk_showtris = ri.Cvar_Get("vk_showtris", "0", 0);
 	vk_lightmap = ri.Cvar_Get("vk_lightmap", "0", 0);
 	vk_texturemode = ri.Cvar_Get("vk_texturemode", "VK_MIPMAP_LINEAR", CVAR_ARCHIVE);
-	vk_device_idx = ri.Cvar_Get("vk_device", "-1", 0);
+	vk_device_idx = ri.Cvar_Get("vk_device", "-1", CVAR_ARCHIVE);
 	if (vk_msaa->value < 0)
 		ri.Cvar_Set("vk_msaa", "0");
 	else if (vk_msaa->value > 3)
