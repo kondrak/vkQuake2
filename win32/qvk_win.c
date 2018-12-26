@@ -848,6 +848,14 @@ void QVk_Shutdown( void )
 */
 qboolean QVk_Init()
 {
+	PFN_vkEnumerateInstanceVersion vkEnumerateInstanceVersion = (PFN_vkEnumerateInstanceVersion)vkGetInstanceProcAddr(NULL, "vkEnumerateInstanceVersion");
+	uint32_t instanceVersion = VK_API_VERSION_1_0;
+
+	if (vkEnumerateInstanceVersion)
+	{
+		VK_VERIFY(vkEnumerateInstanceVersion(&instanceVersion));
+	}
+
 	VkApplicationInfo appInfo = {
 		.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
 		.pNext = NULL,
@@ -855,7 +863,7 @@ qboolean QVk_Init()
 		.applicationVersion = VK_MAKE_VERSION(3, 21, 0),
 		.pEngineName = "id Tech 2",
 		.engineVersion = VK_MAKE_VERSION(2, 0, 0),
-		.apiVersion = VK_API_VERSION_1_1
+		.apiVersion = instanceVersion
 	};
 
 	uint32_t extCount;
