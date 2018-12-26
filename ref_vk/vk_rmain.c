@@ -1055,6 +1055,7 @@ qboolean R_SetMode (void)
 	vk_msaa->modified = false;
 	vk_clear->modified = false;
 	vk_validation->modified = false;
+	vk_device_idx->modified = false;
 
 	if (vk_texturemode->modified)
 	{
@@ -1173,7 +1174,8 @@ void R_BeginFrame( float camera_separation )
 	/*
 	** change modes if necessary
 	*/
-	if (vk_mode->modified || vid_fullscreen->modified || vk_msaa->modified || vk_clear->modified || vk_validation->modified || vk_texturemode->modified)
+	if (vk_mode->modified || vid_fullscreen->modified || vk_msaa->modified || vk_clear->modified || 
+		vk_validation->modified || vk_texturemode->modified || vk_device_idx->modified)
 	{
 		if (vk_texturemode->modified)
 		{

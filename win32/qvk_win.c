@@ -870,7 +870,7 @@ qboolean QVk_Init()
 	char **wantedExtensions;
 	memset((char*)vk_config.extensions, 0, 256);
 	memset((char*)vk_config.layers, 0, 256);
-	vk_config.vk_version = appInfo.apiVersion;
+	vk_config.vk_version = instanceVersion;
 
 	Vkimp_GetSurfaceExtensions(NULL, &extCount);
 
@@ -938,8 +938,7 @@ qboolean QVk_Init()
 	ri.Con_Printf(PRINT_ALL, "...created Vulkan surface\n");
 
 	// create Vulkan device - see if the user prefers any specific device if there's more than one GPU in the system
-	extern cvar_t vk_device_idx;
-	QVk_CreateDevice((int)vk_device_idx.value);
+	QVk_CreateDevice((int)vk_device_idx->value);
 	// create memory allocator
 	VmaAllocatorCreateInfo allocInfo = {
 		.flags = 0,

@@ -181,30 +181,48 @@ void Vk_Strings_f(void)
 	for (i = 0; i < strlen(ver); i++)
 		ver[i] += 128;
 
+	uint32_t numDevices = 0;
+	VkPhysicalDevice physicalDevices[32]; // make an assumption that nobody has more than 32 GPUs :-)
+	VkPhysicalDeviceProperties deviceProperties;
+	qboolean isPreferred = false;
+	int preferredDevice = (int)vk_device_idx->value;
+
+	VK_VERIFY(vkEnumeratePhysicalDevices(vk_instance, &numDevices, NULL));
+	VK_VERIFY(vkEnumeratePhysicalDevices(vk_instance, &numDevices, physicalDevices));
+
+	if (preferredDevice >= numDevices) preferredDevice = -1;
+
 	ri.Con_Printf(PRINT_ALL, "\n%s\n", ver);
 	ri.Con_Printf(PRINT_ALL, "------------------------------------\n");
 	ri.Con_Printf(PRINT_ALL, "Vulkan API: %d.%d\n",  VK_VERSION_MAJOR(vk_config.vk_version),
 													 VK_VERSION_MINOR(vk_config.vk_version));
 	ri.Con_Printf(PRINT_ALL, "Header version: %d\n", VK_HEADER_VERSION);
-	ri.Con_Printf(PRINT_ALL, "Physical device:\n");
+	ri.Con_Printf(PRINT_ALL, "Devices found:\n");
+	for (i = 0; i < numDevices; ++i)
+	{
+		vkGetPhysicalDeviceProperties(physicalDevices[i], &deviceProperties);
+		isPreferred = (preferredDevice == i) || (preferredDevice < 0 && deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU);
+		ri.Con_Printf(PRINT_ALL, "%s#%d: %s\n", isPreferred ? "*  " : "   ", i, deviceProperties.deviceName);
+	}
+	ri.Con_Printf(PRINT_ALL, "Using device:\n");
 	ri.Con_Printf(PRINT_ALL, "   apiVersion: %d.%d.%d\n"
 							 "   deviceID: %d\n"
 							 "   vendorID: 0x%X (%s)\n"
 							 "   deviceName: %s\n"
 							 "   driverVersion: %d.%d.%d\n"
 							 "   deviceType: %s\n"
-							 "   gfx/present/transfer: %d/%d/%d\n", VK_VERSION_MAJOR(vk_config.api_version),
-																	VK_VERSION_MINOR(vk_config.api_version),
-																	VK_VERSION_PATCH(vk_config.api_version),
-																	vk_config.device_id,
-																	vk_config.vendor_id,
+							 "   gfx/present/transfer: %d/%d/%d\n", VK_VERSION_MAJOR(vk_device.properties.apiVersion),
+																	VK_VERSION_MINOR(vk_device.properties.apiVersion),
+																	VK_VERSION_PATCH(vk_device.properties.apiVersion),
+																	vk_device.properties.deviceID,
+																	vk_device.properties.vendorID,
 																	vk_config.vendor_name,
-																	vk_config.device_name,
-																	VK_VERSION_MAJOR(vk_config.driver_version),
-																	VK_VERSION_MINOR(vk_config.driver_version),
-																	VK_VERSION_PATCH(vk_config.driver_version),
+																	vk_device.properties.deviceName,
+																	VK_VERSION_MAJOR(vk_device.properties.driverVersion),
+																	VK_VERSION_MINOR(vk_device.properties.driverVersion),
+																	VK_VERSION_PATCH(vk_device.properties.driverVersion),
 																	vk_config.device_type,
-																	vk_config.gfx_family_idx, vk_config.present_family_idx, vk_config.transfer_family_idx);
+																	vk_device.gfxFamilyIndex, vk_device.presentFamilyIndex, vk_device.transferFamilyIndex);
 	ri.Con_Printf(PRINT_ALL, "Enabled extensions: ");
 	i = 0;
 	while(vk_config.extensions[i])

@@ -148,7 +148,7 @@ qboolean selectPhysicalDevice(int preferredDeviceIdx)
 	VkPhysicalDevice *physicalDevices = (VkPhysicalDevice *)malloc(physicalDeviceCount * sizeof(VkPhysicalDevice));
 	VK_VERIFY(vkEnumeratePhysicalDevices(vk_instance, &physicalDeviceCount, physicalDevices));
 
-	getBestPhysicalDevice(physicalDevices, preferredDeviceIdx, physicalDeviceCount);
+	getBestPhysicalDevice(physicalDevices, preferredDeviceIdx < physicalDeviceCount ? preferredDeviceIdx : -1, physicalDeviceCount);
 	free(physicalDevices);
 
 	if (vk_device.physical == VK_NULL_HANDLE)
@@ -259,16 +259,8 @@ qboolean QVk_CreateDevice(int preferredDeviceIdx)
 	if (!selectPhysicalDevice(preferredDeviceIdx))
 		return false;
 
-	vk_config.api_version = vk_device.properties.apiVersion;
-	vk_config.device_id = vk_device.properties.deviceID;
-	vk_config.vendor_id = vk_device.properties.vendorID;
-	vk_config.driver_version = vk_device.properties.driverVersion;
 	vk_config.vendor_name = vendorNameString(vk_device.properties.vendorID);
-	vk_config.device_name = vk_device.properties.deviceName;
 	vk_config.device_type = deviceTypeString(vk_device.properties.deviceType);
-	vk_config.gfx_family_idx = vk_device.gfxFamilyIndex;
-	vk_config.present_family_idx = vk_device.presentFamilyIndex;
-	vk_config.transfer_family_idx = vk_device.transferFamilyIndex;
 
 	// use the Quake 2 function to print device info to console
 	extern void Vk_Strings_f(void);

@@ -190,6 +190,7 @@ extern	cvar_t	*vk_dynamic;
 extern	cvar_t	*vk_showtris;
 extern	cvar_t	*vk_lightmap;
 extern	cvar_t	*vk_texturemode;
+extern	cvar_t	*vk_device_idx;
 
 extern	cvar_t	*vid_fullscreen;
 extern	cvar_t	*vid_gamma;
@@ -283,16 +284,8 @@ void Mat_Ortho(float *matrix, float left, float right, float bottom, float top, 
 typedef struct
 {
 	uint32_t    vk_version;
-	uint32_t    api_version;
-	uint32_t    device_id;
-	uint32_t    vendor_id;
-	uint32_t    driver_version;
 	const char *vendor_name;
-	const char *device_name;
 	const char *device_type;
-	int         gfx_family_idx;
-	int         present_family_idx;
-	int         transfer_family_idx;
 	const char *extensions[256];
 	const char *layers[256];
 } vkconfig_t;
