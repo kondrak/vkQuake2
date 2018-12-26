@@ -145,8 +145,10 @@ VkResult Vkimp_CreateSurface()
 {
 	VkWin32SurfaceCreateInfoKHR surfaceCreateInfo = {
 		.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
+		.pNext = NULL,
+		.flags = 0,
+		.hinstance = GetModuleHandle(NULL),
 		.hwnd = vkw_state.hWnd,
-		.hinstance = GetModuleHandle(NULL)
 	};
 
 	return vkCreateWin32SurfaceKHR(vk_instance, &surfaceCreateInfo, NULL, &vk_surface);

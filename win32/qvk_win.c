@@ -276,6 +276,8 @@ static VkResult CreateFramebuffers(const qvkrenderpass_t *renderpass, qvkrendert
 
 	VkFramebufferCreateInfo fbCreateInfo = {
 		.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+		.pNext = NULL,
+		.flags = 0,
 		.renderPass = renderpass->rp,
 		.attachmentCount = (renderpass->sampleCount != VK_SAMPLE_COUNT_1_BIT) ? 3 : 2,
 		.width = vk_swapchain.extent.width,
@@ -848,6 +850,7 @@ qboolean QVk_Init()
 {
 	VkApplicationInfo appInfo = {
 		.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+		.pNext = NULL,
 		.pApplicationName = "Quake 2",
 		.applicationVersion = VK_MAKE_VERSION(3, 21, 0),
 		.pEngineName = "id Tech 2",
@@ -882,9 +885,11 @@ qboolean QVk_Init()
 
 	VkInstanceCreateInfo createInfo = {
 		.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+		.pNext = NULL,
 		.pApplicationInfo = &appInfo,
-		.enabledExtensionCount = extCount,
 		.enabledLayerCount = 0,
+		.ppEnabledLayerNames = NULL,
+		.enabledExtensionCount = extCount,
 		.ppEnabledExtensionNames = wantedExtensions
 	};
 
@@ -929,8 +934,16 @@ qboolean QVk_Init()
 	QVk_CreateDevice((int)vk_device_idx.value);
 	// create memory allocator
 	VmaAllocatorCreateInfo allocInfo = {
+		.flags = 0,
 		.physicalDevice = vk_device.physical,
-		.device = vk_device.logical
+		.device = vk_device.logical,
+		.preferredLargeHeapBlockSize = 0,
+		.pAllocationCallbacks = NULL,
+		.pDeviceMemoryCallbacks = NULL,
+		.frameInUseCount = 0,
+		.pHeapSizeLimit = NULL,
+		.pVulkanFunctions = NULL,
+		.pRecordSettings = NULL
 	};
 
 	res = vmaCreateAllocator(&allocInfo, &vk_malloc);
@@ -964,10 +977,13 @@ qboolean QVk_Init()
 	// setup fences and semaphores
 	VkFenceCreateInfo fCreateInfo = {
 		.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+		.pNext = NULL,
 		.flags = VK_FENCE_CREATE_SIGNALED_BIT
 	};
 	VkSemaphoreCreateInfo sCreateInfo = {
-		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
+		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+		.pNext = NULL,
+		.flags = 0
 	};
 	for (int i = 0; i < NUM_CMDBUFFERS; ++i)
 	{
@@ -1050,6 +1066,7 @@ qboolean QVk_Init()
 
 	VkCommandBufferAllocateInfo cbInfo = {
 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+		.pNext = NULL,
 		.commandPool = vk_commandPool,
 		.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
 		.commandBufferCount = NUM_CMDBUFFERS

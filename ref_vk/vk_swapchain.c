@@ -152,6 +152,8 @@ VkResult QVk_CreateSwapchain()
 	VkSwapchainKHR oldSwapchain = vk_swapchain.sc;
 	VkSwapchainCreateInfoKHR scCreateInfo = {
 		.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+		.pNext = NULL,
+		.flags = 0,
 		.surface = vk_surface,
 		.minImageCount = imageCount,
 		.imageFormat = swapSurfaceFormat.format,

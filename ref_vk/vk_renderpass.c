@@ -26,6 +26,7 @@ VkResult QVk_CreateRenderpass(qvkrenderpass_t *renderpass)
 	qboolean msaaEnabled = renderpass->sampleCount != VK_SAMPLE_COUNT_1_BIT;
 
 	VkAttachmentDescription colorAttachmentDesc = {
+		.flags = 0,
 		.format = vk_swapchain.format,
 		.samples = renderpass->sampleCount,
 		.loadOp = renderpass->colorLoadOp,
@@ -43,6 +44,7 @@ VkResult QVk_CreateRenderpass(qvkrenderpass_t *renderpass)
 		colorAttachmentDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
 	VkAttachmentDescription depthAttachmentDesc = {
+		.flags = 0,
 		.format = QVk_FindDepthFormat(),
 		.samples = renderpass->sampleCount,
 		.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
@@ -55,6 +57,7 @@ VkResult QVk_CreateRenderpass(qvkrenderpass_t *renderpass)
 
 	// resolve color target used if MSAA is enabled
 	VkAttachmentDescription colorAttachmentResolveMSAA = {
+		.flags = 0,
 		.format = vk_swapchain.format,
 		.samples = VK_SAMPLE_COUNT_1_BIT,
 		.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
@@ -81,10 +84,16 @@ VkResult QVk_CreateRenderpass(qvkrenderpass_t *renderpass)
 	};
 
 	VkSubpassDescription subpassDesc = {
+		.flags = 0,
 		.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+		.inputAttachmentCount = 0,
+		.pInputAttachments = NULL,
 		.colorAttachmentCount = 1,
 		.pColorAttachments = &colorAttachmentRef,
-		.pDepthStencilAttachment = &depthAttachmentRef
+		.pResolveAttachments = NULL,
+		.pDepthStencilAttachment = &depthAttachmentRef,
+		.preserveAttachmentCount = 0,
+		.pPreserveAttachments = NULL
 	};
 	if (msaaEnabled)
 		subpassDesc.pResolveAttachments = &colorAttachmentResolveMSAARef;
@@ -93,6 +102,8 @@ VkResult QVk_CreateRenderpass(qvkrenderpass_t *renderpass)
 	VkAttachmentDescription attachmentsMSAA[] = { colorAttachmentDesc, depthAttachmentDesc, colorAttachmentResolveMSAA };
 	VkRenderPassCreateInfo rpCreateInfo = {
 		.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+		.pNext = NULL,
+		.flags = 0,
 		.attachmentCount = msaaEnabled ? 3 : 2,
 		.pAttachments = msaaEnabled ? attachmentsMSAA : attachments,
 		.subpassCount = 1,
@@ -104,9 +115,10 @@ VkResult QVk_CreateRenderpass(qvkrenderpass_t *renderpass)
 		.srcSubpass = VK_SUBPASS_EXTERNAL,
 		.dstSubpass = 0,
 		.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-		.srcAccessMask = 0,
 		.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-		.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
+		.srcAccessMask = 0,
+		.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+		.dependencyFlags = 0
 	};
 
 	rpCreateInfo.dependencyCount = 1;

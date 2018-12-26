@@ -24,7 +24,9 @@ VkResult QVk_BeginCommand(const VkCommandBuffer *commandBuffer)
 {
 	VkCommandBufferBeginInfo cmdInfo = {
 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
-		.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
+		.pNext = NULL,
+		.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+		.pInheritanceInfo = NULL
 	};
 
 	return vkBeginCommandBuffer(*commandBuffer, &cmdInfo);
@@ -36,12 +38,20 @@ void QVk_SubmitCommand(const VkCommandBuffer *commandBuffer, const VkQueue *queu
 
 	VkSubmitInfo submitInfo = {
 		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+		.pNext = NULL,
+		.waitSemaphoreCount = 0,
+		.pWaitSemaphores = NULL,
+		.pWaitDstStageMask = NULL,
 		.commandBufferCount = 1,
-		.pCommandBuffers = commandBuffer
+		.pCommandBuffers = commandBuffer,
+		.signalSemaphoreCount = 0,
+		.pSignalSemaphores = NULL
 	};
 
 	VkFenceCreateInfo fCreateInfo = {
-		.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO
+		.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+		.pNext = NULL,
+		.flags = 0
 	};
 
 	VkFence queueFence;
@@ -58,9 +68,9 @@ VkResult QVk_CreateCommandPool(VkCommandPool *commandPool, uint32_t queueFamilyI
 	VkCommandPoolCreateInfo cpCreateInfo = {
 		.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
 		.pNext = NULL,
-		.queueFamilyIndex = queueFamilyIndex,
 		// allow the command pool to be explicitly reset without reallocating it manually during recording each frame
 		.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+		.queueFamilyIndex = queueFamilyIndex
 	};
 
 	return vkCreateCommandPool(vk_device.logical, &cpCreateInfo, NULL, commandPool);
@@ -71,6 +81,7 @@ VkCommandBuffer QVk_CreateCommandBuffer(const VkCommandPool *commandPool, VkComm
 	VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
 	VkCommandBufferAllocateInfo allocInfo = {
 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+		.pNext = NULL,
 		.commandPool = *commandPool,
 		.level = level,
 		.commandBufferCount = 1
