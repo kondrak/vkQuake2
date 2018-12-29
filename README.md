@@ -62,7 +62,6 @@ The Vulkan renderer comes with a set of its own additional console commands:
 
 Known Issues
 ===
-- reported crashes on AMD GPUs when the application starts - to be fixed once I get my AMD hardware!
 - some Intel UHD GPUs (most notably the 6XX series) may encounter crashes on startup due to faulty drivers
 
 TODO
