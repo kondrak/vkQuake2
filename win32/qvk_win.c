@@ -901,9 +901,9 @@ qboolean QVk_Init()
 		.ppEnabledExtensionNames = wantedExtensions
 	};
 
+	const char *validationLayers[] = { "VK_LAYER_LUNARG_standard_validation" };
 	if (vk_validation->value)
 	{
-		const char *validationLayers[] = { "VK_LAYER_LUNARG_standard_validation" };
 		createInfo.enabledLayerCount = sizeof(validationLayers) / sizeof(validationLayers[0]);
 		createInfo.ppEnabledLayerNames = validationLayers;
 		for (int i = 0; i < createInfo.enabledLayerCount; i++)
