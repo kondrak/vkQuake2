@@ -286,6 +286,7 @@ typedef struct
 	uint32_t    vk_version;
 	const char *vendor_name;
 	const char *device_type;
+	const char *present_mode;
 	const char *extensions[256];
 	const char *layers[256];
 } vkconfig_t;

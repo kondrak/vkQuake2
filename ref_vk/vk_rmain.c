@@ -1129,6 +1129,8 @@ qboolean R_Init( void *hinstance, void *hWnd )
 	}
 
 	ri.Con_Printf(PRINT_ALL, "Successfully initialized Vulkan!\n");
+	// print device information during startup
+	Vk_Strings_f();
 
 	Vk_InitImages();
 	Mod_Init();

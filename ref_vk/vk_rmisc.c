@@ -228,7 +228,7 @@ void Vk_Strings_f(void)
 							 "   deviceID: %d\n"
 							 "   vendorID: 0x%X (%s)\n"
 							 "   deviceType: %s\n"
-							 "   gfx/present/transfer: %d/%d/%d\n", vk_device.properties.deviceName,
+							 "   gfx/present/transfer: %d/%d/%d\n",	vk_device.properties.deviceName,
 																	driverMajor, driverMinor, driverPatch, vk_device.properties.driverVersion,
 																	VK_VERSION_MAJOR(vk_device.properties.apiVersion),
 																	VK_VERSION_MINOR(vk_device.properties.apiVersion),
@@ -238,6 +238,8 @@ void Vk_Strings_f(void)
 																	vk_config.vendor_name,
 																	vk_config.device_type,
 																	vk_device.gfxFamilyIndex, vk_device.presentFamilyIndex, vk_device.transferFamilyIndex);
+	ri.Con_Printf(PRINT_ALL, "Present mode: %s\n", vk_config.present_mode);
+	ri.Con_Printf(PRINT_ALL, "Swapchain image format: %d\n", vk_swapchain.format);
 	ri.Con_Printf(PRINT_ALL, "Enabled extensions: ");
 	i = 0;
 	while(vk_config.extensions[i])

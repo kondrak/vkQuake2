@@ -45,7 +45,7 @@ static VkSurfaceFormatKHR getSwapSurfaceFormat(const VkSurfaceFormatKHR *surface
 		{
 			swapSurfaceFormat.colorSpace = surfaceFormats[i].colorSpace;
 			swapSurfaceFormat.format = surfaceFormats[i].format;
-			return swapSurfaceFormat ;
+			return swapSurfaceFormat;
 		}
 	}
 	// no preferred format, so get the first one from list
@@ -64,7 +64,8 @@ static VkPresentModeKHR getSwapPresentMode(const VkPresentModeKHR *presentModes,
 		// mode supported, nothing to do here
 		if (presentModes[i] == desiredMode)
 		{
-			ri.Con_Printf(PRINT_ALL, "...using present mode: %s\n", presentModeString(desiredMode));
+			vk_config.present_mode = presentModeString(desiredMode);
+			ri.Con_Printf(PRINT_ALL, "...using present mode: %s\n", vk_config.present_mode);
 			return desiredMode;
 		}
 	}
@@ -85,7 +86,8 @@ static VkPresentModeKHR getSwapPresentMode(const VkPresentModeKHR *presentModes,
 		}
 	}
 
-	ri.Con_Printf(PRINT_ALL, "...present mode %s not supported, using present mode: %s\n", presentModeString(desiredMode), presentModeString(usedPresentMode));
+	vk_config.present_mode = presentModeString(usedPresentMode);
+	ri.Con_Printf(PRINT_ALL, "...present mode %s not supported, using present mode: %s\n", presentModeString(desiredMode), vk_config.present_mode);
 	return usedPresentMode;
 }
 

@@ -96,7 +96,7 @@ static void getBestPhysicalDevice(const VkPhysicalDevice *devices, int preferred
 				VkBool32 presentSupported;
 				VK_VERIFY(vkGetPhysicalDeviceSurfaceSupportKHR(devices[i], j, vk_surface, &presentSupported));
 
-				// good optimization would be to find a queue where presentIdx == queueIdx for less overhead
+				// good optimization would be to find a queue where presentIdx == gfxQueueIdx for less overhead
 				if (queueFamilies[j].queueCount > 0 && presentSupported)
 				{
 					vk_device.presentFamilyIndex = j;
@@ -261,10 +261,6 @@ qboolean QVk_CreateDevice(int preferredDeviceIdx)
 
 	vk_config.vendor_name = vendorNameString(vk_device.properties.vendorID);
 	vk_config.device_type = deviceTypeString(vk_device.properties.deviceType);
-
-	// use the Quake 2 function to print device info to console
-	extern void Vk_Strings_f(void);
-	Vk_Strings_f();
 
 	VkResult res = createLogicalDevice();
 	if (res != VK_SUCCESS)
