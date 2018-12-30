@@ -1159,7 +1159,7 @@ void Vk_ResampleTexture (unsigned *in, int inwidth, int inheight, unsigned *out,
 	{
 		inrow = in + inwidth*(int)((i+0.25)*inheight/outheight);
 		inrow2 = in + inwidth*(int)((i+0.75)*inheight/outheight);
-		frac = fracstep >> 1;
+
 		for (j=0 ; j<outwidth ; j++)
 		{
 			pix1 = (byte *)inrow + p1[j];

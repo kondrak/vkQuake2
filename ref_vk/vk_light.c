@@ -38,12 +38,9 @@ void R_RenderDlight (dlight_t *light)
 {
 	int		i, j;
 	float	a;
-	vec3_t	v;
 	float	rad;
 
 	rad = light->intensity * 0.35;
-
-	VectorSubtract (light->origin, r_origin, v);
 
 	struct {
 		vec3_t verts;
@@ -305,7 +302,6 @@ void R_LightPoint (vec3_t p, vec3_t color)
 	float		r;
 	int			lnum;
 	dlight_t	*dl;
-	float		light;
 	vec3_t		dist;
 	float		add;
 	
@@ -333,7 +329,6 @@ void R_LightPoint (vec3_t p, vec3_t color)
 	//
 	// add dynamic lights
 	//
-	light = 0;
 	dl = r_newrefdef.dlights;
 	for (lnum=0 ; lnum<r_newrefdef.num_dlights ; lnum++, dl++)
 	{
