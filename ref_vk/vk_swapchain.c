@@ -171,9 +171,9 @@ VkResult QVk_CreateSwapchain()
 		.oldSwapchain = oldSwapchain
 	};
 
+	uint32_t queueFamilyIndices[] = { (uint32_t)vk_device.gfxFamilyIndex, (uint32_t)vk_device.presentFamilyIndex };
 	if (vk_device.presentFamilyIndex != vk_device.gfxFamilyIndex)
 	{
-		uint32_t queueFamilyIndices[] = { (uint32_t)vk_device.gfxFamilyIndex, (uint32_t)vk_device.presentFamilyIndex };
 		scCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
 		scCreateInfo.queueFamilyIndexCount = 2;
 		scCreateInfo.pQueueFamilyIndices = queueFamilyIndices;

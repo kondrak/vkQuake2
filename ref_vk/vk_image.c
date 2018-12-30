@@ -329,9 +329,9 @@ VkResult QVk_CreateImage(uint32_t width, uint32_t height, VkFormat format, VkIma
 		.flags = 0
 	};
 
+	uint32_t queueFamilies[] = { (uint32_t)vk_device.gfxFamilyIndex, (uint32_t)vk_device.transferFamilyIndex };
 	if (vk_device.gfxFamilyIndex != vk_device.transferFamilyIndex)
 	{
-		uint32_t queueFamilies[] = { (uint32_t)vk_device.gfxFamilyIndex, (uint32_t)vk_device.transferFamilyIndex };
 		imageInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
 		imageInfo.queueFamilyIndexCount = 2;
 		imageInfo.pQueueFamilyIndices = queueFamilies;

@@ -115,10 +115,6 @@ static void getBestPhysicalDevice(const VkPhysicalDevice *devices, int preferred
 
 			free(queueFamilies);
 
-			// currently there are instabilities when the queues differ, so for now do everything on a single queue
-			vk_device.presentFamilyIndex  = vk_device.gfxFamilyIndex;
-			vk_device.transferFamilyIndex = vk_device.gfxFamilyIndex;
-
 			// accept only device that has support for presentation and drawing
 			if (vk_device.presentFamilyIndex >= 0 && vk_device.gfxFamilyIndex >= 0)
 			{
