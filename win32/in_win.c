@@ -127,7 +127,7 @@ qboolean	mouseactive;	// false when not focus app
 
 qboolean	restore_spi;
 qboolean	mouseinitialized;
-int		originalmouseparms[3], newmouseparms[3] = {0, 0, 1};
+int		originalmouseparms[3], newmouseparms[3] = {0, 0, 0};
 qboolean	mouseparmsvalid;
 
 int			window_center_x, window_center_y;
