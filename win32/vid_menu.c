@@ -348,7 +348,6 @@ void VID_MenuInit( void )
 		else if ( strcmp( gl_driver->string, "opengl32" ) == 0 )
 			s_ref_list[s_current_menu_index].curvalue = REF_OPENGL;
 		else
-//			s_ref_list[s_current_menu_index].curvalue = REF_VERITE;
 			s_ref_list[s_current_menu_index].curvalue = REF_OPENGL;
 	}
 

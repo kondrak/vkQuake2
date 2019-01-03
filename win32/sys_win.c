@@ -268,6 +268,7 @@ void Sys_Init (void)
 	}
 #endif
 
+	// enable DPI awareness
 	Sys_SetDPIAwareness();
 }
 
