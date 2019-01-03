@@ -195,6 +195,33 @@ void	Sys_CopyProtect (void)
 #endif
 }
 
+/*
+================
+Sys_SetDPIAwareness
+
+================
+*/
+typedef enum { dpi_unaware = 0, dpi_system_aware = 1, dpi_monitor_aware = 2 } dpi_awareness;
+typedef BOOL(WINAPI *SetProcessDPIAwareFunc)();
+typedef HRESULT(WINAPI *SetProcessDPIAwarenessFunc)(dpi_awareness value);
+
+void	Sys_SetDPIAwareness(void)
+{
+	HMODULE hShcore = LoadLibraryA("Shcore.dll");
+	HMODULE hUser32 = LoadLibraryA("user32.dll");
+	SetProcessDPIAwarenessFunc setProcDPIAwareness = (SetProcessDPIAwarenessFunc)(hShcore ? GetProcAddress(hShcore, "SetProcessDpiAwareness") : NULL);
+	SetProcessDPIAwareFunc setProcDPIAware = (SetProcessDPIAwareFunc)(hUser32 ? GetProcAddress(hUser32, "SetProcessDPIAware") : NULL);
+
+	if (setProcDPIAwareness) /* Windows 8.1+ */
+		setProcDPIAwareness(dpi_monitor_aware);
+	else if (setProcDPIAware) /* Windows Vista-8.0 */
+		setProcDPIAware();
+
+	if (hShcore)
+		FreeLibrary(hShcore);
+	if (hUser32)
+		FreeLibrary(hUser32);
+}
 
 //================================================================
 
@@ -207,26 +234,6 @@ Sys_Init
 void Sys_Init (void)
 {
 	OSVERSIONINFO	vinfo;
-
-#if 0
-	// allocate a named semaphore on the client so the
-	// front end can tell if it is alive
-
-	// mutex will fail if semephore already exists
-    qwclsemaphore = CreateMutex(
-        NULL,         /* Security attributes */
-        0,            /* owner       */
-        "qwcl"); /* Semaphore name      */
-	if (!qwclsemaphore)
-		Sys_Error ("QWCL is already running on this system");
-	CloseHandle (qwclsemaphore);
-
-    qwclsemaphore = CreateSemaphore(
-        NULL,         /* Security attributes */
-        0,            /* Initial count       */
-        1,            /* Maximum count       */
-        "qwcl"); /* Semaphore name      */
-#endif
 
 	timeBeginPeriod( 1 );
 
@@ -260,6 +267,8 @@ void Sys_Init (void)
 		freopen("CONOUT$", "w", stderr);
 	}
 #endif
+
+	Sys_SetDPIAwareness();
 }
 
 
