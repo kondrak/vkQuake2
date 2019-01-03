@@ -79,6 +79,7 @@ static menulist_s  		s_paletted_texture_box;
 static menulist_s		s_msaa_mode;
 static menulist_s  		s_finish_box;
 static menulist_s		s_vkfinish_box;
+static menuaction_s		s_apply_action[3];
 static menuaction_s		s_cancel_action[3];
 static menuaction_s		s_defaults_action[3];
 
@@ -397,16 +398,22 @@ void VID_MenuInit( void )
 		s_fs_box[i].itemnames = yesno_names;
 		s_fs_box[i].curvalue = vid_fullscreen->value;
 
+		s_apply_action[i].generic.type = MTYPE_ACTION;
+		s_apply_action[i].generic.name = "apply changes";
+		s_apply_action[i].generic.x = 0;
+		s_apply_action[i].generic.y = 100;
+		s_apply_action[i].generic.callback = ApplyChanges;
+
 		s_defaults_action[i].generic.type = MTYPE_ACTION;
 		s_defaults_action[i].generic.name = "reset to defaults";
 		s_defaults_action[i].generic.x    = 0;
-		s_defaults_action[i].generic.y    = 90;
+		s_defaults_action[i].generic.y    = 110;
 		s_defaults_action[i].generic.callback = ResetDefaults;
 
 		s_cancel_action[i].generic.type = MTYPE_ACTION;
 		s_cancel_action[i].generic.name = "cancel";
 		s_cancel_action[i].generic.x    = 0;
-		s_cancel_action[i].generic.y    = 100;
+		s_cancel_action[i].generic.y    = 120;
 		s_cancel_action[i].generic.callback = CancelChanges;
 	}
 
@@ -486,10 +493,13 @@ void VID_MenuInit( void )
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_msaa_mode);
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_vkfinish_box);
 
+	Menu_AddItem( &s_software_menu, ( void * ) &s_apply_action[SOFTWARE_MENU] );
 	Menu_AddItem( &s_software_menu, ( void * ) &s_defaults_action[SOFTWARE_MENU] );
 	Menu_AddItem( &s_software_menu, ( void * ) &s_cancel_action[SOFTWARE_MENU] );
+	Menu_AddItem( &s_opengl_menu, ( void * ) &s_apply_action[OPENGL_MENU] );
 	Menu_AddItem( &s_opengl_menu, ( void * ) &s_defaults_action[OPENGL_MENU] );
 	Menu_AddItem( &s_opengl_menu, ( void * ) &s_cancel_action[OPENGL_MENU] );
+	Menu_AddItem( &s_vulkan_menu, (void * ) &s_apply_action[VULKAN_MENU]);
 	Menu_AddItem( &s_vulkan_menu, (void * ) &s_defaults_action[VULKAN_MENU]);
 	Menu_AddItem( &s_vulkan_menu, (void * ) &s_cancel_action[VULKAN_MENU]);
 
@@ -547,7 +557,7 @@ const char *VID_MenuKey( int key )
 	switch ( key )
 	{
 	case K_ESCAPE:
-		ApplyChanges( 0 );
+		CancelChanges( NULL );
 		return NULL;
 	case K_KP_UPARROW:
 	case K_UPARROW:

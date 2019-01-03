@@ -586,6 +586,7 @@ char *bindnames[][2] =
 {
 {"+attack", 		"attack"},
 {"weapnext", 		"next weapon"},
+{"weapprev", 		"prev weapon"},
 {"+forward", 		"walk forward"},
 {"+back", 			"backpedal"},
 {"+left", 			"turn left"},
