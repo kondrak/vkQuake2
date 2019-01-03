@@ -140,7 +140,7 @@ VkResult QVk_CreateSwapchain()
 	if(extent.width == UINT32_MAX || extent.height == UINT32_MAX)
 	{
 		extent.width = max(surfaceCaps.minImageExtent.width, min(surfaceCaps.maxImageExtent.width, vid.width));
-		extent.height = max(surfaceCaps.minImageExtent.height, min(surfaceCaps.maxImageExtent.width, vid.height));
+		extent.height = max(surfaceCaps.minImageExtent.height, min(surfaceCaps.maxImageExtent.height, vid.height));
 	}
 
 	// request at least 2 images - this fixes fullscreen crashes on AMD when launching the game in fullscreen
