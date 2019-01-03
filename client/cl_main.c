@@ -1542,6 +1542,7 @@ void CL_InitLocal (void)
 	Cmd_AddCommand ("invdrop", NULL);
 	Cmd_AddCommand ("weapnext", NULL);
 	Cmd_AddCommand ("weapprev", NULL);
+	Cmd_AddCommand ("weaplast", NULL);
 }
 
 
