@@ -427,6 +427,12 @@ LONG WINAPI MainWndProc (
 			}
 			return 0;
 		}
+		else if (wParam == VK_F4)
+		{
+			CL_Disconnect();
+			Com_Quit();
+			return 0;
+		}
 		// fall through
 	case WM_KEYDOWN:
 		Key_Event( MapKey( lParam ), true, sys_msg_time);

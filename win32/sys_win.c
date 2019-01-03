@@ -97,6 +97,10 @@ void Sys_Quit (void)
 	CloseHandle (qwclsemaphore);
 	if (dedicated && dedicated->value)
 		FreeConsole ();
+#ifdef WIN_DEBUG_CONSOLE
+	else
+		FreeConsole();
+#endif
 
 // shut down QHOST hooks if necessary
 	DeinitConProc ();
@@ -264,6 +268,7 @@ void Sys_Init (void)
 	{
 		AllocConsole();
 		SetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), 0x07);
+		DeleteMenu(GetSystemMenu(GetConsoleWindow(), false), SC_CLOSE, MF_BYCOMMAND);
 		freopen("CONOUT$", "w", stderr);
 	}
 #endif
