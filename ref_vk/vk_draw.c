@@ -170,7 +170,20 @@ refresh window.
 */
 void Draw_TileClear (int x, int y, int w, int h, char *pic)
 {
+	image_t	*image;
 
+	image = Draw_FindPic(pic);
+	if (!image)
+	{
+		ri.Con_Printf(PRINT_ALL, "Can't find pic: %s\n", pic);
+		return;
+	}
+
+	float imgTransform[] = { (float)x / vid.width,  (float)y / vid.height,
+							 (float)w / vid.width,  (float)h / vid.height,
+							 (float)x / 64.0,		(float)y / 64.0,
+							 (float)w / 64.0,		(float)h / 64.0 };
+	QVk_DrawTexRect(imgTransform, sizeof(imgTransform), &image->vk_texture);
 }
 
 

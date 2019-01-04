@@ -1153,7 +1153,7 @@ VkResult QVk_BeginFrame()
 	VK_VERIFY(vkBeginCommandBuffer(vk_commandbuffers[vk_activeBufferIdx], &beginInfo));
 
 	VkClearValue clearColors[2] = {
-		{ .color = { .0f, .0f, .0f, 1.f } },
+		{ .color = { 1.f, .0f, .5f, 1.f } },
 		{ .depthStencil = { 1.f, 0 } }
 	};
 	VkRenderPassBeginInfo renderBeginInfo = {

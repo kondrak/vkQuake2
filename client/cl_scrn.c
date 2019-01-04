@@ -690,13 +690,6 @@ Clear any parts of the tiled background that were drawn on last frame
 */
 void SCR_TileClear (void)
 {
-	int		i;
-	int		top, bottom, left, right;
-	dirty_t	clear;
-
-	if (scr_drawall->value)
-		SCR_DirtyScreen ();	// for power vr or broken page flippers...
-
 	if (scr_con_current == 1.0)
 		return;		// full screen console
 	if (scr_viewsize->value == 100)
@@ -704,71 +697,23 @@ void SCR_TileClear (void)
 	if (cl.cinematictime > 0)
 		return;		// full screen cinematic
 
-	// erase rect will be the union of the past three frames
-	// so tripple buffering works properly
-	clear = scr_dirty;
-	for (i=0 ; i<2 ; i++)
-	{
-		if (scr_old_dirty[i].x1 < clear.x1)
-			clear.x1 = scr_old_dirty[i].x1;
-		if (scr_old_dirty[i].x2 > clear.x2)
-			clear.x2 = scr_old_dirty[i].x2;
-		if (scr_old_dirty[i].y1 < clear.y1)
-			clear.y1 = scr_old_dirty[i].y1;
-		if (scr_old_dirty[i].y2 > clear.y2)
-			clear.y2 = scr_old_dirty[i].y2;
-	}
-
-	scr_old_dirty[1] = scr_old_dirty[0];
-	scr_old_dirty[0] = scr_dirty;
-
-	scr_dirty.x1 = 9999;
-	scr_dirty.x2 = -9999;
-	scr_dirty.y1 = 9999;
-	scr_dirty.y2 = -9999;
-
-	// don't bother with anything convered by the console)
-	top = scr_con_current*viddef.height;
-	if (top >= clear.y1)
-		clear.y1 = top;
-
-	if (clear.y2 <= clear.y1)
-		return;		// nothing disturbed
-
-	top = scr_vrect.y;
-	bottom = top + scr_vrect.height-1;
-	left = scr_vrect.x;
-	right = left + scr_vrect.width-1;
-
-	if (clear.y1 < top)
+	if (scr_vrect.y > 0)
 	{	// clear above view screen
-		i = clear.y2 < top-1 ? clear.y2 : top-1;
-		re.DrawTileClear (clear.x1 , clear.y1,
-			clear.x2 - clear.x1 + 1, i - clear.y1+1, "backtile");
-		clear.y1 = top;
-	}
-	if (clear.y2 > bottom)
-	{	// clear below view screen
-		i = clear.y1 > bottom+1 ? clear.y1 : bottom+1;
-		re.DrawTileClear (clear.x1, i,
-			clear.x2-clear.x1+1, clear.y2-i+1, "backtile");
-		clear.y2 = bottom;
-	}
-	if (clear.x1 < left)
-	{	// clear left of view screen
-		i = clear.x2 < left-1 ? clear.x2 : left-1;
-		re.DrawTileClear (clear.x1, clear.y1,
-			i-clear.x1+1, clear.y2 - clear.y1 + 1, "backtile");
-		clear.x1 = left;
-	}
-	if (clear.x2 > right)
-	{	// clear left of view screen
-		i = clear.x1 > right+1 ? clear.x1 : right+1;
-		re.DrawTileClear (i, clear.y1,
-			clear.x2-i+1, clear.y2 - clear.y1 + 1, "backtile");
-		clear.x2 = right;
+		re.DrawTileClear (scr_vrect.x , 0,
+			scr_vrect.width, scr_vrect.y, "backtile");
+
+		// clear below view screen
+		re.DrawTileClear(scr_vrect.x, scr_vrect.y + scr_vrect.height,
+			scr_vrect.width, viddef.height - scr_vrect.height - scr_vrect.y, "backtile");
 	}
 
+	if (scr_vrect.x > 0)
+	{	// clear left of view screen
+		re.DrawTileClear (0, 0, scr_vrect.x, viddef.height, "backtile");
+
+		// clear right of view screen
+		re.DrawTileClear(scr_vrect.x + scr_vrect.width, 0, scr_vrect.width, viddef.height, "backtile");
+	}
 }
 
 

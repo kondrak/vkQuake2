@@ -886,6 +886,13 @@ void R_RenderView (refdef_t *fd)
 		c_alias_polys = 0;
 	}
 
+	VkRect2D scissor = {
+		.offset = { r_newrefdef.x, r_newrefdef.y },
+		.extent = { r_newrefdef.width, r_newrefdef.height }
+	};
+
+	vkCmdSetScissor(vk_activeCmdbuffer, 0, 1, &scissor);
+
 	R_PushDlights();
 
 	// added for compatibility sake with OpenGL implementation - don't use it!
@@ -926,7 +933,9 @@ void R_RenderView (refdef_t *fd)
 void R_SetVulkan2D (void)
 {
 	extern VkViewport vk_viewport;
+	extern VkRect2D vk_scissor;
 	vkCmdSetViewport(vk_activeCmdbuffer, 0, 1, &vk_viewport);
+	vkCmdSetScissor(vk_activeCmdbuffer, 0, 1, &vk_scissor);
 }
 
 
