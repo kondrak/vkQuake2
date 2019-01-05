@@ -531,12 +531,12 @@ void Con_DrawNotify (void)
 	{
 		if (chat_team)
 		{
-			DrawString (8, v, "say_team:");
+			DrawString (8, v*scr_fontscale->value, "say_team:");
 			skip = 11;
 		}
 		else
 		{
-			DrawString (8, v, "say:");
+			DrawString (8, v*scr_fontscale->value, "say:");
 			skip = 5;
 		}
 
@@ -546,7 +546,7 @@ void Con_DrawNotify (void)
 		x = 0;
 		while(s[x])
 		{
-			re.DrawChar ( ((x+skip)<<3)*scr_fontscale->value, v, s[x]);
+			re.DrawChar ( ((x+skip)<<3)*scr_fontscale->value, v*scr_fontscale->value, s[x]);
 			x++;
 		}
 		re.DrawChar ( ((x+skip)<<3)*scr_fontscale->value, v*scr_fontscale->value, 10+((cls.realtime>>8)&1));
@@ -556,7 +556,7 @@ void Con_DrawNotify (void)
 	if (v)
 	{
 		SCR_AddDirtyPoint (0,0);
-		SCR_AddDirtyPoint (viddef.width-1, v);
+		SCR_AddDirtyPoint (viddef.width-1, v*scr_fontscale->value);
 	}
 }
 
