@@ -32,6 +32,7 @@ extern cvar_t *vid_ref;
 extern cvar_t *vid_fullscreen;
 extern cvar_t *vid_gamma;
 extern cvar_t *scr_viewsize;
+extern cvar_t *con_fontscale;
 
 static cvar_t *gl_mode;
 static cvar_t *gl_driver;
@@ -370,12 +371,12 @@ void VID_MenuInit( void )
 		s_mode_list[i].generic.type = MTYPE_SPINCONTROL;
 		s_mode_list[i].generic.name = "video mode";
 		s_mode_list[i].generic.x = 0;
-		s_mode_list[i].generic.y = 10;
+		s_mode_list[i].generic.y = 10 * con_fontscale->value;
 		s_mode_list[i].itemnames = resolutions;
 
 		s_screensize_slider[i].generic.type	= MTYPE_SLIDER;
 		s_screensize_slider[i].generic.x		= 0;
-		s_screensize_slider[i].generic.y		= 20;
+		s_screensize_slider[i].generic.y		= 20 * con_fontscale->value;
 		s_screensize_slider[i].generic.name	= "screen size";
 		s_screensize_slider[i].minvalue = 3;
 		s_screensize_slider[i].maxvalue = 12;
@@ -383,7 +384,7 @@ void VID_MenuInit( void )
 
 		s_brightness_slider[i].generic.type	= MTYPE_SLIDER;
 		s_brightness_slider[i].generic.x	= 0;
-		s_brightness_slider[i].generic.y	= 30;
+		s_brightness_slider[i].generic.y	= 30 * con_fontscale->value;
 		s_brightness_slider[i].generic.name	= "brightness";
 		s_brightness_slider[i].generic.callback = BrightnessCallback;
 		s_brightness_slider[i].minvalue = 5;
@@ -392,7 +393,7 @@ void VID_MenuInit( void )
 
 		s_fs_box[i].generic.type = MTYPE_SPINCONTROL;
 		s_fs_box[i].generic.x	= 0;
-		s_fs_box[i].generic.y	= 40;
+		s_fs_box[i].generic.y	= 40 * con_fontscale->value;
 		s_fs_box[i].generic.name	= "fullscreen";
 		s_fs_box[i].itemnames = yesno_names;
 		s_fs_box[i].curvalue = vid_fullscreen->value;
@@ -400,32 +401,32 @@ void VID_MenuInit( void )
 		s_apply_action[i].generic.type = MTYPE_ACTION;
 		s_apply_action[i].generic.name = "apply changes";
 		s_apply_action[i].generic.x = 0;
-		s_apply_action[i].generic.y = 100;
+		s_apply_action[i].generic.y = 100 * con_fontscale->value;
 		s_apply_action[i].generic.callback = ApplyChanges;
 
 		s_defaults_action[i].generic.type = MTYPE_ACTION;
 		s_defaults_action[i].generic.name = "reset to defaults";
 		s_defaults_action[i].generic.x    = 0;
-		s_defaults_action[i].generic.y    = 110;
+		s_defaults_action[i].generic.y    = 110 * con_fontscale->value;
 		s_defaults_action[i].generic.callback = ResetDefaults;
 
 		s_cancel_action[i].generic.type = MTYPE_ACTION;
 		s_cancel_action[i].generic.name = "cancel";
 		s_cancel_action[i].generic.x    = 0;
-		s_cancel_action[i].generic.y    = 120;
+		s_cancel_action[i].generic.y    = 120 * con_fontscale->value;
 		s_cancel_action[i].generic.callback = CancelChanges;
 	}
 
 	s_stipple_box.generic.type = MTYPE_SPINCONTROL;
 	s_stipple_box.generic.x	= 0;
-	s_stipple_box.generic.y	= 60;
+	s_stipple_box.generic.y	= 60 * con_fontscale->value;
 	s_stipple_box.generic.name	= "stipple alpha";
 	s_stipple_box.curvalue = sw_stipplealpha->value;
 	s_stipple_box.itemnames = yesno_names;
 
 	s_tq_slider.generic.type	= MTYPE_SLIDER;
 	s_tq_slider.generic.x		= 0;
-	s_tq_slider.generic.y		= 60;
+	s_tq_slider.generic.y		= 60 * con_fontscale->value;
 	s_tq_slider.generic.name	= "texture quality";
 	s_tq_slider.minvalue = 0;
 	s_tq_slider.maxvalue = 3;
@@ -433,7 +434,7 @@ void VID_MenuInit( void )
 
 	s_tqvk_slider.generic.type = MTYPE_SLIDER;
 	s_tqvk_slider.generic.x = 0;
-	s_tqvk_slider.generic.y = 60;
+	s_tqvk_slider.generic.y = 60 * con_fontscale->value;
 	s_tqvk_slider.generic.name = "texture quality";
 	s_tqvk_slider.minvalue = 0;
 	s_tqvk_slider.maxvalue = 3;
@@ -441,7 +442,7 @@ void VID_MenuInit( void )
 
 	s_paletted_texture_box.generic.type = MTYPE_SPINCONTROL;
 	s_paletted_texture_box.generic.x	= 0;
-	s_paletted_texture_box.generic.y	= 70;
+	s_paletted_texture_box.generic.y	= 70 * con_fontscale->value;
 	s_paletted_texture_box.generic.name	= "8-bit textures";
 	s_paletted_texture_box.itemnames = yesno_names;
 	s_paletted_texture_box.curvalue = gl_ext_palettedtexture->value;
@@ -449,20 +450,20 @@ void VID_MenuInit( void )
 	s_msaa_mode.generic.type = MTYPE_SPINCONTROL;
 	s_msaa_mode.generic.name = "multisampling";
 	s_msaa_mode.generic.x = 0;
-	s_msaa_mode.generic.y = 70;
+	s_msaa_mode.generic.y = 70 * con_fontscale->value;
 	s_msaa_mode.itemnames = msaa_modes;
 	s_msaa_mode.curvalue = vk_msaa->value;
 
 	s_finish_box.generic.type = MTYPE_SPINCONTROL;
 	s_finish_box.generic.x	= 0;
-	s_finish_box.generic.y	= 80;
+	s_finish_box.generic.y	= 80 * con_fontscale->value;
 	s_finish_box.generic.name	= "sync every frame";
 	s_finish_box.curvalue = gl_finish->value;
 	s_finish_box.itemnames = yesno_names;
 
 	s_vkfinish_box.generic.type = MTYPE_SPINCONTROL;
 	s_vkfinish_box.generic.x = 0;
-	s_vkfinish_box.generic.y = 80;
+	s_vkfinish_box.generic.y = 80 * con_fontscale->value;
 	s_vkfinish_box.generic.name = "sync every frame";
 	s_vkfinish_box.curvalue = vk_finish->value;
 	s_vkfinish_box.itemnames = yesno_names;
@@ -505,9 +506,9 @@ void VID_MenuInit( void )
 	Menu_Center( &s_software_menu );
 	Menu_Center( &s_opengl_menu );
 	Menu_Center( &s_vulkan_menu );
-	s_opengl_menu.x -= 8;
-	s_software_menu.x -= 8;
-	s_vulkan_menu.x -= 8;
+	s_opengl_menu.x -= 8 * con_fontscale->value;
+	s_software_menu.x -= 8 * con_fontscale->value;
+	s_vulkan_menu.x -= 8 * con_fontscale->value;
 }
 
 /*
@@ -530,7 +531,7 @@ void VID_MenuDraw (void)
 	** draw the banner
 	*/
 	re.DrawGetPicSize( &w, &h, "m_banner_video" );
-	re.DrawPic( viddef.width / 2 - w / 2, viddef.height /2 - 110, "m_banner_video" );
+	re.DrawPic( viddef.width / 2 - w / 2, viddef.height /2 - 110 - h * (2.f * con_fontscale->value - 2.f), "m_banner_video" );
 
 	/*
 	** move cursor to a reasonable starting position

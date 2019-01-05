@@ -50,7 +50,6 @@ cvar_t		*scr_centertime;
 cvar_t		*scr_showturtle;
 cvar_t		*scr_showpause;
 cvar_t		*scr_printspeed;
-cvar_t		*scr_fontscale;
 
 cvar_t		*scr_netgraph;
 cvar_t		*scr_timegraph;
@@ -421,7 +420,6 @@ void SCR_Init (void)
 	scr_graphscale = Cvar_Get ("graphscale", "1", 0);
 	scr_graphshift = Cvar_Get ("graphshift", "0", 0);
 	scr_drawall = Cvar_Get ("scr_drawall", "0", 0);
-	scr_fontscale = Cvar_Get ("scr_fontscale", "1", 0);
 
 //
 // register our commands

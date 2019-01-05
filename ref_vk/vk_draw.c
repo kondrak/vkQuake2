@@ -56,7 +56,7 @@ void Draw_Char (int x, int y, int num)
 	int				row, col;
 	float			frow, fcol, size;
 
-	cvar_t *scale = ri.Cvar_Get("scr_fontscale", "1", 0);
+	cvar_t *scale = ri.Cvar_Get("fontscale", "1", 0);
 
 	num &= 255;
 
