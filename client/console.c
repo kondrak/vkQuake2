@@ -25,7 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 console_t	con;
 
 cvar_t		*con_notifytime;
-cvar_t		*con_fontscale;
+cvar_t		*con_hudscale;
 
 
 #define		MAXCMDLINE	256
@@ -38,7 +38,7 @@ void DrawString (int x, int y, char *s)
 	while (*s)
 	{
 		re.DrawChar (x, y, *s);
-		x+=8*con_fontscale->value;
+		x+=8*con_hudscale->value;
 		s++;
 	}
 }
@@ -48,7 +48,7 @@ void DrawAltString (int x, int y, char *s)
 	while (*s)
 	{
 		re.DrawChar (x, y, *s ^ 0x80);
-		x+=8*con_fontscale->value;
+		x+=8*con_hudscale->value;
 		s++;
 	}
 }
@@ -314,7 +314,7 @@ void Con_Init (void)
 // register our commands
 //
 	con_notifytime = Cvar_Get ("con_notifytime", "3", 0);
-	con_fontscale  = Cvar_Get("fontscale", "2", 0);
+	con_hudscale  = Cvar_Get("hudscale", "2", 0);
 
 	Cmd_AddCommand ("toggleconsole", Con_ToggleConsole_f);
 	Cmd_AddCommand ("togglechat", Con_ToggleChat_f);
@@ -485,7 +485,7 @@ void Con_DrawInput (void)
 	y = con.vislines-16;
 
 	for (i=0 ; i<con.linewidth ; i++)
-		re.DrawChar ( ((i+1)<<3)*con_fontscale->value, con.vislines - 22*con_fontscale->value, text[i]);
+		re.DrawChar ( ((i+1)<<3)*con_hudscale->value, con.vislines - 22*con_hudscale->value, text[i]);
 
 // remove cursor
 	key_lines[edit_line][key_linepos] = 0;
@@ -522,7 +522,7 @@ void Con_DrawNotify (void)
 		text = con.text + (i % con.totallines)*con.linewidth;
 		
 		for (x = 0 ; x < con.linewidth ; x++)
-			re.DrawChar ( ((x+1)<<3)*con_fontscale->value, v*con_fontscale->value, text[x]);
+			re.DrawChar ( ((x+1)<<3)*con_hudscale->value, v*con_hudscale->value, text[x]);
 
 		v += 8;
 	}
@@ -532,12 +532,12 @@ void Con_DrawNotify (void)
 	{
 		if (chat_team)
 		{
-			DrawString (8, v*con_fontscale->value, "say_team:");
+			DrawString (8, v*con_hudscale->value, "say_team:");
 			skip = 11;
 		}
 		else
 		{
-			DrawString (8, v*con_fontscale->value, "say:");
+			DrawString (8, v*con_hudscale->value, "say:");
 			skip = 5;
 		}
 
@@ -547,17 +547,17 @@ void Con_DrawNotify (void)
 		x = 0;
 		while(s[x])
 		{
-			re.DrawChar ( ((x+skip)<<3)*con_fontscale->value, v*con_fontscale->value, s[x]);
+			re.DrawChar ( ((x+skip)<<3)*con_hudscale->value, v*con_hudscale->value, s[x]);
 			x++;
 		}
-		re.DrawChar ( ((x+skip)<<3)*con_fontscale->value, v*con_fontscale->value, 10+((cls.realtime>>8)&1));
+		re.DrawChar ( ((x+skip)<<3)*con_hudscale->value, v*con_hudscale->value, 10+((cls.realtime>>8)&1));
 		v += 8;
 	}
 	
 	if (v)
 	{
 		SCR_AddDirtyPoint (0,0);
-		SCR_AddDirtyPoint (viddef.width-1, v*con_fontscale->value);
+		SCR_AddDirtyPoint (viddef.width-1, v*con_hudscale->value);
 	}
 }
 
@@ -593,20 +593,20 @@ void Con_DrawConsole (float frac)
 	Com_sprintf (version, sizeof(version), "v%4.2f", VERSION);
 
 	for (x=0 ; x<5 ; x++)
-		re.DrawChar (viddef.width-44*con_fontscale->value+x*8*con_fontscale->value, lines-12*con_fontscale->value, 128 + version[x] );
+		re.DrawChar (viddef.width-44*con_hudscale->value+x*8*con_hudscale->value, lines-12*con_hudscale->value, 128 + version[x] );
 
 // draw the text
 	con.vislines = lines;
 
 	rows = (lines-22)>>3;		// rows of text to draw
-	y = (lines - 30 * con_fontscale->value)/con_fontscale->value;
+	y = (lines - 30 * con_hudscale->value)/con_hudscale->value;
 
 // draw from the bottom up
 	if (con.display != con.current)
 	{
 	// draw arrows to show the buffer is backscrolled
 		for (x=0 ; x<con.linewidth ; x+=4)
-			re.DrawChar ( ((x+1)<<3)*con_fontscale->value, y*con_fontscale->value, '^');
+			re.DrawChar ( ((x+1)<<3)*con_hudscale->value, y*con_hudscale->value, '^');
 	
 		y -= 8;
 		rows--;
@@ -623,7 +623,7 @@ void Con_DrawConsole (float frac)
 		text = con.text + (row % con.totallines)*con.linewidth;
 
 		for (x=0 ; x<con.linewidth ; x++)
-			re.DrawChar ( ((x+1)<<3)*con_fontscale->value, y*con_fontscale->value, text[x]);
+			re.DrawChar ( ((x+1)<<3)*con_hudscale->value, y*con_hudscale->value, text[x]);
 	}
 
 //ZOID
@@ -667,7 +667,7 @@ void Con_DrawConsole (float frac)
 		// draw it
 		y = con.vislines-12;
 		for (i = 0; i < strlen(dlbar); i++)
-			re.DrawChar ( ((i+1)<<3)*con_fontscale->value, y*con_fontscale->value, dlbar[i]);
+			re.DrawChar ( ((i+1)<<3)*con_hudscale->value, y*con_hudscale->value, dlbar[i]);
 	}
 //ZOID
 

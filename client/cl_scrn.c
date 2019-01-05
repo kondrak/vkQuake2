@@ -59,6 +59,8 @@ cvar_t		*scr_graphscale;
 cvar_t		*scr_graphshift;
 cvar_t		*scr_drawall;
 
+extern cvar_t	*con_hudscale;
+
 typedef struct
 {
 	int		x1, y1, x2, y2;
@@ -464,7 +466,7 @@ void SCR_DrawPause (void)
 		return;
 
 	re.DrawGetPicSize (&w, &h, "pause");
-	re.DrawPic ((viddef.width-w)/2, viddef.height/2 + 8, "pause");
+	re.DrawPic ((viddef.width-w*con_hudscale->value)/2, viddef.height/2 + 8*con_hudscale->value, "pause");
 }
 
 /*
@@ -481,7 +483,7 @@ void SCR_DrawLoading (void)
 
 	scr_draw_loading = false;
 	re.DrawGetPicSize (&w, &h, "loading");
-	re.DrawPic ((viddef.width-w)/2, (viddef.height-h)/2, "loading");
+	re.DrawPic ((viddef.width-w*con_hudscale->value)/2, (viddef.height-h*con_hudscale->value)/2, "loading");
 }
 
 //=============================================================================
@@ -731,7 +733,7 @@ char		*sb_nums[2][11] =
 
 #define	ICON_WIDTH	24
 #define	ICON_HEIGHT	24
-#define	CHAR_WIDTH	16
+#define	CHAR_WIDTH	16 * con_hudscale->value
 #define	ICON_SPACE	8
 
 
@@ -767,8 +769,8 @@ void SizeHUDString (char *string, int *w, int *h)
 		string++;
 	}
 
-	*w = width * 8;
-	*h = lines * 8;
+	*w = width * 8 * con_hudscale->value;
+	*h = lines * 8 * con_hudscale->value;
 }
 
 void DrawHUDString (char *string, int x, int y, int centerwidth, int xor)
@@ -789,19 +791,19 @@ void DrawHUDString (char *string, int x, int y, int centerwidth, int xor)
 		line[width] = 0;
 
 		if (centerwidth)
-			x = margin + (centerwidth - width*8)/2;
+			x = margin + ((centerwidth - width*8)*con_hudscale->value)/2;
 		else
 			x = margin;
 		for (i=0 ; i<width ; i++)
 		{
 			re.DrawChar (x, y, line[i]^xor);
-			x += 8;
+			x += 8 * con_hudscale->value;
 		}
 		if (*string)
 		{
 			string++;	// skip the \n
 			x = margin;
-			y += 8;
+			y += 8 * con_hudscale->value;
 		}
 	}
 }
@@ -914,13 +916,13 @@ void SCR_ExecuteLayoutString (char *s)
 		if (!strcmp(token, "xr"))
 		{
 			token = COM_Parse (&s);
-			x = viddef.width + atoi(token);
+			x = viddef.width + atoi(token) * con_hudscale->value;
 			continue;
 		}
 		if (!strcmp(token, "xv"))
 		{
 			token = COM_Parse (&s);
-			x = viddef.width/2 - 160 + atoi(token);
+			x = viddef.width/2 - 160 * con_hudscale->value + atoi(token) * con_hudscale->value;
 			continue;
 		}
 
@@ -933,13 +935,13 @@ void SCR_ExecuteLayoutString (char *s)
 		if (!strcmp(token, "yb"))
 		{
 			token = COM_Parse (&s);
-			y = viddef.height + atoi(token);
+			y = viddef.height + atoi(token) * con_hudscale->value;
 			continue;
 		}
 		if (!strcmp(token, "yv"))
 		{
 			token = COM_Parse (&s);
-			y = viddef.height/2 - 120 + atoi(token);
+			y = viddef.height/2 - 120 * con_hudscale->value + atoi(token) * con_hudscale->value;
 			continue;
 		}
 
@@ -963,11 +965,11 @@ void SCR_ExecuteLayoutString (char *s)
 			int		score, ping, time;
 
 			token = COM_Parse (&s);
-			x = viddef.width/2 - 160 + atoi(token);
+			x = viddef.width/2 - 160 * con_hudscale->value + atoi(token)*con_hudscale->value;
 			token = COM_Parse (&s);
-			y = viddef.height/2 - 120 + atoi(token);
+			y = viddef.height/2 - 120 * con_hudscale->value + atoi(token)*con_hudscale->value;
 			SCR_AddDirtyPoint (x, y);
-			SCR_AddDirtyPoint (x+159, y+31);
+			SCR_AddDirtyPoint (x+159 * con_hudscale->value, y+31 * con_hudscale->value);
 
 			token = COM_Parse (&s);
 			value = atoi(token);
@@ -984,11 +986,11 @@ void SCR_ExecuteLayoutString (char *s)
 			token = COM_Parse (&s);
 			time = atoi(token);
 
-			DrawAltString (x+32, y, ci->name);
-			DrawString (x+32, y+8,  "Score: ");
-			DrawAltString (x+32+7*8, y+8,  va("%i", score));
-			DrawString (x+32, y+16, va("Ping:  %i", ping));
-			DrawString (x+32, y+24, va("Time:  %i", time));
+			DrawAltString (x+32 * con_hudscale->value, y, ci->name);
+			DrawString (x+32 * con_hudscale->value, y+8 * con_hudscale->value,  "Score: ");
+			DrawAltString (x+32 * con_hudscale->value +7*8 * con_hudscale->value, y+8 * con_hudscale->value,  va("%i", score));
+			DrawString (x+32 * con_hudscale->value, y+16 * con_hudscale->value, va("Ping:  %i", ping));
+			DrawString (x+32 * con_hudscale->value, y+24 * con_hudscale->value, va("Time:  %i", time));
 
 			if (!ci->icon)
 				ci = &cl.baseclientinfo;

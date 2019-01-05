@@ -56,7 +56,7 @@ void Draw_Char (int x, int y, int num)
 	int				row, col;
 	float			frow, fcol, size;
 
-	cvar_t *scale = ri.Cvar_Get("fontscale", "1", 0);
+	cvar_t *scale = ri.Cvar_Get("hudscale", "1", 0);
 
 	num &= 255;
 
@@ -151,6 +151,7 @@ Draw_Pic
 void Draw_Pic (int x, int y, char *pic)
 {
 	image_t *vk;
+	cvar_t *scale = ri.Cvar_Get("hudscale", "1", 0);
 
 	vk = Draw_FindPic(pic);
 	if (!vk)
@@ -159,7 +160,7 @@ void Draw_Pic (int x, int y, char *pic)
 		return;
 	}
 
-	Draw_StretchPic(x, y, vk->width, vk->height, pic);
+	Draw_StretchPic(x, y, vk->width*scale->value, vk->height*scale->value, pic);
 }
 
 /*
