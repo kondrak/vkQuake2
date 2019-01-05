@@ -56,6 +56,8 @@ void Draw_Char (int x, int y, int num)
 	int				row, col;
 	float			frow, fcol, size;
 
+	cvar_t *scale = ri.Cvar_Get("scr_fontscale", "1", 0);
+
 	num &= 255;
 
 	if ((num & 127) == 32)
@@ -72,7 +74,7 @@ void Draw_Char (int x, int y, int num)
 	size = 0.0625;
 
 	float imgTransform[] = { (float)x / vid.width, (float)y / vid.height,
-							 8.f / vid.width, 8.f / vid.height,
+							 8.f * scale->value / vid.width, 8.f * scale->value / vid.height,
 							 fcol, frow, size, size };
 	QVk_DrawTexRect(imgTransform, sizeof(imgTransform), &draw_chars->vk_texture);
 }

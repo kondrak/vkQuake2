@@ -31,14 +31,14 @@ cvar_t		*con_notifytime;
 extern	char	key_lines[32][MAXCMDLINE];
 extern	int		edit_line;
 extern	int		key_linepos;
-		
+extern	cvar_t	*scr_fontscale;
 
 void DrawString (int x, int y, char *s)
 {
 	while (*s)
 	{
 		re.DrawChar (x, y, *s);
-		x+=8;
+		x+=8*scr_fontscale->value;
 		s++;
 	}
 }
@@ -48,7 +48,7 @@ void DrawAltString (int x, int y, char *s)
 	while (*s)
 	{
 		re.DrawChar (x, y, *s ^ 0x80);
-		x+=8;
+		x+=8*scr_fontscale->value;
 		s++;
 	}
 }
@@ -484,7 +484,7 @@ void Con_DrawInput (void)
 	y = con.vislines-16;
 
 	for (i=0 ; i<con.linewidth ; i++)
-		re.DrawChar ( (i+1)<<3, con.vislines - 22, text[i]);
+		re.DrawChar ( ((i+1)<<3)*scr_fontscale->value, con.vislines - 22*scr_fontscale->value, text[i]);
 
 // remove cursor
 	key_lines[edit_line][key_linepos] = 0;
@@ -521,7 +521,7 @@ void Con_DrawNotify (void)
 		text = con.text + (i % con.totallines)*con.linewidth;
 		
 		for (x = 0 ; x < con.linewidth ; x++)
-			re.DrawChar ( (x+1)<<3, v, text[x]);
+			re.DrawChar ( ((x+1)<<3)*scr_fontscale->value, v*scr_fontscale->value, text[x]);
 
 		v += 8;
 	}
@@ -546,10 +546,10 @@ void Con_DrawNotify (void)
 		x = 0;
 		while(s[x])
 		{
-			re.DrawChar ( (x+skip)<<3, v, s[x]);
+			re.DrawChar ( ((x+skip)<<3)*scr_fontscale->value, v, s[x]);
 			x++;
 		}
-		re.DrawChar ( (x+skip)<<3, v, 10+((cls.realtime>>8)&1));
+		re.DrawChar ( ((x+skip)<<3)*scr_fontscale->value, v*scr_fontscale->value, 10+((cls.realtime>>8)&1));
 		v += 8;
 	}
 	
@@ -590,28 +590,22 @@ void Con_DrawConsole (float frac)
 	SCR_AddDirtyPoint (viddef.width-1,lines-1);
 
 	Com_sprintf (version, sizeof(version), "v%4.2f", VERSION);
+
 	for (x=0 ; x<5 ; x++)
-		re.DrawChar (viddef.width-44+x*8, lines-12, 128 + version[x] );
+		re.DrawChar (viddef.width-44*scr_fontscale->value+x*8*scr_fontscale->value, lines-12*scr_fontscale->value, 128 + version[x] );
 
 // draw the text
 	con.vislines = lines;
-	
-#if 0
-	rows = (lines-8)>>3;		// rows of text to draw
 
-	y = lines - 24;
-#else
 	rows = (lines-22)>>3;		// rows of text to draw
-
-	y = lines - 30;
-#endif
+	y = (lines - 30 * scr_fontscale->value)/scr_fontscale->value;
 
 // draw from the bottom up
 	if (con.display != con.current)
 	{
 	// draw arrows to show the buffer is backscrolled
 		for (x=0 ; x<con.linewidth ; x+=4)
-			re.DrawChar ( (x+1)<<3, y, '^');
+			re.DrawChar ( ((x+1)<<3)*scr_fontscale->value, y*scr_fontscale->value, '^');
 	
 		y -= 8;
 		rows--;
@@ -628,7 +622,7 @@ void Con_DrawConsole (float frac)
 		text = con.text + (row % con.totallines)*con.linewidth;
 
 		for (x=0 ; x<con.linewidth ; x++)
-			re.DrawChar ( (x+1)<<3, y, text[x]);
+			re.DrawChar ( ((x+1)<<3)*scr_fontscale->value, y*scr_fontscale->value, text[x]);
 	}
 
 //ZOID
@@ -672,7 +666,7 @@ void Con_DrawConsole (float frac)
 		// draw it
 		y = con.vislines-12;
 		for (i = 0; i < strlen(dlbar); i++)
-			re.DrawChar ( (i+1)<<3, y, dlbar[i]);
+			re.DrawChar ( ((i+1)<<3)*scr_fontscale->value, y*scr_fontscale->value, dlbar[i]);
 	}
 //ZOID
 
