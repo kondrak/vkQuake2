@@ -132,10 +132,10 @@ void CL_DrawInventory (void)
 		else	// draw a blinky cursor by the selected item
 		{
 			if ( (int)(cls.realtime*10) & 1)
-				re.DrawChar (x-8 * vid_hudscale->value, y*vid_hudscale->value, 15);
+				re.DrawChar (x - 8 * vid_hudscale->value, y * vid_hudscale->value, 15);
 		}
 		Inv_DrawString (x, y, string);
-		y += 8;
+		y += 8 * vid_hudscale->value;
 	}
 
 
