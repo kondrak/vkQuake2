@@ -275,17 +275,17 @@ void SCR_DrawCenterString (void)
 		for (l=0 ; l<40 ; l++)
 			if (start[l] == '\n' || !start[l])
 				break;
-		x = (viddef.width - l*8)/2;
+		x = (viddef.width - l*8*vid_hudscale->value)/2;
 		SCR_AddDirtyPoint (x, y);
-		for (j=0 ; j<l ; j++, x+=8)
+		for (j=0 ; j<l ; j++, x+=8*vid_hudscale->value)
 		{
-			re.DrawChar (x, y, start[j]);	
+			re.DrawChar (x, y, start[j]);
 			if (!remaining--)
 				return;
 		}
-		SCR_AddDirtyPoint (x, y+8);
+		SCR_AddDirtyPoint (x, y+8*vid_hudscale->value);
 			
-		y += 8;
+		y += 8*vid_hudscale->value;
 
 		while (*start && *start != '\n')
 			start++;
