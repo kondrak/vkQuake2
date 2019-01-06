@@ -466,7 +466,7 @@ void SCR_DrawPause (void)
 		return;
 
 	re.DrawGetPicSize (&w, &h, "pause");
-	re.DrawPic ((viddef.width-w*vid_hudscale->value)/2, viddef.height/2 + 8*vid_hudscale->value, "pause");
+	re.DrawPic ((viddef.width-w)/2, viddef.height/2 + 8*vid_hudscale->value, "pause");
 }
 
 /*
@@ -483,7 +483,7 @@ void SCR_DrawLoading (void)
 
 	scr_draw_loading = false;
 	re.DrawGetPicSize (&w, &h, "loading");
-	re.DrawPic ((viddef.width-w*vid_hudscale->value)/2, (viddef.height-h*vid_hudscale->value)/2, "loading");
+	re.DrawPic ((viddef.width-w)/2, (viddef.height-h)/2, "loading");
 }
 
 //=============================================================================

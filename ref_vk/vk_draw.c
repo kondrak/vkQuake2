@@ -115,8 +115,11 @@ void Draw_GetPicSize (int *w, int *h, char *pic)
 		*w = *h = -1;
 		return;
 	}
-	*w = vk->width;
-	*h = vk->height;
+
+	cvar_t *scale = ri.Cvar_Get("hudscale", "1", 0);
+
+	*w = vk->width * scale->value;
+	*h = vk->height * scale->value;
 }
 
 /*

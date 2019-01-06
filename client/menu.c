@@ -83,7 +83,7 @@ static void M_Banner( char *name )
 	int w, h;
 
 	re.DrawGetPicSize (&w, &h, name );
-	re.DrawPic( viddef.width / 2 - w * vid_hudscale->value / 2, viddef.height / 2 - 110 * vid_hudscale->value, name );
+	re.DrawPic( viddef.width / 2 - w / 2, viddef.height / 2 - 110 * vid_hudscale->value, name );
 }
 
 void M_PushMenu ( void (*draw) (void), const char *(*key) (int k) )
@@ -411,9 +411,6 @@ void M_Main_Draw (void)
 	{
 		re.DrawGetPicSize( &w, &h, names[i] );
 
-		w *= vid_hudscale->value;
-		h *= vid_hudscale->value;
-
 		if ( w > widest )
 			widest = w;
 		totalheight += ( h + 12 );
@@ -434,9 +431,9 @@ void M_Main_Draw (void)
 	M_DrawCursor( xoffset - 25 * vid_hudscale->value, ystart + (m_main_cursor * 40 + 11)*vid_hudscale->value, (int)(cls.realtime / 100)%NUM_CURSOR_FRAMES );
 
 	re.DrawGetPicSize( &w, &h, "m_main_plaque" );
-	re.DrawPic( xoffset - 30 * vid_hudscale->value - w * vid_hudscale->value, ystart, "m_main_plaque" );
+	re.DrawPic( xoffset - 30 * vid_hudscale->value - w, ystart, "m_main_plaque" );
 
-	re.DrawPic( xoffset - 30 * vid_hudscale->value - w * vid_hudscale->value, ystart + (h + 5)*vid_hudscale->value, "m_main_logo" );
+	re.DrawPic( xoffset - 30 * vid_hudscale->value - w, ystart + h + 5*vid_hudscale->value, "m_main_logo" );
 }
 
 
@@ -3951,7 +3948,7 @@ void M_Quit_Draw (void)
 	int		w, h;
 
 	re.DrawGetPicSize (&w, &h, "quit");
-	re.DrawPic ( (viddef.width-w*vid_hudscale->value)/2, (viddef.height-h*vid_hudscale->value)/2, "quit");
+	re.DrawPic ( (viddef.width-w)/2, (viddef.height-h)/2, "quit");
 }
 
 
