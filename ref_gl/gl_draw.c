@@ -66,6 +66,8 @@ void Draw_Char (int x, int y, int num)
 	if (y <= -8)
 		return;			// totally off screen
 
+	cvar_t *scale = ri.Cvar_Get("hudscale", "1", 0);
+
 	row = num>>4;
 	col = num&15;
 
@@ -79,11 +81,11 @@ void Draw_Char (int x, int y, int num)
 	qglTexCoord2f (fcol, frow);
 	qglVertex2f (x, y);
 	qglTexCoord2f (fcol + size, frow);
-	qglVertex2f (x+8, y);
+	qglVertex2f (x+8*scale->value, y);
 	qglTexCoord2f (fcol + size, frow + size);
-	qglVertex2f (x+8, y+8);
+	qglVertex2f (x+8*scale->value, y+8*scale->value);
 	qglTexCoord2f (fcol, frow + size);
-	qglVertex2f (x, y+8);
+	qglVertex2f (x, y+8*scale->value);
 	qglEnd ();
 }
 
@@ -123,8 +125,11 @@ void Draw_GetPicSize (int *w, int *h, char *pic)
 		*w = *h = -1;
 		return;
 	}
-	*w = gl->width;
-	*h = gl->height;
+
+	cvar_t *scale = ri.Cvar_Get("hudscale", "1", 0);
+
+	*w = gl->width * scale->value;
+	*h = gl->height * scale->value;
 }
 
 /*
@@ -174,6 +179,7 @@ Draw_Pic
 void Draw_Pic (int x, int y, char *pic)
 {
 	image_t *gl;
+	cvar_t *scale = ri.Cvar_Get("hudscale", "1", 0);
 
 	gl = Draw_FindPic (pic);
 	if (!gl)
@@ -192,11 +198,11 @@ void Draw_Pic (int x, int y, char *pic)
 	qglTexCoord2f (gl->sl, gl->tl);
 	qglVertex2f (x, y);
 	qglTexCoord2f (gl->sh, gl->tl);
-	qglVertex2f (x+gl->width, y);
+	qglVertex2f (x+gl->width*scale->value, y);
 	qglTexCoord2f (gl->sh, gl->th);
-	qglVertex2f (x+gl->width, y+gl->height);
+	qglVertex2f (x+gl->width*scale->value, y+gl->height*scale->value);
 	qglTexCoord2f (gl->sl, gl->th);
-	qglVertex2f (x, y+gl->height);
+	qglVertex2f (x, y+gl->height*scale->value);
 	qglEnd ();
 
 	if ( ( ( gl_config.renderer == GL_RENDERER_MCD ) || ( gl_config.renderer & GL_RENDERER_RENDITION ) )  && !gl->has_alpha)
