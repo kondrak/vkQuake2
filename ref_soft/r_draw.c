@@ -275,7 +275,7 @@ void Draw_Char(int x, int y, int num)
 
 	if (y < 0)
 	{	// clipped
-		skip = -y;
+		skip = y;
 		drawline = 8 * scale->value + y;
 		source -= 128 * y;
 		y = 0;
