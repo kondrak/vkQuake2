@@ -25,6 +25,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "client.h"
 #include "../client/qmenu.h"
 
+extern cvar_t *vid_hudscale;
+
 static int	m_main_cursor;
 
 static qboolean update_sound_quality = false;
@@ -81,7 +83,7 @@ static void M_Banner( char *name )
 	int w, h;
 
 	re.DrawGetPicSize (&w, &h, name );
-	re.DrawPic( viddef.width / 2 - w / 2, viddef.height / 2 - 110, name );
+	re.DrawPic( viddef.width / 2 - w / 2, viddef.height / 2 - 110 * vid_hudscale->value, name );
 }
 
 void M_PushMenu ( void (*draw) (void), const char *(*key) (int k) )
@@ -281,7 +283,7 @@ void M_Print (int cx, int cy, char *str)
 	{
 		M_DrawCharacter (cx, cy, (*str)+128);
 		str++;
-		cx += 8;
+		cx += 8 * vid_hudscale->value;
 	}
 }
 
@@ -291,7 +293,7 @@ void M_PrintWhite (int cx, int cy, char *str)
 	{
 		M_DrawCharacter (cx, cy, *str);
 		str++;
-		cx += 8;
+		cx += 8 * vid_hudscale->value;
 	}
 }
 
@@ -343,25 +345,25 @@ void M_DrawTextBox (int x, int y, int width, int lines)
 	M_DrawCharacter (cx, cy, 1);
 	for (n = 0; n < lines; n++)
 	{
-		cy += 8;
+		cy += 8 * vid_hudscale->value;
 		M_DrawCharacter (cx, cy, 4);
 	}
-	M_DrawCharacter (cx, cy+8, 7);
+	M_DrawCharacter (cx, cy + 8 * vid_hudscale->value, 7);
 
 	// draw middle
-	cx += 8;
+	cx += 8 * vid_hudscale->value;
 	while (width > 0)
 	{
 		cy = y;
 		M_DrawCharacter (cx, cy, 2);
 		for (n = 0; n < lines; n++)
 		{
-			cy += 8;
+			cy += 8 * vid_hudscale->value;
 			M_DrawCharacter (cx, cy, 5);
 		}
-		M_DrawCharacter (cx, cy+8, 8);
+		M_DrawCharacter (cx, cy + 8 * vid_hudscale->value, 8);
 		width -= 1;
-		cx += 8;
+		cx += 8 * vid_hudscale->value;
 	}
 
 	// draw right side
@@ -369,10 +371,10 @@ void M_DrawTextBox (int x, int y, int width, int lines)
 	M_DrawCharacter (cx, cy, 3);
 	for (n = 0; n < lines; n++)
 	{
-		cy += 8;
+		cy += 8 * vid_hudscale->value;
 		M_DrawCharacter (cx, cy, 6);
 	}
-	M_DrawCharacter (cx, cy+8, 9);
+	M_DrawCharacter (cx, cy + 8 * vid_hudscale->value, 9);
 }
 
 		
@@ -414,24 +416,24 @@ void M_Main_Draw (void)
 		totalheight += ( h + 12 );
 	}
 
-	ystart = ( viddef.height / 2 - 110 );
-	xoffset = ( viddef.width - widest + 70 ) / 2;
+	ystart = ( viddef.height / 2 - 110 * vid_hudscale->value);
+	xoffset = ( viddef.width - widest + 70 * vid_hudscale->value) / 2;
 
 	for ( i = 0; names[i] != 0; i++ )
 	{
 		if ( i != m_main_cursor )
-			re.DrawPic( xoffset, ystart + i * 40 + 13, names[i] );
+			re.DrawPic( xoffset, ystart + (i * 40 + 13)*vid_hudscale->value, names[i] );
 	}
 	strcpy( litname, names[m_main_cursor] );
 	strcat( litname, "_sel" );
-	re.DrawPic( xoffset, ystart + m_main_cursor * 40 + 13, litname );
+	re.DrawPic( xoffset, ystart + (m_main_cursor * 40 + 13) * vid_hudscale->value, litname );
 
-	M_DrawCursor( xoffset - 25, ystart + m_main_cursor * 40 + 11, (int)(cls.realtime / 100)%NUM_CURSOR_FRAMES );
+	M_DrawCursor( xoffset - 25 * vid_hudscale->value, ystart + (m_main_cursor * 40 + 11)*vid_hudscale->value, (int)(cls.realtime / 100)%NUM_CURSOR_FRAMES );
 
 	re.DrawGetPicSize( &w, &h, "m_main_plaque" );
-	re.DrawPic( xoffset - 30 - w, ystart, "m_main_plaque" );
+	re.DrawPic( xoffset - 30 * vid_hudscale->value - w, ystart, "m_main_plaque" );
 
-	re.DrawPic( xoffset - 30 - w, ystart + h + 5, "m_main_logo" );
+	re.DrawPic( xoffset - 30 * vid_hudscale->value - w, ystart + h + 5*vid_hudscale->value, "m_main_logo" );
 }
 
 
@@ -531,7 +533,7 @@ static void StartNetworkServerFunc( void *unused )
 
 void Multiplayer_MenuInit( void )
 {
-	s_multiplayer_menu.x = viddef.width * 0.50 - 64;
+	s_multiplayer_menu.x = viddef.width * 0.50 - 64 * vid_hudscale->value;
 	s_multiplayer_menu.nitems = 0;
 
 	s_join_network_server_action.generic.type	= MTYPE_ACTION;
@@ -544,14 +546,14 @@ void Multiplayer_MenuInit( void )
 	s_start_network_server_action.generic.type	= MTYPE_ACTION;
 	s_start_network_server_action.generic.flags  = QMF_LEFT_JUSTIFY;
 	s_start_network_server_action.generic.x		= 0;
-	s_start_network_server_action.generic.y		= 10;
+	s_start_network_server_action.generic.y		= 10 * vid_hudscale->value;
 	s_start_network_server_action.generic.name	= " start network server";
 	s_start_network_server_action.generic.callback = StartNetworkServerFunc;
 
 	s_player_setup_action.generic.type	= MTYPE_ACTION;
 	s_player_setup_action.generic.flags  = QMF_LEFT_JUSTIFY;
 	s_player_setup_action.generic.x		= 0;
-	s_player_setup_action.generic.y		= 20;
+	s_player_setup_action.generic.y		= 20 * vid_hudscale->value;
 	s_player_setup_action.generic.name	= " player setup";
 	s_player_setup_action.generic.callback = PlayerSetupFunc;
 
@@ -692,9 +694,9 @@ static void M_FindKeysForCommand (char *command, int *twokeys)
 static void KeyCursorDrawFunc( menuframework_s *menu )
 {
 	if ( bind_grab )
-		re.DrawChar( menu->x, menu->y + menu->cursor * 9, '=' );
+		re.DrawChar( menu->x, menu->y + menu->cursor * 9 * vid_hudscale->value, '=' );
 	else
-		re.DrawChar( menu->x, menu->y + menu->cursor * 9, 12 + ( ( int ) ( Sys_Milliseconds() / 250 ) & 1 ) );
+		re.DrawChar( menu->x, menu->y + menu->cursor * 9 * vid_hudscale->value, 12 + ( ( int ) ( Sys_Milliseconds() / 250 ) & 1 ) );
 }
 
 static void DrawKeyBindingFunc( void *self )
@@ -706,7 +708,7 @@ static void DrawKeyBindingFunc( void *self )
 		
 	if (keys[0] == -1)
 	{
-		Menu_DrawString( a->generic.x + a->generic.parent->x + 16, a->generic.y + a->generic.parent->y, "???" );
+		Menu_DrawString( a->generic.x + a->generic.parent->x + 16 * vid_hudscale->value, a->generic.y + a->generic.parent->y, "???" );
 	}
 	else
 	{
@@ -715,14 +717,14 @@ static void DrawKeyBindingFunc( void *self )
 
 		name = Key_KeynumToString (keys[0]);
 
-		Menu_DrawString( a->generic.x + a->generic.parent->x + 16, a->generic.y + a->generic.parent->y, name );
+		Menu_DrawString( a->generic.x + a->generic.parent->x + 16 * vid_hudscale->value, a->generic.y + a->generic.parent->y, name );
 
-		x = strlen(name) * 8;
+		x = strlen(name) * 8 * vid_hudscale->value;
 
 		if (keys[1] != -1)
 		{
-			Menu_DrawString( a->generic.x + a->generic.parent->x + 24 + x, a->generic.y + a->generic.parent->y, "or" );
-			Menu_DrawString( a->generic.x + a->generic.parent->x + 48 + x, a->generic.y + a->generic.parent->y, Key_KeynumToString (keys[1]) );
+			Menu_DrawString( a->generic.x + a->generic.parent->x + 24 * vid_hudscale->value + x, a->generic.y + a->generic.parent->y, "or" );
+			Menu_DrawString( a->generic.x + a->generic.parent->x + 48 * vid_hudscale->value + x, a->generic.y + a->generic.parent->y, Key_KeynumToString (keys[1]) );
 		}
 	}
 }
@@ -754,7 +756,7 @@ static void Keys_MenuInit( void )
 	s_keys_attack_action.generic.type	= MTYPE_ACTION;
 	s_keys_attack_action.generic.flags  = QMF_GRAYED;
 	s_keys_attack_action.generic.x		= 0;
-	s_keys_attack_action.generic.y		= y;
+	s_keys_attack_action.generic.y		= y * vid_hudscale->value;
 	s_keys_attack_action.generic.ownerdraw = DrawKeyBindingFunc;
 	s_keys_attack_action.generic.localdata[0] = i;
 	s_keys_attack_action.generic.name	= bindnames[s_keys_attack_action.generic.localdata[0]][1];
@@ -762,7 +764,7 @@ static void Keys_MenuInit( void )
 	s_keys_change_weapon_action.generic.type	= MTYPE_ACTION;
 	s_keys_change_weapon_action.generic.flags  = QMF_GRAYED;
 	s_keys_change_weapon_action.generic.x		= 0;
-	s_keys_change_weapon_action.generic.y		= y += 9;
+	s_keys_change_weapon_action.generic.y		= y += 9 * vid_hudscale->value;
 	s_keys_change_weapon_action.generic.ownerdraw = DrawKeyBindingFunc;
 	s_keys_change_weapon_action.generic.localdata[0] = ++i;
 	s_keys_change_weapon_action.generic.name	= bindnames[s_keys_change_weapon_action.generic.localdata[0]][1];
@@ -770,7 +772,7 @@ static void Keys_MenuInit( void )
 	s_keys_change_weapon_prev_action.generic.type	= MTYPE_ACTION;
 	s_keys_change_weapon_prev_action.generic.flags  = QMF_GRAYED;
 	s_keys_change_weapon_prev_action.generic.x		= 0;
-	s_keys_change_weapon_prev_action.generic.y		= y += 9;
+	s_keys_change_weapon_prev_action.generic.y		= y += 9 * vid_hudscale->value;
 	s_keys_change_weapon_prev_action.generic.ownerdraw = DrawKeyBindingFunc;
 	s_keys_change_weapon_prev_action.generic.localdata[0] = ++i;
 	s_keys_change_weapon_prev_action.generic.name	= bindnames[s_keys_change_weapon_prev_action.generic.localdata[0]][1];
@@ -778,7 +780,7 @@ static void Keys_MenuInit( void )
 	s_keys_change_weapon_last_action.generic.type	= MTYPE_ACTION;
 	s_keys_change_weapon_last_action.generic.flags  = QMF_GRAYED;
 	s_keys_change_weapon_last_action.generic.x		= 0;
-	s_keys_change_weapon_last_action.generic.y		= y += 9;
+	s_keys_change_weapon_last_action.generic.y		= y += 9 * vid_hudscale->value;
 	s_keys_change_weapon_last_action.generic.ownerdraw = DrawKeyBindingFunc;
 	s_keys_change_weapon_last_action.generic.localdata[0] = ++i;
 	s_keys_change_weapon_last_action.generic.name	= bindnames[s_keys_change_weapon_last_action.generic.localdata[0]][1];
@@ -786,7 +788,7 @@ static void Keys_MenuInit( void )
 	s_keys_walk_forward_action.generic.type	= MTYPE_ACTION;
 	s_keys_walk_forward_action.generic.flags  = QMF_GRAYED;
 	s_keys_walk_forward_action.generic.x		= 0;
-	s_keys_walk_forward_action.generic.y		= y += 9;
+	s_keys_walk_forward_action.generic.y		= y += 9 * vid_hudscale->value;
 	s_keys_walk_forward_action.generic.ownerdraw = DrawKeyBindingFunc;
 	s_keys_walk_forward_action.generic.localdata[0] = ++i;
 	s_keys_walk_forward_action.generic.name	= bindnames[s_keys_walk_forward_action.generic.localdata[0]][1];
@@ -794,7 +796,7 @@ static void Keys_MenuInit( void )
 	s_keys_backpedal_action.generic.type	= MTYPE_ACTION;
 	s_keys_backpedal_action.generic.flags  = QMF_GRAYED;
 	s_keys_backpedal_action.generic.x		= 0;
-	s_keys_backpedal_action.generic.y		= y += 9;
+	s_keys_backpedal_action.generic.y		= y += 9 * vid_hudscale->value;
 	s_keys_backpedal_action.generic.ownerdraw = DrawKeyBindingFunc;
 	s_keys_backpedal_action.generic.localdata[0] = ++i;
 	s_keys_backpedal_action.generic.name	= bindnames[s_keys_backpedal_action.generic.localdata[0]][1];
@@ -802,7 +804,7 @@ static void Keys_MenuInit( void )
 	s_keys_turn_left_action.generic.type	= MTYPE_ACTION;
 	s_keys_turn_left_action.generic.flags  = QMF_GRAYED;
 	s_keys_turn_left_action.generic.x		= 0;
-	s_keys_turn_left_action.generic.y		= y += 9;
+	s_keys_turn_left_action.generic.y		= y += 9 * vid_hudscale->value;
 	s_keys_turn_left_action.generic.ownerdraw = DrawKeyBindingFunc;
 	s_keys_turn_left_action.generic.localdata[0] = ++i;
 	s_keys_turn_left_action.generic.name	= bindnames[s_keys_turn_left_action.generic.localdata[0]][1];
@@ -810,7 +812,7 @@ static void Keys_MenuInit( void )
 	s_keys_turn_right_action.generic.type	= MTYPE_ACTION;
 	s_keys_turn_right_action.generic.flags  = QMF_GRAYED;
 	s_keys_turn_right_action.generic.x		= 0;
-	s_keys_turn_right_action.generic.y		= y += 9;
+	s_keys_turn_right_action.generic.y		= y += 9 * vid_hudscale->value;
 	s_keys_turn_right_action.generic.ownerdraw = DrawKeyBindingFunc;
 	s_keys_turn_right_action.generic.localdata[0] = ++i;
 	s_keys_turn_right_action.generic.name	= bindnames[s_keys_turn_right_action.generic.localdata[0]][1];
@@ -818,7 +820,7 @@ static void Keys_MenuInit( void )
 	s_keys_run_action.generic.type	= MTYPE_ACTION;
 	s_keys_run_action.generic.flags  = QMF_GRAYED;
 	s_keys_run_action.generic.x		= 0;
-	s_keys_run_action.generic.y		= y += 9;
+	s_keys_run_action.generic.y		= y += 9 * vid_hudscale->value;
 	s_keys_run_action.generic.ownerdraw = DrawKeyBindingFunc;
 	s_keys_run_action.generic.localdata[0] = ++i;
 	s_keys_run_action.generic.name	= bindnames[s_keys_run_action.generic.localdata[0]][1];
@@ -826,7 +828,7 @@ static void Keys_MenuInit( void )
 	s_keys_step_left_action.generic.type	= MTYPE_ACTION;
 	s_keys_step_left_action.generic.flags  = QMF_GRAYED;
 	s_keys_step_left_action.generic.x		= 0;
-	s_keys_step_left_action.generic.y		= y += 9;
+	s_keys_step_left_action.generic.y		= y += 9 * vid_hudscale->value;
 	s_keys_step_left_action.generic.ownerdraw = DrawKeyBindingFunc;
 	s_keys_step_left_action.generic.localdata[0] = ++i;
 	s_keys_step_left_action.generic.name	= bindnames[s_keys_step_left_action.generic.localdata[0]][1];
@@ -834,7 +836,7 @@ static void Keys_MenuInit( void )
 	s_keys_step_right_action.generic.type	= MTYPE_ACTION;
 	s_keys_step_right_action.generic.flags  = QMF_GRAYED;
 	s_keys_step_right_action.generic.x		= 0;
-	s_keys_step_right_action.generic.y		= y += 9;
+	s_keys_step_right_action.generic.y		= y += 9 * vid_hudscale->value;
 	s_keys_step_right_action.generic.ownerdraw = DrawKeyBindingFunc;
 	s_keys_step_right_action.generic.localdata[0] = ++i;
 	s_keys_step_right_action.generic.name	= bindnames[s_keys_step_right_action.generic.localdata[0]][1];
@@ -842,7 +844,7 @@ static void Keys_MenuInit( void )
 	s_keys_sidestep_action.generic.type	= MTYPE_ACTION;
 	s_keys_sidestep_action.generic.flags  = QMF_GRAYED;
 	s_keys_sidestep_action.generic.x		= 0;
-	s_keys_sidestep_action.generic.y		= y += 9;
+	s_keys_sidestep_action.generic.y		= y += 9 * vid_hudscale->value;
 	s_keys_sidestep_action.generic.ownerdraw = DrawKeyBindingFunc;
 	s_keys_sidestep_action.generic.localdata[0] = ++i;
 	s_keys_sidestep_action.generic.name	= bindnames[s_keys_sidestep_action.generic.localdata[0]][1];
@@ -850,7 +852,7 @@ static void Keys_MenuInit( void )
 	s_keys_look_up_action.generic.type	= MTYPE_ACTION;
 	s_keys_look_up_action.generic.flags  = QMF_GRAYED;
 	s_keys_look_up_action.generic.x		= 0;
-	s_keys_look_up_action.generic.y		= y += 9;
+	s_keys_look_up_action.generic.y		= y += 9 * vid_hudscale->value;
 	s_keys_look_up_action.generic.ownerdraw = DrawKeyBindingFunc;
 	s_keys_look_up_action.generic.localdata[0] = ++i;
 	s_keys_look_up_action.generic.name	= bindnames[s_keys_look_up_action.generic.localdata[0]][1];
@@ -858,7 +860,7 @@ static void Keys_MenuInit( void )
 	s_keys_look_down_action.generic.type	= MTYPE_ACTION;
 	s_keys_look_down_action.generic.flags  = QMF_GRAYED;
 	s_keys_look_down_action.generic.x		= 0;
-	s_keys_look_down_action.generic.y		= y += 9;
+	s_keys_look_down_action.generic.y		= y += 9 * vid_hudscale->value;
 	s_keys_look_down_action.generic.ownerdraw = DrawKeyBindingFunc;
 	s_keys_look_down_action.generic.localdata[0] = ++i;
 	s_keys_look_down_action.generic.name	= bindnames[s_keys_look_down_action.generic.localdata[0]][1];
@@ -866,7 +868,7 @@ static void Keys_MenuInit( void )
 	s_keys_center_view_action.generic.type	= MTYPE_ACTION;
 	s_keys_center_view_action.generic.flags  = QMF_GRAYED;
 	s_keys_center_view_action.generic.x		= 0;
-	s_keys_center_view_action.generic.y		= y += 9;
+	s_keys_center_view_action.generic.y		= y += 9 * vid_hudscale->value;
 	s_keys_center_view_action.generic.ownerdraw = DrawKeyBindingFunc;
 	s_keys_center_view_action.generic.localdata[0] = ++i;
 	s_keys_center_view_action.generic.name	= bindnames[s_keys_center_view_action.generic.localdata[0]][1];
@@ -874,7 +876,7 @@ static void Keys_MenuInit( void )
 	s_keys_mouse_look_action.generic.type	= MTYPE_ACTION;
 	s_keys_mouse_look_action.generic.flags  = QMF_GRAYED;
 	s_keys_mouse_look_action.generic.x		= 0;
-	s_keys_mouse_look_action.generic.y		= y += 9;
+	s_keys_mouse_look_action.generic.y		= y += 9 * vid_hudscale->value;
 	s_keys_mouse_look_action.generic.ownerdraw = DrawKeyBindingFunc;
 	s_keys_mouse_look_action.generic.localdata[0] = ++i;
 	s_keys_mouse_look_action.generic.name	= bindnames[s_keys_mouse_look_action.generic.localdata[0]][1];
@@ -882,7 +884,7 @@ static void Keys_MenuInit( void )
 	s_keys_keyboard_look_action.generic.type	= MTYPE_ACTION;
 	s_keys_keyboard_look_action.generic.flags  = QMF_GRAYED;
 	s_keys_keyboard_look_action.generic.x		= 0;
-	s_keys_keyboard_look_action.generic.y		= y += 9;
+	s_keys_keyboard_look_action.generic.y		= y += 9 * vid_hudscale->value;
 	s_keys_keyboard_look_action.generic.ownerdraw = DrawKeyBindingFunc;
 	s_keys_keyboard_look_action.generic.localdata[0] = ++i;
 	s_keys_keyboard_look_action.generic.name	= bindnames[s_keys_keyboard_look_action.generic.localdata[0]][1];
@@ -890,7 +892,7 @@ static void Keys_MenuInit( void )
 	s_keys_move_up_action.generic.type	= MTYPE_ACTION;
 	s_keys_move_up_action.generic.flags  = QMF_GRAYED;
 	s_keys_move_up_action.generic.x		= 0;
-	s_keys_move_up_action.generic.y		= y += 9;
+	s_keys_move_up_action.generic.y		= y += 9 * vid_hudscale->value;
 	s_keys_move_up_action.generic.ownerdraw = DrawKeyBindingFunc;
 	s_keys_move_up_action.generic.localdata[0] = ++i;
 	s_keys_move_up_action.generic.name	= bindnames[s_keys_move_up_action.generic.localdata[0]][1];
@@ -898,7 +900,7 @@ static void Keys_MenuInit( void )
 	s_keys_move_down_action.generic.type	= MTYPE_ACTION;
 	s_keys_move_down_action.generic.flags  = QMF_GRAYED;
 	s_keys_move_down_action.generic.x		= 0;
-	s_keys_move_down_action.generic.y		= y += 9;
+	s_keys_move_down_action.generic.y		= y += 9 * vid_hudscale->value;
 	s_keys_move_down_action.generic.ownerdraw = DrawKeyBindingFunc;
 	s_keys_move_down_action.generic.localdata[0] = ++i;
 	s_keys_move_down_action.generic.name	= bindnames[s_keys_move_down_action.generic.localdata[0]][1];
@@ -906,7 +908,7 @@ static void Keys_MenuInit( void )
 	s_keys_inventory_action.generic.type	= MTYPE_ACTION;
 	s_keys_inventory_action.generic.flags  = QMF_GRAYED;
 	s_keys_inventory_action.generic.x		= 0;
-	s_keys_inventory_action.generic.y		= y += 9;
+	s_keys_inventory_action.generic.y		= y += 9 * vid_hudscale->value;
 	s_keys_inventory_action.generic.ownerdraw = DrawKeyBindingFunc;
 	s_keys_inventory_action.generic.localdata[0] = ++i;
 	s_keys_inventory_action.generic.name	= bindnames[s_keys_inventory_action.generic.localdata[0]][1];
@@ -914,7 +916,7 @@ static void Keys_MenuInit( void )
 	s_keys_inv_use_action.generic.type	= MTYPE_ACTION;
 	s_keys_inv_use_action.generic.flags  = QMF_GRAYED;
 	s_keys_inv_use_action.generic.x		= 0;
-	s_keys_inv_use_action.generic.y		= y += 9;
+	s_keys_inv_use_action.generic.y		= y += 9 * vid_hudscale->value;
 	s_keys_inv_use_action.generic.ownerdraw = DrawKeyBindingFunc;
 	s_keys_inv_use_action.generic.localdata[0] = ++i;
 	s_keys_inv_use_action.generic.name	= bindnames[s_keys_inv_use_action.generic.localdata[0]][1];
@@ -922,7 +924,7 @@ static void Keys_MenuInit( void )
 	s_keys_inv_drop_action.generic.type	= MTYPE_ACTION;
 	s_keys_inv_drop_action.generic.flags  = QMF_GRAYED;
 	s_keys_inv_drop_action.generic.x		= 0;
-	s_keys_inv_drop_action.generic.y		= y += 9;
+	s_keys_inv_drop_action.generic.y		= y += 9 * vid_hudscale->value;
 	s_keys_inv_drop_action.generic.ownerdraw = DrawKeyBindingFunc;
 	s_keys_inv_drop_action.generic.localdata[0] = ++i;
 	s_keys_inv_drop_action.generic.name	= bindnames[s_keys_inv_drop_action.generic.localdata[0]][1];
@@ -930,7 +932,7 @@ static void Keys_MenuInit( void )
 	s_keys_inv_prev_action.generic.type	= MTYPE_ACTION;
 	s_keys_inv_prev_action.generic.flags  = QMF_GRAYED;
 	s_keys_inv_prev_action.generic.x		= 0;
-	s_keys_inv_prev_action.generic.y		= y += 9;
+	s_keys_inv_prev_action.generic.y		= y += 9 * vid_hudscale->value;
 	s_keys_inv_prev_action.generic.ownerdraw = DrawKeyBindingFunc;
 	s_keys_inv_prev_action.generic.localdata[0] = ++i;
 	s_keys_inv_prev_action.generic.name	= bindnames[s_keys_inv_prev_action.generic.localdata[0]][1];
@@ -938,7 +940,7 @@ static void Keys_MenuInit( void )
 	s_keys_inv_next_action.generic.type	= MTYPE_ACTION;
 	s_keys_inv_next_action.generic.flags  = QMF_GRAYED;
 	s_keys_inv_next_action.generic.x		= 0;
-	s_keys_inv_next_action.generic.y		= y += 9;
+	s_keys_inv_next_action.generic.y		= y += 9 * vid_hudscale->value;
 	s_keys_inv_next_action.generic.ownerdraw = DrawKeyBindingFunc;
 	s_keys_inv_next_action.generic.localdata[0] = ++i;
 	s_keys_inv_next_action.generic.name	= bindnames[s_keys_inv_next_action.generic.localdata[0]][1];
@@ -946,7 +948,7 @@ static void Keys_MenuInit( void )
 	s_keys_help_computer_action.generic.type	= MTYPE_ACTION;
 	s_keys_help_computer_action.generic.flags  = QMF_GRAYED;
 	s_keys_help_computer_action.generic.x		= 0;
-	s_keys_help_computer_action.generic.y		= y += 9;
+	s_keys_help_computer_action.generic.y		= y += 9 * vid_hudscale->value;
 	s_keys_help_computer_action.generic.ownerdraw = DrawKeyBindingFunc;
 	s_keys_help_computer_action.generic.localdata[0] = ++i;
 	s_keys_help_computer_action.generic.name	= bindnames[s_keys_help_computer_action.generic.localdata[0]][1];
@@ -1242,7 +1244,7 @@ void Options_MenuInit( void )
 	** configure controls menu and menu items
 	*/
 	s_options_menu.x = viddef.width / 2;
-	s_options_menu.y = viddef.height / 2 - 58;
+	s_options_menu.y = viddef.height / 2 - 58 * vid_hudscale->value;
 	s_options_menu.nitems = 0;
 
 	s_options_sfxvolume_slider.generic.type	= MTYPE_SLIDER;
@@ -1256,7 +1258,7 @@ void Options_MenuInit( void )
 
 	s_options_cdvolume_box.generic.type	= MTYPE_SPINCONTROL;
 	s_options_cdvolume_box.generic.x		= 0;
-	s_options_cdvolume_box.generic.y		= 10;
+	s_options_cdvolume_box.generic.y		= 10 * vid_hudscale->value;
 	s_options_cdvolume_box.generic.name	= "CD music";
 	s_options_cdvolume_box.generic.callback	= UpdateCDVolumeFunc;
 	s_options_cdvolume_box.itemnames		= cd_music_items;
@@ -1264,7 +1266,7 @@ void Options_MenuInit( void )
 
 	s_options_quality_list.generic.type	= MTYPE_SPINCONTROL;
 	s_options_quality_list.generic.x		= 0;
-	s_options_quality_list.generic.y		= 20;;
+	s_options_quality_list.generic.y		= 20 * vid_hudscale->value;
 	s_options_quality_list.generic.name		= "sound quality";
 	s_options_quality_list.generic.callback = UpdateSoundQualityFunc;
 	s_options_quality_list.itemnames		= quality_items;
@@ -1272,7 +1274,7 @@ void Options_MenuInit( void )
 
 	s_options_compatibility_list.generic.type	= MTYPE_SPINCONTROL;
 	s_options_compatibility_list.generic.x		= 0;
-	s_options_compatibility_list.generic.y		= 30;
+	s_options_compatibility_list.generic.y		= 30 * vid_hudscale->value;
 	s_options_compatibility_list.generic.name	= "sound compatibility";
 	s_options_compatibility_list.generic.callback = UpdateSoundQualityFunc;
 	s_options_compatibility_list.itemnames		= compatibility_items;
@@ -1280,7 +1282,7 @@ void Options_MenuInit( void )
 
 	s_options_sensitivity_slider.generic.type	= MTYPE_SLIDER;
 	s_options_sensitivity_slider.generic.x		= 0;
-	s_options_sensitivity_slider.generic.y		= 50;
+	s_options_sensitivity_slider.generic.y		= 50 * vid_hudscale->value;
 	s_options_sensitivity_slider.generic.name	= "mouse speed";
 	s_options_sensitivity_slider.generic.callback = MouseSpeedFunc;
 	s_options_sensitivity_slider.minvalue		= 2;
@@ -1288,75 +1290,68 @@ void Options_MenuInit( void )
 
 	s_options_alwaysrun_box.generic.type = MTYPE_SPINCONTROL;
 	s_options_alwaysrun_box.generic.x	= 0;
-	s_options_alwaysrun_box.generic.y	= 60;
+	s_options_alwaysrun_box.generic.y	= 60 * vid_hudscale->value;
 	s_options_alwaysrun_box.generic.name	= "always run";
 	s_options_alwaysrun_box.generic.callback = AlwaysRunFunc;
 	s_options_alwaysrun_box.itemnames = yesno_names;
 
 	s_options_invertmouse_box.generic.type = MTYPE_SPINCONTROL;
 	s_options_invertmouse_box.generic.x	= 0;
-	s_options_invertmouse_box.generic.y	= 70;
+	s_options_invertmouse_box.generic.y	= 70 * vid_hudscale->value;
 	s_options_invertmouse_box.generic.name	= "invert mouse";
 	s_options_invertmouse_box.generic.callback = InvertMouseFunc;
 	s_options_invertmouse_box.itemnames = yesno_names;
 
 	s_options_lookspring_box.generic.type = MTYPE_SPINCONTROL;
 	s_options_lookspring_box.generic.x	= 0;
-	s_options_lookspring_box.generic.y	= 80;
+	s_options_lookspring_box.generic.y	= 80 * vid_hudscale->value;
 	s_options_lookspring_box.generic.name	= "lookspring";
 	s_options_lookspring_box.generic.callback = LookspringFunc;
 	s_options_lookspring_box.itemnames = yesno_names;
 
 	s_options_lookstrafe_box.generic.type = MTYPE_SPINCONTROL;
 	s_options_lookstrafe_box.generic.x	= 0;
-	s_options_lookstrafe_box.generic.y	= 90;
+	s_options_lookstrafe_box.generic.y	= 90 * vid_hudscale->value;
 	s_options_lookstrafe_box.generic.name	= "lookstrafe";
 	s_options_lookstrafe_box.generic.callback = LookstrafeFunc;
 	s_options_lookstrafe_box.itemnames = yesno_names;
 
 	s_options_freelook_box.generic.type = MTYPE_SPINCONTROL;
 	s_options_freelook_box.generic.x	= 0;
-	s_options_freelook_box.generic.y	= 100;
+	s_options_freelook_box.generic.y	= 100 * vid_hudscale->value;
 	s_options_freelook_box.generic.name	= "free look";
 	s_options_freelook_box.generic.callback = FreeLookFunc;
 	s_options_freelook_box.itemnames = yesno_names;
 
 	s_options_crosshair_box.generic.type = MTYPE_SPINCONTROL;
 	s_options_crosshair_box.generic.x	= 0;
-	s_options_crosshair_box.generic.y	= 110;
+	s_options_crosshair_box.generic.y	= 110 * vid_hudscale->value;
 	s_options_crosshair_box.generic.name	= "crosshair";
 	s_options_crosshair_box.generic.callback = CrosshairFunc;
 	s_options_crosshair_box.itemnames = crosshair_names;
-/*
-	s_options_noalttab_box.generic.type = MTYPE_SPINCONTROL;
-	s_options_noalttab_box.generic.x	= 0;
-	s_options_noalttab_box.generic.y	= 110;
-	s_options_noalttab_box.generic.name	= "disable alt-tab";
-	s_options_noalttab_box.generic.callback = NoAltTabFunc;
-	s_options_noalttab_box.itemnames = yesno_names;
-*/
+
 	s_options_joystick_box.generic.type = MTYPE_SPINCONTROL;
 	s_options_joystick_box.generic.x	= 0;
-	s_options_joystick_box.generic.y	= 120;
+	s_options_joystick_box.generic.y	= 120 * vid_hudscale->value;
 	s_options_joystick_box.generic.name	= "use joystick";
 	s_options_joystick_box.generic.callback = JoystickFunc;
 	s_options_joystick_box.itemnames = yesno_names;
 
 	s_options_customize_options_action.generic.type	= MTYPE_ACTION;
 	s_options_customize_options_action.generic.x		= 0;
-	s_options_customize_options_action.generic.y		= 140;
+	s_options_customize_options_action.generic.y		= 140 * vid_hudscale->value;
 	s_options_customize_options_action.generic.name	= "customize controls";
 	s_options_customize_options_action.generic.callback = CustomizeControlsFunc;
 
 	s_options_defaults_action.generic.type	= MTYPE_ACTION;
 	s_options_defaults_action.generic.x		= 0;
-	s_options_defaults_action.generic.y		= 150;
+	s_options_defaults_action.generic.y		= 150 * vid_hudscale->value;
 	s_options_defaults_action.generic.name	= "reset defaults";
 	s_options_defaults_action.generic.callback = ControlsResetDefaultsFunc;
 
 	s_options_console_action.generic.type	= MTYPE_ACTION;
 	s_options_console_action.generic.x		= 0;
-	s_options_console_action.generic.y		= 160;
+	s_options_console_action.generic.y		= 160 * vid_hudscale->value;
 	s_options_console_action.generic.name	= "go to console";
 	s_options_console_action.generic.callback = ConsoleFunc;
 
@@ -1387,10 +1382,10 @@ void Options_MenuDraw (void)
 
 	if (update_sound_quality)
 	{
-		M_DrawTextBox(8, 120 - 48, 36, 3);
-		M_Print(16 + 16, 120 - 48 + 8, "Restarting the sound system. This");
-		M_Print(16 + 16, 120 - 48 + 16, "could take up to a minute, so");
-		M_Print(16 + 16, 120 - 48 + 24, "please be patient.");
+		M_DrawTextBox(8 - 152 * (vid_hudscale->value - 1.f), 120 - 48 * vid_hudscale->value, 36, 3);
+		M_Print(32 - 136 * (vid_hudscale->value - 1.f), 120 - 48 * vid_hudscale->value + 8 * vid_hudscale->value, "Restarting the sound system. This");
+		M_Print(32 - 136 * (vid_hudscale->value - 1.f), 120 - 48 * vid_hudscale->value + 16 * vid_hudscale->value, "could take up to a minute, so");
+		M_Print(32 - 136 * (vid_hudscale->value - 1.f), 120 - 48 * vid_hudscale->value + 24 * vid_hudscale->value, "please be patient.");
 
 		CL_Snd_Restart_f();
 		update_sound_quality = false;
@@ -1787,7 +1782,7 @@ void M_Credits_MenuDraw( void )
 	/*
 	** draw the credits
 	*/
-	for ( i = 0, y = viddef.height - ( ( cls.realtime - credits_start_time ) / 40.0F ); credits[i] && y < viddef.height; y += 10, i++ )
+	for ( i = 0, y = viddef.height - ( ( cls.realtime - credits_start_time ) / 40.0F ); credits[i] && y < viddef.height; y += 10 * vid_hudscale->value, i++ )
 	{
 		int j, stringoffset = 0;
 		int bold = false;
@@ -1810,7 +1805,7 @@ void M_Credits_MenuDraw( void )
 		{
 			int x;
 
-			x = ( viddef.width - strlen( credits[i] ) * 8 - stringoffset * 8 ) / 2 + ( j + stringoffset ) * 8;
+			x = ( viddef.width - strlen( credits[i] ) * 8 * vid_hudscale->value - stringoffset * 8 * vid_hudscale->value) / 2 + ( j + stringoffset ) * 8 * vid_hudscale->value;
 
 			if ( bold )
 				re.DrawChar( x, y, credits[i][j+stringoffset] + 128 );
@@ -1982,14 +1977,14 @@ void Game_MenuInit( void )
 	s_medium_game_action.generic.type	= MTYPE_ACTION;
 	s_medium_game_action.generic.flags  = QMF_LEFT_JUSTIFY;
 	s_medium_game_action.generic.x		= 0;
-	s_medium_game_action.generic.y		= 10;
+	s_medium_game_action.generic.y		= 10 * vid_hudscale->value;
 	s_medium_game_action.generic.name	= "medium";
 	s_medium_game_action.generic.callback = MediumGameFunc;
 
 	s_hard_game_action.generic.type	= MTYPE_ACTION;
 	s_hard_game_action.generic.flags  = QMF_LEFT_JUSTIFY;
 	s_hard_game_action.generic.x		= 0;
-	s_hard_game_action.generic.y		= 20;
+	s_hard_game_action.generic.y		= 20 * vid_hudscale->value;
 	s_hard_game_action.generic.name	= "hard";
 	s_hard_game_action.generic.callback = HardGameFunc;
 
@@ -1998,21 +1993,21 @@ void Game_MenuInit( void )
 	s_load_game_action.generic.type	= MTYPE_ACTION;
 	s_load_game_action.generic.flags  = QMF_LEFT_JUSTIFY;
 	s_load_game_action.generic.x		= 0;
-	s_load_game_action.generic.y		= 40;
+	s_load_game_action.generic.y		= 40 * vid_hudscale->value;
 	s_load_game_action.generic.name	= "load game";
 	s_load_game_action.generic.callback = LoadGameFunc;
 
 	s_save_game_action.generic.type	= MTYPE_ACTION;
 	s_save_game_action.generic.flags  = QMF_LEFT_JUSTIFY;
 	s_save_game_action.generic.x		= 0;
-	s_save_game_action.generic.y		= 50;
+	s_save_game_action.generic.y		= 50 * vid_hudscale->value;
 	s_save_game_action.generic.name	= "save game";
 	s_save_game_action.generic.callback = SaveGameFunc;
 
 	s_credits_action.generic.type	= MTYPE_ACTION;
 	s_credits_action.generic.flags  = QMF_LEFT_JUSTIFY;
 	s_credits_action.generic.x		= 0;
-	s_credits_action.generic.y		= 60;
+	s_credits_action.generic.y		= 60 * vid_hudscale->value;
 	s_credits_action.generic.name	= "credits";
 	s_credits_action.generic.callback = CreditsFunc;
 
@@ -2102,8 +2097,8 @@ void LoadGame_MenuInit( void )
 {
 	int i;
 
-	s_loadgame_menu.x = viddef.width / 2 - 120;
-	s_loadgame_menu.y = viddef.height / 2 - 58;
+	s_loadgame_menu.x = viddef.width / 2 - 120 * vid_hudscale->value;
+	s_loadgame_menu.y = viddef.height / 2 - 58 * vid_hudscale->value;
 	s_loadgame_menu.nitems = 0;
 
 	Create_Savestrings();
@@ -2116,9 +2111,9 @@ void LoadGame_MenuInit( void )
 		s_loadgame_actions[i].generic.callback		= LoadGameCallback;
 
 		s_loadgame_actions[i].generic.x = 0;
-		s_loadgame_actions[i].generic.y = ( i ) * 10;
+		s_loadgame_actions[i].generic.y = ( i ) * 10 * vid_hudscale->value;
 		if (i>0)	// separate from autosave
-			s_loadgame_actions[i].generic.y += 10;
+			s_loadgame_actions[i].generic.y += 10 * vid_hudscale->value;
 
 		s_loadgame_actions[i].generic.type = MTYPE_ACTION;
 
@@ -2180,8 +2175,8 @@ void SaveGame_MenuInit( void )
 {
 	int i;
 
-	s_savegame_menu.x = viddef.width / 2 - 120;
-	s_savegame_menu.y = viddef.height / 2 - 58;
+	s_savegame_menu.x = viddef.width / 2 - 120 * vid_hudscale->value;
+	s_savegame_menu.y = viddef.height / 2 - 58 * vid_hudscale->value;
 	s_savegame_menu.nitems = 0;
 
 	Create_Savestrings();
@@ -2195,7 +2190,7 @@ void SaveGame_MenuInit( void )
 		s_savegame_actions[i].generic.callback = SaveGameCallback;
 
 		s_savegame_actions[i].generic.x = 0;
-		s_savegame_actions[i].generic.y = ( i ) * 10;
+		s_savegame_actions[i].generic.y = ( i ) * 10 * vid_hudscale->value;
 
 		s_savegame_actions[i].generic.type = MTYPE_ACTION;
 
@@ -2316,7 +2311,7 @@ void JoinServer_MenuInit( void )
 {
 	int i;
 
-	s_joinserver_menu.x = viddef.width * 0.50 - 120;
+	s_joinserver_menu.x = viddef.width * 0.50 - 120 * vid_hudscale->value;
 	s_joinserver_menu.nitems = 0;
 
 	s_joinserver_address_book_action.generic.type	= MTYPE_ACTION;
@@ -2330,14 +2325,14 @@ void JoinServer_MenuInit( void )
 	s_joinserver_search_action.generic.name	= "refresh server list";
 	s_joinserver_search_action.generic.flags	= QMF_LEFT_JUSTIFY;
 	s_joinserver_search_action.generic.x	= 0;
-	s_joinserver_search_action.generic.y	= 10;
+	s_joinserver_search_action.generic.y	= 10 * vid_hudscale->value;
 	s_joinserver_search_action.generic.callback = SearchLocalGamesFunc;
 	s_joinserver_search_action.generic.statusbar = "search for servers";
 
 	s_joinserver_server_title.generic.type = MTYPE_SEPARATOR;
 	s_joinserver_server_title.generic.name = "connect to...";
-	s_joinserver_server_title.generic.x    = 80;
-	s_joinserver_server_title.generic.y	   = 30;
+	s_joinserver_server_title.generic.x    = 80 * vid_hudscale->value;
+	s_joinserver_server_title.generic.y	   = 30 * vid_hudscale->value;
 
 	for ( i = 0; i < MAX_LOCAL_SERVERS; i++ )
 	{
@@ -2346,7 +2341,7 @@ void JoinServer_MenuInit( void )
 		s_joinserver_server_actions[i].generic.name	= local_server_names[i];
 		s_joinserver_server_actions[i].generic.flags	= QMF_LEFT_JUSTIFY;
 		s_joinserver_server_actions[i].generic.x		= 0;
-		s_joinserver_server_actions[i].generic.y		= 40 + i*10;
+		s_joinserver_server_actions[i].generic.y		= (40 + i*10) * vid_hudscale->value;
 		s_joinserver_server_actions[i].generic.callback = JoinServerFunc;
 		s_joinserver_server_actions[i].generic.statusbar = "press ENTER to connect";
 	}
@@ -2370,10 +2365,10 @@ void JoinServer_MenuDraw(void)
 
 	if (search_local_games)
 	{
-		M_DrawTextBox(8, 120 - 48, 36, 3);
-		M_Print(16 + 16, 120 - 48 + 8, "Searching for local servers, this");
-		M_Print(16 + 16, 120 - 48 + 16, "could take up to a minute, so");
-		M_Print(16 + 16, 120 - 48 + 24, "please be patient.");
+		M_DrawTextBox(8 - 152 * (vid_hudscale->value - 1.f), 120 - 48 * vid_hudscale->value, 36, 3);
+		M_Print(32 - 136 * (vid_hudscale->value - 1.f), 120 - 48 * vid_hudscale->value + 8 * vid_hudscale->value, "Searching for local servers, this");
+		M_Print(32 - 136 * (vid_hudscale->value - 1.f), 120 - 48 * vid_hudscale->value + 16 * vid_hudscale->value, "could take up to a minute, so");
+		M_Print(32 - 136 * (vid_hudscale->value - 1.f), 120 - 48 * vid_hudscale->value + 24 * vid_hudscale->value, "please be patient.");
 
 		// send out info packets
 		CL_PingServers_f();
@@ -2639,7 +2634,7 @@ void StartServer_MenuInit( void )
 
 	s_rules_box.generic.type = MTYPE_SPINCONTROL;
 	s_rules_box.generic.x	= 0;
-	s_rules_box.generic.y	= 20;
+	s_rules_box.generic.y	= 20 * vid_hudscale->value;
 	s_rules_box.generic.name	= "rules";
 	
 //PGM - rogue games only available with rogue DLL.
@@ -2659,7 +2654,7 @@ void StartServer_MenuInit( void )
 	s_timelimit_field.generic.name = "time limit";
 	s_timelimit_field.generic.flags = QMF_NUMBERSONLY;
 	s_timelimit_field.generic.x	= 0;
-	s_timelimit_field.generic.y	= 36;
+	s_timelimit_field.generic.y	= 36 * vid_hudscale->value;
 	s_timelimit_field.generic.statusbar = "0 = no limit";
 	s_timelimit_field.length = 3;
 	s_timelimit_field.visible_length = 3;
@@ -2669,7 +2664,7 @@ void StartServer_MenuInit( void )
 	s_fraglimit_field.generic.name = "frag limit";
 	s_fraglimit_field.generic.flags = QMF_NUMBERSONLY;
 	s_fraglimit_field.generic.x	= 0;
-	s_fraglimit_field.generic.y	= 54;
+	s_fraglimit_field.generic.y	= 54 * vid_hudscale->value;
 	s_fraglimit_field.generic.statusbar = "0 = no limit";
 	s_fraglimit_field.length = 3;
 	s_fraglimit_field.visible_length = 3;
@@ -2685,7 +2680,7 @@ void StartServer_MenuInit( void )
 	s_maxclients_field.generic.name = "max players";
 	s_maxclients_field.generic.flags = QMF_NUMBERSONLY;
 	s_maxclients_field.generic.x	= 0;
-	s_maxclients_field.generic.y	= 72;
+	s_maxclients_field.generic.y	= 72 * vid_hudscale->value;
 	s_maxclients_field.generic.statusbar = NULL;
 	s_maxclients_field.length = 3;
 	s_maxclients_field.visible_length = 3;
@@ -2698,7 +2693,7 @@ void StartServer_MenuInit( void )
 	s_hostname_field.generic.name = "hostname";
 	s_hostname_field.generic.flags = 0;
 	s_hostname_field.generic.x	= 0;
-	s_hostname_field.generic.y	= 90;
+	s_hostname_field.generic.y	= 90 * vid_hudscale->value;
 	s_hostname_field.generic.statusbar = NULL;
 	s_hostname_field.length = 12;
 	s_hostname_field.visible_length = 12;
@@ -2707,16 +2702,16 @@ void StartServer_MenuInit( void )
 	s_startserver_dmoptions_action.generic.type = MTYPE_ACTION;
 	s_startserver_dmoptions_action.generic.name	= " deathmatch flags";
 	s_startserver_dmoptions_action.generic.flags= QMF_LEFT_JUSTIFY;
-	s_startserver_dmoptions_action.generic.x	= 24;
-	s_startserver_dmoptions_action.generic.y	= 108;
+	s_startserver_dmoptions_action.generic.x	= 24 * vid_hudscale->value;
+	s_startserver_dmoptions_action.generic.y	= 108 * vid_hudscale->value;
 	s_startserver_dmoptions_action.generic.statusbar = NULL;
 	s_startserver_dmoptions_action.generic.callback = DMOptionsFunc;
 
 	s_startserver_start_action.generic.type = MTYPE_ACTION;
 	s_startserver_start_action.generic.name	= " begin";
 	s_startserver_start_action.generic.flags= QMF_LEFT_JUSTIFY;
-	s_startserver_start_action.generic.x	= 24;
-	s_startserver_start_action.generic.y	= 128;
+	s_startserver_start_action.generic.x	= 24 * vid_hudscale->value;
+	s_startserver_start_action.generic.y	= 128 * vid_hudscale->value;
 	s_startserver_start_action.generic.callback = StartServerActionFunc;
 
 	Menu_AddItem( &s_startserver_menu, &s_startmap_list );
@@ -2959,7 +2954,7 @@ void DMOptions_MenuInit( void )
 
 	s_falls_box.generic.type = MTYPE_SPINCONTROL;
 	s_falls_box.generic.x	= 0;
-	s_falls_box.generic.y	= y;
+	s_falls_box.generic.y	= y * vid_hudscale->value;
 	s_falls_box.generic.name	= "falling damage";
 	s_falls_box.generic.callback = DMFlagCallback;
 	s_falls_box.itemnames = yes_no_names;
@@ -2967,7 +2962,7 @@ void DMOptions_MenuInit( void )
 
 	s_weapons_stay_box.generic.type = MTYPE_SPINCONTROL;
 	s_weapons_stay_box.generic.x	= 0;
-	s_weapons_stay_box.generic.y	= y += 10;
+	s_weapons_stay_box.generic.y	= y += 10 * vid_hudscale->value;
 	s_weapons_stay_box.generic.name	= "weapons stay";
 	s_weapons_stay_box.generic.callback = DMFlagCallback;
 	s_weapons_stay_box.itemnames = yes_no_names;
@@ -2975,7 +2970,7 @@ void DMOptions_MenuInit( void )
 
 	s_instant_powerups_box.generic.type = MTYPE_SPINCONTROL;
 	s_instant_powerups_box.generic.x	= 0;
-	s_instant_powerups_box.generic.y	= y += 10;
+	s_instant_powerups_box.generic.y	= y += 10 * vid_hudscale->value;
 	s_instant_powerups_box.generic.name	= "instant powerups";
 	s_instant_powerups_box.generic.callback = DMFlagCallback;
 	s_instant_powerups_box.itemnames = yes_no_names;
@@ -2983,7 +2978,7 @@ void DMOptions_MenuInit( void )
 
 	s_powerups_box.generic.type = MTYPE_SPINCONTROL;
 	s_powerups_box.generic.x	= 0;
-	s_powerups_box.generic.y	= y += 10;
+	s_powerups_box.generic.y	= y += 10 * vid_hudscale->value;
 	s_powerups_box.generic.name	= "allow powerups";
 	s_powerups_box.generic.callback = DMFlagCallback;
 	s_powerups_box.itemnames = yes_no_names;
@@ -2991,7 +2986,7 @@ void DMOptions_MenuInit( void )
 
 	s_health_box.generic.type = MTYPE_SPINCONTROL;
 	s_health_box.generic.x	= 0;
-	s_health_box.generic.y	= y += 10;
+	s_health_box.generic.y	= y += 10 * vid_hudscale->value;
 	s_health_box.generic.callback = DMFlagCallback;
 	s_health_box.generic.name	= "allow health";
 	s_health_box.itemnames = yes_no_names;
@@ -2999,7 +2994,7 @@ void DMOptions_MenuInit( void )
 
 	s_armor_box.generic.type = MTYPE_SPINCONTROL;
 	s_armor_box.generic.x	= 0;
-	s_armor_box.generic.y	= y += 10;
+	s_armor_box.generic.y	= y += 10 * vid_hudscale->value;
 	s_armor_box.generic.name	= "allow armor";
 	s_armor_box.generic.callback = DMFlagCallback;
 	s_armor_box.itemnames = yes_no_names;
@@ -3007,7 +3002,7 @@ void DMOptions_MenuInit( void )
 
 	s_spawn_farthest_box.generic.type = MTYPE_SPINCONTROL;
 	s_spawn_farthest_box.generic.x	= 0;
-	s_spawn_farthest_box.generic.y	= y += 10;
+	s_spawn_farthest_box.generic.y	= y += 10 * vid_hudscale->value;
 	s_spawn_farthest_box.generic.name	= "spawn farthest";
 	s_spawn_farthest_box.generic.callback = DMFlagCallback;
 	s_spawn_farthest_box.itemnames = yes_no_names;
@@ -3015,7 +3010,7 @@ void DMOptions_MenuInit( void )
 
 	s_samelevel_box.generic.type = MTYPE_SPINCONTROL;
 	s_samelevel_box.generic.x	= 0;
-	s_samelevel_box.generic.y	= y += 10;
+	s_samelevel_box.generic.y	= y += 10 * vid_hudscale->value;
 	s_samelevel_box.generic.name	= "same map";
 	s_samelevel_box.generic.callback = DMFlagCallback;
 	s_samelevel_box.itemnames = yes_no_names;
@@ -3023,7 +3018,7 @@ void DMOptions_MenuInit( void )
 
 	s_force_respawn_box.generic.type = MTYPE_SPINCONTROL;
 	s_force_respawn_box.generic.x	= 0;
-	s_force_respawn_box.generic.y	= y += 10;
+	s_force_respawn_box.generic.y	= y += 10 * vid_hudscale->value;
 	s_force_respawn_box.generic.name	= "force respawn";
 	s_force_respawn_box.generic.callback = DMFlagCallback;
 	s_force_respawn_box.itemnames = yes_no_names;
@@ -3031,14 +3026,14 @@ void DMOptions_MenuInit( void )
 
 	s_teamplay_box.generic.type = MTYPE_SPINCONTROL;
 	s_teamplay_box.generic.x	= 0;
-	s_teamplay_box.generic.y	= y += 10;
+	s_teamplay_box.generic.y	= y += 10 * vid_hudscale->value;
 	s_teamplay_box.generic.name	= "teamplay";
 	s_teamplay_box.generic.callback = DMFlagCallback;
 	s_teamplay_box.itemnames = teamplay_names;
 
 	s_allow_exit_box.generic.type = MTYPE_SPINCONTROL;
 	s_allow_exit_box.generic.x	= 0;
-	s_allow_exit_box.generic.y	= y += 10;
+	s_allow_exit_box.generic.y	= y += 10 * vid_hudscale->value;
 	s_allow_exit_box.generic.name	= "allow exit";
 	s_allow_exit_box.generic.callback = DMFlagCallback;
 	s_allow_exit_box.itemnames = yes_no_names;
@@ -3046,7 +3041,7 @@ void DMOptions_MenuInit( void )
 
 	s_infinite_ammo_box.generic.type = MTYPE_SPINCONTROL;
 	s_infinite_ammo_box.generic.x	= 0;
-	s_infinite_ammo_box.generic.y	= y += 10;
+	s_infinite_ammo_box.generic.y	= y += 10 * vid_hudscale->value;
 	s_infinite_ammo_box.generic.name	= "infinite ammo";
 	s_infinite_ammo_box.generic.callback = DMFlagCallback;
 	s_infinite_ammo_box.itemnames = yes_no_names;
@@ -3054,7 +3049,7 @@ void DMOptions_MenuInit( void )
 
 	s_fixed_fov_box.generic.type = MTYPE_SPINCONTROL;
 	s_fixed_fov_box.generic.x	= 0;
-	s_fixed_fov_box.generic.y	= y += 10;
+	s_fixed_fov_box.generic.y	= y += 10 * vid_hudscale->value;
 	s_fixed_fov_box.generic.name	= "fixed FOV";
 	s_fixed_fov_box.generic.callback = DMFlagCallback;
 	s_fixed_fov_box.itemnames = yes_no_names;
@@ -3062,7 +3057,7 @@ void DMOptions_MenuInit( void )
 
 	s_quad_drop_box.generic.type = MTYPE_SPINCONTROL;
 	s_quad_drop_box.generic.x	= 0;
-	s_quad_drop_box.generic.y	= y += 10;
+	s_quad_drop_box.generic.y	= y += 10 * vid_hudscale->value;
 	s_quad_drop_box.generic.name	= "quad drop";
 	s_quad_drop_box.generic.callback = DMFlagCallback;
 	s_quad_drop_box.itemnames = yes_no_names;
@@ -3070,7 +3065,7 @@ void DMOptions_MenuInit( void )
 
 	s_friendlyfire_box.generic.type = MTYPE_SPINCONTROL;
 	s_friendlyfire_box.generic.x	= 0;
-	s_friendlyfire_box.generic.y	= y += 10;
+	s_friendlyfire_box.generic.y	= y += 10 * vid_hudscale->value;
 	s_friendlyfire_box.generic.name	= "friendly fire";
 	s_friendlyfire_box.generic.callback = DMFlagCallback;
 	s_friendlyfire_box.itemnames = yes_no_names;
@@ -3082,7 +3077,7 @@ void DMOptions_MenuInit( void )
 	{
 		s_no_mines_box.generic.type = MTYPE_SPINCONTROL;
 		s_no_mines_box.generic.x	= 0;
-		s_no_mines_box.generic.y	= y += 10;
+		s_no_mines_box.generic.y	= y += 10 * vid_hudscale->value;
 		s_no_mines_box.generic.name	= "remove mines";
 		s_no_mines_box.generic.callback = DMFlagCallback;
 		s_no_mines_box.itemnames = yes_no_names;
@@ -3090,7 +3085,7 @@ void DMOptions_MenuInit( void )
 
 		s_no_nukes_box.generic.type = MTYPE_SPINCONTROL;
 		s_no_nukes_box.generic.x	= 0;
-		s_no_nukes_box.generic.y	= y += 10;
+		s_no_nukes_box.generic.y	= y += 10 * vid_hudscale->value;
 		s_no_nukes_box.generic.name	= "remove nukes";
 		s_no_nukes_box.generic.callback = DMFlagCallback;
 		s_no_nukes_box.itemnames = yes_no_names;
@@ -3098,7 +3093,7 @@ void DMOptions_MenuInit( void )
 
 		s_stack_double_box.generic.type = MTYPE_SPINCONTROL;
 		s_stack_double_box.generic.x	= 0;
-		s_stack_double_box.generic.y	= y += 10;
+		s_stack_double_box.generic.y	= y += 10 * vid_hudscale->value;
 		s_stack_double_box.generic.name	= "2x/4x stacking off";
 		s_stack_double_box.generic.callback = DMFlagCallback;
 		s_stack_double_box.itemnames = yes_no_names;
@@ -3106,7 +3101,7 @@ void DMOptions_MenuInit( void )
 
 		s_no_spheres_box.generic.type = MTYPE_SPINCONTROL;
 		s_no_spheres_box.generic.x	= 0;
-		s_no_spheres_box.generic.y	= y += 10;
+		s_no_spheres_box.generic.y	= y += 10 * vid_hudscale->value;
 		s_no_spheres_box.generic.name	= "remove spheres";
 		s_no_spheres_box.generic.callback = DMFlagCallback;
 		s_no_spheres_box.itemnames = yes_no_names;
@@ -3227,11 +3222,11 @@ void DownloadOptions_MenuInit( void )
 	s_download_title.generic.type = MTYPE_SEPARATOR;
 	s_download_title.generic.name = "Download Options";
 	s_download_title.generic.x    = 48;
-	s_download_title.generic.y	 = y;
+	s_download_title.generic.y	 = y * vid_hudscale->value;
 
 	s_allow_download_box.generic.type = MTYPE_SPINCONTROL;
 	s_allow_download_box.generic.x	= 0;
-	s_allow_download_box.generic.y	= y += 20;
+	s_allow_download_box.generic.y	= y += 20 * vid_hudscale->value;
 	s_allow_download_box.generic.name	= "allow downloading";
 	s_allow_download_box.generic.callback = DownloadCallback;
 	s_allow_download_box.itemnames = yes_no_names;
@@ -3239,7 +3234,7 @@ void DownloadOptions_MenuInit( void )
 
 	s_allow_download_maps_box.generic.type = MTYPE_SPINCONTROL;
 	s_allow_download_maps_box.generic.x	= 0;
-	s_allow_download_maps_box.generic.y	= y += 20;
+	s_allow_download_maps_box.generic.y	= y += 20 * vid_hudscale->value;
 	s_allow_download_maps_box.generic.name	= "maps";
 	s_allow_download_maps_box.generic.callback = DownloadCallback;
 	s_allow_download_maps_box.itemnames = yes_no_names;
@@ -3247,7 +3242,7 @@ void DownloadOptions_MenuInit( void )
 
 	s_allow_download_players_box.generic.type = MTYPE_SPINCONTROL;
 	s_allow_download_players_box.generic.x	= 0;
-	s_allow_download_players_box.generic.y	= y += 10;
+	s_allow_download_players_box.generic.y	= y += 10 * vid_hudscale->value;
 	s_allow_download_players_box.generic.name	= "player models/skins";
 	s_allow_download_players_box.generic.callback = DownloadCallback;
 	s_allow_download_players_box.itemnames = yes_no_names;
@@ -3255,7 +3250,7 @@ void DownloadOptions_MenuInit( void )
 
 	s_allow_download_models_box.generic.type = MTYPE_SPINCONTROL;
 	s_allow_download_models_box.generic.x	= 0;
-	s_allow_download_models_box.generic.y	= y += 10;
+	s_allow_download_models_box.generic.y	= y += 10 * vid_hudscale->value;
 	s_allow_download_models_box.generic.name	= "models";
 	s_allow_download_models_box.generic.callback = DownloadCallback;
 	s_allow_download_models_box.itemnames = yes_no_names;
@@ -3263,7 +3258,7 @@ void DownloadOptions_MenuInit( void )
 
 	s_allow_download_sounds_box.generic.type = MTYPE_SPINCONTROL;
 	s_allow_download_sounds_box.generic.x	= 0;
-	s_allow_download_sounds_box.generic.y	= y += 10;
+	s_allow_download_sounds_box.generic.y	= y += 10 * vid_hudscale->value;
 	s_allow_download_sounds_box.generic.name	= "sounds";
 	s_allow_download_sounds_box.generic.callback = DownloadCallback;
 	s_allow_download_sounds_box.itemnames = yes_no_names;
@@ -3314,8 +3309,8 @@ void AddressBook_MenuInit( void )
 {
 	int i;
 
-	s_addressbook_menu.x = viddef.width / 2 - 142;
-	s_addressbook_menu.y = viddef.height / 2 - 58;
+	s_addressbook_menu.x = viddef.width / 2 - 142 * vid_hudscale->value;
+	s_addressbook_menu.y = viddef.height / 2 - 58 * vid_hudscale->value;
 	s_addressbook_menu.nitems = 0;
 
 	for ( i = 0; i < NUM_ADDRESSBOOK_ENTRIES; i++ )
@@ -3331,7 +3326,7 @@ void AddressBook_MenuInit( void )
 		s_addressbook_fields[i].generic.name = 0;
 		s_addressbook_fields[i].generic.callback = 0;
 		s_addressbook_fields[i].generic.x		= 0;
-		s_addressbook_fields[i].generic.y		= i * 18 + 0;
+		s_addressbook_fields[i].generic.y		= i * 18 * vid_hudscale->value + 0;
 		s_addressbook_fields[i].generic.localdata[0] = i;
 		s_addressbook_fields[i].cursor			= 0;
 		s_addressbook_fields[i].length			= 60;
@@ -3693,8 +3688,8 @@ qboolean PlayerConfig_MenuInit( void )
 		}
 	}
 
-	s_player_config_menu.x = viddef.width / 2 - 95; 
-	s_player_config_menu.y = viddef.height / 2 - 97;
+	s_player_config_menu.x = viddef.width / 2 - 95 * vid_hudscale->value;
+	s_player_config_menu.y = viddef.height / 2 - 97 * vid_hudscale->value;
 	s_player_config_menu.nitems = 0;
 
 	s_player_name_field.generic.type = MTYPE_FIELD;
@@ -3709,12 +3704,12 @@ qboolean PlayerConfig_MenuInit( void )
 
 	s_player_model_title.generic.type = MTYPE_SEPARATOR;
 	s_player_model_title.generic.name = "model";
-	s_player_model_title.generic.x    = -8;
-	s_player_model_title.generic.y	 = 60;
+	s_player_model_title.generic.x    = -8 * vid_hudscale->value;
+	s_player_model_title.generic.y	 = 60 * vid_hudscale->value;
 
 	s_player_model_box.generic.type = MTYPE_SPINCONTROL;
-	s_player_model_box.generic.x	= -56;
-	s_player_model_box.generic.y	= 70;
+	s_player_model_box.generic.x	= -56 * vid_hudscale->value;
+	s_player_model_box.generic.y	= 70 * vid_hudscale->value;
 	s_player_model_box.generic.callback = ModelCallback;
 	s_player_model_box.generic.cursor_offset = -48;
 	s_player_model_box.curvalue = currentdirectoryindex;
@@ -3722,12 +3717,12 @@ qboolean PlayerConfig_MenuInit( void )
 
 	s_player_skin_title.generic.type = MTYPE_SEPARATOR;
 	s_player_skin_title.generic.name = "skin";
-	s_player_skin_title.generic.x    = -16;
-	s_player_skin_title.generic.y	 = 84;
+	s_player_skin_title.generic.x    = -16 * vid_hudscale->value;
+	s_player_skin_title.generic.y	 = 84 * vid_hudscale->value;
 
 	s_player_skin_box.generic.type = MTYPE_SPINCONTROL;
-	s_player_skin_box.generic.x	= -56;
-	s_player_skin_box.generic.y	= 94;
+	s_player_skin_box.generic.x	= -56 * vid_hudscale->value;
+	s_player_skin_box.generic.y	= 94 * vid_hudscale->value;
 	s_player_skin_box.generic.name	= 0;
 	s_player_skin_box.generic.callback = 0;
 	s_player_skin_box.generic.cursor_offset = -48;
@@ -3736,12 +3731,12 @@ qboolean PlayerConfig_MenuInit( void )
 
 	s_player_hand_title.generic.type = MTYPE_SEPARATOR;
 	s_player_hand_title.generic.name = "handedness";
-	s_player_hand_title.generic.x    = 32;
-	s_player_hand_title.generic.y	 = 108;
+	s_player_hand_title.generic.x    = 32 * vid_hudscale->value;
+	s_player_hand_title.generic.y	 = 108 * vid_hudscale->value;
 
 	s_player_handedness_box.generic.type = MTYPE_SPINCONTROL;
-	s_player_handedness_box.generic.x	= -56;
-	s_player_handedness_box.generic.y	= 118;
+	s_player_handedness_box.generic.x	= -56 * vid_hudscale->value;
+	s_player_handedness_box.generic.y	= 118 * vid_hudscale->value;
 	s_player_handedness_box.generic.name	= 0;
 	s_player_handedness_box.generic.cursor_offset = -48;
 	s_player_handedness_box.generic.callback = HandednessCallback;
@@ -3754,12 +3749,12 @@ qboolean PlayerConfig_MenuInit( void )
 
 	s_player_rate_title.generic.type = MTYPE_SEPARATOR;
 	s_player_rate_title.generic.name = "connect speed";
-	s_player_rate_title.generic.x    = 56;
-	s_player_rate_title.generic.y	 = 156;
+	s_player_rate_title.generic.x    = 56 * vid_hudscale->value;
+	s_player_rate_title.generic.y	 = 156 * vid_hudscale->value;
 
 	s_player_rate_box.generic.type = MTYPE_SPINCONTROL;
-	s_player_rate_box.generic.x	= -56;
-	s_player_rate_box.generic.y	= 166;
+	s_player_rate_box.generic.x	= -56 * vid_hudscale->value;
+	s_player_rate_box.generic.y	= 166 * vid_hudscale->value;
 	s_player_rate_box.generic.name	= 0;
 	s_player_rate_box.generic.cursor_offset = -48;
 	s_player_rate_box.generic.callback = RateCallback;
@@ -3769,8 +3764,8 @@ qboolean PlayerConfig_MenuInit( void )
 	s_player_download_action.generic.type = MTYPE_ACTION;
 	s_player_download_action.generic.name	= "download options";
 	s_player_download_action.generic.flags= QMF_LEFT_JUSTIFY;
-	s_player_download_action.generic.x	= -24;
-	s_player_download_action.generic.y	= 186;
+	s_player_download_action.generic.x	= -24 * vid_hudscale->value;
+	s_player_download_action.generic.y	= 186 * vid_hudscale->value;
 	s_player_download_action.generic.statusbar = NULL;
 	s_player_download_action.generic.callback = DownloadOptionsFunc;
 
@@ -3800,9 +3795,9 @@ void PlayerConfig_MenuDraw( void )
 	memset( &refdef, 0, sizeof( refdef ) );
 
 	refdef.x = viddef.width / 2;
-	refdef.y = viddef.height / 2 - 72;
-	refdef.width = 144;
-	refdef.height = 168;
+	refdef.y = viddef.height / 2 - 72 * vid_hudscale->value;
+	refdef.width = 144 * vid_hudscale->value;
+	refdef.height = 168 * vid_hudscale->value;
 	refdef.fov_x = 40;
 	refdef.fov_y = CalcFov( refdef.fov_x, refdef.width, refdef.height );
 	refdef.time = cls.realtime*0.001;
@@ -3839,15 +3834,15 @@ void PlayerConfig_MenuDraw( void )
 
 		Menu_Draw( &s_player_config_menu );
 
-		M_DrawTextBox( ( refdef.x ) * ( 320.0F / viddef.width ) - 8, ( viddef.height / 2 ) * ( 240.0F / viddef.height) - 77, refdef.width / 8, refdef.height / 8 );
-		refdef.height += 4;
+		M_DrawTextBox((refdef.x) * (320.0F / viddef.width) - 8 * vid_hudscale->value, (viddef.height / 2) * (240.0F / viddef.height) - 77 * vid_hudscale->value, refdef.width / (8 * vid_hudscale->value), refdef.height / (8 * vid_hudscale->value));
+		refdef.height += 4 * vid_hudscale->value;
 
 		re.RenderFrame( &refdef );
 
 		Com_sprintf( scratch, sizeof( scratch ), "/players/%s/%s_i.pcx", 
 			s_pmi[s_player_model_box.curvalue].directory,
 			s_pmi[s_player_model_box.curvalue].skindisplaynames[s_player_skin_box.curvalue] );
-		re.DrawPic( s_player_config_menu.x - 40, refdef.y, scratch );
+		re.DrawPic( s_player_config_menu.x - 40 * vid_hudscale->value, refdef.y, scratch );
 	}
 }
 

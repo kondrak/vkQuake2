@@ -38,6 +38,7 @@ cvar_t		*cl_testblend;
 
 cvar_t		*cl_stats;
 
+extern	cvar_t	*vid_hudscale;
 
 int			r_numdlights;
 dlight_t	r_dlights[MAX_DLIGHTS];

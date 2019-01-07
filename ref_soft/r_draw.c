@@ -243,8 +243,10 @@ void Draw_Char(int x, int y, int num)
 {
 	byte			*dest;
 	byte			*source;
+	byte			*src;
 	int				drawline;
-	int				row, col;
+	int				row, col, f, i, v, skip = 0;
+	int				fstep, tbyte, sv;
 
 	num &= 255;
 
@@ -257,6 +259,8 @@ void Draw_Char(int x, int y, int num)
 	//	if ( ( y + 8 ) >= vid.height )
 	if ((y + 8) > vid.height)		// PGM - status text was missing in sw...
 		return;
+
+	cvar_t *scale = ri.Cvar_Get("hudscale", "1", 0);
 
 #ifdef PARANOID
 	if (y > vid.height - 8 || x < 0 || x > vid.width - 8)
@@ -271,36 +275,41 @@ void Draw_Char(int x, int y, int num)
 
 	if (y < 0)
 	{	// clipped
-		drawline = 8 + y;
+		skip = -y;
+		drawline = 8 * scale->value + y;
 		source -= 128 * y;
 		y = 0;
 	}
 	else
-		drawline = 8;
-
+		drawline = 8 * scale->value;
 
 	dest = vid.buffer + y*vid.rowbytes + x;
+	fstep = 0x8000 / scale->value;
 
-	while (drawline--)
+	for (v = 0; v < drawline; v++, dest += vid.rowbytes)
 	{
-		if (source[0] != TRANSPARENT_COLOR)
-			dest[0] = source[0];
-		if (source[1] != TRANSPARENT_COLOR)
-			dest[1] = source[1];
-		if (source[2] != TRANSPARENT_COLOR)
-			dest[2] = source[2];
-		if (source[3] != TRANSPARENT_COLOR)
-			dest[3] = source[3];
-		if (source[4] != TRANSPARENT_COLOR)
-			dest[4] = source[4];
-		if (source[5] != TRANSPARENT_COLOR)
-			dest[5] = source[5];
-		if (source[6] != TRANSPARENT_COLOR)
-			dest[6] = source[6];
-		if (source[7] != TRANSPARENT_COLOR)
-			dest[7] = source[7];
-		source += 128;
-		dest += vid.rowbytes;
+		sv = (skip + v) / scale->value;
+		src = source + sv * draw_chars->width;
+		f = 0;
+
+		for (i = 0; i < 8 * scale->value; i += 4)
+		{
+			if ((tbyte = src[f >> 15]) != TRANSPARENT_COLOR)
+				dest[i] = tbyte;
+			f += fstep;
+
+			if ((tbyte = src[f >> 15]) != TRANSPARENT_COLOR)
+				dest[i + 1] = tbyte;
+			f += fstep;
+
+			if ((tbyte = src[f >> 15]) != TRANSPARENT_COLOR)
+				dest[i + 2] = tbyte;
+			f += fstep;
+
+			if ((tbyte = src[f >> 15]) != TRANSPARENT_COLOR)
+				dest[i + 3] = tbyte;
+			f += fstep;
+		}
 	}
 }
 
@@ -319,8 +328,10 @@ void Draw_GetPicSize(int *w, int *h, char *pic)
 		*w = *h = -1;
 		return;
 	}
-	*w = gl->width;
-	*h = gl->height;
+	cvar_t *scale = ri.Cvar_Get("hudscale", "1", 0);
+
+	*w = gl->width*scale->value;
+	*h = gl->height*scale->value;
 }
 
 /*
@@ -335,6 +346,7 @@ void Draw_StretchPicImplementation(int x, int y, int w, int h, image_t	*pic)
 	int				height;
 	int				f, fstep;
 	int				skip;
+	int				tbyte;
 
 	w = (int)(w / 4) * 4; //qb: for DIB, sigh... probably should be 'ifdef DIB'
 	if ((x < 0) ||
@@ -368,13 +380,17 @@ void Draw_StretchPicImplementation(int x, int y, int w, int h, image_t	*pic)
 			fstep = pic->width * 0x10000 / w;
 			for (u = 0; u < w; u += 4)
 			{
-				dest[u] = source[f >> 16];
+				if((tbyte = source[f >> 16]) != TRANSPARENT_COLOR)
+					dest[u] = tbyte;
 				f += fstep;
-				dest[u + 1] = source[f >> 16];
+				if ((tbyte = source[f >> 16]) != TRANSPARENT_COLOR)
+					dest[u + 1] = tbyte;
 				f += fstep;
-				dest[u + 2] = source[f >> 16];
+				if ((tbyte = source[f >> 16]) != TRANSPARENT_COLOR)
+					dest[u + 2] = tbyte;
 				f += fstep;
-				dest[u + 3] = source[f >> 16];
+				if ((tbyte = source[f >> 16]) != TRANSPARENT_COLOR)
+					dest[u + 3] = tbyte;
 				f += fstep;
 			}
 		}
@@ -431,6 +447,13 @@ void Draw_Pic(int x, int y, char *name)
 	if (!pic)
 	{
 		ri.Con_Printf(PRINT_ALL, "Can't find pic: %s\n", name);
+		return;
+	}
+
+	cvar_t *scale = ri.Cvar_Get("hudscale", "1", 0);
+	if (scale->value > 1.f)
+	{
+		Draw_StretchPicImplementation(x, y, pic->width*scale->value, pic->height*scale->value, pic);
 		return;
 	}
 

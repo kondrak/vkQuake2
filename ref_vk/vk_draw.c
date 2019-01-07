@@ -64,6 +64,8 @@ void Draw_Char (int x, int y, int num)
 	if (y <= -8)
 		return;			// totally off screen
 
+	cvar_t *scale = ri.Cvar_Get("hudscale", "1", 0);
+
 	row = num >> 4;
 	col = num & 15;
 
@@ -72,7 +74,7 @@ void Draw_Char (int x, int y, int num)
 	size = 0.0625;
 
 	float imgTransform[] = { (float)x / vid.width, (float)y / vid.height,
-							 8.f / vid.width, 8.f / vid.height,
+							 8.f * scale->value / vid.width, 8.f * scale->value / vid.height,
 							 fcol, frow, size, size };
 	QVk_DrawTexRect(imgTransform, sizeof(imgTransform), &draw_chars->vk_texture);
 }
@@ -113,8 +115,11 @@ void Draw_GetPicSize (int *w, int *h, char *pic)
 		*w = *h = -1;
 		return;
 	}
-	*w = vk->width;
-	*h = vk->height;
+
+	cvar_t *scale = ri.Cvar_Get("hudscale", "1", 0);
+
+	*w = vk->width * scale->value;
+	*h = vk->height * scale->value;
 }
 
 /*
@@ -149,6 +154,7 @@ Draw_Pic
 void Draw_Pic (int x, int y, char *pic)
 {
 	image_t *vk;
+	cvar_t *scale = ri.Cvar_Get("hudscale", "1", 0);
 
 	vk = Draw_FindPic(pic);
 	if (!vk)
@@ -157,7 +163,7 @@ void Draw_Pic (int x, int y, char *pic)
 		return;
 	}
 
-	Draw_StretchPic(x, y, vk->width, vk->height, pic);
+	Draw_StretchPic(x, y, vk->width*scale->value, vk->height*scale->value, pic);
 }
 
 /*

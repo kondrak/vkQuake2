@@ -21,6 +21,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "client.h"
 
+extern cvar_t *vid_hudscale;
+
 /*
 ================
 CL_ParseInventory
@@ -45,7 +47,7 @@ void Inv_DrawString (int x, int y, char *string)
 	while (*string)
 	{
 		re.DrawChar (x, y, *string);
-		x+=8;
+		x+=8 * vid_hudscale->value;
 		string++;
 	}
 }
@@ -97,19 +99,19 @@ void CL_DrawInventory (void)
 	if (top < 0)
 		top = 0;
 
-	x = (viddef.width-256)/2;
-	y = (viddef.height-240)/2;
+	x = (viddef.width-256 * vid_hudscale->value)/2;
+	y = (viddef.height-240 * vid_hudscale->value)/2;
 
 	// repaint everything next frame
 	SCR_DirtyScreen ();
 
-	re.DrawPic (x, y+8, "inventory");
+	re.DrawPic (x, y + 8 * vid_hudscale->value, "inventory");
 
-	y += 24;
-	x += 24;
+	y += 24 * vid_hudscale->value;
+	x += 24 * vid_hudscale->value;
 	Inv_DrawString (x, y, "hotkey ### item");
-	Inv_DrawString (x, y+8, "------ --- ----");
-	y += 16;
+	Inv_DrawString (x, y+8*vid_hudscale->value, "------ --- ----");
+	y += 16 * vid_hudscale->value;
 	for (i=top ; i<num && i < top+DISPLAY_ITEMS ; i++)
 	{
 		item = index[i];
@@ -130,10 +132,10 @@ void CL_DrawInventory (void)
 		else	// draw a blinky cursor by the selected item
 		{
 			if ( (int)(cls.realtime*10) & 1)
-				re.DrawChar (x-8, y, 15);
+				re.DrawChar (x - 8 * vid_hudscale->value, y * vid_hudscale->value, 15);
 		}
 		Inv_DrawString (x, y, string);
-		y += 8;
+		y += 8 * vid_hudscale->value;
 	}
 
 
