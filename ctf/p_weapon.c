@@ -23,7 +23,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "m_player.h"
 
 
-static qboolean	is_quad;
+qboolean	is_quad;
 static byte		is_silenced;
 
 
