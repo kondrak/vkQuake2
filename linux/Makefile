@@ -20,7 +20,7 @@ ifneq (,$(findstring alpha,$(shell uname -m)))
 ARCH=axp
 RPMARCH=alpha
 else
-ARCH=i386
+ARCH=x64
 RPMARCH=i386
 endif
 NOARCH=noarch
@@ -48,7 +48,7 @@ MESA_DIR=/usr/local/src/Mesa-2.6
 EGCS=/usr/local/egcs-1.1.2/bin/gcc
 
 CC=gcc
-BASE_CFLAGS=-Dstricmp=strcasecmp -m32
+BASE_CFLAGS=-Dstricmp=strcasecmp
 
 ifeq ($(ARCH),axp)
 RELEASE_CFLAGS=$(BASE_CFLAGS) -O6 -ffast-math -funroll-loops \
@@ -99,10 +99,10 @@ TARGETS=$(BUILDDIR)/q2ded \
 else
 TARGETS=$(BUILDDIR)/quake2 \
 	$(BUILDDIR)/game$(ARCH).$(SHLIBEXT) \
-	$(BUILDDIR)/ref_soft.$(SHLIBEXT) \
-	$(BUILDDIR)/ref_softx.$(SHLIBEXT) \
-	$(BUILDDIR)/ref_gl.$(SHLIBEXT) \
-	$(BUILDDIR)/ref_glx.$(SHLIBEXT) \
+#	$(BUILDDIR)/ref_soft.$(SHLIBEXT) \
+#	$(BUILDDIR)/ref_softx.$(SHLIBEXT) \
+#	$(BUILDDIR)/ref_gl.$(SHLIBEXT) \
+#	$(BUILDDIR)/ref_glx.$(SHLIBEXT) \
 	$(BUILDDIR)/ctf/game$(ARCH).$(SHLIBEXT) \
 #	$(BUILDDIR)/xatrix/game$(ARCH).$(SHLIBEXT) \
 #	$(BUILDDIR)/rogue/game$(ARCH).$(SHLIBEXT)
