@@ -5,6 +5,7 @@ Overview
 This is the official Quake 2 code v3.21 with additional Vulkan renderer. The goal is to maintain as much compatibility as possible with the original game, so there are no fancy visual upgrades here - just pure, vanilla Quake 2 experience as we knew it back in 1997. There are, however, a few notable differences that made the cut for various reasons:
 
 - original compiler warnings have been fixed
+- 64 bit support has been added
 - `M_DrawTextBox` function is being called slightly differently without resorting to ending the frame prematurely
 - debug build comes with additional cmd console for debugging purposes when no visuals are available
 - 1920x1080, 2560x1440, and 3840x2160 screen resolutions have been added and the game is now DPI aware
@@ -26,7 +27,7 @@ With this setup, the game should build out of the box with no additional depende
 
 Running
 ===
-The Visual Studio 2017 C++ Redistributable [(32 bit)](https://go.microsoft.com/fwlink/?LinkId=746571) is required to run the application.
+The Visual Studio 2017 C++ Redistributable is required to run the application ([(32 bit)](https://go.microsoft.com/fwlink/?LinkId=746571) or [(64 bit)](https://go.microsoft.com/fwlink/?LinkId=746572) depending on your platform choice).
 
 The release package comes with game data used in the demo version - for full experience, copy all retail Quake 2 data paks (`pak0.pak`, `pak1.pak`, `pak2.pak`) into the `baseq2` folder and run the executable. The mission packs have not been tested but should work just as well.
 
