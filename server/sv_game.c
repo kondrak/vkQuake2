@@ -67,7 +67,7 @@ void PF_dprintf (char *fmt, ...)
 	va_list		argptr;
 	
 	va_start (argptr,fmt);
-	vsprintf (msg, fmt, argptr);
+	vsnprintf (msg, 1024, fmt, argptr);
 	va_end (argptr);
 
 	Com_Printf ("%s", msg);
@@ -95,7 +95,7 @@ void PF_cprintf (edict_t *ent, int level, char *fmt, ...)
 	}
 
 	va_start (argptr,fmt);
-	vsprintf (msg, fmt, argptr);
+	vsnprintf (msg, 1024, fmt, argptr);
 	va_end (argptr);
 
 	if (ent)
@@ -123,7 +123,7 @@ void PF_centerprintf (edict_t *ent, char *fmt, ...)
 		return;	// Com_Error (ERR_DROP, "centerprintf to a non-client");
 
 	va_start (argptr,fmt);
-	vsprintf (msg, fmt, argptr);
+	vsnprintf (msg, 1024, fmt, argptr);
 	va_end (argptr);
 
 	MSG_WriteByte (&sv.multicast,svc_centerprint);
@@ -145,7 +145,7 @@ void PF_error (char *fmt, ...)
 	va_list		argptr;
 	
 	va_start (argptr,fmt);
-	vsprintf (msg, fmt, argptr);
+	vsnprintf (msg, 1024, fmt, argptr);
 	va_end (argptr);
 
 	Com_Error (ERR_DROP, "Game Error: %s", msg);

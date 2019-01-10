@@ -296,6 +296,7 @@ void SV_InitGame (void)
 	{
 		// cause any connected clients to reconnect
 		SV_Shutdown ("Server restarted\n", true);
+		SV_ShutdownGameProgs();
 	}
 	else
 	{
@@ -433,7 +434,7 @@ void SV_Map (qboolean attractloop, char *levelstring, qboolean loadgame)
 	if (level[0] == '*')
 		strcpy (level, level+1);
 
-	l = strlen(level);
+	l = (int)strlen(level);
 	if (l > 4 && !strcmp (level+l-4, ".cin") )
 	{
 		SCR_BeginLoadingPlaque ();			// for local system

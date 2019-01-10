@@ -74,7 +74,7 @@ void Sys_Error (char *error, ...)
 	Qcommon_Shutdown ();
 
 	va_start (argptr, error);
-	vsprintf (text, error, argptr);
+	vsnprintf (text, 1024, error, argptr);
 	va_end (argptr);
 
 	MessageBox(NULL, text, "Error", 0 /* MB_OK */ );
@@ -389,7 +389,7 @@ void Sys_ConsoleOutput (char *string)
 		WriteFile(houtput, text, console_textlen+2, &dummy, NULL);
 	}
 
-	WriteFile(houtput, string, strlen(string), &dummy, NULL);
+	WriteFile(houtput, string, (DWORD)strlen(string), &dummy, NULL);
 
 	if (console_textlen)
 		WriteFile(houtput, console_text, console_textlen, &dummy, NULL);
@@ -512,6 +512,15 @@ void *Sys_GetGameAPI (void *parms)
 	const char *debugdir = "release";
 #else
 	const char *debugdir = "debug";
+#endif
+
+#elif defined _M_X64
+	const char *gamename = "gamex64.dll";
+
+#ifdef NDEBUG
+	const char *debugdir = "releasex64";
+#else
+	const char *debugdir = "debugx64";
 #endif
 
 #elif defined _M_ALPHA
@@ -681,10 +690,13 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 			newtime = Sys_Milliseconds ();
 			time = newtime - oldtime;
 		} while (time < 1);
-//			Con_Printf ("time:%5.2f - %5.2f = %5.2f\n", newtime, oldtime, time);
 
-		//	_controlfp( ~( _EM_ZERODIVIDE /*| _EM_INVALID*/ ), _MCW_EM );
+// MSDN: "On the x64 architecture, changing the floating point precision is not supported. 
+// If the precision control mask is used on that platform, an assertion and the invalid parameter handler is invoked, 
+// as described in Parameter Validation."
+#ifdef _M_IX86
 		_controlfp( _PC_24, _MCW_PC );
+#endif
 		if (ActiveApp)
 			Qcommon_Frame(time);
 

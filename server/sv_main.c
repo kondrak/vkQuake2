@@ -117,7 +117,7 @@ char	*SV_StatusString (void)
 
 	strcpy (status, Cvar_Serverinfo());
 	strcat (status, "\n");
-	statusLength = strlen(status);
+	statusLength = (int)strlen(status);
 
 	for (i=0 ; i<maxclients->value ; i++)
 	{
@@ -126,7 +126,7 @@ char	*SV_StatusString (void)
 		{
 			Com_sprintf (player, sizeof(player), "%i %i \"%s\"\n", 
 				cl->edict->client->ps.stats[STAT_FRAGS], cl->ping, cl->name);
-			playerLength = strlen(player);
+			playerLength = (int)strlen(player);
 			if (statusLength + playerLength >= sizeof(status) )
 				break;		// can't hold any more
 			strcpy (status + statusLength, player);
@@ -1038,7 +1038,8 @@ void SV_Shutdown (char *finalmsg, qboolean reconnect)
 		SV_FinalMessage (finalmsg, reconnect);
 
 	Master_Shutdown ();
-	SV_ShutdownGameProgs ();
+	// calling this function here causes function stack to be corrupted on 64 bit builds when invoked from Com_Error()
+	//SV_ShutdownGameProgs ();
 
 	// free current level
 	if (sv.demofile)

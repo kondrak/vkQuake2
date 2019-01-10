@@ -392,7 +392,7 @@ char *G_CopyString (char *in)
 {
 	char	*out;
 	
-	out = gi.TagMalloc (strlen(in)+1, TAG_LEVEL);
+	out = gi.TagMalloc ((int)strlen(in)+1, TAG_LEVEL);
 	strcpy (out, in);
 	return out;
 }

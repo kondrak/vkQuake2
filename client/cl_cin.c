@@ -426,7 +426,7 @@ SCR_ReadNextFrame
 */
 byte *SCR_ReadNextFrame (void)
 {
-	int		r;
+	size_t	r;
 	int		command;
 	byte	samples[22050/14*4];
 	byte	compressed[0x20000];

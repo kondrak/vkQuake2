@@ -205,7 +205,7 @@ qboolean Field_Key( menufield_s *f, int key )
 			strtok( cbd, "\n\r\b" );
 
 			strncpy( f->buffer, cbd, f->length - 1 );
-			f->cursor = strlen( f->buffer );
+			f->cursor = (int)strlen( f->buffer );
 			f->visible_offset = f->cursor - f->visible_length;
 			if ( f->visible_offset < 0 )
 				f->visible_offset = 0;
@@ -418,7 +418,7 @@ void Menu_DrawStatusBar( const char *string )
 {
 	if ( string )
 	{
-		int l = strlen( string );
+		int l = (int)strlen( string );
 		int maxcol = VID_WIDTH / (8*vid_hudscale->value);
 		int col = maxcol / 2 - l / 2;
 

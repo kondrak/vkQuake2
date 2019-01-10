@@ -178,7 +178,7 @@ void CompleteCommand (void)
 	{
 		key_lines[edit_line][1] = '/';
 		strcpy (key_lines[edit_line]+2, cmd);
-		key_linepos = strlen(cmd)+2;
+		key_linepos = (int)strlen(cmd)+2;
 		key_lines[edit_line][key_linepos] = ' ';
 		key_linepos++;
 		key_lines[edit_line][key_linepos] = 0;
@@ -253,7 +253,7 @@ void Key_Console (int key)
 
 			strtok( cbd, "\n\r\b" );
 
-			i = strlen( cbd );
+			i = (int)strlen( cbd );
 			if ( i + key_linepos >= MAXCMDLINE)
 				i= MAXCMDLINE - key_linepos;
 
@@ -321,7 +321,7 @@ void Key_Console (int key)
 		if (history_line == edit_line)
 			history_line = (edit_line+1)&31;
 		strcpy(key_lines[edit_line], key_lines[history_line]);
-		key_linepos = strlen(key_lines[edit_line]);
+		key_linepos = (int)strlen(key_lines[edit_line]);
 		return;
 	}
 
@@ -343,7 +343,7 @@ void Key_Console (int key)
 		else
 		{
 			strcpy(key_lines[edit_line], key_lines[history_line]);
-			key_linepos = strlen(key_lines[edit_line]);
+			key_linepos = (int)strlen(key_lines[edit_line]);
 		}
 		return;
 	}
@@ -519,7 +519,7 @@ void Key_SetBinding (int keynum, char *binding)
 	}
 			
 // allocate memory for new binding
-	l = strlen (binding);	
+	l = (int)strlen (binding);
 	new = Z_Malloc (l+1);
 	strcpy (new, binding);
 	new[l] = 0;

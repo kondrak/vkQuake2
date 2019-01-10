@@ -255,7 +255,7 @@ void WriteField1 (FILE *f, field_t *field, byte *base)
 	case F_LSTRING:
 	case F_GSTRING:
 		if ( *(char **)p )
-			len = strlen(*(char **)p) + 1;
+			len = (int)strlen(*(char **)p) + 1;
 		else
 			len = 0;
 		*(int *)p = len;
@@ -299,7 +299,7 @@ void WriteField2 (FILE *f, field_t *field, byte *base)
 	case F_GSTRING:
 		if ( *(char **)p )
 		{
-			len = strlen(*(char **)p) + 1;
+			len = (int)strlen(*(char **)p) + 1;
 			fwrite (*(char **)p, len, 1, f);
 		}
 		break;

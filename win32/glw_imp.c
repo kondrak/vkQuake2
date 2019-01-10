@@ -122,7 +122,7 @@ qboolean VID_CreateWindow( int width, int height, qboolean fullscreen )
 	glw_state.hWnd = CreateWindowEx (
 		 exstyle, 
 		 WINDOW_CLASS_NAME,
-		 "Quake 2 (OpenGL)",
+		 "Quake 2 (OpenGL) "CPUSTRING,
 		 stylebits,
 		 x, y, w, h,
 		 NULL,

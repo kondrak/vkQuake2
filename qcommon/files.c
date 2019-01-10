@@ -360,7 +360,7 @@ void FS_Read (void *buffer, int len, FILE *f)
 		block = remaining;
 		if (block > MAX_READ)
 			block = MAX_READ;
-		read = fread (buf, 1, block, f);
+		read = (int)fread (buf, 1, block, f);
 		if (read == 0)
 		{
 			// we might have been trying to read from a CD
@@ -680,7 +680,7 @@ void FS_Link_f (void)
 	l->next = fs_links;
 	fs_links = l;
 	l->from = CopyString(Cmd_Argv(1));
-	l->fromlength = strlen(l->from);
+	l->fromlength = (int)strlen(l->from);
 	l->to = CopyString(Cmd_Argv(2));
 }
 

@@ -1369,7 +1369,7 @@ image_t	*GL_FindImage (char *name, imagetype_t type)
 
 	if (!name)
 		return NULL;	//	ri.Sys_Error (ERR_DROP, "GL_FindImage: NULL name");
-	len = strlen(name);
+	len = (int)strlen(name);
 	if (len<5)
 		return NULL;	//	ri.Sys_Error (ERR_DROP, "GL_FindImage: bad name: %s", name);
 

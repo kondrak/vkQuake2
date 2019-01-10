@@ -887,11 +887,10 @@ R_EdgeDrawing
 */
 void R_EdgeDrawing(void)
 {
-	edge_t	ledges[NUMSTACKEDGES +
+	static edge_t	ledges[NUMSTACKEDGES +
 		((CACHE_SIZE - 1) / sizeof(edge_t)) + 1];
-	surf_t	lsurfs[NUMSTACKSURFACES +
+	static surf_t	lsurfs[NUMSTACKSURFACES +
 		((CACHE_SIZE - 1) / sizeof(surf_t)) + 1];
-
 	if (r_newrefdef.rdflags & RDF_NOWORLDMODEL)
 		return;
 
@@ -902,13 +901,13 @@ void R_EdgeDrawing(void)
 	else
 	{
 		r_edges = (edge_t *)
-			(((long)&ledges[0] + CACHE_SIZE - 1) & ~(CACHE_SIZE - 1));
+			(((intptr_t)&ledges[0] + CACHE_SIZE - 1) & ~(CACHE_SIZE - 1));
 	}
 
 	if (r_surfsonstack)
 	{
 		surfaces = (surf_t *)
-			(((long)&lsurfs[0] + CACHE_SIZE - 1) & ~(CACHE_SIZE - 1));
+			(((intptr_t)&lsurfs[0] + CACHE_SIZE - 1) & ~(CACHE_SIZE - 1));
 		surf_max = &surfaces[r_cnumsurfs];
 		// surface 0 doesn't really exist; it's just a dummy because index 0
 		// is used to indicate no edge attached to surface
@@ -1494,7 +1493,7 @@ void Sys_Error(char *error, ...)
 	char		text[1024];
 
 	va_start(argptr, error);
-	vsprintf(text, error, argptr);
+	vsnprintf(text, 1024, error, argptr);
 	va_end(argptr);
 
 	ri.Sys_Error(ERR_FATAL, "%s", text);
@@ -1506,7 +1505,7 @@ void Com_Printf(char *fmt, ...)
 	char		text[1024];
 
 	va_start(argptr, fmt);
-	vsprintf (text, fmt, argptr);
+	vsnprintf (text, 1024, fmt, argptr);
 	va_end(argptr);
 
 	ri.Con_Printf(PRINT_ALL, "%s", text);

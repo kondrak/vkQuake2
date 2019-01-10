@@ -33,7 +33,7 @@ char	*com_argv[MAX_NUM_ARGVS+1];
 int		realtime;
 
 jmp_buf abortframe;		// an ERR_DROP occured, exit the entire frame
-
+static qboolean shutdown_game = false;
 
 FILE	*log_stats_file;
 
@@ -68,6 +68,8 @@ static int	rd_target;
 static char	*rd_buffer;
 static int	rd_buffersize;
 static void	(*rd_flush)(int target, char *buffer);
+
+extern void SV_ShutdownGameProgs(void);
 
 void Com_BeginRedirect (int target, char *buffer, int buffersize, void (*flush))
 {
@@ -105,7 +107,7 @@ void Com_Printf (char *fmt, ...)
 	char		msg[MAXPRINTMSG];
 
 	va_start (argptr,fmt);
-	vsprintf (msg,fmt,argptr);
+	vsnprintf (msg,MAXPRINTMSG,fmt,argptr);
 	va_end (argptr);
 
 	if (rd_target)
@@ -161,7 +163,7 @@ void Com_DPrintf (char *fmt, ...)
 		return;			// don't confuse non-developers with techie stuff...
 
 	va_start (argptr,fmt);
-	vsprintf (msg,fmt,argptr);
+	vsnprintf (msg,MAXPRINTMSG,fmt,argptr);
 	va_end (argptr);
 	
 	Com_Printf ("%s", msg);
@@ -187,7 +189,7 @@ void Com_Error (int code, char *fmt, ...)
 	recursive = true;
 
 	va_start (argptr,fmt);
-	vsprintf (msg,fmt,argptr);
+	vsnprintf (msg,MAXPRINTMSG,fmt,argptr);
 	va_end (argptr);
 	
 	if (code == ERR_DISCONNECT)
@@ -202,11 +204,13 @@ void Com_Error (int code, char *fmt, ...)
 		SV_Shutdown (va("Server crashed: %s\n", msg), false);
 		CL_Drop ();
 		recursive = false;
+		shutdown_game = true;
 		longjmp (abortframe, -1);
 	}
 	else
 	{
 		SV_Shutdown (va("Server fatal crashed: %s\n", msg), false);
+		SV_ShutdownGameProgs();
 		CL_Shutdown ();
 	}
 
@@ -231,6 +235,7 @@ do the apropriate things.
 void Com_Quit (void)
 {
 	SV_Shutdown ("Server quit\n", false);
+	SV_ShutdownGameProgs();
 	CL_Shutdown ();
 
 	if (logfile)
@@ -353,7 +358,7 @@ void MSG_WriteString (sizebuf_t *sb, char *s)
 	if (!s)
 		SZ_Write (sb, "", 1);
 	else
-		SZ_Write (sb, s, strlen(s)+1);
+		SZ_Write (sb, s, (int)strlen(s)+1);
 }
 
 void MSG_WriteCoord (sizebuf_t *sb, float f)
@@ -922,7 +927,7 @@ void SZ_Print (sizebuf_t *buf, char *data)
 {
 	int		len;
 	
-	len = strlen(data)+1;
+	len = (int)strlen(data)+1;
 
 	if (buf->cursize)
 	{
@@ -1034,7 +1039,7 @@ char *CopyString (char *in)
 {
 	char	*out;
 	
-	out = Z_Malloc (strlen(in)+1);
+	out = Z_Malloc ((int)strlen(in)+1);
 	strcpy (out, in);
 	return out;
 }
@@ -1498,7 +1503,12 @@ void Qcommon_Frame (int msec)
 	int		time_before, time_between, time_after;
 
 	if (setjmp (abortframe) )
+	{
+		if (shutdown_game)
+			SV_ShutdownGameProgs();
+		shutdown_game = false;
 		return;			// an ERR_DROP was thrown
+	}
 
 	if ( log_stats->modified )
 	{
