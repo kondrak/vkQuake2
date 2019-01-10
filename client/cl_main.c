@@ -579,7 +579,7 @@ void CL_Rcon_f (void)
 			to.port = BigShort (PORT_SERVER);
 	}
 	
-	NET_SendPacket (NS_CLIENT, strlen(message)+1, message, to);
+	NET_SendPacket (NS_CLIENT, (int)strlen(message)+1, message, to);
 }
 
 
@@ -644,9 +644,9 @@ void CL_Disconnect (void)
 	// send a disconnect message to the server
 	final[0] = clc_stringcmd;
 	strcpy ((char *)final+1, "disconnect");
-	Netchan_Transmit (&cls.netchan, strlen(final), final);
-	Netchan_Transmit (&cls.netchan, strlen(final), final);
-	Netchan_Transmit (&cls.netchan, strlen(final), final);
+	Netchan_Transmit (&cls.netchan, (int)strlen(final), final);
+	Netchan_Transmit (&cls.netchan, (int)strlen(final), final);
+	Netchan_Transmit (&cls.netchan, (int)strlen(final), final);
 
 	CL_ClearState ();
 
@@ -701,7 +701,7 @@ void CL_Packet_f (void)
 	out = send+4;
 	send[0] = send[1] = send[2] = send[3] = (char)0xff;
 
-	l = strlen (in);
+	l = (int)strlen (in);
 	for (i=0 ; i<l ; i++)
 	{
 		if (in[i] == '\\' && in[i+1] == 'n')

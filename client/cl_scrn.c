@@ -614,11 +614,11 @@ int entitycmpfnc( const entity_t *a, const entity_t *b )
 	*/
 	if ( a->model == b->model )
 	{
-		return ( ( int ) a->skin - ( int ) b->skin );
+		return ( ( intptr_t ) a->skin - ( intptr_t ) b->skin );
 	}
 	else
 	{
-		return ( ( int ) a->model - ( int ) b->model );
+		return ( (intptr_t) a->model - (intptr_t) b->model );
 	}
 }
 
@@ -831,7 +831,7 @@ void SCR_DrawField (int x, int y, int color, int width, int value)
 	SCR_AddDirtyPoint (x+width*CHAR_WIDTH+2, y+23);
 
 	Com_sprintf (num, sizeof(num), "%i", value);
-	l = strlen(num);
+	l = (int)strlen(num);
 	if (l > width)
 		l = width;
 	x += 2 + CHAR_WIDTH*(width - l);

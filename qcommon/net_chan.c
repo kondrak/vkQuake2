@@ -135,10 +135,10 @@ void Netchan_OutOfBandPrint (int net_socket, netadr_t adr, char *format, ...)
 	static char		string[MAX_MSGLEN - 4];
 	
 	va_start (argptr, format);
-	vsprintf (string, format,argptr);
+	vsnprintf (string,MAX_MSGLEN-4,format,argptr);
 	va_end (argptr);
 
-	Netchan_OutOfBand (net_socket, adr, strlen(string), (byte *)string);
+	Netchan_OutOfBand (net_socket, adr, (int)strlen(string), (byte *)string);
 }
 
 

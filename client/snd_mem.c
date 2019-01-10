@@ -21,6 +21,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "client.h"
 #include "snd_loc.h"
+#include <inttypes.h>
 
 int			cache_full_cycle;
 
@@ -253,7 +254,7 @@ void DumpChunks(void)
 		memcpy (str, data_p, 4);
 		data_p += 4;
 		iff_chunk_len = GetLittleLong();
-		Com_Printf ("0x%x : %s (%d)\n", (int)(data_p - 4), str, iff_chunk_len);
+		Com_Printf ("0x"PRIxPTR" : %s (%d)\n", (intptr_t)(data_p - 4), str, iff_chunk_len);
 		data_p += (iff_chunk_len + 1) & ~1;
 	} while (data_p < iff_end);
 }

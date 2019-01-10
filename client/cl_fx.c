@@ -96,7 +96,7 @@ void CL_SetLightstyle (int i)
 
 	s = cl.configstrings[i+CS_LIGHTS];
 
-	j = strlen (s);
+	j = (int)strlen (s);
 	if (j >= MAX_QPATH)
 		Com_Error (ERR_DROP, "svc_lightstyle length=%i", j);
 

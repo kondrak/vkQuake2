@@ -1721,7 +1721,7 @@ void CTFScoreboardMessage (edict_t *ent, edict_t *killer)
 		"xv 256 yv 12 num 2 20 ",
 		totalscore[0], total[0],
 		totalscore[1], total[1]);
-	len = strlen(string);
+	len = (int)strlen(string);
 
 	for (i=0 ; i<16 ; i++)
 	{
@@ -1769,7 +1769,7 @@ void CTFScoreboardMessage (edict_t *ent, edict_t *killer)
 
 			if (maxsize - len > strlen(entry)) {
 				strcat(string, entry);
-				len = strlen(string);
+				len = (int)strlen(string);
 				last[0] = i;
 			}
 		}
@@ -1805,7 +1805,7 @@ void CTFScoreboardMessage (edict_t *ent, edict_t *killer)
 #endif
 			if (maxsize - len > strlen(entry)) {
 				strcat(string, entry);
-				len = strlen(string);
+				len = (int)strlen(string);
 				last[1] = i;
 			}
 		}
@@ -1832,7 +1832,7 @@ void CTFScoreboardMessage (edict_t *ent, edict_t *killer)
 				k = 1;
 				sprintf(entry, "xv 0 yv %d string2 \"Spectators\" ", j);
 				strcat(string, entry);
-				len = strlen(string);
+				len = (int)strlen(string);
 				j += 8;
 			}
 
@@ -1845,7 +1845,7 @@ void CTFScoreboardMessage (edict_t *ent, edict_t *killer)
 				cl->ping > 999 ? 999 : cl->ping);
 			if (maxsize - len > strlen(entry)) {
 				strcat(string, entry);
-				len = strlen(string);
+				len = (int)strlen(string);
 			}
 			
 			if (n & 1)

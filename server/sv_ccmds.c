@@ -192,7 +192,7 @@ CopyFile
 void CopyFile (char *src, char *dst)
 {
 	FILE	*f1, *f2;
-	int		l;
+	size_t	l;
 	byte	buffer[65536];
 
 	Com_DPrintf ("CopyFile (%s, %s)\n", src, dst);
@@ -246,7 +246,7 @@ void SV_CopySaveGame (char *src, char *dst)
 	CopyFile (name, name2);
 
 	Com_sprintf (name, sizeof(name), "%s/save/%s/", FS_Gamedir(), src);
-	len = strlen(name);
+	len = (int)strlen(name);
 	Com_sprintf (name, sizeof(name), "%s/save/%s/*.sav", FS_Gamedir(), src);
 	found = Sys_FindFirst(name, 0, 0 );
 	while (found)
@@ -257,9 +257,9 @@ void SV_CopySaveGame (char *src, char *dst)
 		CopyFile (name, name2);
 
 		// change sav to sv2
-		l = strlen(name);
+		l = (int)strlen(name);
 		strcpy (name+l-3, "sv2");
-		l = strlen(name2);
+		l = (int)strlen(name2);
 		strcpy (name2+l-3, "sv2");
 		CopyFile (name, name2);
 
@@ -767,7 +767,7 @@ void SV_Status_f (void)
 		}
 
 		Com_Printf ("%s", cl->name);
-		l = 16 - strlen(cl->name);
+		l = 16 - (int)strlen(cl->name);
 		for (j=0 ; j<l ; j++)
 			Com_Printf (" ");
 
@@ -775,7 +775,7 @@ void SV_Status_f (void)
 
 		s = NET_AdrToString ( cl->netchan.remote_address);
 		Com_Printf ("%s", s);
-		l = 22 - strlen(s);
+		l = 22 - (int)strlen(s);
 		for (j=0 ; j<l ; j++)
 			Com_Printf (" ");
 		

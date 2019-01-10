@@ -640,7 +640,7 @@ void R_ScanEdges (void)
 	surf_t	*s;
 
 	basespan_p = (espan_t *)
-			((long)(basespans + CACHE_SIZE - 1) & ~(CACHE_SIZE - 1));
+			((intptr_t)(basespans + CACHE_SIZE - 1) & ~(CACHE_SIZE - 1));
 	max_span_p = &basespan_p[MAXSPANS - r_refdef.vrect.width];
 
 	span_p = basespan_p;
@@ -1072,7 +1072,7 @@ void D_DrawflatSurfaces (void)
 
 		// make a stable color for each surface by taking the low
 		// bits of the msurface pointer
-		D_FlatFillSurface (s, (int)s->msurf & 0xFF);
+		D_FlatFillSurface (s, (intptr_t)s->msurf & 0xFF);
 		D_DrawZSpans (s->spans);
 	}
 }

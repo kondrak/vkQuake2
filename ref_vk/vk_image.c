@@ -1501,7 +1501,7 @@ image_t	*Vk_FindImage (char *name, imagetype_t type, qvktextureopts_t *texOpts)
 
 	if (!name)
 		return NULL;	//	ri.Sys_Error (ERR_DROP, "Vk_FindImage: NULL name");
-	len = strlen(name);
+	len = (int)strlen(name);
 	if (len<5)
 		return NULL;	//	ri.Sys_Error (ERR_DROP, "Vk_FindImage: bad name: %s", name);
 

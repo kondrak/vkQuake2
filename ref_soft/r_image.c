@@ -497,7 +497,7 @@ image_t	*R_FindImage (char *name, imagetype_t type)
 
 	if (!name)
 		return NULL;	// ri.Sys_Error (ERR_DROP, "R_FindImage: NULL name");
-	len = strlen(name);
+	len = (int)strlen(name);
 	if (len<5)
 		return NULL;	// ri.Sys_Error (ERR_DROP, "R_FindImage: bad name: %s", name);
 

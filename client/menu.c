@@ -653,7 +653,7 @@ static void M_UnbindCommand (char *command)
 	int		l;
 	char	*b;
 
-	l = strlen(command);
+	l = (int)strlen(command);
 
 	for (j=0 ; j<256 ; j++)
 	{
@@ -673,7 +673,7 @@ static void M_FindKeysForCommand (char *command, int *twokeys)
 	char	*b;
 
 	twokeys[0] = twokeys[1] = -1;
-	l = strlen(command);
+	l = (int)strlen(command);
 	count = 0;
 
 	for (j=0 ; j<256 ; j++)
@@ -2599,7 +2599,7 @@ void StartServer_MenuInit( void )
 		int		j, l;
 
 		strcpy( shortname, COM_Parse( &s ) );
-		l = strlen(shortname);
+		l = (int)strlen(shortname);
 		for (j=0 ; j<l ; j++)
 			shortname[j] = toupper(shortname[j]);
 		strcpy( longname, COM_Parse( &s ) );
@@ -3700,7 +3700,7 @@ qboolean PlayerConfig_MenuInit( void )
 	s_player_name_field.length	= 20;
 	s_player_name_field.visible_length = 20;
 	strcpy( s_player_name_field.buffer, name->string );
-	s_player_name_field.cursor = strlen( name->string );
+	s_player_name_field.cursor = (int)strlen( name->string );
 
 	s_player_model_title.generic.type = MTYPE_SEPARATOR;
 	s_player_model_title.generic.name = "model";

@@ -105,7 +105,7 @@ void Com_Printf (char *fmt, ...)
 	char		msg[MAXPRINTMSG];
 
 	va_start (argptr,fmt);
-	vsprintf (msg,fmt,argptr);
+	vsnprintf (msg,MAXPRINTMSG,fmt,argptr);
 	va_end (argptr);
 
 	if (rd_target)
@@ -161,7 +161,7 @@ void Com_DPrintf (char *fmt, ...)
 		return;			// don't confuse non-developers with techie stuff...
 
 	va_start (argptr,fmt);
-	vsprintf (msg,fmt,argptr);
+	vsnprintf (msg,MAXPRINTMSG,fmt,argptr);
 	va_end (argptr);
 	
 	Com_Printf ("%s", msg);
@@ -187,7 +187,7 @@ void Com_Error (int code, char *fmt, ...)
 	recursive = true;
 
 	va_start (argptr,fmt);
-	vsprintf (msg,fmt,argptr);
+	vsnprintf (msg,MAXPRINTMSG,fmt,argptr);
 	va_end (argptr);
 	
 	if (code == ERR_DISCONNECT)
@@ -353,7 +353,7 @@ void MSG_WriteString (sizebuf_t *sb, char *s)
 	if (!s)
 		SZ_Write (sb, "", 1);
 	else
-		SZ_Write (sb, s, strlen(s)+1);
+		SZ_Write (sb, s, (int)strlen(s)+1);
 }
 
 void MSG_WriteCoord (sizebuf_t *sb, float f)
@@ -922,7 +922,7 @@ void SZ_Print (sizebuf_t *buf, char *data)
 {
 	int		len;
 	
-	len = strlen(data)+1;
+	len = (int)strlen(data)+1;
 
 	if (buf->cursize)
 	{
@@ -1034,7 +1034,7 @@ char *CopyString (char *in)
 {
 	char	*out;
 	
-	out = Z_Malloc (strlen(in)+1);
+	out = Z_Malloc ((int)strlen(in)+1);
 	strcpy (out, in);
 	return out;
 }

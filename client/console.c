@@ -430,7 +430,7 @@ void Con_CenteredPrint (char *text)
 	int		l;
 	char	buffer[1024];
 
-	l = strlen(text);
+	l = (int)strlen(text);
 	l = (con.linewidth-l)/2;
 	if (l < 0)
 		l = 0;
@@ -635,7 +635,7 @@ void Con_DrawConsole (float frac)
 			text = cls.downloadname;
 
 		x = con.linewidth - ((con.linewidth * 7) / 40);
-		y = x - strlen(text) - 8;
+		y = x - (int)strlen(text) - 8;
 		i = con.linewidth/3;
 		if (strlen(text) > i) {
 			y = x - i - 11;
@@ -645,7 +645,7 @@ void Con_DrawConsole (float frac)
 		} else
 			strcpy(dlbar, text);
 		strcat(dlbar, ": ");
-		i = strlen(dlbar);
+		i = (int)strlen(dlbar);
 		dlbar[i++] = '\x80';
 		// where's the dot go?
 		if (cls.downloadpercent == 0)
