@@ -1038,7 +1038,8 @@ void SV_Shutdown (char *finalmsg, qboolean reconnect)
 		SV_FinalMessage (finalmsg, reconnect);
 
 	Master_Shutdown ();
-	SV_ShutdownGameProgs ();
+	// calling this function here causes function stack to be corrupted on 64 bit builds when invoked from Com_Error()
+	//SV_ShutdownGameProgs ();
 
 	// free current level
 	if (sv.demofile)

@@ -296,6 +296,7 @@ void SV_InitGame (void)
 	{
 		// cause any connected clients to reconnect
 		SV_Shutdown ("Server restarted\n", true);
+		SV_ShutdownGameProgs();
 	}
 	else
 	{

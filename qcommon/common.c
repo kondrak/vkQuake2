@@ -33,7 +33,7 @@ char	*com_argv[MAX_NUM_ARGVS+1];
 int		realtime;
 
 jmp_buf abortframe;		// an ERR_DROP occured, exit the entire frame
-
+static qboolean shutdown_game = false;
 
 FILE	*log_stats_file;
 
@@ -68,6 +68,8 @@ static int	rd_target;
 static char	*rd_buffer;
 static int	rd_buffersize;
 static void	(*rd_flush)(int target, char *buffer);
+
+extern void SV_ShutdownGameProgs(void);
 
 void Com_BeginRedirect (int target, char *buffer, int buffersize, void (*flush))
 {
@@ -202,11 +204,13 @@ void Com_Error (int code, char *fmt, ...)
 		SV_Shutdown (va("Server crashed: %s\n", msg), false);
 		CL_Drop ();
 		recursive = false;
+		shutdown_game = true;
 		longjmp (abortframe, -1);
 	}
 	else
 	{
 		SV_Shutdown (va("Server fatal crashed: %s\n", msg), false);
+		SV_ShutdownGameProgs();
 		CL_Shutdown ();
 	}
 
@@ -231,6 +235,7 @@ do the apropriate things.
 void Com_Quit (void)
 {
 	SV_Shutdown ("Server quit\n", false);
+	SV_ShutdownGameProgs();
 	CL_Shutdown ();
 
 	if (logfile)
@@ -1498,7 +1503,12 @@ void Qcommon_Frame (int msec)
 	int		time_before, time_between, time_after;
 
 	if (setjmp (abortframe) )
+	{
+		if (shutdown_game)
+			SV_ShutdownGameProgs();
+		shutdown_game = false;
 		return;			// an ERR_DROP was thrown
+	}
 
 	if ( log_stats->modified )
 	{

@@ -100,6 +100,8 @@ extern	cvar_t *allow_download_models;
 extern	cvar_t *allow_download_sounds;
 extern	cvar_t *allow_download_maps;
 
+extern void SV_ShutdownGameProgs(void);
+
 //======================================================================
 
 
@@ -504,6 +506,7 @@ void CL_Connect_f (void)
 	if (Com_ServerState ())
 	{	// if running a local server, kill it and reissue
 		SV_Shutdown (va("Server quit\n", msg), false);
+		SV_ShutdownGameProgs();
 	}
 	else
 	{

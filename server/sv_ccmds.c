@@ -993,6 +993,7 @@ void SV_KillServer_f (void)
 	if (!svs.initialized)
 		return;
 	SV_Shutdown ("Server was killed.\n", false);
+	SV_ShutdownGameProgs();
 	NET_Config ( false );	// close network sockets
 }
 
