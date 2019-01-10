@@ -69,6 +69,7 @@ typedef struct
 {
 	VkImage image;
 	VmaAllocation allocation;
+	VmaAllocationCreateFlags vmaFlags;
 	VkImageView   imageView;
 	VkSampler sampler;
 	VkSharingMode sharingMode;
@@ -86,6 +87,7 @@ typedef struct
 #define QVVKTEXTURE_INIT     { \
 	.image = VK_NULL_HANDLE, \
 	.allocation = VK_NULL_HANDLE, \
+	.vmaFlags = 0, \
 	.imageView = VK_NULL_HANDLE, \
 	.sampler = VK_NULL_HANDLE, \
 	.sharingMode = VK_SHARING_MODE_MAX_ENUM, \
@@ -102,6 +104,7 @@ typedef struct
 #define QVVKTEXTURE_CLEAR(i)     { \
 	(i).image = VK_NULL_HANDLE; \
 	(i).allocation = VK_NULL_HANDLE; \
+	(i).vmaFlags = 0; \
 	(i).imageView = VK_NULL_HANDLE; \
 	(i).sampler = VK_NULL_HANDLE; \
 	(i).sharingMode = VK_SHARING_MODE_MAX_ENUM; \
