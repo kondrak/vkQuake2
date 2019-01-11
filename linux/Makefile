@@ -59,7 +59,7 @@ RELEASE_CFLAGS=$(BASE_CFLAGS) -O6 -ffast-math -funroll-loops \
 endif
 
 DEBUG_CFLAGS=$(BASE_CFLAGS) -g
-LDFLAGS=-ldl -lm
+LDFLAGS=-ldl -lm -lasound
 SVGALDFLAGS=-lvga -lm
 XLDFLAGS=-L/usr/X11R6/lib -lX11 -lXext -lXxf86dga
 XCFLAGS=
@@ -184,7 +184,7 @@ QUAKE2_OBJS = \
 	$(BUILDDIR)/client/q_shlinux.o \
 	$(BUILDDIR)/client/vid_menu.o \
 	$(BUILDDIR)/client/vid_so.o \
-	$(BUILDDIR)/client/snd_linux.o \
+	$(BUILDDIR)/client/snd_alsa.o \
 	$(BUILDDIR)/client/sys_linux.o \
 	$(BUILDDIR)/client/glob.o \
 	$(BUILDDIR)/client/net_udp.o \
@@ -328,7 +328,7 @@ $(BUILDDIR)/client/vid_menu.o :   $(LINUX_DIR)/vid_menu.c
 $(BUILDDIR)/client/vid_so.o :     $(LINUX_DIR)/vid_so.c
 	$(DO_CC)
 
-$(BUILDDIR)/client/snd_linux.o :  $(LINUX_DIR)/snd_linux.c
+$(BUILDDIR)/client/snd_alsa.o :  $(LINUX_DIR)/snd_alsa.c
 	$(DO_CC)
 
 $(BUILDDIR)/client/snd_mixa.o :   $(LINUX_DIR)/snd_mixa.s
