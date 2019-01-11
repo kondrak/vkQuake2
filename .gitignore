@@ -4,6 +4,8 @@
 *.vcxproj.user
 *.VC.db
 *.sd
+*.so
+*.o
 *.obj
 *.log
 *.idb
