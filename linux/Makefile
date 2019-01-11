@@ -48,7 +48,7 @@ MESA_DIR=/usr/local/src/Mesa-2.6
 EGCS=/usr/local/egcs-1.1.2/bin/gcc
 
 CC=gcc
-BASE_CFLAGS=-Dstricmp=strcasecmp
+BASE_CFLAGS=-Dstricmp=strcasecmp -D_GNU_SOURCE
 
 ifeq ($(ARCH),axp)
 RELEASE_CFLAGS=$(BASE_CFLAGS) -O6 -ffast-math -funroll-loops \
