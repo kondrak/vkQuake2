@@ -12,6 +12,8 @@
 *.pdb
 *.tlog
 *.lastbuildstate
+debugx64
+releasex64
 Debug
 Release
 Quake2
