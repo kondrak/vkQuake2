@@ -715,6 +715,7 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 						0, visinfo->depth, InputOutput,
 						visinfo->visual, mask, &attr);
 	XMapWindow(dpy, win);
+	XStoreName(dpy, win, "Quake 2 (OpenGL) "CPUSTRING);
 
 	if (vidmode_active) {
 		XMoveWindow(dpy, win, 0, 0);
