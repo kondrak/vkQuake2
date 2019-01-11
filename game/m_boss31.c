@@ -28,7 +28,7 @@ jorg
 #include "g_local.h"
 #include "m_boss31.h"
 
-extern SP_monster_makron (edict_t *self);
+extern void SP_monster_makron (edict_t *self);
 qboolean visible (edict_t *self, edict_t *other);
 
 static int	sound_pain1;
