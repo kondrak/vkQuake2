@@ -169,6 +169,18 @@ void VID_NewWindow ( int width, int height)
 {
 	viddef.width  = width;
 	viddef.height = height;
+
+	char hudscale[4];
+	memset(hudscale, 0, sizeof(hudscale));
+
+	int wscale = viddef.width / 800;
+	int hscale = viddef.height / 480;
+
+	if (wscale > hscale) wscale = hscale;
+	if (wscale < 1) wscale = 1;
+
+	sprintf(hudscale, "%d", wscale);
+	vid_hudscale = Cvar_Set("hudscale", hudscale);
 }
 
 void VID_FreeReflib (void)

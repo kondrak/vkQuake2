@@ -75,17 +75,17 @@ void GL_EnableMultitexture( qboolean enable )
 
 	if ( enable )
 	{
-		GL_SelectTexture( GL_TEXTURE1 );
+		GL_SelectTexture( gl_texture1 );
 		qglEnable( GL_TEXTURE_2D );
 		GL_TexEnv( GL_REPLACE );
 	}
 	else
 	{
-		GL_SelectTexture( GL_TEXTURE1 );
+		GL_SelectTexture( gl_texture1 );
 		qglDisable( GL_TEXTURE_2D );
 		GL_TexEnv( GL_REPLACE );
 	}
-	GL_SelectTexture( GL_TEXTURE0 );
+	GL_SelectTexture( gl_texture0 );
 	GL_TexEnv( GL_REPLACE );
 }
 
@@ -96,7 +96,7 @@ void GL_SelectTexture( GLenum texture )
 	if ( !qglSelectTextureSGIS && !qglActiveTextureARB )
 		return;
 
-	if ( texture == GL_TEXTURE0 )
+	if ( texture == gl_texture0 )
 	{
 		tmu = 0;
 	}
@@ -149,7 +149,7 @@ void GL_Bind (int texnum)
 void GL_MBind( GLenum target, int texnum )
 {
 	GL_SelectTexture( target );
-	if ( target == GL_TEXTURE0 )
+	if ( target == gl_texture0 )
 	{
 		if ( gl_state.currenttextures[0] == texnum )
 			return;

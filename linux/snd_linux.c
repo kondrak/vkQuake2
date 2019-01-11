@@ -141,7 +141,7 @@ qboolean SNDDMA_Init(void)
 	if (!dma.buffer)
 		dma.buffer = (unsigned char *) mmap(NULL, info.fragstotal
 			* info.fragsize, PROT_WRITE, MAP_FILE|MAP_SHARED, audio_fd, 0);
-	if (!dma.buffer)
+	if (dma.buffer == (void *)-1)
 	{
 		perror(snddevice->string);
 		Com_Printf("Could not mmap %s\n", snddevice->string);

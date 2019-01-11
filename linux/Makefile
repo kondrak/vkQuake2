@@ -54,7 +54,7 @@ ifeq ($(ARCH),axp)
 RELEASE_CFLAGS=$(BASE_CFLAGS) -O6 -ffast-math -funroll-loops \
 	-fomit-frame-pointer -fexpensive-optimizations
 else
-RELEASE_CFLAGS=$(BASE_CFLAGS) -g -mpentiumpro -O6 -ffast-math -funroll-loops \
+RELEASE_CFLAGS=$(BASE_CFLAGS) -O6 -ffast-math -funroll-loops \
 	-fomit-frame-pointer -fexpensive-optimizations
 endif
 
@@ -99,11 +99,11 @@ TARGETS=$(BUILDDIR)/q2ded \
 else
 TARGETS=$(BUILDDIR)/quake2 \
 	$(BUILDDIR)/game$(ARCH).$(SHLIBEXT) \
+	$(BUILDDIR)/ctf/game$(ARCH).$(SHLIBEXT) \
+	$(BUILDDIR)/ref_glx.$(SHLIBEXT) \
 #	$(BUILDDIR)/ref_soft.$(SHLIBEXT) \
 #	$(BUILDDIR)/ref_softx.$(SHLIBEXT) \
 #	$(BUILDDIR)/ref_gl.$(SHLIBEXT) \
-#	$(BUILDDIR)/ref_glx.$(SHLIBEXT) \
-	$(BUILDDIR)/ctf/game$(ARCH).$(SHLIBEXT) \
 #	$(BUILDDIR)/xatrix/game$(ARCH).$(SHLIBEXT) \
 #	$(BUILDDIR)/rogue/game$(ARCH).$(SHLIBEXT)
 endif

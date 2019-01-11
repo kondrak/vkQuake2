@@ -481,6 +481,6 @@ void Fake_glColorTableEXT( GLenum target, GLenum internalformat,
 #define GL_TEXTURE0_ARB						0x84C0
 #define GL_TEXTURE1_ARB						0x84C1
 
-extern int GL_TEXTURE0, GL_TEXTURE1;
+extern int gl_texture0, gl_texture1;
 
 #endif

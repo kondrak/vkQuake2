@@ -49,6 +49,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #ifdef __i386__
 #define CPUSTRING "i386"
+#elif defined __LP64__
+#define CPUSTRING	"x64"
 #elif defined __alpha__
 #define CPUSTRING "axp"
 #else
