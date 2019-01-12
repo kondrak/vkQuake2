@@ -35,6 +35,7 @@ CLIENT_DIR=$(MOUNT_DIR)/client
 SERVER_DIR=$(MOUNT_DIR)/server
 REF_SOFT_DIR=$(MOUNT_DIR)/ref_soft
 REF_GL_DIR=$(MOUNT_DIR)/ref_gl
+REF_VK_DIR=$(MOUNT_DIR)/ref_vk
 COMMON_DIR=$(MOUNT_DIR)/qcommon
 LINUX_DIR=$(MOUNT_DIR)/linux
 GAME_DIR=$(MOUNT_DIR)/game
@@ -66,7 +67,9 @@ XCFLAGS=
 
 GLLDFLAGS=-L/usr/X11R6/lib -L/usr/local/lib -L$(MESA_DIR)/lib -lX11 -lXext -lvga -lm
 GLXLDFLAGS=-L/usr/X11R6/lib -L/usr/local/lib -L$(MESA_DIR)/lib -lX11 -lXext -lXxf86dga -lXxf86vm -lm
+VKLDFLAGS=-L$(VULKAN_SDK)/lib -lvulkan
 GLCFLAGS=-I$(MESA_DIR)/include -I/usr/include/glide
+VKCFLAGS=-I$(VULKAN_SDK)/include
 
 SHLIBEXT=so
 
@@ -101,6 +104,7 @@ TARGETS=$(BUILDDIR)/quake2 \
 	$(BUILDDIR)/game$(ARCH).$(SHLIBEXT) \
 	$(BUILDDIR)/ctf/game$(ARCH).$(SHLIBEXT) \
 	$(BUILDDIR)/ref_glx.$(SHLIBEXT) \
+	$(BUILDDIR)/ref_vk.$(SHLIBEXT) \
 #	$(BUILDDIR)/ref_soft.$(SHLIBEXT) \
 #	$(BUILDDIR)/ref_softx.$(SHLIBEXT) \
 #	$(BUILDDIR)/ref_gl.$(SHLIBEXT) \
@@ -114,6 +118,7 @@ build_debug:
 		$(BUILD_DEBUG_DIR)/ded \
 		$(BUILD_DEBUG_DIR)/ref_soft \
 		$(BUILD_DEBUG_DIR)/ref_gl \
+		$(BUILD_DEBUG_DIR)/ref_vk \
 		$(BUILD_DEBUG_DIR)/game \
 		$(BUILD_DEBUG_DIR)/ctf \
 #		$(BUILD_DEBUG_DIR)/xatrix \
@@ -126,6 +131,7 @@ build_release:
 		$(BUILD_RELEASE_DIR)/ded \
 		$(BUILD_RELEASE_DIR)/ref_soft \
 		$(BUILD_RELEASE_DIR)/ref_gl \
+		$(BUILD_RELEASE_DIR)/ref_vk \
 		$(BUILD_RELEASE_DIR)/game \
 		$(BUILD_RELEASE_DIR)/ctf \
 #		$(BUILD_RELEASE_DIR)/xatrix \
@@ -1588,6 +1594,7 @@ rpm-quake2: quake2.spec
 	cp $(BUILD_RELEASE_DIR)/ref_softx.$(SHLIBEXT) $(QUAKE2INSTDIR)
 	cp $(BUILD_RELEASE_DIR)/ref_gl.$(SHLIBEXT) $(QUAKE2INSTDIR)
 	cp $(BUILD_RELEASE_DIR)/ref_glx.$(SHLIBEXT) $(QUAKE2INSTDIR)
+	cp $(BUILD_RELEASE_DIR)/ref_vk.$(SHLIBEXT) $(QUAKE2INSTDIR)
 	-mkdir $(QUAKE2INSTDIR)/ctf
 	chmod 1777 $(QUAKE2INSTDIR)/ctf
 	cp $(BUILD_RELEASE_DIR)/ctf/game$(ARCH).$(SHLIBEXT) $(QUAKE2INSTDIR)/ctf
@@ -1905,6 +1912,7 @@ copyfiles:
 	cp $(BUILD_RELEASE_DIR)/ref_softx.$(SHLIBEXT) $(COPYDIR)
 	cp $(BUILD_RELEASE_DIR)/ref_gl.$(SHLIBEXT) $(COPYDIR)
 	cp $(BUILD_RELEASE_DIR)/ref_glx.$(SHLIBEXT) $(COPYDIR)
+	cp $(BUILD_RELEASE_DIR)/ref_vk.$(SHLIBEXT) $(COPYDIR)
 #	-mkdir $(COPYDIR)/ctf
 #	chmod 1777 $(COPYDIR)/ctf
 #	cp $(BUILD_RELEASE_DIR)/ctf/game$(ARCH).$(SHLIBEXT) $(COPYDIR)/ctf
@@ -1980,4 +1988,5 @@ clean2:
 	$(REF_SOFT_X11_OBJS) \
 	$(REF_GL_OBJS) \
 	$(REF_GL_FXMESA_OBJS) \
-	$(REF_GL_GLX_OBJS) 
+	$(REF_GL_GLX_OBJS) \
+	$(REF_VK_OBJS)
