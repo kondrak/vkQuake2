@@ -1321,7 +1321,7 @@ qboolean R_Init( void *hinstance, void *hWnd )
 		if ( gl_ext_palettedtexture->value )
 		{
 			ri.Con_Printf( PRINT_ALL, "...using GL_EXT_shared_texture_palette\n" );
-			qglColorTableEXT = ( void ( APIENTRY * ) ( int, int, int, int, int, const void * ) ) qwglGetProcAddress( "glColorTableEXT" );
+			qglColorTableEXT = ( void ( APIENTRY * ) ( GLenum, GLenum, GLsizei, GLenum, GLenum, const GLvoid * ) ) qwglGetProcAddress( "glColorTableEXT" );
 		}
 		else
 		{

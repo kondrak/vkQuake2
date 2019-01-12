@@ -405,7 +405,7 @@ BOOL ( WINAPI * qwglGetDeviceGammaRampEXT)( unsigned char *, unsigned char *, un
 BOOL ( WINAPI * qwglSetDeviceGammaRampEXT)( const unsigned char *, const unsigned char *, const unsigned char * );
 void ( APIENTRY * qglPointParameterfEXT)( GLenum param, GLfloat value );
 void ( APIENTRY * qglPointParameterfvEXT)( GLenum param, const GLfloat *value );
-void ( APIENTRY * qglColorTableEXT)( int, int, int, int, int, const void * );
+void ( APIENTRY * qglColorTableEXT)( GLenum, GLenum, GLsizei, GLenum, GLenum, const GLvoid * );
 void ( APIENTRY * qglSelectTextureSGIS)( GLenum );
 void ( APIENTRY * qglMTexCoord2fSGIS)( GLenum, GLfloat, GLfloat );
 void ( APIENTRY * qglActiveTextureARB) ( GLenum );

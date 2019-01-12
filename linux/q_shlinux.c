@@ -187,7 +187,7 @@ char *Sys_FindFirst (char *path, unsigned musthave, unsigned canhave)
 //			if (*findpattern)
 //				printf("%s matched %s\n", findpattern, d->d_name);
 			if (CompareAttributes(findbase, d->d_name, musthave, canhave)) {
-				sprintf (findpath, "%s/%s", findbase, d->d_name);
+				snprintf (findpath, MAX_OSPATH, "%s/%s", findbase, d->d_name);
 				return findpath;
 			}
 		}
@@ -206,7 +206,7 @@ char *Sys_FindNext (unsigned musthave, unsigned canhave)
 //			if (*findpattern)
 //				printf("%s matched %s\n", findpattern, d->d_name);
 			if (CompareAttributes(findbase, d->d_name, musthave, canhave)) {
-				sprintf (findpath, "%s/%s", findbase, d->d_name);
+				snprintf (findpath, MAX_OSPATH, "%s/%s", findbase, d->d_name);
 				return findpath;
 			}
 		}
