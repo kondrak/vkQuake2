@@ -923,13 +923,12 @@ void CTFDeadDropFlag(edict_t *self)
 	}
 }
 
-qboolean CTFDrop_Flag(edict_t *ent, gitem_t *item)
+void CTFDrop_Flag(edict_t *ent, gitem_t *item)
 {
 	if (rand() & 1) 
 		gi.cprintf(ent, PRINT_HIGH, "Only lusers drop flags.\n");
 	else
 		gi.cprintf(ent, PRINT_HIGH, "Winners don't drop flags.\n");
-	return false;
 }
 
 static void CTFFlagThink(edict_t *ent)
