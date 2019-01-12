@@ -180,7 +180,7 @@ void VID_NewWindow ( int width, int height)
 	if (wscale > hscale) wscale = hscale;
 	if (wscale < 1) wscale = 1;
 
-	sprintf(hudscale, "%d", wscale);
+	snprintf(hudscale, 4, "%2d", wscale);
 	vid_hudscale = Cvar_Set("hudscale", hudscale);
 }
 
