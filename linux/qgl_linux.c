@@ -18,7 +18,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 /*
-** QGL_WIN.C
+** QGL_LINUX.C
 **
 ** This file implements the operating system binding of GL to QGL function
 ** pointers.  When doing a port of Quake2 you must implement the following

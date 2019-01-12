@@ -87,6 +87,7 @@ DO_SHLIB_DEBUG_CC=$(CC) $(DEBUG_CFLAGS) $(SHLIBCFLAGS) -o $@ -c $<
 DO_GL_SHLIB_CC=$(CC) $(CFLAGS) $(SHLIBCFLAGS) $(GLCFLAGS) -o $@ -c $<
 DO_GL_SHLIB_O_CC=$(CC) $(CFLAGS) -O $(SHLIBCFLAGS) $(GLCFLAGS) -o $@ -c $<
 DO_VK_SHLIB_CC=$(CC) $(CFLAGS) $(SHLIBCFLAGS) $(VKCFLAGS) -o $@ -c $<
+DO_VK_SHLIB_O_CC=$(CC) $(CFLAGS) -O $(SHLIBCFLAGS) $(VKCFLAGS) -o $@ -c $<
 DO_AS=$(CC) $(CFLAGS) -DELF -x assembler-with-cpp -o $@ -c $<
 DO_SHLIB_AS=$(CC) $(CFLAGS) $(SHLIBCFLAGS) -DELF -x assembler-with-cpp -o $@ -c $<
 
@@ -1520,10 +1521,9 @@ REF_VK_OBJS = \
 	$(BUILDDIR)/ref_vk/vk_validation.o \
 	$(BUILDDIR)/ref_vk/vk_warp.o \
 	\
-#	$(BUILDDIR)/ref_gl/qgl_linux.o \
-#	$(BUILDDIR)/ref_gl/q_shared.o \
-#	$(BUILDDIR)/ref_gl/q_shlinux.o \
-#	$(BUILDDIR)/ref_gl/glob.o
+	$(BUILDDIR)/ref_vk/q_shared.o \
+	$(BUILDDIR)/ref_vk/q_shlinux.o \
+	$(BUILDDIR)/ref_vk/glob.o
 
 $(BUILDDIR)/ref_vk.$(SHLIBEXT) : $(REF_VK_OBJS)
 	$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(REF_VK_OBJS) $(VKLDFLAGS)
@@ -1582,23 +1582,17 @@ $(BUILDDIR)/ref_vk/vk_validation.o :        $(REF_VK_DIR)/vk_validation.c
 $(BUILDDIR)/ref_vk/vk_warp.o :        $(REF_VK_DIR)/vk_warp.c
 	$(DO_VK_SHLIB_CC)
 
-#$(BUILDDIR)/ref_gl/qgl_linux.o :      $(LINUX_DIR)/qgl_linux.c
-#	$(DO_GL_SHLIB_CC)
+#$(BUILDDIR)/ref_vk/qvk_linux.o :      $(LINUX_DIR)/qvk_linux.c
+#	$(DO_VK_SHLIB_CC)
 
-#$(BUILDDIR)/ref_gl/gl_fxmesa.o :      $(LINUX_DIR)/gl_fxmesa.c
-#	$(DO_GL_SHLIB_CC)
+$(BUILDDIR)/ref_vk/q_shared.o :       $(GAME_DIR)/q_shared.c
+	$(DO_SHLIB_DEBUG_CC)
 
-#$(BUILDDIR)/ref_gl/rw_in_svgalib.o :  $(LINUX_DIR)/rw_in_svgalib.c
-#	$(DO_GL_SHLIB_CC)
+$(BUILDDIR)/ref_vk/q_shlinux.o :      $(LINUX_DIR)/q_shlinux.c
+	$(DO_VK_SHLIB_O_CC)
 
-#$(BUILDDIR)/ref_gl/q_shared.o :       $(GAME_DIR)/q_shared.c
-#	$(DO_SHLIB_DEBUG_CC)
-
-#$(BUILDDIR)/ref_gl/q_shlinux.o :      $(LINUX_DIR)/q_shlinux.c
-#	$(DO_GL_SHLIB_O_CC)
-
-#$(BUILDDIR)/ref_gl/glob.o :           $(LINUX_DIR)/glob.c
-#	$(DO_GL_SHLIB_CC)
+$(BUILDDIR)/ref_vk/glob.o :           $(LINUX_DIR)/glob.c
+	$(DO_VK_SHLIB_CC)
 
 #############################################################################
 # RPM
