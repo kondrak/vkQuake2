@@ -86,6 +86,7 @@ DO_SHLIB_O_CC=$(CC) $(CFLAGS) -O $(SHLIBCFLAGS) -o $@ -c $<
 DO_SHLIB_DEBUG_CC=$(CC) $(DEBUG_CFLAGS) $(SHLIBCFLAGS) -o $@ -c $<
 DO_GL_SHLIB_CC=$(CC) $(CFLAGS) $(SHLIBCFLAGS) $(GLCFLAGS) -o $@ -c $<
 DO_GL_SHLIB_O_CC=$(CC) $(CFLAGS) -O $(SHLIBCFLAGS) $(GLCFLAGS) -o $@ -c $<
+DO_VK_SHLIB_CC=$(CC) $(CFLAGS) $(SHLIBCFLAGS) $(VKCFLAGS) -o $@ -c $<
 DO_AS=$(CC) $(CFLAGS) -DELF -x assembler-with-cpp -o $@ -c $<
 DO_SHLIB_AS=$(CC) $(CFLAGS) $(SHLIBCFLAGS) -DELF -x assembler-with-cpp -o $@ -c $<
 
@@ -1494,6 +1495,110 @@ $(BUILDDIR)/ref_gl/q_shlinux.o :      $(LINUX_DIR)/q_shlinux.c
 
 $(BUILDDIR)/ref_gl/glob.o :           $(LINUX_DIR)/glob.c
 	$(DO_GL_SHLIB_CC)
+
+#############################################################################
+# REF_VK
+#############################################################################
+
+REF_VK_OBJS = \
+	$(BUILDDIR)/ref_vk/vk_buffer.o \
+	$(BUILDDIR)/ref_vk/vk_cmd.o \
+	$(BUILDDIR)/ref_vk/vk_device.o \
+	$(BUILDDIR)/ref_vk/vk_draw.o \
+	$(BUILDDIR)/ref_vk/vk_image.o \
+	$(BUILDDIR)/ref_vk/vk_light.o \
+	$(BUILDDIR)/ref_vk/vk_mem_alloc.o \
+	$(BUILDDIR)/ref_vk/vk_mesh.o \
+	$(BUILDDIR)/ref_vk/vk_model.o \
+	$(BUILDDIR)/ref_vk/vk_pipeline.o \
+	$(BUILDDIR)/ref_vk/vk_renderpass.o \
+	$(BUILDDIR)/ref_vk/vk_rmain.o \
+	$(BUILDDIR)/ref_vk/vk_rmisc.o \
+	$(BUILDDIR)/ref_vk/vk_rsurf.o \
+	$(BUILDDIR)/ref_vk/vk_shaders.o \
+	$(BUILDDIR)/ref_vk/vk_swapchain.o \
+	$(BUILDDIR)/ref_vk/vk_validation.o \
+	$(BUILDDIR)/ref_vk/vk_warp.o \
+	\
+#	$(BUILDDIR)/ref_gl/qgl_linux.o \
+#	$(BUILDDIR)/ref_gl/q_shared.o \
+#	$(BUILDDIR)/ref_gl/q_shlinux.o \
+#	$(BUILDDIR)/ref_gl/glob.o
+
+$(BUILDDIR)/ref_vk.$(SHLIBEXT) : $(REF_VK_OBJS)
+	$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(REF_VK_OBJS) $(VKLDFLAGS)
+
+$(BUILDDIR)/ref_vk/vk_buffer.o :        $(REF_VK_DIR)/vk_buffer.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_cmd.o :       $(REF_VK_DIR)/vk_cmd.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_device.o :       $(REF_VK_DIR)/vk_device.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_draw.o :        $(REF_VK_DIR)/vk_draw.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_image.o :       $(REF_VK_DIR)/vk_image.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_light.o :       $(REF_VK_DIR)/vk_light.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_mem_alloc.o :       $(REF_VK_DIR)/vk_mem_alloc.cpp
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_mesh.o :       $(REF_VK_DIR)/vk_mesh.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_model.o :        $(REF_VK_DIR)/vk_model.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_pipeline.o :        $(REF_VK_DIR)/vk_pipeline.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_renderpass.o :        $(REF_VK_DIR)/vk_renderpass.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_rmain.o :        $(REF_VK_DIR)/vk_rmain.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_rmisc.o :        $(REF_VK_DIR)/vk_rmisc.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_rsurf.o :        $(REF_VK_DIR)/vk_rsurf.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_shaders.o :        $(REF_VK_DIR)/vk_shaders.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_swapchain.o :        $(REF_VK_DIR)/vk_swapchain.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_validation.o :        $(REF_VK_DIR)/vk_validation.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_warp.o :        $(REF_VK_DIR)/vk_warp.c
+	$(DO_VK_SHLIB_CC)
+
+#$(BUILDDIR)/ref_gl/qgl_linux.o :      $(LINUX_DIR)/qgl_linux.c
+#	$(DO_GL_SHLIB_CC)
+
+#$(BUILDDIR)/ref_gl/gl_fxmesa.o :      $(LINUX_DIR)/gl_fxmesa.c
+#	$(DO_GL_SHLIB_CC)
+
+#$(BUILDDIR)/ref_gl/rw_in_svgalib.o :  $(LINUX_DIR)/rw_in_svgalib.c
+#	$(DO_GL_SHLIB_CC)
+
+#$(BUILDDIR)/ref_gl/q_shared.o :       $(GAME_DIR)/q_shared.c
+#	$(DO_SHLIB_DEBUG_CC)
+
+#$(BUILDDIR)/ref_gl/q_shlinux.o :      $(LINUX_DIR)/q_shlinux.c
+#	$(DO_GL_SHLIB_O_CC)
+
+#$(BUILDDIR)/ref_gl/glob.o :           $(LINUX_DIR)/glob.c
+#	$(DO_GL_SHLIB_CC)
 
 #############################################################################
 # RPM
