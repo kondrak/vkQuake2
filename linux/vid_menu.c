@@ -30,6 +30,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 extern cvar_t *vid_ref;
 extern cvar_t *vid_fullscreen;
 extern cvar_t *vid_gamma;
+extern cvar_t *vid_hudscale;
 extern cvar_t *scr_viewsize;
 
 static cvar_t *gl_mode;
@@ -319,12 +320,12 @@ void VID_MenuInit( void )
 		s_mode_list[i].generic.type = MTYPE_SPINCONTROL;
 		s_mode_list[i].generic.name = "video mode";
 		s_mode_list[i].generic.x = 0;
-		s_mode_list[i].generic.y = 10;
+		s_mode_list[i].generic.y = 10 * vid_hudscale->value;
 		s_mode_list[i].itemnames = resolutions;
 
 		s_screensize_slider[i].generic.type	= MTYPE_SLIDER;
 		s_screensize_slider[i].generic.x		= 0;
-		s_screensize_slider[i].generic.y		= 20;
+		s_screensize_slider[i].generic.y		= 20 * vid_hudscale->value;
 		s_screensize_slider[i].generic.name	= "screen size";
 		s_screensize_slider[i].minvalue = 3;
 		s_screensize_slider[i].maxvalue = 12;
@@ -332,7 +333,7 @@ void VID_MenuInit( void )
 
 		s_brightness_slider[i].generic.type	= MTYPE_SLIDER;
 		s_brightness_slider[i].generic.x	= 0;
-		s_brightness_slider[i].generic.y	= 30;
+		s_brightness_slider[i].generic.y	= 30 * vid_hudscale->value;
 		s_brightness_slider[i].generic.name	= "brightness";
 		s_brightness_slider[i].generic.callback = BrightnessCallback;
 		s_brightness_slider[i].minvalue = 5;
@@ -341,7 +342,7 @@ void VID_MenuInit( void )
 
 		s_fs_box[i].generic.type = MTYPE_SPINCONTROL;
 		s_fs_box[i].generic.x	= 0;
-		s_fs_box[i].generic.y	= 40;
+		s_fs_box[i].generic.y	= 40 * vid_hudscale->value;
 		s_fs_box[i].generic.name	= "fullscreen";
 		s_fs_box[i].itemnames = yesno_names;
 		s_fs_box[i].curvalue = vid_fullscreen->value;
@@ -349,33 +350,33 @@ void VID_MenuInit( void )
 		s_defaults_action[i].generic.type = MTYPE_ACTION;
 		s_defaults_action[i].generic.name = "reset to default";
 		s_defaults_action[i].generic.x    = 0;
-		s_defaults_action[i].generic.y    = 90;
+		s_defaults_action[i].generic.y    = 90 * vid_hudscale->value;
 		s_defaults_action[i].generic.callback = ResetDefaults;
 
 		s_apply_action[i].generic.type = MTYPE_ACTION;
 		s_apply_action[i].generic.name = "apply";
 		s_apply_action[i].generic.x    = 0;
-		s_apply_action[i].generic.y    = 100;
+		s_apply_action[i].generic.y    = 100 * vid_hudscale->value;
 		s_apply_action[i].generic.callback = ApplyChanges;
 	}
 
 	s_stipple_box.generic.type = MTYPE_SPINCONTROL;
 	s_stipple_box.generic.x	= 0;
-	s_stipple_box.generic.y	= 60;
+	s_stipple_box.generic.y	= 60 * vid_hudscale->value;
 	s_stipple_box.generic.name	= "stipple alpha";
 	s_stipple_box.curvalue = sw_stipplealpha->value;
 	s_stipple_box.itemnames = yesno_names;
 
 	s_windowed_mouse.generic.type = MTYPE_SPINCONTROL;
 	s_windowed_mouse.generic.x  = 0;
-	s_windowed_mouse.generic.y  = 72;
+	s_windowed_mouse.generic.y  = 72 * vid_hudscale->value;
 	s_windowed_mouse.generic.name   = "windowed mouse";
 	s_windowed_mouse.curvalue = _windowed_mouse->value;
 	s_windowed_mouse.itemnames = yesno_names;
 
 	s_tq_slider.generic.type	= MTYPE_SLIDER;
 	s_tq_slider.generic.x		= 0;
-	s_tq_slider.generic.y		= 60;
+	s_tq_slider.generic.y		= 60 * vid_hudscale->value;
 	s_tq_slider.generic.name	= "texture quality";
 	s_tq_slider.minvalue = 0;
 	s_tq_slider.maxvalue = 3;
@@ -383,7 +384,7 @@ void VID_MenuInit( void )
 
 	s_paletted_texture_box.generic.type = MTYPE_SPINCONTROL;
 	s_paletted_texture_box.generic.x	= 0;
-	s_paletted_texture_box.generic.y	= 70;
+	s_paletted_texture_box.generic.y	= 70 * vid_hudscale->value;
 	s_paletted_texture_box.generic.name	= "8-bit textures";
 	s_paletted_texture_box.itemnames = yesno_names;
 	s_paletted_texture_box.curvalue = gl_ext_palettedtexture->value;
@@ -411,8 +412,8 @@ void VID_MenuInit( void )
 
 	Menu_Center( &s_software_menu );
 	Menu_Center( &s_opengl_menu );
-	s_opengl_menu.x -= 8;
-	s_software_menu.x -= 8;
+	s_opengl_menu.x -= 8 * vid_hudscale->value;
+	s_software_menu.x -= 8 * vid_hudscale->value;
 }
 
 /*
@@ -433,7 +434,7 @@ void VID_MenuDraw (void)
 	** draw the banner
 	*/
 	re.DrawGetPicSize( &w, &h, "m_banner_video" );
-	re.DrawPic( viddef.width / 2 - w / 2, viddef.height /2 - 110, "m_banner_video" );
+	re.DrawPic( viddef.width / 2 - w / 2, viddef.height /2 - 110 * vid_hudscale->value, "m_banner_video" );
 
 	/*
 	** move cursor to a reasonable starting position
