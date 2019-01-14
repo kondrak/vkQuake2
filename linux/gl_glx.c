@@ -662,6 +662,7 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 
 	if (vidmode_ext) {
 		int best_fit, best_dist, dist, x, y;
+		vidmode_active = false;
 
 		if(!vidmodes)
 			XF86VidModeGetAllModeLines(dpy, scrnum, &num_vidmodes, &vidmodes);
