@@ -730,13 +730,13 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 	Atom state_atom = XInternAtom(dpy, "_NET_WM_STATE", true);
 	Atom fs_atom = XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN", true);
 	// Set the fullscreen property
-	XChangeProperty(dpy, win, stat_atom, XA_ATOM, 32, PropModeReplace, (unsigned char *)&fs_atom, 1);
+	XChangeProperty(dpy, win, state_atom, XA_ATOM, 32, PropModeReplace, (unsigned char *)&fs_atom, 1);
 
 	XEvent ev;
-	memset(&ev, 0, sizeof(e));
+	memset(&ev, 0, sizeof(ev));
 	ev.xany.type = ClientMessage;
 	ev.xclient.window = win;
-	ev.xclient.message_type = stat_atom;
+	ev.xclient.message_type = state_atom;
 	ev.xclient.format = 32;
 	ev.xclient.data.l[0] = fullscreen ? 1 : 0;
 	ev.xclient.data.l[1] = fs_atom;
