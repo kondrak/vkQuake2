@@ -45,6 +45,8 @@ int		keyshift[256];		// key to map to if shift held down in console
 int		key_repeats[256];	// if > 1, it is autorepeating
 qboolean	keydown[256];
 
+extern cvar_t *vid_fullscreen;
+
 typedef struct
 {
 	char	*name;
@@ -827,6 +829,22 @@ void Key_Event (int key, qboolean down, unsigned time)
 	{
 		if (key_repeats[key] == 1)
 			anykeydown++;
+
+		// ALT+ENTER fullscreen toggle
+		if (keydown[K_ALT] && key == K_ENTER)
+		{
+			if (!vid_fullscreen->value)
+			{
+				Cvar_Set("vid_fullscreen", "1");
+				vid_fullscreen->modified = true;
+			}
+			else
+			{
+				Cvar_Set("vid_fullscreen", "0");
+				vid_fullscreen->modified = true;
+			}
+			return;
+		}
 	}
 	else
 	{

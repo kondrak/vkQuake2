@@ -479,7 +479,8 @@ const char *VID_MenuKey( int key )
 		Menu_SlideItem( m, 1 );
 		break;
 	case K_ENTER:
-		Menu_SelectItem( m );
+		if ( !Menu_SelectItem( m ) )
+			ApplyChanges( NULL );
 		break;
 	}
 
