@@ -49,6 +49,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include <GL/glx.h>
 
+#include <X11/Xatom.h>
 #include <X11/keysym.h>
 #include <X11/cursorfont.h>
 
@@ -85,7 +86,7 @@ static cvar_t	*in_dgamouse;
 
 static cvar_t	*r_fakeFullscreen;
 
-static XF86VidModeModeInfo **vidmodes;
+static XF86VidModeModeInfo **vidmodes = NULL;
 static int default_dotclock_vidmode;
 static int num_vidmodes;
 static qboolean vidmode_active = false;
@@ -661,8 +662,9 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 
 	if (vidmode_ext) {
 		int best_fit, best_dist, dist, x, y;
-		
-		XF86VidModeGetAllModeLines(dpy, scrnum, &num_vidmodes, &vidmodes);
+
+		if(!vidmodes)
+			XF86VidModeGetAllModeLines(dpy, scrnum, &num_vidmodes, &vidmodes);
 
 		// Are we going fullscreen?  If so, let's change video mode
 		if (fullscreen && !r_fakeFullscreen->value) {
@@ -699,14 +701,14 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 	}
 
 	/* window attributes */
+	memset(&attr, 0, sizeof(attr));
 	attr.background_pixel = 0;
 	attr.border_pixel = 0;
 	attr.colormap = XCreateColormap(dpy, root, visinfo->visual, AllocNone);
 	attr.event_mask = X_MASK;
 	if (vidmode_active) {
-		mask = CWBackPixel | CWColormap | CWSaveUnder | CWBackingStore | 
-			CWEventMask | CWOverrideRedirect;
-		attr.override_redirect = True;
+		mask = CWBackPixel | CWColormap | CWSaveUnder | CWBackingStore | CWEventMask;// | CWOverrideRedirect;
+		//attr.override_redirect = True;
 		attr.backing_store = NotUseful;
 		attr.save_under = False;
 	} else
@@ -717,6 +719,30 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 						visinfo->visual, mask, &attr);
 	XMapWindow(dpy, win);
 	XStoreName(dpy, win, "Quake 2 (OpenGL) "CPUSTRING);
+
+	XSizeHints *hints = XAllocSizeHints();
+	hints->flags=PMinSize;
+	hints->min_width=width;
+	hints->min_height=height;
+	XSetWMNormalHints(dpy, win, hints);
+	XFree(hints);
+
+	Atom state_atom = XInternAtom(dpy, "_NET_WM_STATE", true);
+	Atom fs_atom = XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN", true);
+	// Set the fullscreen property
+	XChangeProperty(dpy, win, stat_atom, XA_ATOM, 32, PropModeReplace, (unsigned char *)&fs_atom, 1);
+
+	XEvent ev;
+	memset(&ev, 0, sizeof(e));
+	ev.xany.type = ClientMessage;
+	ev.xclient.window = win;
+	ev.xclient.message_type = stat_atom;
+	ev.xclient.format = 32;
+	ev.xclient.data.l[0] = fullscreen ? 1 : 0;
+	ev.xclient.data.l[1] = fs_atom;
+
+	// send fullscreen event
+	XSendEvent(dpy, root, False, SubstructureNotifyMask | SubstructureRedirectMask, &ev);
 
 	if (vidmode_active) {
 		XMoveWindow(dpy, win, 0, 0);
