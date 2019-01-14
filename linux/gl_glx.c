@@ -505,24 +505,32 @@ static void HandleEvents(void)
 
 		case ButtonPress:
 			b=-1;
-			if (event.xbutton.button == 1)
+			if (event.xbutton.button == Button1)
 				b = 0;
-			else if (event.xbutton.button == 2)
+			else if (event.xbutton.button == Button2)
 				b = 2;
-			else if (event.xbutton.button == 3)
+			else if (event.xbutton.button == Button3)
 				b = 1;
+			else if (event.xbutton.button == Button4)
+				b = 40;
+			else if (event.xbutton.button == Button5)
+				b = 39;
 			if (b>=0 && in_state && in_state->Key_Event_fp)
 				in_state->Key_Event_fp (K_MOUSE1 + b, true);
 			break;
 
 		case ButtonRelease:
 			b=-1;
-			if (event.xbutton.button == 1)
+			if (event.xbutton.button == Button1)
 				b = 0;
-			else if (event.xbutton.button == 2)
+			else if (event.xbutton.button == Button2)
 				b = 2;
-			else if (event.xbutton.button == 3)
+			else if (event.xbutton.button == Button3)
 				b = 1;
+			else if (event.xbutton.button == Button4)
+				b = 40;
+			else if (event.xbutton.button == Button5)
+				b = 39;
 			if (b>=0 && in_state && in_state->Key_Event_fp)
 				in_state->Key_Event_fp (K_MOUSE1 + b, false);
 			break;
