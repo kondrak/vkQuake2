@@ -758,7 +758,7 @@ void Key_Event (int key, qboolean down, unsigned time)
 
 	keydown[key] = down;
 	// ALT+ENTER fullscreen toggle
-	if (keydown[K_ALT] && key == K_ENTER)
+	if (down && keydown[K_ALT] && key == K_ENTER)
 	{
 		Cvar_Set("vid_fullscreen", vid_fullscreen->value ? "0" : "1");
 		vid_fullscreen->modified = true;
