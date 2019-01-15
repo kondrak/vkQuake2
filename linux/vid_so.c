@@ -351,6 +351,7 @@ qboolean VID_LoadRefresh( char *name )
 	}
 #endif
 	KBD_Init_fp(Do_Key_Event);
+	Key_ClearStates();
 
 	// give up root now
 	setreuid(getuid(), getuid());
