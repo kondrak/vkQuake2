@@ -730,9 +730,11 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 	XStoreName(dpy, win, "Quake 2 (OpenGL) "CPUSTRING);
 
 	XSizeHints *hints = XAllocSizeHints();
-	hints->flags=PMinSize;
+	hints->flags=PMinSize|PMaxSize;
 	hints->min_width=width;
 	hints->min_height=height;
+	hints->max_width=width;
+	hints->max_height=height;
 	XSetWMNormalHints(dpy, win, hints);
 	XFree(hints);
 
