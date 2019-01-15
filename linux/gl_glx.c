@@ -710,7 +710,12 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 				// Move the viewport to top left
 				XF86VidModeSetViewPort(dpy, scrnum, 0, 0);
 			} else
+			{
 				fullscreen = 0;
+				ri.Cvar_Set("vid_fullscreen", "0");
+				cvar_t *vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
+				vid_fullscreen->modified = false;
+			}
 		}
 	}
 
