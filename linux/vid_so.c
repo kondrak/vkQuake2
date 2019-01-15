@@ -313,6 +313,7 @@ qboolean VID_LoadRefresh( char *name )
 	/* Init IN (Mouse) */
 	in_state.IN_CenterView_fp = IN_CenterView;
 	in_state.Key_Event_fp = Do_Key_Event;
+	in_state.Quit_fp = CL_Quit_f;
 	in_state.viewangles = cl.viewangles;
 	in_state.in_strafe_state = &in_strafe.state;
 

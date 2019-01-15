@@ -61,6 +61,7 @@ glwstate_t glw_state;
 static Display *dpy = NULL;
 static int scrnum;
 static Window win;
+static Atom winDeleteAtom;
 static GLXContext ctx = NULL;
 
 #define KEY_MASK (KeyPressMask | KeyReleaseMask)
@@ -544,6 +545,10 @@ static void HandleEvents(void)
 			win_x = event.xconfigure.x;
 			win_y = event.xconfigure.y;
 			break;
+		case ClientMessage:
+			if ((Atom)event.xclient.data.l[0] == winDeleteAtom && in_state && in_state->Quit_fp)
+				in_state->Quit_fp();
+			break;
 		}
 	}
 	   
@@ -740,6 +745,8 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 
 	Atom state_atom = XInternAtom(dpy, "_NET_WM_STATE", true);
 	Atom fs_atom = XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN", true);
+	winDeleteAtom = XInternAtom(dpy, "WM_DELETE_WINDOW", False);
+	XSetWMProtocols(dpy, win, &winDeleteAtom, 1);
 	// Set the fullscreen property
 	XChangeProperty(dpy, win, state_atom, XA_ATOM, 32, PropModeReplace, (unsigned char *)&fs_atom, 1);
 
