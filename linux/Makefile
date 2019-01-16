@@ -1508,6 +1508,7 @@ REF_VK_OBJS = \
 	$(BUILDDIR)/ref_vk/vk_device.o \
 	$(BUILDDIR)/ref_vk/vk_draw.o \
 	$(BUILDDIR)/ref_vk/vk_image.o \
+	$(BUILDDIR)/ref_vk/vk_imp.o \
 	$(BUILDDIR)/ref_vk/vk_light.o \
 	$(BUILDDIR)/ref_vk/vk_mem_alloc.o \
 	$(BUILDDIR)/ref_vk/vk_mesh.o \
@@ -1591,6 +1592,9 @@ $(BUILDDIR)/ref_vk/q_shared.o :       $(GAME_DIR)/q_shared.c
 
 $(BUILDDIR)/ref_vk/q_shlinux.o :      $(LINUX_DIR)/q_shlinux.c
 	$(DO_VK_SHLIB_O_CC)
+
+$(BUILDDIR)/ref_vk/vk_imp.o :       $(LINUX_DIR)/vk_imp.c
+	$(DO_VK_SHLIB_CC)
 
 $(BUILDDIR)/ref_vk/glob.o :           $(LINUX_DIR)/glob.c
 	$(DO_VK_SHLIB_CC)

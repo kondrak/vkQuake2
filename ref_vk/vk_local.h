@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 
 #ifdef __linux__
-#  define VK_USE_PLATFORM_XLIB_XRANDR_EXT
+#  define VK_USE_PLATFORM_XLIB_KHR
 #endif
 
 #include <stdio.h>
