@@ -1536,7 +1536,7 @@ $(BUILDDIR)/ref_vk/vk_buffer.o :        $(REF_VK_DIR)/vk_buffer.c
 $(BUILDDIR)/ref_vk/vk_cmd.o :       $(REF_VK_DIR)/vk_cmd.c
 	$(DO_VK_SHLIB_CC)
 
-$(BUILDDIR)/ref_vk/vk_common.o :      $(LINUX_DIR)/vk_common.c
+$(BUILDDIR)/ref_vk/vk_common.o :      $(REF_VK_DIR)/vk_common.c
 	$(DO_VK_SHLIB_CC)
 
 $(BUILDDIR)/ref_vk/vk_device.o :       $(REF_VK_DIR)/vk_device.c

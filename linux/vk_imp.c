@@ -45,11 +45,13 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "../client/keys.h"
 
+#include "../linux/rw_linux.h"
 #include "../linux/vk_linux.h"
 
 #include <X11/Xatom.h>
 #include <X11/keysym.h>
 #include <X11/cursorfont.h>
+#include <X11/Xutil.h>
 
 #include <X11/extensions/Xxf86dga.h>
 #include <X11/extensions/xf86vmode.h>
@@ -602,17 +604,7 @@ static void InitSig(void)
 int Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 {
 	int width, height;
-	int attrib[] = {
-		GLX_RGBA,
-		GLX_RED_SIZE, 1,
-		GLX_GREEN_SIZE, 1,
-		GLX_BLUE_SIZE, 1,
-		GLX_DOUBLEBUFFER,
-		GLX_DEPTH_SIZE, 1,
-		None
-	};
 	Window root;
-	XVisualInfo *visinfo;
 	XSetWindowAttributes attr;
 	unsigned long mask;
 	int MajorVersion, MinorVersion;
@@ -661,12 +653,6 @@ int Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 		ri.Con_Printf(PRINT_ALL, "Using XFree86-VidModeExtension Version %d.%d\n",
 			MajorVersion, MinorVersion);
 		vidmode_ext = true;
-	}
-
-	visinfo = qglXChooseVisual(dpy, scrnum, attrib);
-	if (!visinfo) {
-		fprintf(stderr, "Error couldn't get an RGB, Double-buffered, Depth visual\n");
-		return rserr_invalid_mode;
 	}
 
 	if (vidmode_ext) {
@@ -719,7 +705,7 @@ int Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 	memset(&attr, 0, sizeof(attr));
 	attr.background_pixel = 0;
 	attr.border_pixel = 0;
-	attr.colormap = XCreateColormap(dpy, root, visinfo->visual, AllocNone);
+	attr.colormap = XCreateColormap(dpy, root, DefaultVisual(dpy, scrnum), AllocNone);
 	attr.event_mask = X_MASK;
 	if (vidmode_active) {
 		mask = CWBackPixel | CWColormap | CWSaveUnder | CWBackingStore | CWEventMask;// | CWOverrideRedirect;
@@ -730,8 +716,8 @@ int Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 		mask = CWBackPixel | CWBorderPixel | CWColormap | CWEventMask;
 
 	win = XCreateWindow(dpy, root, 0, 0, width, height,
-						0, visinfo->depth, InputOutput,
-						visinfo->visual, mask, &attr);
+						0, DefaultDepth(dpy, scrnum), InputOutput,
+						DefaultVisual(dpy, scrnum), mask, &attr);
 	XMapWindow(dpy, win);
 	XStoreName(dpy, win, "Quake 2 (Vulkan) "CPUSTRING);
 
