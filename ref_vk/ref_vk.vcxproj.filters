@@ -39,9 +39,6 @@
     <ClCompile Include="..\win32\vk_imp.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\win32\qvk_win.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="vk_mem_alloc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -79,6 +76,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="vk_mesh.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vk_common.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

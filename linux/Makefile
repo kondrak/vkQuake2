@@ -1504,6 +1504,7 @@ $(BUILDDIR)/ref_gl/glob.o :           $(LINUX_DIR)/glob.c
 REF_VK_OBJS = \
 	$(BUILDDIR)/ref_vk/vk_buffer.o \
 	$(BUILDDIR)/ref_vk/vk_cmd.o \
+	$(BUILDDIR)/ref_vk/vk_common.o \
 	$(BUILDDIR)/ref_vk/vk_device.o \
 	$(BUILDDIR)/ref_vk/vk_draw.o \
 	$(BUILDDIR)/ref_vk/vk_image.o \
@@ -1532,6 +1533,9 @@ $(BUILDDIR)/ref_vk/vk_buffer.o :        $(REF_VK_DIR)/vk_buffer.c
 	$(DO_VK_SHLIB_CC)
 
 $(BUILDDIR)/ref_vk/vk_cmd.o :       $(REF_VK_DIR)/vk_cmd.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_common.o :      $(LINUX_DIR)/vk_common.c
 	$(DO_VK_SHLIB_CC)
 
 $(BUILDDIR)/ref_vk/vk_device.o :       $(REF_VK_DIR)/vk_device.c
@@ -1581,9 +1585,6 @@ $(BUILDDIR)/ref_vk/vk_validation.o :        $(REF_VK_DIR)/vk_validation.c
 
 $(BUILDDIR)/ref_vk/vk_warp.o :        $(REF_VK_DIR)/vk_warp.c
 	$(DO_VK_SHLIB_CC)
-
-#$(BUILDDIR)/ref_vk/qvk_linux.o :      $(LINUX_DIR)/qvk_linux.c
-#	$(DO_VK_SHLIB_CC)
 
 $(BUILDDIR)/ref_vk/q_shared.o :       $(GAME_DIR)/q_shared.c
 	$(DO_SHLIB_DEBUG_CC)
