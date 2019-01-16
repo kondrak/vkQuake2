@@ -67,7 +67,7 @@ XCFLAGS=
 
 GLLDFLAGS=-L/usr/X11R6/lib -L/usr/local/lib -L$(MESA_DIR)/lib -lX11 -lXext -lvga -lm
 GLXLDFLAGS=-L/usr/X11R6/lib -L/usr/local/lib -L$(MESA_DIR)/lib -lX11 -lXext -lXxf86dga -lXxf86vm -lm
-VKLDFLAGS=-L$(VULKAN_SDK)/lib -lvulkan
+VKLDFLAGS=-L/usr/X11R6/lib -L$(VULKAN_SDK)/lib -lX11 -lXext -lXxf86dga -lXxf86vm -lm -lvulkan -lstdc++
 GLCFLAGS=-I$(MESA_DIR)/include -I/usr/include/glide
 VKCFLAGS=-I$(VULKAN_SDK)/include
 
