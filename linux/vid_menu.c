@@ -196,6 +196,7 @@ static void ApplyChanges( void *unused )
 	case REF_VULKAN :
 		Cvar_Set( "vid_ref", "vk" );
 		Cvar_Set( "vk_driver", "vulkan" );
+		break;
 
 	case REF_MESA3DGLX :
 		Cvar_Set( "vid_ref", "glx" );
