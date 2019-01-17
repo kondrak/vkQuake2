@@ -408,7 +408,8 @@ Com_Printf("Trying mode 0\n");
 					Com_Error (ERR_FATAL, "Couldn't fall back to software refresh!");
 			}
 
-			Cvar_Set( "vid_ref", "soft" );
+			Cvar_Set( "vid_ref", "glx" );
+			Cvar_Set( "gl_driver", "libGL.so" );
 
 			/*
 			** drop the console if we fail to load a refresh
