@@ -817,6 +817,7 @@ void QVk_Shutdown( void )
 		{
 			vkDestroySwapchainKHR(vk_device.logical, vk_swapchain.sc, NULL);
 			free(vk_swapchain.images);
+			vk_swapchain.sc = VK_NULL_HANDLE;
 			vk_swapchain.images = NULL;
 			vk_swapchain.imageCount = 0;
 		}
