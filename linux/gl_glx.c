@@ -856,8 +856,11 @@ void GLimp_BeginFrame( float camera_seperation )
 */
 void GLimp_EndFrame (void)
 {
+  if(qglFlush)
+    {
 	qglFlush();
 	qglXSwapBuffers(dpy, win);
+    }
 }
 
 /*
