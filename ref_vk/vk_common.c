@@ -904,7 +904,7 @@ qboolean QVk_Init()
 		.enabledLayerCount = 0,
 		.ppEnabledLayerNames = NULL,
 		.enabledExtensionCount = extCount,
-		.ppEnabledExtensionNames = wantedExtensions
+		.ppEnabledExtensionNames = (const char* const*)wantedExtensions
 	};
 
 	const char *validationLayers[] = { "VK_LAYER_LUNARG_standard_validation" };
@@ -1099,12 +1099,12 @@ qboolean QVk_Init()
 	if (msaaMode != VK_SAMPLE_COUNT_1_BIT)
 	{
 		vk_activeRenderpass  = vk_renderpasses[RT_MSAA];
-		vk_activeFramebuffer = vk_framebuffers[RT_MSAA];
+		vk_activeFramebuffer = *vk_framebuffers[RT_MSAA];
 	}
 	else
 	{
 		vk_activeRenderpass  = vk_renderpasses[RT_STANDARD];
-		vk_activeFramebuffer = vk_framebuffers[RT_STANDARD];
+		vk_activeFramebuffer = *vk_framebuffers[RT_STANDARD];
 	}
 	vk_activeCmdbuffer = vk_commandbuffers[vk_activeBufferIdx];
 
