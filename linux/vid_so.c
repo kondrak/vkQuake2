@@ -387,6 +387,16 @@ void VID_CheckChanges (void)
 		/*
 		** refresh has changed
 		*/
+
+		// only allow Vulkan on Linux
+		if(strcmp("vk", vid_ref->string))
+		{
+			Cvar_Set("vid_ref", "vk");
+			vid_ref->modified = false;
+			Com_Printf("Only Vulkan renderer supported on Linux.\n");
+			break;
+		}
+
 		vid_ref->modified = false;
 		vid_fullscreen->modified = true;
 		cl.refresh_prepped = false;
@@ -408,8 +418,7 @@ Com_Printf("Trying mode 0\n");
 					Com_Error (ERR_FATAL, "Couldn't fall back to software refresh!");
 			}
 
-			Cvar_Set( "vid_ref", "glx" );
-			Cvar_Set( "gl_driver", "libGL.so" );
+			Cvar_Set( "vid_ref", "soft" );
 
 			/*
 			** drop the console if we fail to load a refresh

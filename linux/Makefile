@@ -105,8 +105,8 @@ else
 TARGETS=$(BUILDDIR)/quake2 \
 	$(BUILDDIR)/game$(ARCH).$(SHLIBEXT) \
 	$(BUILDDIR)/ctf/game$(ARCH).$(SHLIBEXT) \
-	$(BUILDDIR)/ref_glx.$(SHLIBEXT) \
 	$(BUILDDIR)/ref_vk.$(SHLIBEXT) \
+#	$(BUILDDIR)/ref_glx.$(SHLIBEXT) \
 #	$(BUILDDIR)/ref_soft.$(SHLIBEXT) \
 #	$(BUILDDIR)/ref_softx.$(SHLIBEXT) \
 #	$(BUILDDIR)/ref_gl.$(SHLIBEXT) \
