@@ -50,8 +50,6 @@ qboolean	reflib_active = 0;
 
 #define VID_NUM_MODES ( sizeof( vid_modes ) / sizeof( vid_modes[0] ) )
 
-const char so_file[] = "/etc/quake2.conf";
-
 /** KEYBOARD **************************************************************/
 
 void Do_Key_Event(int key, qboolean down);
@@ -219,9 +217,9 @@ qboolean VID_LoadRefresh( char *name )
 	refimport_t	ri;
 	GetRefAPI_t	GetRefAPI;
 	char	fn[MAX_OSPATH];
+	char    so_path[MAX_OSPATH];
 	struct stat st;
 	extern uid_t saved_euid;
-	FILE *fp;
 	
 	if ( reflib_active )
 	{
@@ -237,44 +235,18 @@ qboolean VID_LoadRefresh( char *name )
 
 	Com_Printf( "------- Loading %s -------\n", name );
 
-	//regain root
-	seteuid(saved_euid);
+	// locate executable location so we don't need the silly /etc/quake2.conf file
+	snprintf(fn, sizeof(fn), "/proc/%d/exe", getpid());
+	int l = readlink(fn, so_path, MAX_OSPATH-1);
+	so_path[l <= 0 ? 0 : l] = '\0';
+	char *s = strrchr(so_path, '/');
+	// cut off binary from path
+	s[1] = '\0';
 
-	if ((fp = fopen(so_file, "r")) == NULL) {
-		Com_Printf( "LoadLibrary(\"%s\") failed: can't open %s (required for location of ref libraries)\n", name, so_file);
-		return false;
-	}
-	fgets(fn, sizeof(fn), fp);
-	fclose(fp);
-	while (*fn && isspace(fn[strlen(fn) - 1]))
-		fn[strlen(fn) - 1] = 0;
+	strcat(so_path, "/");
+	strcat(so_path, name);
 
-	strcat(fn, "/");
-	strcat(fn, name);
-
-	// permission checking
-	if (strstr(fn, "softx") == NULL) { // softx doesn't require root
-		if (stat(fn, &st) == -1) {
-			Com_Printf( "LoadLibrary(\"%s\") failed: %s\n", name, strerror(errno));
-			return false;
-		}
-#if 0
-		if (st.st_uid != 0) {
-			Com_Printf( "LoadLibrary(\"%s\") failed: ref is not owned by root\n", name);
-			return false;
-		}
-		if ((st.st_mode & 0777) & ~0700) {
-			Com_Printf( "LoadLibrary(\"%s\") failed: invalid permissions, must be 700 for security considerations\n", name);
-			return false;
-		}
-#endif
-	} else {
-		// softx requires we give up root now
-		setreuid(getuid(), getuid());
-		setegid(getgid());
-	}
-
-	if ( ( reflib_library = dlopen( fn, RTLD_LAZY | RTLD_GLOBAL ) ) == 0 )
+	if ( ( reflib_library = dlopen( so_path, RTLD_LAZY | RTLD_GLOBAL ) ) == 0 )
 	{
 		Com_Printf( "LoadLibrary(\"%s\") failed: %s\n", name , dlerror());
 		return false;
@@ -354,10 +326,6 @@ qboolean VID_LoadRefresh( char *name )
 	KBD_Init_fp(Do_Key_Event);
 	Key_ClearStates();
 
-	// give up root now
-	setreuid(getuid(), getuid());
-	setegid(getgid());
-
 	Com_Printf( "------------------------------------\n");
 	reflib_active = true;
 	return true;
@@ -393,7 +361,7 @@ void VID_CheckChanges (void)
 		{
 			Cvar_Set("vid_ref", "vk");
 			vid_ref->modified = false;
-			Com_Printf("Only Vulkan renderer supported on Linux.\n");
+			Com_Printf("Only Vulkan renderer is supported on Linux.\n");
 			break;
 		}
 
