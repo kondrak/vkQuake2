@@ -310,6 +310,13 @@ qboolean VID_LoadRefresh( char *name )
 		Com_Error (ERR_FATAL, "%s has incompatible api_version", name);
 	}
 
+	if ( !re.Init( 0, 0 ) )
+	{
+		re.Shutdown();
+		VID_FreeReflib ();
+		return false;
+	}
+
 	/* Init IN (Mouse) */
 	in_state.IN_CenterView_fp = IN_CenterView;
 	in_state.Key_Event_fp = Do_Key_Event;
@@ -326,13 +333,6 @@ qboolean VID_LoadRefresh( char *name )
 		Sys_Error("No RW_IN functions in REF.\n");
 
 	Real_IN_Init();
-
-	if ( !re.Init( 0, 0 ) )
-	{
-		re.Shutdown();
-		VID_FreeReflib ();
-		return false;
-	}
 
 	/* Init KBD */
 #if 1
