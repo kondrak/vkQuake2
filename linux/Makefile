@@ -59,7 +59,7 @@ RELEASE_CFLAGS=$(BASE_CFLAGS) -O6 -ffast-math -funroll-loops \
 	-fomit-frame-pointer -fexpensive-optimizations
 endif
 
-DEBUG_CFLAGS=$(BASE_CFLAGS) -g
+DEBUG_CFLAGS=$(BASE_CFLAGS) -g -D_DEBUG
 LDFLAGS=-ldl -lm -lasound
 SVGALDFLAGS=-lvga -lm
 XLDFLAGS=-L/usr/X11R6/lib -lX11 -lXext -lXxf86dga
