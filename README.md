@@ -25,8 +25,8 @@ For extra challenge I decided to base vkQuake2 on the original id Software code.
 ## Windows
 - download and install [Vulkan SDK](https://vulkan.lunarg.com/) - make sure that the `VULKAN_SDK` environment variable is set afterwards
 - install [Visual Studio Community](https://www.visualstudio.com/products/free-developer-offers-vs) with the MFC package
-- install Windows Universal CRT SDK and Windows SDK 8.1 or alternatively the latest Windows 10 SDK (this will require retargetting the solution)
-- the Visual Studio solution should now build with no additional steps required
+- install Windows Universal CRT SDK and Windows SDK 8.1 or the latest Windows 10 SDK (the latter will require retargetting the solution)
+- open `quake2.sln` and choose the target platform (32/64bit) - it should build with no additional steps required
 
 ## Linux
 Unfortunately, Linux code for Quake 2 did not age well and for that reason only the Vulkan renderer is available for use at this time. Build steps assume that Ubuntu is the target distribution:
