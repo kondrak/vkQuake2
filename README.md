@@ -31,22 +31,29 @@ For extra challenge I decided to base vkQuake2 on the original id Software code.
 ## Linux
 Unfortunately, Linux code for Quake 2 did not age well and for that reason only the Vulkan renderer is available for use at this time. Build steps assume that Ubuntu is the target distribution:
 - install required dependencies:
-`sudo apt install make gcc g++ mesa-common-dev libglu1-mesa-dev libxxf86dga-dev libxxf86vm-dev libasound2-dev libx11-dev libxcb1-dev`
-- install Vulkan SDK - the easiest way is to use LunarG [Ubuntu Packages](https://vulkan.lunarg.com/sdk/home#linux) - just follow instructions and there will be no additional steps required. If you decide to manually install the SDK, make sure proper environment variables are set afterwards - the easiest way is to add a section to your `.bashrc` file which would look similar to this:
+```
+sudo apt install make gcc g++ mesa-common-dev libglu1-mesa-dev libxxf86dga-dev libxxf86vm-dev libasound2-dev libx11-dev libxcb1-dev
+```
+- install [Vulkan SDK](https://vulkan.lunarg.com/) - the easiest way is to use [LunarG Ubuntu Packages](https://vulkan.lunarg.com/sdk/home#linux) - just follow instructions and there will be no additional steps required. If you decide to manually install the SDK, make sure proper environment variables are set afterwards - the easiest way is to add a section to your `.bashrc` file which would look similar to this:
 ```
 export VULKAN_SDK=/home/user/VulkanSDK/1.1.92.1/x86_64
 export PATH=$VULKAN_SDK/bin:$PATH
 export LD_LIBRARY_PATH=$VULKAN_SDK/lib:$LD_LIBRARY_PATH
 export VK_LAYER_PATH=$VULKAN_SDK/etc/explicit_layer.d
 ```
-- make sure your graphics drivers support Vulkan (run `vulkaninfo` to verify) - if not, you can geth them with `sudo apt install mesa-vulkan-drivers`
-- enter the `linux` subfolder and type `make release` - the output binaries will be placed in `releasex64` directory
+- make sure your graphics drivers support Vulkan (run `vulkaninfo` to verify) - if not, you can get them with:
+```
+sudo apt install mesa-vulkan-drivers
+```
+- in the main repository, enter the `linux` subfolder and type `make release` or `make debug` depending on which variant you want to build - the output binaries will be placed in `releasex64` and `debugx64` directories respectively
 
 Running
 ===
-The Visual Studio 2017 C++ Redistributable is required to run the application: [32 bit](https://go.microsoft.com/fwlink/?LinkId=746571) or [64 bit](https://go.microsoft.com/fwlink/?LinkId=746572) depending on your platform choice.
+## Windows
+The Visual Studio 2017 C++ Redistributable is required to run the application: [32 bit](https://go.microsoft.com/fwlink/?LinkId=746571) or [64 bit](https://go.microsoft.com/fwlink/?LinkId=746572) depending on the chosen flavor.
 
-The release package comes with game data used in the demo version - for full experience, copy all retail Quake 2 data paks (`pak0.pak`, `pak1.pak`, `pak2.pak`) into the `baseq2` folder and run the executable. The mission packs have not been tested but should work just as well.
+## All platforms
+You'll need proper data files to run the game - the [release packages](https://github.com/kondrak/vkQuake2/releases) come with game data used in the demo version. For full experience, copy retail Quake 2 data paks (`pak0.pak`, `pak1.pak`, `pak2.pak`) into the `baseq2` folder and run the executable. The mission packs have not been tested but should work just as well.
 
 Console commands
 ===
