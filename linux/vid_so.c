@@ -362,7 +362,9 @@ void VID_CheckChanges (void)
 			Cvar_Set("vid_ref", "vk");
 			vid_ref->modified = false;
 			Com_Printf("Only Vulkan renderer is supported on Linux.\n");
-			break;
+			// don't restart the renderer if it's already loaded
+			if(reflib_active)
+				break;
 		}
 
 		vid_ref->modified = false;
