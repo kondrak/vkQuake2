@@ -22,14 +22,18 @@ Building
 ===
 For extra challenge I decided to base vkQuake2 on the original id Software code. Because of this, there are no dependencies on external SDL-like libraries and the entire project is mostly self-contained. This also implies that some of the original bugs may be present - those may be fixed in upcoming releases.
 
-### Windows
+## Windows
 - download and install [Vulkan SDK](https://vulkan.lunarg.com/) - make sure that the `VULKAN_SDK` environment variable is set afterwards
 - install [Visual Studio Community](https://www.visualstudio.com/products/free-developer-offers-vs) with the MFC package
 - install Windows Universal CRT SDK and Windows SDK 8.1 or alternatively the latest Windows 10 SDK (this will require retargetting the solution)
 - the Visual Studio solution should now build with no additional steps required
 
-### Linux
+## Linux
 Unfortunately, Linux code for Quake 2 did not age well and for that reason only the Vulkan renderer is available for use at this time. Build steps assume that Ubuntu is the target distribution:
+- install required dependencies:
+`sudo apt install make gcc gcc-multilib libxxf86dga-dev alsa-oss libx11-dev libcxb1-dev`
+- if you don't have Vulkan-compatible vendor drivers:
+`sudo apt install mesa-vulkan-drivers`
 - enter the `linux` subfolder and type `make release` - the output binaries will be placed in `releasex64` directory
 
 Running
