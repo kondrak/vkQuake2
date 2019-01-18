@@ -450,13 +450,10 @@ static int XLateKey(XKeyEvent *ev)
 		case 0x03e: key = '.';break;/* [>] */
 		case 0x03c: key = ',';break;/* [<] */
 #endif
-
 		default:
-			key = *(unsigned char*)buf;
-			if (key >= 'A' && key <= 'Z')
-				key = key - 'A' + 'a';
-			break;
-	} 
+			if(keysym >= 'A' && keysym <= 'Z') return keysym + 32;
+				return keysym;
+	}
 
 	return key;
 }
