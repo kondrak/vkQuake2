@@ -98,13 +98,13 @@ DO_SHLIB_AS=$(CC) $(CFLAGS) $(SHLIBCFLAGS) -DELF -x assembler-with-cpp -o $@ -c 
 
 ifeq ($(ARCH),axp)
 TARGETS=$(BUILDDIR)/q2ded \
-	$(BUILDDIR)/game$(ARCH).$(SHLIBEXT) \
+	$(BUILDDIR)/baseq2/game$(ARCH).$(SHLIBEXT) \
 	$(BUILDDIR)/ctf/game$(ARCH).$(SHLIBEXT) \
 #	$(BUILDDIR)/xatrix/game$(ARCH).$(SHLIBEXT) \
 #	$(BUILDDIR)/rogue/game$(ARCH).$(SHLIBEXT)
 else
 TARGETS=$(BUILDDIR)/quake2 \
-	$(BUILDDIR)/game$(ARCH).$(SHLIBEXT) \
+	$(BUILDDIR)/baseq2/game$(ARCH).$(SHLIBEXT) \
 	$(BUILDDIR)/ctf/game$(ARCH).$(SHLIBEXT) \
 	$(BUILDDIR)/ref_vk.$(SHLIBEXT) \
 	$(BUILDDIR)/ref_glx.$(SHLIBEXT) \
@@ -117,6 +117,7 @@ endif
 
 build_debug:
 	@-mkdir -p $(BUILD_DEBUG_DIR) \
+		$(BUILD_DEBUG_DIR)/baseq2 \
 		$(BUILD_DEBUG_DIR)/client \
 		$(BUILD_DEBUG_DIR)/ded \
 		$(BUILD_DEBUG_DIR)/ref_soft \
@@ -130,6 +131,7 @@ build_debug:
 
 build_release:
 	@-mkdir -p $(BUILD_RELEASE_DIR) \
+		$(BUILD_RELEASE_DIR)/baseq2 \
 		$(BUILD_RELEASE_DIR)/client \
 		$(BUILD_RELEASE_DIR)/ded \
 		$(BUILD_RELEASE_DIR)/ref_soft \
@@ -518,7 +520,7 @@ GAME_OBJS = \
 	$(BUILDDIR)/game/p_weapon.o \
 	$(BUILDDIR)/game/m_flash.o
 
-$(BUILDDIR)/game$(ARCH).$(SHLIBEXT) : $(GAME_OBJS)
+$(BUILDDIR)/baseq2/game$(ARCH).$(SHLIBEXT) : $(GAME_OBJS)
 	$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(GAME_OBJS)
 
 $(BUILDDIR)/game/g_ai.o :        $(GAME_DIR)/g_ai.c
