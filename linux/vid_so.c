@@ -243,7 +243,6 @@ qboolean VID_LoadRefresh( char *name )
 	// cut off binary from path
 	s[1] = '\0';
 
-	strcat(so_path, "/");
 	strcat(so_path, name);
 
 	if ( ( reflib_library = dlopen( so_path, RTLD_LAZY | RTLD_GLOBAL ) ) == 0 )
@@ -252,7 +251,7 @@ qboolean VID_LoadRefresh( char *name )
 		return false;
 	}
 
-  Com_Printf( "LoadLibrary(\"%s\")\n", fn );
+  Com_Printf( "LoadLibrary(\"%s\")\n", so_path );
 
 	ri.Cmd_AddCommand = Cmd_AddCommand;
 	ri.Cmd_RemoveCommand = Cmd_RemoveCommand;
