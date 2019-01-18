@@ -15,15 +15,22 @@ This is the official Quake 2 code v3.21 with additional Vulkan renderer. The goa
 - HUD elements, menus and console text are now scaled accordingly on higher screen resolutions (can be overridden with `hudscale` console command)
 - warped texture effect (lava, water, slime) is now properly drawn (though only with Vulkan and software renderer!)
 - software renderer has been completely replaced with [KolorSoft 1.1](https://github.com/qbism/Quake2-colored-refsoft) - this adds colored lighting and fixes severe instabilities of the original renderer
-- on first launch, the game attempts to use Vulkan at 1920x1080 resolution by default and reverts to software renderer on failure
+- on first launch, the game attempts to use Vulkan at 1920x1080 resolution by default
+- on Linux, sound is now handled by ALSA instead of OSS
 
 Building
 ===
+For extra challenge I decided to base vkQuake2 on the original id Software code. Because of this, there are no dependencies on external SDL-like libraries and the entire project is mostly self-contained. This also implies that some of the original bugs may be present - those may be fixed in upcoming releases.
+
+### Windows
 - download and install [Vulkan SDK](https://vulkan.lunarg.com/) - make sure that the `VULKAN_SDK` environment variable is set afterwards
 - install [Visual Studio Community](https://www.visualstudio.com/products/free-developer-offers-vs) with the MFC package
 - install Windows Universal CRT SDK and Windows SDK 8.1 or alternatively the latest Windows 10 SDK (this will require retargetting the solution)
+- the Visual Studio solution should now build with no additional steps required
 
-With this setup, the game should build out of the box with no additional dependencies.
+### Linux
+Unfortunately, Linux code for Quake 2 did not age well and for that reason only the Vulkan renderer is available for use at this time. Build steps assume that Ubuntu is the target distribution:
+- enter the `linux` subfolder and type `make release` - the output binaries will be placed in `releasex64` directory
 
 Running
 ===
@@ -68,10 +75,3 @@ The Vulkan renderer comes with a set of its own additional console commands:
 Known Issues
 ===
 - some Intel UHD GPUs (most notably the 6XX series) may encounter crashes on startup due to faulty drivers
-
-TODO
-===
-- implement water warp effect
-- add music
-- use push constants
-- Linux and MacOS versions
