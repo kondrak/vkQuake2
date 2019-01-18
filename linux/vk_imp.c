@@ -168,8 +168,6 @@ static void install_grabs(void)
 				  CurrentTime);
 
 	mouse_active = true;
-
-//	XSync(dpy, True);
 }
 
 static void uninstall_grabs(void)
@@ -216,8 +214,8 @@ void RW_IN_Init(in_state_t *in_state_p)
 
 	// mouse variables
 	m_filter = ri.Cvar_Get ("m_filter", "0", 0);
-    in_mouse = ri.Cvar_Get ("in_mouse", "1", CVAR_ARCHIVE);
-    in_dgamouse = ri.Cvar_Get ("in_dgamouse", "1", CVAR_ARCHIVE);
+	in_mouse = ri.Cvar_Get ("in_mouse", "1", CVAR_ARCHIVE);
+	in_dgamouse = ri.Cvar_Get ("in_dgamouse", "1", CVAR_ARCHIVE);
 	freelook = ri.Cvar_Get( "freelook", "0", 0 );
 	lookstrafe = ri.Cvar_Get ("lookstrafe", "0", 0);
 	sensitivity = ri.Cvar_Get ("sensitivity", "3", 0);
@@ -258,7 +256,7 @@ void RW_IN_Move (usercmd_t *cmd)
 {
 	if (!mouse_avail)
 		return;
-   
+
 	if (m_filter->value)
 	{
 		mx = (mx + old_mouse_x) * 0.5;
@@ -449,10 +447,11 @@ static int XLateKey(XKeyEvent *ev)
 		case 0x03e: key = '.';break;/* [>] */
 		case 0x03c: key = ',';break;/* [<] */
 #endif
+
 		default:
 			if(keysym >= 'A' && keysym <= 'Z') return keysym + 32;
 				return keysym;
-	} 
+	}
 
 	return key;
 }

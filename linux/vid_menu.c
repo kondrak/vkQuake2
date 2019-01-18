@@ -175,6 +175,7 @@ static void ApplyChanges( void *unused )
 	case REF_SOFT:
 		Cvar_Set( "vid_ref", "soft" );
 		break;
+
 	case REF_SOFTX11:
 		Cvar_Set( "vid_ref", "softx" );
 		break;
