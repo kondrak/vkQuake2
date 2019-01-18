@@ -106,7 +106,7 @@ TARGETS=$(BUILDDIR)/quake2 \
 	$(BUILDDIR)/game$(ARCH).$(SHLIBEXT) \
 	$(BUILDDIR)/ctf/game$(ARCH).$(SHLIBEXT) \
 	$(BUILDDIR)/ref_vk.$(SHLIBEXT) \
-#	$(BUILDDIR)/ref_glx.$(SHLIBEXT) \
+	$(BUILDDIR)/ref_glx.$(SHLIBEXT) \
 #	$(BUILDDIR)/ref_soft.$(SHLIBEXT) \
 #	$(BUILDDIR)/ref_softx.$(SHLIBEXT) \
 #	$(BUILDDIR)/ref_gl.$(SHLIBEXT) \
@@ -115,7 +115,7 @@ TARGETS=$(BUILDDIR)/quake2 \
 endif
 
 build_debug:
-	@-mkdir $(BUILD_DEBUG_DIR) \
+	@-mkdir -p $(BUILD_DEBUG_DIR) \
 		$(BUILD_DEBUG_DIR)/client \
 		$(BUILD_DEBUG_DIR)/ded \
 		$(BUILD_DEBUG_DIR)/ref_soft \
@@ -128,7 +128,7 @@ build_debug:
 	$(MAKE) targets BUILDDIR=$(BUILD_DEBUG_DIR) CFLAGS="$(DEBUG_CFLAGS)"
 
 build_release:
-	@-mkdir $(BUILD_RELEASE_DIR) \
+	@-mkdir -p $(BUILD_RELEASE_DIR) \
 		$(BUILD_RELEASE_DIR)/client \
 		$(BUILD_RELEASE_DIR)/ded \
 		$(BUILD_RELEASE_DIR)/ref_soft \
@@ -141,6 +141,8 @@ build_release:
 	$(MAKE) targets BUILDDIR=$(BUILD_RELEASE_DIR) CFLAGS="$(RELEASE_CFLAGS)"
 
 all: build_debug build_release
+debug: build_debug
+release: build_release
 
 targets: $(TARGETS)
 
