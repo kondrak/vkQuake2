@@ -32,15 +32,14 @@ For extra challenge I decided to base vkQuake2 on the original id Software code.
 Unfortunately, Linux code for Quake 2 did not age well and for that reason only the Vulkan renderer is available for use at this time. Build steps assume that Ubuntu is the target distribution:
 - install required dependencies:
 `sudo apt install make gcc g++ mesa-common-dev libglu1-mesa-dev libxxf86dga-dev libxxf86vm-dev libasound2-dev libx11-dev libxcb1-dev`
-- install Vulkan SDK and make sure proper variables are set afterwards. Easiest way is to add a similar section to your `.bashrc` file:
+- install Vulkan SDK - the easiest way is to use LunarG [Ubuntu Packages](https://vulkan.lunarg.com/sdk/home#linux) - just follow instructions and there will be no additional steps required. If you decide to manually install the SDK, make sure proper environment variables are set afterwards - the easiest way is to add a section to your `.bashrc` file which would look similar to this:
 ```
 export VULKAN_SDK=/home/user/VulkanSDK/1.1.92.1/x86_64
 export PATH=$VULKAN_SDK/bin:$PATH
 export LD_LIBRARY_PATH=$VULKAN_SDK/lib:$LD_LIBRARY_PATH
 export VK_LAYER_PATH=$VULKAN_SDK/etc/explicit_layer.d
 ```
-- if you don't have Vulkan-compatible vendor drivers:
-`sudo apt install mesa-vulkan-drivers`
+- make sure your graphics drivers support Vulkan (run `vulkaninfo` to verify) - if not, you can geth them with `sudo apt install mesa-vulkan-drivers`
 - enter the `linux` subfolder and type `make release` - the output binaries will be placed in `releasex64` directory
 
 Running
