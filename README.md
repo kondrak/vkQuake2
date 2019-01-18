@@ -50,7 +50,7 @@ sudo apt install mesa-vulkan-drivers
 Running
 ===
 ## Windows
-The Visual Studio 2017 C++ Redistributable is required to run the application: [32 bit](https://go.microsoft.com/fwlink/?LinkId=746571) or [64 bit](https://go.microsoft.com/fwlink/?LinkId=746572) depending on the chosen flavor.
+The Visual Studio 2017 C++ Redistributable is required to run the application: [32 bit](https://go.microsoft.com/fwlink/?LinkId=746571) or [64 bit](https://go.microsoft.com/fwlink/?LinkId=746572) depending on the chosen flavor. These are provided automatically if you ahve Visual Studio installed.
 
 ## All platforms
 You'll need proper data files to run the game - the [release packages](https://github.com/kondrak/vkQuake2/releases) come with game data used in the demo version. For full experience, copy retail Quake 2 data paks (`pak0.pak`, `pak1.pak`, `pak2.pak`) into the `baseq2` folder and run the executable. The mission packs have not been tested but should work just as well.
