@@ -91,4 +91,4 @@ The Vulkan renderer comes with a set of its own additional console commands:
 
 Known Issues
 ===
-- some Intel UHD GPUs (most notably the 6XX series) may encounter crashes on startup due to faulty drivers - this has been confirmed by Intel to affect dual-GPU setups.
+Some Intel UHD GPUs (most notably the 6XX series) may encounter crashes on startup due to faulty drivers - this has been confirmed by Intel to affect dual-GPU setups.
