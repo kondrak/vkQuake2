@@ -25,6 +25,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #  define VK_USE_PLATFORM_WIN32_KHR
 #endif
 
+#ifdef __linux__
+#  define VK_USE_PLATFORM_XLIB_KHR
+#endif
+
 #include <stdio.h>
 
 #include <vulkan/vulkan.h>

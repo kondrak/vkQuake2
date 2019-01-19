@@ -2,6 +2,7 @@
 # Quake2 Makefile for Linux 2.0
 #
 # Nov '97 by Zoid <zoid@idsoftware.com>
+# Jan '19 by Krzysztof Kondrak <krzysztof.kondrak@gmail.com>
 #
 # ELF only
 #
@@ -35,6 +36,7 @@ CLIENT_DIR=$(MOUNT_DIR)/client
 SERVER_DIR=$(MOUNT_DIR)/server
 REF_SOFT_DIR=$(MOUNT_DIR)/ref_soft
 REF_GL_DIR=$(MOUNT_DIR)/ref_gl
+REF_VK_DIR=$(MOUNT_DIR)/ref_vk
 COMMON_DIR=$(MOUNT_DIR)/qcommon
 LINUX_DIR=$(MOUNT_DIR)/linux
 GAME_DIR=$(MOUNT_DIR)/game
@@ -58,7 +60,7 @@ RELEASE_CFLAGS=$(BASE_CFLAGS) -O6 -ffast-math -funroll-loops \
 	-fomit-frame-pointer -fexpensive-optimizations
 endif
 
-DEBUG_CFLAGS=$(BASE_CFLAGS) -g
+DEBUG_CFLAGS=$(BASE_CFLAGS) -g -D_DEBUG
 LDFLAGS=-ldl -lm -lasound
 SVGALDFLAGS=-lvga -lm
 XLDFLAGS=-L/usr/X11R6/lib -lX11 -lXext -lXxf86dga
@@ -66,7 +68,9 @@ XCFLAGS=
 
 GLLDFLAGS=-L/usr/X11R6/lib -L/usr/local/lib -L$(MESA_DIR)/lib -lX11 -lXext -lvga -lm
 GLXLDFLAGS=-L/usr/X11R6/lib -L/usr/local/lib -L$(MESA_DIR)/lib -lX11 -lXext -lXxf86dga -lXxf86vm -lm
+VKLDFLAGS=-L/usr/X11R6/lib -L$(VULKAN_SDK)/lib -lX11 -lXext -lXxf86dga -lXxf86vm -lm -lvulkan -lstdc++
 GLCFLAGS=-I$(MESA_DIR)/include -I/usr/include/glide
+VKCFLAGS=-I$(VULKAN_SDK)/include
 
 SHLIBEXT=so
 
@@ -83,6 +87,8 @@ DO_SHLIB_O_CC=$(CC) $(CFLAGS) -O $(SHLIBCFLAGS) -o $@ -c $<
 DO_SHLIB_DEBUG_CC=$(CC) $(DEBUG_CFLAGS) $(SHLIBCFLAGS) -o $@ -c $<
 DO_GL_SHLIB_CC=$(CC) $(CFLAGS) $(SHLIBCFLAGS) $(GLCFLAGS) -o $@ -c $<
 DO_GL_SHLIB_O_CC=$(CC) $(CFLAGS) -O $(SHLIBCFLAGS) $(GLCFLAGS) -o $@ -c $<
+DO_VK_SHLIB_CC=$(CC) $(CFLAGS) $(SHLIBCFLAGS) $(VKCFLAGS) -o $@ -c $<
+DO_VK_SHLIB_O_CC=$(CC) $(CFLAGS) -O $(SHLIBCFLAGS) $(VKCFLAGS) -o $@ -c $<
 DO_AS=$(CC) $(CFLAGS) -DELF -x assembler-with-cpp -o $@ -c $<
 DO_SHLIB_AS=$(CC) $(CFLAGS) $(SHLIBCFLAGS) -DELF -x assembler-with-cpp -o $@ -c $<
 
@@ -92,14 +98,15 @@ DO_SHLIB_AS=$(CC) $(CFLAGS) $(SHLIBCFLAGS) -DELF -x assembler-with-cpp -o $@ -c 
 
 ifeq ($(ARCH),axp)
 TARGETS=$(BUILDDIR)/q2ded \
-	$(BUILDDIR)/game$(ARCH).$(SHLIBEXT) \
+	$(BUILDDIR)/baseq2/game$(ARCH).$(SHLIBEXT) \
 	$(BUILDDIR)/ctf/game$(ARCH).$(SHLIBEXT) \
 #	$(BUILDDIR)/xatrix/game$(ARCH).$(SHLIBEXT) \
 #	$(BUILDDIR)/rogue/game$(ARCH).$(SHLIBEXT)
 else
 TARGETS=$(BUILDDIR)/quake2 \
-	$(BUILDDIR)/game$(ARCH).$(SHLIBEXT) \
+	$(BUILDDIR)/baseq2/game$(ARCH).$(SHLIBEXT) \
 	$(BUILDDIR)/ctf/game$(ARCH).$(SHLIBEXT) \
+	$(BUILDDIR)/ref_vk.$(SHLIBEXT) \
 	$(BUILDDIR)/ref_glx.$(SHLIBEXT) \
 #	$(BUILDDIR)/ref_soft.$(SHLIBEXT) \
 #	$(BUILDDIR)/ref_softx.$(SHLIBEXT) \
@@ -109,11 +116,13 @@ TARGETS=$(BUILDDIR)/quake2 \
 endif
 
 build_debug:
-	@-mkdir $(BUILD_DEBUG_DIR) \
+	@-mkdir -p $(BUILD_DEBUG_DIR) \
+		$(BUILD_DEBUG_DIR)/baseq2 \
 		$(BUILD_DEBUG_DIR)/client \
 		$(BUILD_DEBUG_DIR)/ded \
 		$(BUILD_DEBUG_DIR)/ref_soft \
 		$(BUILD_DEBUG_DIR)/ref_gl \
+		$(BUILD_DEBUG_DIR)/ref_vk \
 		$(BUILD_DEBUG_DIR)/game \
 		$(BUILD_DEBUG_DIR)/ctf \
 #		$(BUILD_DEBUG_DIR)/xatrix \
@@ -121,11 +130,13 @@ build_debug:
 	$(MAKE) targets BUILDDIR=$(BUILD_DEBUG_DIR) CFLAGS="$(DEBUG_CFLAGS)"
 
 build_release:
-	@-mkdir $(BUILD_RELEASE_DIR) \
+	@-mkdir -p $(BUILD_RELEASE_DIR) \
+		$(BUILD_RELEASE_DIR)/baseq2 \
 		$(BUILD_RELEASE_DIR)/client \
 		$(BUILD_RELEASE_DIR)/ded \
 		$(BUILD_RELEASE_DIR)/ref_soft \
 		$(BUILD_RELEASE_DIR)/ref_gl \
+		$(BUILD_RELEASE_DIR)/ref_vk \
 		$(BUILD_RELEASE_DIR)/game \
 		$(BUILD_RELEASE_DIR)/ctf \
 #		$(BUILD_RELEASE_DIR)/xatrix \
@@ -133,6 +144,8 @@ build_release:
 	$(MAKE) targets BUILDDIR=$(BUILD_RELEASE_DIR) CFLAGS="$(RELEASE_CFLAGS)"
 
 all: build_debug build_release
+debug: build_debug
+release: build_release
 
 targets: $(TARGETS)
 
@@ -507,7 +520,7 @@ GAME_OBJS = \
 	$(BUILDDIR)/game/p_weapon.o \
 	$(BUILDDIR)/game/m_flash.o
 
-$(BUILDDIR)/game$(ARCH).$(SHLIBEXT) : $(GAME_OBJS)
+$(BUILDDIR)/baseq2/game$(ARCH).$(SHLIBEXT) : $(GAME_OBJS)
 	$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(GAME_OBJS)
 
 $(BUILDDIR)/game/g_ai.o :        $(GAME_DIR)/g_ai.c
@@ -1490,6 +1503,108 @@ $(BUILDDIR)/ref_gl/glob.o :           $(LINUX_DIR)/glob.c
 	$(DO_GL_SHLIB_CC)
 
 #############################################################################
+# REF_VK
+#############################################################################
+
+REF_VK_OBJS = \
+	$(BUILDDIR)/ref_vk/vk_buffer.o \
+	$(BUILDDIR)/ref_vk/vk_cmd.o \
+	$(BUILDDIR)/ref_vk/vk_common.o \
+	$(BUILDDIR)/ref_vk/vk_device.o \
+	$(BUILDDIR)/ref_vk/vk_draw.o \
+	$(BUILDDIR)/ref_vk/vk_image.o \
+	$(BUILDDIR)/ref_vk/vk_imp.o \
+	$(BUILDDIR)/ref_vk/vk_light.o \
+	$(BUILDDIR)/ref_vk/vk_mem_alloc.o \
+	$(BUILDDIR)/ref_vk/vk_mesh.o \
+	$(BUILDDIR)/ref_vk/vk_model.o \
+	$(BUILDDIR)/ref_vk/vk_pipeline.o \
+	$(BUILDDIR)/ref_vk/vk_renderpass.o \
+	$(BUILDDIR)/ref_vk/vk_rmain.o \
+	$(BUILDDIR)/ref_vk/vk_rmisc.o \
+	$(BUILDDIR)/ref_vk/vk_rsurf.o \
+	$(BUILDDIR)/ref_vk/vk_shaders.o \
+	$(BUILDDIR)/ref_vk/vk_swapchain.o \
+	$(BUILDDIR)/ref_vk/vk_validation.o \
+	$(BUILDDIR)/ref_vk/vk_warp.o \
+	\
+	$(BUILDDIR)/ref_vk/q_shared.o \
+	$(BUILDDIR)/ref_vk/q_shlinux.o \
+	$(BUILDDIR)/ref_vk/glob.o
+
+$(BUILDDIR)/ref_vk.$(SHLIBEXT) : $(REF_VK_OBJS)
+	$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(REF_VK_OBJS) $(VKLDFLAGS)
+
+$(BUILDDIR)/ref_vk/vk_buffer.o :        $(REF_VK_DIR)/vk_buffer.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_cmd.o :       $(REF_VK_DIR)/vk_cmd.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_common.o :      $(REF_VK_DIR)/vk_common.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_device.o :       $(REF_VK_DIR)/vk_device.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_draw.o :        $(REF_VK_DIR)/vk_draw.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_image.o :       $(REF_VK_DIR)/vk_image.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_light.o :       $(REF_VK_DIR)/vk_light.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_mem_alloc.o :       $(REF_VK_DIR)/vk_mem_alloc.cpp
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_mesh.o :       $(REF_VK_DIR)/vk_mesh.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_model.o :        $(REF_VK_DIR)/vk_model.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_pipeline.o :        $(REF_VK_DIR)/vk_pipeline.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_renderpass.o :        $(REF_VK_DIR)/vk_renderpass.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_rmain.o :        $(REF_VK_DIR)/vk_rmain.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_rmisc.o :        $(REF_VK_DIR)/vk_rmisc.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_rsurf.o :        $(REF_VK_DIR)/vk_rsurf.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_shaders.o :        $(REF_VK_DIR)/vk_shaders.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_swapchain.o :        $(REF_VK_DIR)/vk_swapchain.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_validation.o :        $(REF_VK_DIR)/vk_validation.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/vk_warp.o :        $(REF_VK_DIR)/vk_warp.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/q_shared.o :       $(GAME_DIR)/q_shared.c
+	$(DO_SHLIB_DEBUG_CC)
+
+$(BUILDDIR)/ref_vk/q_shlinux.o :      $(LINUX_DIR)/q_shlinux.c
+	$(DO_VK_SHLIB_O_CC)
+
+$(BUILDDIR)/ref_vk/vk_imp.o :       $(LINUX_DIR)/vk_imp.c
+	$(DO_VK_SHLIB_CC)
+
+$(BUILDDIR)/ref_vk/glob.o :           $(LINUX_DIR)/glob.c
+	$(DO_VK_SHLIB_CC)
+
+#############################################################################
 # RPM
 #############################################################################
 
@@ -1588,6 +1703,7 @@ rpm-quake2: quake2.spec
 	cp $(BUILD_RELEASE_DIR)/ref_softx.$(SHLIBEXT) $(QUAKE2INSTDIR)
 	cp $(BUILD_RELEASE_DIR)/ref_gl.$(SHLIBEXT) $(QUAKE2INSTDIR)
 	cp $(BUILD_RELEASE_DIR)/ref_glx.$(SHLIBEXT) $(QUAKE2INSTDIR)
+	cp $(BUILD_RELEASE_DIR)/ref_vk.$(SHLIBEXT) $(QUAKE2INSTDIR)
 	-mkdir $(QUAKE2INSTDIR)/ctf
 	chmod 1777 $(QUAKE2INSTDIR)/ctf
 	cp $(BUILD_RELEASE_DIR)/ctf/game$(ARCH).$(SHLIBEXT) $(QUAKE2INSTDIR)/ctf
@@ -1905,6 +2021,7 @@ copyfiles:
 	cp $(BUILD_RELEASE_DIR)/ref_softx.$(SHLIBEXT) $(COPYDIR)
 	cp $(BUILD_RELEASE_DIR)/ref_gl.$(SHLIBEXT) $(COPYDIR)
 	cp $(BUILD_RELEASE_DIR)/ref_glx.$(SHLIBEXT) $(COPYDIR)
+	cp $(BUILD_RELEASE_DIR)/ref_vk.$(SHLIBEXT) $(COPYDIR)
 #	-mkdir $(COPYDIR)/ctf
 #	chmod 1777 $(COPYDIR)/ctf
 #	cp $(BUILD_RELEASE_DIR)/ctf/game$(ARCH).$(SHLIBEXT) $(COPYDIR)/ctf
@@ -1980,4 +2097,5 @@ clean2:
 	$(REF_SOFT_X11_OBJS) \
 	$(REF_GL_OBJS) \
 	$(REF_GL_FXMESA_OBJS) \
-	$(REF_GL_GLX_OBJS) 
+	$(REF_GL_GLX_OBJS) \
+	$(REF_VK_OBJS)

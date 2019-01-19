@@ -18,21 +18,18 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
+#ifndef __linux__
+#error You shouldnt be including this file on non-Linux platforms
+#endif
 
+#ifndef __VK_LINUX_H__
+#define __VK_LINUX_H__
 
-typedef void (*Key_Event_fp_t)(int key, qboolean down);
-typedef void (*Quit_fp_t)(void);
+typedef struct
+{
+	FILE *log_fp;
+} vkwstate_t;
 
-extern void (*KBD_Update_fp)(void);
-extern void (*KBD_Init_fp)(Key_Event_fp_t fp);
-extern void (*KBD_Close_fp)(void);
+extern vkwstate_t vkw_state;
 
-typedef struct in_state {
-	// Pointers to functions back in client, set by vid_so
-	void (*IN_CenterView_fp)(void);
-	Key_Event_fp_t Key_Event_fp;
-	Quit_fp_t Quit_fp;
-	vec_t *viewangles;
-	int *in_strafe_state;
-} in_state_t;
-
+#endif

@@ -15,21 +15,45 @@ This is the official Quake 2 code v3.21 with additional Vulkan renderer. The goa
 - HUD elements, menus and console text are now scaled accordingly on higher screen resolutions (can be overridden with `hudscale` console command)
 - warped texture effect (lava, water, slime) is now properly drawn (though only with Vulkan and software renderer!)
 - software renderer has been completely replaced with [KolorSoft 1.1](https://github.com/qbism/Quake2-colored-refsoft) - this adds colored lighting and fixes severe instabilities of the original renderer
-- on first launch, the game attempts to use Vulkan at 1920x1080 resolution by default and reverts to software renderer on failure
+- on first launch, the game attempts to use Vulkan at 1920x1080 resolution by default
+- on Linux, sound is now handled by ALSA instead of OSS
 
 Building
 ===
+For extra challenge I decided to base vkQuake2 on the original id Software code. Because of this, there are no dependencies on external SDL-like libraries and the entire project is mostly self-contained. This also implies that some of the original bugs could be present - those may be fixed in upcoming releases.
+
+## Windows
 - download and install [Vulkan SDK](https://vulkan.lunarg.com/) - make sure that the `VULKAN_SDK` environment variable is set afterwards
 - install [Visual Studio Community](https://www.visualstudio.com/products/free-developer-offers-vs) with the MFC package
-- install Windows Universal CRT SDK and Windows SDK 8.1 or alternatively the latest Windows 10 SDK (this will require retargetting the solution)
+- install Windows Universal CRT SDK and Windows SDK 8.1 or just the latest Windows 10 SDK (the latter will require retargetting the solution)
+- open `quake2.sln` and choose the target platform (32/64bit) - it should build with no additional steps required
 
-With this setup, the game should build out of the box with no additional dependencies.
+## Linux
+Unfortunately, Linux code for Quake 2 has not aged well and for that reason only the Vulkan renderer is available for use at this time. Build steps assume that Ubuntu is the target distribution:
+- install required dependencies:
+```
+sudo apt install make gcc g++ mesa-common-dev libglu1-mesa-dev libxxf86dga-dev libxxf86vm-dev libasound2-dev libx11-dev libxcb1-dev
+```
+- install [Vulkan SDK](https://vulkan.lunarg.com/) - the easiest way is to use [LunarG Ubuntu Packages](https://vulkan.lunarg.com/sdk/home#linux) - just follow instructions and there will be no additional steps required. If you decide to manually install the SDK, make sure proper environment variables are set afterwards - the easiest way is to add a section to your `.bashrc` file which may look similar to this:
+```
+export VULKAN_SDK=/home/user/VulkanSDK/1.1.92.1/x86_64
+export PATH=$VULKAN_SDK/bin:$PATH
+export LD_LIBRARY_PATH=$VULKAN_SDK/lib:$LD_LIBRARY_PATH
+export VK_LAYER_PATH=$VULKAN_SDK/etc/explicit_layer.d
+```
+- make sure your graphics drivers support Vulkan (run `vulkaninfo` to verify) - if not, you can get them with:
+```
+sudo apt install mesa-vulkan-drivers
+```
+- in the main repository, enter the `linux` subfolder and type `make release` or `make debug` depending on which variant you want to build - the output binaries will be placed in `releasex64` and `debugx64` directories respectively
 
 Running
 ===
-The Visual Studio 2017 C++ Redistributable is required to run the application: [32 bit](https://go.microsoft.com/fwlink/?LinkId=746571) or [64 bit](https://go.microsoft.com/fwlink/?LinkId=746572) depending on your platform choice.
+## Windows
+The Visual Studio 2017 C++ Redistributable is required to run the application: [32 bit](https://go.microsoft.com/fwlink/?LinkId=746571) or [64 bit](https://go.microsoft.com/fwlink/?LinkId=746572) depending on the chosen flavor. These are provided automatically if you have Visual Studio 2017 installed.
 
-The release package comes with game data used in the demo version - for full experience, copy all retail Quake 2 data paks (`pak0.pak`, `pak1.pak`, `pak2.pak`) into the `baseq2` folder and run the executable. The mission packs have not been tested but should work just as well.
+## All platforms
+You'll need proper data files to run the game - the [release packages](https://github.com/kondrak/vkQuake2/releases) come with game data used in the demo version. For full experience, copy retail Quake 2 data paks (`pak0.pak`, `pak1.pak`, `pak2.pak`) into the `baseq2` folder and run the executable. The mission packs have not been tested but should work just as well.
 
 Console commands
 ===
@@ -67,11 +91,4 @@ The Vulkan renderer comes with a set of its own additional console commands:
 
 Known Issues
 ===
-- some Intel UHD GPUs (most notably the 6XX series) may encounter crashes on startup due to faulty drivers
-
-TODO
-===
-- implement water warp effect
-- add music
-- use push constants
-- Linux and MacOS versions
+Some Intel UHD GPUs (most notably the 6XX series) may encounter crashes on startup due to faulty drivers - this has been confirmed by Intel to affect dual-GPU setups.

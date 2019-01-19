@@ -1,5 +1,6 @@
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
+Copyright (C) 2018-2019 Krzysztof Kondrak
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -49,8 +50,6 @@ void		*reflib_library;		// Handle to refresh DLL
 qboolean	reflib_active = 0;
 
 #define VID_NUM_MODES ( sizeof( vid_modes ) / sizeof( vid_modes[0] ) )
-
-const char so_file[] = "/etc/quake2.conf";
 
 /** KEYBOARD **************************************************************/
 
@@ -219,9 +218,9 @@ qboolean VID_LoadRefresh( char *name )
 	refimport_t	ri;
 	GetRefAPI_t	GetRefAPI;
 	char	fn[MAX_OSPATH];
+	char    so_path[MAX_OSPATH];
 	struct stat st;
 	extern uid_t saved_euid;
-	FILE *fp;
 	
 	if ( reflib_active )
 	{
@@ -237,50 +236,23 @@ qboolean VID_LoadRefresh( char *name )
 
 	Com_Printf( "------- Loading %s -------\n", name );
 
-	//regain root
-	seteuid(saved_euid);
+	// locate executable location so we don't need the silly /etc/quake2.conf file
+	snprintf(fn, sizeof(fn), "/proc/%d/exe", getpid());
+	int l = readlink(fn, so_path, MAX_OSPATH-1);
+	so_path[l <= 0 ? 0 : l] = '\0';
+	char *s = strrchr(so_path, '/');
+	// cut off binary from path
+	s[1] = '\0';
 
-	if ((fp = fopen(so_file, "r")) == NULL) {
-		Com_Printf( "LoadLibrary(\"%s\") failed: can't open %s (required for location of ref libraries)\n", name, so_file);
-		return false;
-	}
-	fgets(fn, sizeof(fn), fp);
-	fclose(fp);
-	while (*fn && isspace(fn[strlen(fn) - 1]))
-		fn[strlen(fn) - 1] = 0;
+	strcat(so_path, name);
 
-	strcat(fn, "/");
-	strcat(fn, name);
-
-	// permission checking
-	if (strstr(fn, "softx") == NULL) { // softx doesn't require root
-		if (stat(fn, &st) == -1) {
-			Com_Printf( "LoadLibrary(\"%s\") failed: %s\n", name, strerror(errno));
-			return false;
-		}
-#if 0
-		if (st.st_uid != 0) {
-			Com_Printf( "LoadLibrary(\"%s\") failed: ref is not owned by root\n", name);
-			return false;
-		}
-		if ((st.st_mode & 0777) & ~0700) {
-			Com_Printf( "LoadLibrary(\"%s\") failed: invalid permissions, must be 700 for security considerations\n", name);
-			return false;
-		}
-#endif
-	} else {
-		// softx requires we give up root now
-		setreuid(getuid(), getuid());
-		setegid(getgid());
-	}
-
-	if ( ( reflib_library = dlopen( fn, RTLD_LAZY | RTLD_GLOBAL ) ) == 0 )
+	if ( ( reflib_library = dlopen( so_path, RTLD_LAZY | RTLD_GLOBAL ) ) == 0 )
 	{
 		Com_Printf( "LoadLibrary(\"%s\") failed: %s\n", name , dlerror());
 		return false;
 	}
 
-  Com_Printf( "LoadLibrary(\"%s\")\n", fn );
+  Com_Printf( "LoadLibrary(\"%s\")\n", so_path );
 
 	ri.Cmd_AddCommand = Cmd_AddCommand;
 	ri.Cmd_RemoveCommand = Cmd_RemoveCommand;
@@ -313,6 +285,7 @@ qboolean VID_LoadRefresh( char *name )
 	/* Init IN (Mouse) */
 	in_state.IN_CenterView_fp = IN_CenterView;
 	in_state.Key_Event_fp = Do_Key_Event;
+	in_state.Quit_fp = CL_Quit_f;
 	in_state.viewangles = cl.viewangles;
 	in_state.in_strafe_state = &in_strafe.state;
 
@@ -326,7 +299,7 @@ qboolean VID_LoadRefresh( char *name )
 
 	Real_IN_Init();
 
-	if ( re.Init( 0, 0 ) == -1 )
+	if ( !re.Init( 0, 0 ) )
 	{
 		re.Shutdown();
 		VID_FreeReflib ();
@@ -351,10 +324,7 @@ qboolean VID_LoadRefresh( char *name )
 	}
 #endif
 	KBD_Init_fp(Do_Key_Event);
-
-	// give up root now
-	setreuid(getuid(), getuid());
-	setegid(getgid());
+	Key_ClearStates();
 
 	Com_Printf( "------------------------------------\n");
 	reflib_active = true;
@@ -385,6 +355,18 @@ void VID_CheckChanges (void)
 		/*
 		** refresh has changed
 		*/
+
+		// only allow Vulkan on Linux
+		if(strcmp("vk", vid_ref->string))
+		{
+			Cvar_Set("vid_ref", "vk");
+			vid_ref->modified = false;
+			Com_Printf("Only Vulkan renderer is supported on Linux.\n");
+			// don't restart the renderer if it's already loaded
+			if(reflib_active)
+				break;
+		}
+
 		vid_ref->modified = false;
 		vid_fullscreen->modified = true;
 		cl.refresh_prepped = false;
@@ -428,12 +410,7 @@ VID_Init
 */
 void VID_Init (void)
 {
-	/* Create the video variables so we know how to start the graphics drivers */
-	// if DISPLAY is defined, try X
-	if (getenv("DISPLAY"))
-		vid_ref = Cvar_Get ("vid_ref", "softx", CVAR_ARCHIVE);
-	else
-		vid_ref = Cvar_Get ("vid_ref", "soft", CVAR_ARCHIVE);
+	vid_ref = Cvar_Get ("vid_ref", "vk", CVAR_ARCHIVE);
 	vid_xpos = Cvar_Get ("vid_xpos", "3", CVAR_ARCHIVE);
 	vid_ypos = Cvar_Get ("vid_ypos", "22", CVAR_ARCHIVE);
 	vid_fullscreen = Cvar_Get ("vid_fullscreen", "0", CVAR_ARCHIVE);

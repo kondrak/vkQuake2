@@ -754,6 +754,16 @@ void Key_Event (int key, qboolean down, unsigned time)
 		return;
 	}
 
+	keydown[key] = down;
+	// ALT+ENTER fullscreen toggle
+	if (down && keydown[K_ALT] && key == K_ENTER)
+	{
+		extern cvar_t *vid_fullscreen;
+		Cvar_Set("vid_fullscreen", vid_fullscreen->value ? "0" : "1");
+		vid_fullscreen->modified = true;
+		return;
+	}
+
 	// update auto-repeat status
 	if (down)
 	{
@@ -821,8 +831,6 @@ void Key_Event (int key, qboolean down, unsigned time)
 		return;
 	}
 
-	// track if any key is down for BUTTON_ANY
-	keydown[key] = down;
 	if (down)
 	{
 		if (key_repeats[key] == 1)

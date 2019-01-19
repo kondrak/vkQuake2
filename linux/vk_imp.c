@@ -19,16 +19,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 /*
-** GLW_IMP.C
+** VK_IMP.C
 **
 ** This file contains ALL Linux specific stuff having to do with the
-** OpenGL refresh.  When a port is being made the following functions
+** Vulkan refresh.  When a port is being made the following functions
 ** must be implemented by the port:
 **
-** GLimp_EndFrame
-** GLimp_Init
-** GLimp_Shutdown
-** GLimp_SwitchFullscreen
+** Vkimp_EndFrame
+** Vkimp_Init
+** Vkimp_Shutdown
+** Vkimp_SwitchFullscreen
 **
 */
 
@@ -41,29 +41,27 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <signal.h>
 #include <unistd.h>
 
-#include "../ref_gl/gl_local.h"
+#include "../ref_vk/vk_local.h"
 
 #include "../client/keys.h"
 
 #include "../linux/rw_linux.h"
-#include "../linux/glw_linux.h"
-
-#include <GL/glx.h>
+#include "../linux/vk_linux.h"
 
 #include <X11/Xatom.h>
 #include <X11/keysym.h>
 #include <X11/cursorfont.h>
+#include <X11/Xutil.h>
 
 #include <X11/extensions/Xxf86dga.h>
 #include <X11/extensions/xf86vmode.h>
 
-glwstate_t glw_state;
+vkwstate_t vkw_state;
 
 static Display *dpy = NULL;
 static int scrnum;
 static Window win;
 static Atom winDeleteAtom;
-static GLXContext ctx = NULL;
 
 #define KEY_MASK (KeyPressMask | KeyReleaseMask)
 #define MOUSE_MASK (ButtonPressMask | ButtonReleaseMask | \
@@ -170,8 +168,6 @@ static void install_grabs(void)
 				  CurrentTime);
 
 	mouse_active = true;
-
-//	XSync(dpy, True);
 }
 
 static void uninstall_grabs(void)
@@ -218,8 +214,8 @@ void RW_IN_Init(in_state_t *in_state_p)
 
 	// mouse variables
 	m_filter = ri.Cvar_Get ("m_filter", "0", 0);
-    in_mouse = ri.Cvar_Get ("in_mouse", "1", CVAR_ARCHIVE);
-    in_dgamouse = ri.Cvar_Get ("in_dgamouse", "1", CVAR_ARCHIVE);
+	in_mouse = ri.Cvar_Get ("in_mouse", "1", CVAR_ARCHIVE);
+	in_dgamouse = ri.Cvar_Get ("in_dgamouse", "1", CVAR_ARCHIVE);
 	freelook = ri.Cvar_Get( "freelook", "0", 0 );
 	lookstrafe = ri.Cvar_Get ("lookstrafe", "0", 0);
 	sensitivity = ri.Cvar_Get ("sensitivity", "3", 0);
@@ -260,7 +256,7 @@ void RW_IN_Move (usercmd_t *cmd)
 {
 	if (!mouse_avail)
 		return;
-   
+
 	if (m_filter->value)
 	{
 		mx = (mx + old_mouse_x) * 0.5;
@@ -576,13 +572,12 @@ void KBD_Close(void)
 
 /*****************************************************************************/
 
-static qboolean GLimp_SwitchFullscreen( int width, int height );
-qboolean GLimp_InitGL (void);
+static qboolean Vkimp_SwitchFullscreen( int width, int height );
 
 static void signal_handler(int sig)
 {
 	printf("Received signal %d, exiting...\n", sig);
-	GLimp_Shutdown();
+	Vkimp_Shutdown();
 	_exit(0);
 }
 
@@ -600,22 +595,12 @@ static void InitSig(void)
 }
 
 /*
-** GLimp_SetMode
+** Vkimp_SetMode
 */
-int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
+int Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 {
 	int width, height;
-	int attrib[] = {
-		GLX_RGBA,
-		GLX_RED_SIZE, 1,
-		GLX_GREEN_SIZE, 1,
-		GLX_BLUE_SIZE, 1,
-		GLX_DOUBLEBUFFER,
-		GLX_DEPTH_SIZE, 1,
-		None
-	};
 	Window root;
-	XVisualInfo *visinfo;
 	XSetWindowAttributes attr;
 	unsigned long mask;
 	int MajorVersion, MinorVersion;
@@ -624,7 +609,7 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 
 	r_fakeFullscreen = ri.Cvar_Get( "r_fakeFullscreen", "0", CVAR_ARCHIVE);
 
-	ri.Con_Printf( PRINT_ALL, "Initializing OpenGL display\n");
+	ri.Con_Printf( PRINT_ALL, "Initializing Vulkan display\n");
 
 	if (fullscreen)
 		ri.Con_Printf (PRINT_ALL, "...setting fullscreen mode %d:", mode );
@@ -640,7 +625,7 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 	ri.Con_Printf( PRINT_ALL, " %d %d\n", width, height );
 
 	// destroy the existing window
-	GLimp_Shutdown ();
+	Vkimp_Shutdown ();
 
 	// Mesa VooDoo hacks
 	if (fullscreen)
@@ -664,12 +649,6 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 		ri.Con_Printf(PRINT_ALL, "Using XFree86-VidModeExtension Version %d.%d\n",
 			MajorVersion, MinorVersion);
 		vidmode_ext = true;
-	}
-
-	visinfo = qglXChooseVisual(dpy, scrnum, attrib);
-	if (!visinfo) {
-		fprintf(stderr, "Error couldn't get an RGB, Double-buffered, Depth visual\n");
-		return rserr_invalid_mode;
 	}
 
 	if (vidmode_ext) {
@@ -722,7 +701,7 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 	memset(&attr, 0, sizeof(attr));
 	attr.background_pixel = 0;
 	attr.border_pixel = 0;
-	attr.colormap = XCreateColormap(dpy, root, visinfo->visual, AllocNone);
+	attr.colormap = XCreateColormap(dpy, root, DefaultVisual(dpy, scrnum), AllocNone);
 	attr.event_mask = X_MASK;
 	if (vidmode_active) {
 		mask = CWBackPixel | CWColormap | CWSaveUnder | CWBackingStore | CWEventMask;// | CWOverrideRedirect;
@@ -733,10 +712,10 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 		mask = CWBackPixel | CWBorderPixel | CWColormap | CWEventMask;
 
 	win = XCreateWindow(dpy, root, 0, 0, width, height,
-						0, visinfo->depth, InputOutput,
-						visinfo->visual, mask, &attr);
+						0, DefaultDepth(dpy, scrnum), InputOutput,
+						DefaultVisual(dpy, scrnum), mask, &attr);
 	XMapWindow(dpy, win);
-	XStoreName(dpy, win, "Quake 2 (OpenGL) "CPUSTRING);
+	XStoreName(dpy, win, "Quake 2 (Vulkan) "CPUSTRING);
 
 	XSizeHints *hints = XAllocSizeHints();
 	hints->flags=PMinSize;
@@ -781,58 +760,77 @@ int GLimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 
 	XFlush(dpy);
 
-	ctx = qglXCreateContext(dpy, visinfo, NULL, True);
-
-	qglXMakeCurrent(dpy, win, ctx);
-
 	*pwidth = width;
 	*pheight = height;
 
 	// let the sound and input subsystems know about the new window
 	ri.Vid_NewWindow (width, height);
 
-	qglXMakeCurrent(dpy, win, ctx);
-
 	return rserr_ok;
 }
 
+void Vkimp_GetSurfaceExtensions(char **extensions, uint32_t *extCount)
+{
+	if (extensions)
+	{
+		extensions[0] = VK_KHR_SURFACE_EXTENSION_NAME;
+		extensions[1] = VK_KHR_XLIB_SURFACE_EXTENSION_NAME;
+	}
+
+	if (extCount)
+		*extCount = 2;
+}
+
+VkResult Vkimp_CreateSurface()
+{
+	VkXlibSurfaceCreateInfoKHR surfaceCreateInfo = {
+		.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR,
+		.pNext = NULL,
+		.flags = 0,
+		.dpy = dpy,
+		.window = win,
+	};
+
+	return vkCreateXlibSurfaceKHR(vk_instance, &surfaceCreateInfo, NULL, &vk_surface);
+}
+
 /*
-** GLimp_Shutdown
+** Vkimp_Shutdown
 **
-** This routine does all OS specific shutdown procedures for the OpenGL
-** subsystem.  Under OpenGL this means NULLing out the current DC and
-** HGLRC, deleting the rendering context, and releasing the DC acquired
-** for the window.  The state structure is also nulled out.
+** This routine does all OS specific shutdown procedures for the Vulkan
+** subsystem.
 **
 */
-void GLimp_Shutdown( void )
+void Vkimp_Shutdown( void )
 {
 	uninstall_grabs();
 	mouse_active = false;
 	dgamouse = false;
 
+	if (vkw_state.log_fp)
+	{
+		fclose(vkw_state.log_fp);
+		vkw_state.log_fp = 0;
+	}
+
 	if (dpy) {
-		if (ctx)
-			qglXDestroyContext(dpy, ctx);
 		if (win)
 			XDestroyWindow(dpy, win);
 		if (vidmode_active)
 			XF86VidModeSwitchToMode(dpy, scrnum, vidmodes[0]);
 		XCloseDisplay(dpy);
 	}
-	ctx = NULL;
 	dpy = NULL;
 	win = 0;
-	ctx = NULL;
 }
 
 /*
-** GLimp_Init
+** Vkimp_Init
 **
 ** This routine is responsible for initializing the OS specific portions
-** of OpenGL.  
+** of Vulkan.
 */
-int GLimp_Init( void *hinstance, void *wndproc )
+int Vkimp_Init( void *hinstance, void *wndproc )
 {
 	InitSig();
 
@@ -840,52 +838,29 @@ int GLimp_Init( void *hinstance, void *wndproc )
 }
 
 /*
-** GLimp_BeginFrame
+** Vkimp_BeginFrame
 */
-void GLimp_BeginFrame( float camera_seperation )
+void Vkimp_BeginFrame( float camera_seperation )
 {
 }
 
 /*
-** GLimp_EndFrame
+** Vkimp_EndFrame
 ** 
 ** Responsible for doing a swapbuffers and possibly for other stuff
-** as yet to be determined.  Probably better not to make this a GLimp
-** function and instead do a call to GLimp_SwapBuffers.
+** as yet to be determined.  Probably better not to make this a Vkimp
+** function and instead do a call to Vkimp_SwapBuffers.
 */
-void GLimp_EndFrame (void)
+void Vkimp_EndFrame (void)
 {
-  if(qglFlush)
-    {
-	qglFlush();
-	qglXSwapBuffers(dpy, win);
-    }
 }
 
 /*
-** GLimp_AppActivate
+** Vkimp_AppActivate
 */
-void GLimp_AppActivate( qboolean active )
+void Vkimp_AppActivate( qboolean active )
 {
 }
-
-void Fake_glColorTableEXT( GLenum target, GLenum internalformat,
-                             GLsizei width, GLenum format, GLenum type,
-                             const GLvoid *table )
-{
-	byte temptable[256][4];
-	byte *intbl;
-	int i;
-
-	for (intbl = (byte *)table, i = 0; i < 256; i++) {
-		temptable[i][2] = *intbl++;
-		temptable[i][1] = *intbl++;
-		temptable[i][0] = *intbl++;
-		temptable[i][3] = 255;
-	}
-	qgl3DfxSetPaletteEXT((GLuint *)temptable);
-}
-
 
 /*------------------------------------------------*/
 /* X11 Input Stuff

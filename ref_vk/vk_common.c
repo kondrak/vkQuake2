@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 /*
-** QVK_WIN.C
+** VK_COMMON.C
 **
 ** This file implements the operating system binding of Vk to QVk function
 ** pointers.  When doing a port of Quake2 you must implement the following
@@ -30,7 +30,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 #include <float.h>
 #include "../ref_vk/vk_local.h"
-#include "vk_win.h"
+#ifdef _WIN32
+#include "../win32/vk_win.h"
+#endif
+#ifdef __linux__
+#include "../linux/vk_linux.h"
+#endif
 
 FILE *vk_logfp = NULL;
 
@@ -812,6 +817,7 @@ void QVk_Shutdown( void )
 		{
 			vkDestroySwapchainKHR(vk_device.logical, vk_swapchain.sc, NULL);
 			free(vk_swapchain.images);
+			vk_swapchain.sc = VK_NULL_HANDLE;
 			vk_swapchain.images = NULL;
 			vk_swapchain.imageCount = 0;
 		}
@@ -898,7 +904,7 @@ qboolean QVk_Init()
 		.enabledLayerCount = 0,
 		.ppEnabledLayerNames = NULL,
 		.enabledExtensionCount = extCount,
-		.ppEnabledExtensionNames = wantedExtensions
+		.ppEnabledExtensionNames = (const char* const*)wantedExtensions
 	};
 
 	const char *validationLayers[] = { "VK_LAYER_LUNARG_standard_validation" };
@@ -1093,12 +1099,12 @@ qboolean QVk_Init()
 	if (msaaMode != VK_SAMPLE_COUNT_1_BIT)
 	{
 		vk_activeRenderpass  = vk_renderpasses[RT_MSAA];
-		vk_activeFramebuffer = vk_framebuffers[RT_MSAA];
+		vk_activeFramebuffer = *vk_framebuffers[RT_MSAA];
 	}
 	else
 	{
 		vk_activeRenderpass  = vk_renderpasses[RT_STANDARD];
-		vk_activeFramebuffer = vk_framebuffers[RT_STANDARD];
+		vk_activeFramebuffer = *vk_framebuffers[RT_STANDARD];
 	}
 	vk_activeCmdbuffer = vk_commandbuffers[vk_activeBufferIdx];
 
@@ -1446,6 +1452,3 @@ void Vkimp_LogNewFrame( void )
 {
 	fprintf( vkw_state.log_fp, "*** R_BeginFrame ***\n" );
 }
-
-#pragma warning (default : 4113 4133 4047 )
-
