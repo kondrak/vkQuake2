@@ -20,6 +20,7 @@
 		E2D6969621F640B6009AF955 /* ref.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D6969421F640B6009AF955 /* ref.h */; };
 		E2D6969721F640B6009AF955 /* qmenu.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D6969521F640B6009AF955 /* qmenu.h */; };
 		E2D6969A21F64AE1009AF955 /* vk_macos.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D6969921F64AE1009AF955 /* vk_macos.h */; };
+		E2D6969E21F64DB6009AF955 /* libvulkan.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E2D6969D21F64DB6009AF955 /* libvulkan.1.dylib */; };
 		E2ED826F21F628D10009C478 /* vk_model.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED825C21F628D10009C478 /* vk_model.c */; };
 		E2ED827021F628D10009C478 /* vk_device.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED825D21F628D10009C478 /* vk_device.c */; };
 		E2ED827121F628D10009C478 /* vk_cmd.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED825E21F628D10009C478 /* vk_cmd.c */; };
@@ -57,6 +58,7 @@
 		E2D6969421F640B6009AF955 /* ref.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ref.h; path = ../../client/ref.h; sourceTree = "<group>"; };
 		E2D6969521F640B6009AF955 /* qmenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = qmenu.h; path = ../../client/qmenu.h; sourceTree = "<group>"; };
 		E2D6969921F64AE1009AF955 /* vk_macos.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vk_macos.h; path = ../../macos/vk_macos.h; sourceTree = "<group>"; };
+		E2D6969D21F64DB6009AF955 /* libvulkan.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libvulkan.1.dylib; path = ../../../VulkanSDK/1.1.82.1/macOS/lib/libvulkan.1.dylib; sourceTree = "<group>"; };
 		E2ED825C21F628D10009C478 /* vk_model.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vk_model.c; path = ../vk_model.c; sourceTree = "<group>"; };
 		E2ED825D21F628D10009C478 /* vk_device.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vk_device.c; path = ../vk_device.c; sourceTree = "<group>"; };
 		E2ED825E21F628D10009C478 /* vk_cmd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vk_cmd.c; path = ../vk_cmd.c; sourceTree = "<group>"; };
@@ -84,6 +86,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E2D6969E21F64DB6009AF955 /* libvulkan.1.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -96,6 +99,7 @@
 				E2D6967F21F63FFA009AF955 /* Headers */,
 				E2ED824221F626A60009C478 /* Sources */,
 				E295536E21F6264C00336DD3 /* Products */,
+				E2D6969C21F64DB6009AF955 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -125,6 +129,14 @@
 				E2D6968221F64044009AF955 /* vk_shaders.h */,
 			);
 			name = Headers;
+			sourceTree = "<group>";
+		};
+		E2D6969C21F64DB6009AF955 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				E2D6969D21F64DB6009AF955 /* libvulkan.1.dylib */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 		E2ED824221F626A60009C478 /* Sources */ = {
@@ -187,6 +199,7 @@
 				E295536921F6264C00336DD3 /* Headers */,
 				E295536A21F6264C00336DD3 /* Sources */,
 				E295536B21F6264C00336DD3 /* Frameworks */,
+				E2D6969B21F64D70009AF955 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -227,6 +240,26 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		E2D6969B21F64D70009AF955 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cp $VULKAN_SDK/macOS/lib/libvulkan.1.dylib ./\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		E295536A21F6264C00336DD3 /* Sources */ = {
