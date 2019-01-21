@@ -36,6 +36,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifdef __linux__
 #include "../linux/vk_linux.h"
 #endif
+#ifdef __APPLE__
+#include "../macos/vk_macos.h"
+#endif
 
 FILE *vk_logfp = NULL;
 

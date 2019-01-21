@@ -19,6 +19,7 @@
 		E2D6969321F64086009AF955 /* qfiles.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D6969121F64086009AF955 /* qfiles.h */; };
 		E2D6969621F640B6009AF955 /* ref.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D6969421F640B6009AF955 /* ref.h */; };
 		E2D6969721F640B6009AF955 /* qmenu.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D6969521F640B6009AF955 /* qmenu.h */; };
+		E2D6969A21F64AE1009AF955 /* vk_macos.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D6969921F64AE1009AF955 /* vk_macos.h */; };
 		E2ED826F21F628D10009C478 /* vk_model.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED825C21F628D10009C478 /* vk_model.c */; };
 		E2ED827021F628D10009C478 /* vk_device.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED825D21F628D10009C478 /* vk_device.c */; };
 		E2ED827121F628D10009C478 /* vk_cmd.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED825E21F628D10009C478 /* vk_cmd.c */; };
@@ -55,6 +56,7 @@
 		E2D6969121F64086009AF955 /* qfiles.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = qfiles.h; path = ../../qcommon/qfiles.h; sourceTree = "<group>"; };
 		E2D6969421F640B6009AF955 /* ref.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ref.h; path = ../../client/ref.h; sourceTree = "<group>"; };
 		E2D6969521F640B6009AF955 /* qmenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = qmenu.h; path = ../../client/qmenu.h; sourceTree = "<group>"; };
+		E2D6969921F64AE1009AF955 /* vk_macos.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vk_macos.h; path = ../../macos/vk_macos.h; sourceTree = "<group>"; };
 		E2ED825C21F628D10009C478 /* vk_model.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vk_model.c; path = ../vk_model.c; sourceTree = "<group>"; };
 		E2ED825D21F628D10009C478 /* vk_device.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vk_device.c; path = ../vk_device.c; sourceTree = "<group>"; };
 		E2ED825E21F628D10009C478 /* vk_cmd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vk_cmd.c; path = ../vk_cmd.c; sourceTree = "<group>"; };
@@ -108,6 +110,7 @@
 		E2D6967F21F63FFA009AF955 /* Headers */ = {
 			isa = PBXGroup;
 			children = (
+				E2D6969921F64AE1009AF955 /* vk_macos.h */,
 				E2D6968421F64044009AF955 /* anorms.h */,
 				E2D6968621F64044009AF955 /* anormtab.h */,
 				E2D6968E21F64062009AF955 /* q_shared.h */,
@@ -162,6 +165,7 @@
 				E2D6968C21F64044009AF955 /* vk_model.h in Headers */,
 				E2D6968F21F64062009AF955 /* q_shared.h in Headers */,
 				E2D6969321F64086009AF955 /* qfiles.h in Headers */,
+				E2D6969A21F64AE1009AF955 /* vk_macos.h in Headers */,
 				E2D6968921F64044009AF955 /* vk_shaders.h in Headers */,
 				E2D6968721F64044009AF955 /* qvk.h in Headers */,
 				E2D6969221F64086009AF955 /* qcommon.h in Headers */,
@@ -373,6 +377,9 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_PREFIX = "";
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/lib";
+				HEADER_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/include";
+				LIBRARY_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/lib";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				VALID_ARCHS = x86_64;
@@ -386,6 +393,9 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_PREFIX = "";
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/lib";
+				HEADER_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/include";
+				LIBRARY_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/lib";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				VALID_ARCHS = x86_64;
