@@ -21,6 +21,8 @@
 		E2D6969721F640B6009AF955 /* qmenu.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D6969521F640B6009AF955 /* qmenu.h */; };
 		E2D6969A21F64AE1009AF955 /* vk_macos.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D6969921F64AE1009AF955 /* vk_macos.h */; };
 		E2D6969E21F64DB6009AF955 /* libvulkan.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E2D6969D21F64DB6009AF955 /* libvulkan.1.dylib */; };
+		E2D696A121F659C3009AF955 /* vk_imp.c in Sources */ = {isa = PBXBuildFile; fileRef = E2D6969F21F659C3009AF955 /* vk_imp.c */; };
+		E2D696A221F659C3009AF955 /* q_shmacos.c in Sources */ = {isa = PBXBuildFile; fileRef = E2D696A021F659C3009AF955 /* q_shmacos.c */; };
 		E2ED826F21F628D10009C478 /* vk_model.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED825C21F628D10009C478 /* vk_model.c */; };
 		E2ED827021F628D10009C478 /* vk_device.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED825D21F628D10009C478 /* vk_device.c */; };
 		E2ED827121F628D10009C478 /* vk_cmd.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED825E21F628D10009C478 /* vk_cmd.c */; };
@@ -59,6 +61,8 @@
 		E2D6969521F640B6009AF955 /* qmenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = qmenu.h; path = ../../client/qmenu.h; sourceTree = "<group>"; };
 		E2D6969921F64AE1009AF955 /* vk_macos.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vk_macos.h; path = ../../macos/vk_macos.h; sourceTree = "<group>"; };
 		E2D6969D21F64DB6009AF955 /* libvulkan.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libvulkan.1.dylib; path = ../../../VulkanSDK/1.1.82.1/macOS/lib/libvulkan.1.dylib; sourceTree = "<group>"; };
+		E2D6969F21F659C3009AF955 /* vk_imp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vk_imp.c; path = ../../macos/vk_imp.c; sourceTree = "<group>"; };
+		E2D696A021F659C3009AF955 /* q_shmacos.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = q_shmacos.c; path = ../../macos/q_shmacos.c; sourceTree = "<group>"; };
 		E2ED825C21F628D10009C478 /* vk_model.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vk_model.c; path = ../vk_model.c; sourceTree = "<group>"; };
 		E2ED825D21F628D10009C478 /* vk_device.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vk_device.c; path = ../vk_device.c; sourceTree = "<group>"; };
 		E2ED825E21F628D10009C478 /* vk_cmd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vk_cmd.c; path = ../vk_cmd.c; sourceTree = "<group>"; };
@@ -143,12 +147,14 @@
 			isa = PBXGroup;
 			children = (
 				E2ED828221F628EE0009C478 /* q_shared.c */,
+				E2D696A021F659C3009AF955 /* q_shmacos.c */,
 				E2ED826421F628D10009C478 /* vk_buffer.c */,
 				E2ED825E21F628D10009C478 /* vk_cmd.c */,
 				E2ED826C21F628D10009C478 /* vk_common.c */,
 				E2ED825D21F628D10009C478 /* vk_device.c */,
 				E2ED826921F628D10009C478 /* vk_draw.c */,
 				E2ED826621F628D10009C478 /* vk_image.c */,
+				E2D6969F21F659C3009AF955 /* vk_imp.c */,
 				E2ED826E21F628D10009C478 /* vk_light.c */,
 				E2ED826521F628D10009C478 /* vk_mem_alloc.cpp */,
 				E2ED826321F628D10009C478 /* vk_mesh.c */,
@@ -280,11 +286,13 @@
 				E2ED826F21F628D10009C478 /* vk_model.c in Sources */,
 				E2ED827E21F628D10009C478 /* vk_rmisc.c in Sources */,
 				E2ED827521F628D10009C478 /* vk_validation.c in Sources */,
+				E2D696A121F659C3009AF955 /* vk_imp.c in Sources */,
 				E2ED827421F628D10009C478 /* vk_warp.c in Sources */,
 				E2ED828021F628D10009C478 /* vk_swapchain.c in Sources */,
 				E2ED827121F628D10009C478 /* vk_cmd.c in Sources */,
 				E2ED827621F628D10009C478 /* vk_mesh.c in Sources */,
 				E2ED827C21F628D10009C478 /* vk_draw.c in Sources */,
+				E2D696A221F659C3009AF955 /* q_shmacos.c in Sources */,
 				E2ED827B21F628D10009C478 /* vk_renderpass.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
