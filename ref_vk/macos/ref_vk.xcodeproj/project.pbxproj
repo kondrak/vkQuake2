@@ -7,17 +7,18 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		E2ED824A21F627740009C478 /* vk_model.h in Headers */ = {isa = PBXBuildFile; fileRef = E2ED824421F627730009C478 /* vk_model.h */; };
-		E2ED824B21F627740009C478 /* qvk.h in Headers */ = {isa = PBXBuildFile; fileRef = E2ED824521F627730009C478 /* qvk.h */; };
-		E2ED824C21F627740009C478 /* vk_local.h in Headers */ = {isa = PBXBuildFile; fileRef = E2ED824621F627730009C478 /* vk_local.h */; };
-		E2ED824D21F627740009C478 /* anormtab.h in Headers */ = {isa = PBXBuildFile; fileRef = E2ED824721F627740009C478 /* anormtab.h */; };
-		E2ED824E21F627740009C478 /* anorms.h in Headers */ = {isa = PBXBuildFile; fileRef = E2ED824821F627740009C478 /* anorms.h */; };
-		E2ED824F21F627740009C478 /* vk_shaders.h in Headers */ = {isa = PBXBuildFile; fileRef = E2ED824921F627740009C478 /* vk_shaders.h */; };
-		E2ED825121F627C80009C478 /* q_shared.h in Headers */ = {isa = PBXBuildFile; fileRef = E2ED825021F627C80009C478 /* q_shared.h */; };
-		E2ED825421F627F10009C478 /* qfiles.h in Headers */ = {isa = PBXBuildFile; fileRef = E2ED825221F627F10009C478 /* qfiles.h */; };
-		E2ED825521F627F10009C478 /* qcommon.h in Headers */ = {isa = PBXBuildFile; fileRef = E2ED825321F627F10009C478 /* qcommon.h */; };
-		E2ED825721F628380009C478 /* qmenu.h in Headers */ = {isa = PBXBuildFile; fileRef = E2ED825621F628380009C478 /* qmenu.h */; };
-		E2ED825921F628510009C478 /* ref.h in Headers */ = {isa = PBXBuildFile; fileRef = E2ED825821F628510009C478 /* ref.h */; };
+		E2D6968721F64044009AF955 /* qvk.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D6968021F64043009AF955 /* qvk.h */; };
+		E2D6968821F64044009AF955 /* vk_mem_alloc.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D6968121F64043009AF955 /* vk_mem_alloc.h */; };
+		E2D6968921F64044009AF955 /* vk_shaders.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D6968221F64044009AF955 /* vk_shaders.h */; };
+		E2D6968A21F64044009AF955 /* vk_local.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D6968321F64044009AF955 /* vk_local.h */; };
+		E2D6968B21F64044009AF955 /* anorms.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D6968421F64044009AF955 /* anorms.h */; };
+		E2D6968C21F64044009AF955 /* vk_model.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D6968521F64044009AF955 /* vk_model.h */; };
+		E2D6968D21F64044009AF955 /* anormtab.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D6968621F64044009AF955 /* anormtab.h */; };
+		E2D6968F21F64062009AF955 /* q_shared.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D6968E21F64062009AF955 /* q_shared.h */; };
+		E2D6969221F64086009AF955 /* qcommon.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D6969021F64086009AF955 /* qcommon.h */; };
+		E2D6969321F64086009AF955 /* qfiles.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D6969121F64086009AF955 /* qfiles.h */; };
+		E2D6969621F640B6009AF955 /* ref.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D6969421F640B6009AF955 /* ref.h */; };
+		E2D6969721F640B6009AF955 /* qmenu.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D6969521F640B6009AF955 /* qmenu.h */; };
 		E2ED826F21F628D10009C478 /* vk_model.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED825C21F628D10009C478 /* vk_model.c */; };
 		E2ED827021F628D10009C478 /* vk_device.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED825D21F628D10009C478 /* vk_device.c */; };
 		E2ED827121F628D10009C478 /* vk_cmd.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED825E21F628D10009C478 /* vk_cmd.c */; };
@@ -42,17 +43,18 @@
 
 /* Begin PBXFileReference section */
 		E295536D21F6264C00336DD3 /* ref_vk.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = ref_vk.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
-		E2ED824421F627730009C478 /* vk_model.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vk_model.h; path = ../../vk_model.h; sourceTree = "<group>"; };
-		E2ED824521F627730009C478 /* qvk.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = qvk.h; path = ../../qvk.h; sourceTree = "<group>"; };
-		E2ED824621F627730009C478 /* vk_local.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vk_local.h; path = ../../vk_local.h; sourceTree = "<group>"; };
-		E2ED824721F627740009C478 /* anormtab.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = anormtab.h; path = ../../anormtab.h; sourceTree = "<group>"; };
-		E2ED824821F627740009C478 /* anorms.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = anorms.h; path = ../../anorms.h; sourceTree = "<group>"; };
-		E2ED824921F627740009C478 /* vk_shaders.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vk_shaders.h; path = ../../vk_shaders.h; sourceTree = "<group>"; };
-		E2ED825021F627C80009C478 /* q_shared.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = q_shared.h; path = ../../../game/q_shared.h; sourceTree = "<group>"; };
-		E2ED825221F627F10009C478 /* qfiles.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = qfiles.h; path = ../../../qcommon/qfiles.h; sourceTree = "<group>"; };
-		E2ED825321F627F10009C478 /* qcommon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = qcommon.h; path = ../../../qcommon/qcommon.h; sourceTree = "<group>"; };
-		E2ED825621F628380009C478 /* qmenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = qmenu.h; path = ../../../client/qmenu.h; sourceTree = "<group>"; };
-		E2ED825821F628510009C478 /* ref.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ref.h; path = ../../../client/ref.h; sourceTree = "<group>"; };
+		E2D6968021F64043009AF955 /* qvk.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = qvk.h; path = ../qvk.h; sourceTree = "<group>"; };
+		E2D6968121F64043009AF955 /* vk_mem_alloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vk_mem_alloc.h; path = ../vk_mem_alloc.h; sourceTree = "<group>"; };
+		E2D6968221F64044009AF955 /* vk_shaders.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vk_shaders.h; path = ../vk_shaders.h; sourceTree = "<group>"; };
+		E2D6968321F64044009AF955 /* vk_local.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vk_local.h; path = ../vk_local.h; sourceTree = "<group>"; };
+		E2D6968421F64044009AF955 /* anorms.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = anorms.h; path = ../anorms.h; sourceTree = "<group>"; };
+		E2D6968521F64044009AF955 /* vk_model.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vk_model.h; path = ../vk_model.h; sourceTree = "<group>"; };
+		E2D6968621F64044009AF955 /* anormtab.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = anormtab.h; path = ../anormtab.h; sourceTree = "<group>"; };
+		E2D6968E21F64062009AF955 /* q_shared.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = q_shared.h; path = ../../game/q_shared.h; sourceTree = "<group>"; };
+		E2D6969021F64086009AF955 /* qcommon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = qcommon.h; path = ../../qcommon/qcommon.h; sourceTree = "<group>"; };
+		E2D6969121F64086009AF955 /* qfiles.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = qfiles.h; path = ../../qcommon/qfiles.h; sourceTree = "<group>"; };
+		E2D6969421F640B6009AF955 /* ref.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ref.h; path = ../../client/ref.h; sourceTree = "<group>"; };
+		E2D6969521F640B6009AF955 /* qmenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = qmenu.h; path = ../../client/qmenu.h; sourceTree = "<group>"; };
 		E2ED825C21F628D10009C478 /* vk_model.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vk_model.c; path = ../vk_model.c; sourceTree = "<group>"; };
 		E2ED825D21F628D10009C478 /* vk_device.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vk_device.c; path = ../vk_device.c; sourceTree = "<group>"; };
 		E2ED825E21F628D10009C478 /* vk_cmd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vk_cmd.c; path = ../vk_cmd.c; sourceTree = "<group>"; };
@@ -89,7 +91,7 @@
 		E295536421F6264C00336DD3 = {
 			isa = PBXGroup;
 			children = (
-				E2ED824321F626AD0009C478 /* Headers */,
+				E2D6967F21F63FFA009AF955 /* Headers */,
 				E2ED824221F626A60009C478 /* Sources */,
 				E295536E21F6264C00336DD3 /* Products */,
 			);
@@ -101,6 +103,25 @@
 				E295536D21F6264C00336DD3 /* ref_vk.dylib */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		E2D6967F21F63FFA009AF955 /* Headers */ = {
+			isa = PBXGroup;
+			children = (
+				E2D6968421F64044009AF955 /* anorms.h */,
+				E2D6968621F64044009AF955 /* anormtab.h */,
+				E2D6968E21F64062009AF955 /* q_shared.h */,
+				E2D6969021F64086009AF955 /* qcommon.h */,
+				E2D6969121F64086009AF955 /* qfiles.h */,
+				E2D6969521F640B6009AF955 /* qmenu.h */,
+				E2D6968021F64043009AF955 /* qvk.h */,
+				E2D6969421F640B6009AF955 /* ref.h */,
+				E2D6968321F64044009AF955 /* vk_local.h */,
+				E2D6968121F64043009AF955 /* vk_mem_alloc.h */,
+				E2D6968521F64044009AF955 /* vk_model.h */,
+				E2D6968221F64044009AF955 /* vk_shaders.h */,
+			);
+			name = Headers;
 			sourceTree = "<group>";
 		};
 		E2ED824221F626A60009C478 /* Sources */ = {
@@ -130,24 +151,6 @@
 			name = Sources;
 			sourceTree = "<group>";
 		};
-		E2ED824321F626AD0009C478 /* Headers */ = {
-			isa = PBXGroup;
-			children = (
-				E2ED824821F627740009C478 /* anorms.h */,
-				E2ED824721F627740009C478 /* anormtab.h */,
-				E2ED825021F627C80009C478 /* q_shared.h */,
-				E2ED825321F627F10009C478 /* qcommon.h */,
-				E2ED825221F627F10009C478 /* qfiles.h */,
-				E2ED825621F628380009C478 /* qmenu.h */,
-				E2ED824521F627730009C478 /* qvk.h */,
-				E2ED825821F628510009C478 /* ref.h */,
-				E2ED824621F627730009C478 /* vk_local.h */,
-				E2ED824421F627730009C478 /* vk_model.h */,
-				E2ED824921F627740009C478 /* vk_shaders.h */,
-			);
-			path = Headers;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -155,17 +158,18 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E2ED825921F628510009C478 /* ref.h in Headers */,
-				E2ED824D21F627740009C478 /* anormtab.h in Headers */,
-				E2ED824A21F627740009C478 /* vk_model.h in Headers */,
-				E2ED825421F627F10009C478 /* qfiles.h in Headers */,
-				E2ED825521F627F10009C478 /* qcommon.h in Headers */,
-				E2ED825121F627C80009C478 /* q_shared.h in Headers */,
-				E2ED825721F628380009C478 /* qmenu.h in Headers */,
-				E2ED824B21F627740009C478 /* qvk.h in Headers */,
-				E2ED824C21F627740009C478 /* vk_local.h in Headers */,
-				E2ED824F21F627740009C478 /* vk_shaders.h in Headers */,
-				E2ED824E21F627740009C478 /* anorms.h in Headers */,
+				E2D6969621F640B6009AF955 /* ref.h in Headers */,
+				E2D6968C21F64044009AF955 /* vk_model.h in Headers */,
+				E2D6968F21F64062009AF955 /* q_shared.h in Headers */,
+				E2D6969321F64086009AF955 /* qfiles.h in Headers */,
+				E2D6968921F64044009AF955 /* vk_shaders.h in Headers */,
+				E2D6968721F64044009AF955 /* qvk.h in Headers */,
+				E2D6969221F64086009AF955 /* qcommon.h in Headers */,
+				E2D6968A21F64044009AF955 /* vk_local.h in Headers */,
+				E2D6968D21F64044009AF955 /* anormtab.h in Headers */,
+				E2D6968B21F64044009AF955 /* anorms.h in Headers */,
+				E2D6969721F640B6009AF955 /* qmenu.h in Headers */,
+				E2D6968821F64044009AF955 /* vk_mem_alloc.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
