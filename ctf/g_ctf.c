@@ -3215,10 +3215,10 @@ int CTFUpdateJoinMenu(edict_t *ent)
 	}
 
 	if (ctf_forcejoin->string && *ctf_forcejoin->string) {
-		if (stricmp(ctf_forcejoin->string, "red") == 0) {
+		if (Q_stricmp(ctf_forcejoin->string, "red") == 0) {
 			joinmenu[jmenu_blue].text = NULL;
 			joinmenu[jmenu_blue].SelectFunc = NULL;
-		} else if (stricmp(ctf_forcejoin->string, "blue") == 0) {
+		} else if (Q_stricmp(ctf_forcejoin->string, "blue") == 0) {
 			joinmenu[jmenu_red].text = NULL;
 			joinmenu[jmenu_red].SelectFunc = NULL;
 		}
