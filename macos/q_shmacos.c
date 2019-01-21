@@ -126,7 +126,8 @@ char *strlwr (char *s)
 	while (*s) {
 		*s = tolower(*s);
 		s++;
-	}
+    }
+    return s;
 }
 
 //============================================
