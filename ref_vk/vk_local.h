@@ -29,6 +29,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #  define VK_USE_PLATFORM_XLIB_KHR
 #endif
 
+#ifdef __APPLE__
+#  define VK_USE_PLATFORM_MACOS_MVK
+#endif
+
 #include <stdio.h>
 
 #include <vulkan/vulkan.h>

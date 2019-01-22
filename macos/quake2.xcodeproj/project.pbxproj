@@ -7,6 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E291112321F70CC900AE0164 /* q_shmacos.c in Sources */ = {isa = PBXBuildFile; fileRef = E291111D21F70CC800AE0164 /* q_shmacos.c */; };
+		E291112521F70CC900AE0164 /* vid_menu.c in Sources */ = {isa = PBXBuildFile; fileRef = E291111F21F70CC900AE0164 /* vid_menu.c */; };
+		E291112621F70CC900AE0164 /* sys_macos.c in Sources */ = {isa = PBXBuildFile; fileRef = E291112021F70CC900AE0164 /* sys_macos.c */; };
+		E291112721F70CC900AE0164 /* cd_macos.c in Sources */ = {isa = PBXBuildFile; fileRef = E291112121F70CC900AE0164 /* cd_macos.c */; };
+		E291112821F70CC900AE0164 /* vid_dsym.c in Sources */ = {isa = PBXBuildFile; fileRef = E291112221F70CC900AE0164 /* vid_dsym.c */; };
+		E291112A21F7103600AE0164 /* m_flash.c in Sources */ = {isa = PBXBuildFile; fileRef = E291112921F7103600AE0164 /* m_flash.c */; };
+		E291112C21F7108F00AE0164 /* net_udp.c in Sources */ = {isa = PBXBuildFile; fileRef = E291112B21F7108F00AE0164 /* net_udp.c */; };
+		E291112E21F71AE300AE0164 /* snd_macos.c in Sources */ = {isa = PBXBuildFile; fileRef = E291112D21F71AE300AE0164 /* snd_macos.c */; };
+		E291113021F71DE800AE0164 /* glob.c in Sources */ = {isa = PBXBuildFile; fileRef = E291112F21F71DE800AE0164 /* glob.c */; };
 		E295532D21F623B600336DD3 /* cl_newfx.c in Sources */ = {isa = PBXBuildFile; fileRef = E295531A21F623B500336DD3 /* cl_newfx.c */; };
 		E295532E21F623B600336DD3 /* cl_tent.c in Sources */ = {isa = PBXBuildFile; fileRef = E295531B21F623B500336DD3 /* cl_tent.c */; };
 		E295532F21F623B600336DD3 /* keys.c in Sources */ = {isa = PBXBuildFile; fileRef = E295531C21F623B500336DD3 /* keys.c */; };
@@ -59,6 +68,16 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		E291111D21F70CC800AE0164 /* q_shmacos.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = q_shmacos.c; sourceTree = "<group>"; };
+		E291111F21F70CC900AE0164 /* vid_menu.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = vid_menu.c; sourceTree = "<group>"; };
+		E291112021F70CC900AE0164 /* sys_macos.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sys_macos.c; sourceTree = "<group>"; };
+		E291112121F70CC900AE0164 /* cd_macos.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cd_macos.c; sourceTree = "<group>"; };
+		E291112221F70CC900AE0164 /* vid_dsym.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = vid_dsym.c; sourceTree = "<group>"; };
+		E291112921F7103600AE0164 /* m_flash.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m_flash.c; path = ../game/m_flash.c; sourceTree = "<group>"; };
+		E291112B21F7108F00AE0164 /* net_udp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = net_udp.c; path = ../linux/net_udp.c; sourceTree = "<group>"; };
+		E291112D21F71AE300AE0164 /* snd_macos.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = snd_macos.c; sourceTree = "<group>"; };
+		E291112F21F71DE800AE0164 /* glob.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = glob.c; path = ../linux/glob.c; sourceTree = "<group>"; };
+		E291113121F71DF800AE0164 /* glob.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glob.h; path = ../linux/glob.h; sourceTree = "<group>"; };
 		E29552FD21F620FB00336DD3 /* quake2 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = quake2; sourceTree = BUILT_PRODUCTS_DIR; };
 		E295530921F6226100336DD3 /* vid.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vid.h; path = ../client/vid.h; sourceTree = "<group>"; };
 		E295530A21F6226100336DD3 /* anorms.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = anorms.h; path = ../client/anorms.h; sourceTree = "<group>"; };
@@ -147,6 +166,7 @@
 		E295530721F6217000336DD3 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				E291112121F70CC900AE0164 /* cd_macos.c */,
 				E295531D21F623B500336DD3 /* cl_cin.c */,
 				E295532221F623B500336DD3 /* cl_ents.c */,
 				E295532B21F623B600336DD3 /* cl_fx.c */,
@@ -166,14 +186,19 @@
 				E295534521F6242C00336DD3 /* crc.c */,
 				E295534421F6242C00336DD3 /* cvar.c */,
 				E295534621F6242C00336DD3 /* files.c */,
+				E291112F21F71DE800AE0164 /* glob.c */,
 				E295531C21F623B500336DD3 /* keys.c */,
+				E291112921F7103600AE0164 /* m_flash.c */,
 				E295534721F6242C00336DD3 /* md4.c */,
 				E295532021F623B500336DD3 /* menu.c */,
 				E295534321F6242C00336DD3 /* net_chan.c */,
+				E291112B21F7108F00AE0164 /* net_udp.c */,
 				E295534821F6242C00336DD3 /* pmove.c */,
 				E295535221F6248C00336DD3 /* q_shared.c */,
+				E291111D21F70CC800AE0164 /* q_shmacos.c */,
 				E295532721F623B500336DD3 /* qmenu.c */,
 				E295532821F623B500336DD3 /* snd_dma.c */,
+				E291112D21F71AE300AE0164 /* snd_macos.c */,
 				E295531F21F623B500336DD3 /* snd_mem.c */,
 				E295532121F623B500336DD3 /* snd_mix.c */,
 				E295535921F624D600336DD3 /* sv_ccmds.c */,
@@ -184,6 +209,9 @@
 				E295535421F624D500336DD3 /* sv_send.c */,
 				E295535721F624D600336DD3 /* sv_user.c */,
 				E295535521F624D500336DD3 /* sv_world.c */,
+				E291112021F70CC900AE0164 /* sys_macos.c */,
+				E291112221F70CC900AE0164 /* vid_dsym.c */,
+				E291111F21F70CC900AE0164 /* vid_menu.c */,
 			);
 			name = Sources;
 			sourceTree = "<group>";
@@ -196,6 +224,7 @@
 				E295531021F6226100336DD3 /* client.h */,
 				E295530C21F6226100336DD3 /* console.h */,
 				E295531521F6228000336DD3 /* game.h */,
+				E291113121F71DF800AE0164 /* glob.h */,
 				E295530B21F6226100336DD3 /* input.h */,
 				E295530E21F6226100336DD3 /* keys.h */,
 				E295531721F622E000336DD3 /* q_shared.h */,
@@ -273,17 +302,21 @@
 				E295534B21F6242C00336DD3 /* common.c in Sources */,
 				E295535D21F624D600336DD3 /* sv_world.c in Sources */,
 				E295533721F623B600336DD3 /* cl_pred.c in Sources */,
+				E291112821F70CC900AE0164 /* vid_dsym.c in Sources */,
 				E295533821F623B600336DD3 /* cl_view.c in Sources */,
 				E295533A21F623B600336DD3 /* qmenu.c in Sources */,
 				E295536121F624D600336DD3 /* sv_ccmds.c in Sources */,
 				E295535E21F624D600336DD3 /* sv_main.c in Sources */,
 				E295536021F624D600336DD3 /* sv_init.c in Sources */,
+				E291112A21F7103600AE0164 /* m_flash.c in Sources */,
 				E295534921F6242C00336DD3 /* cmodel.c in Sources */,
 				E295533221F623B600336DD3 /* snd_mem.c in Sources */,
 				E295533021F623B600336DD3 /* cl_cin.c in Sources */,
 				E295534E21F6242C00336DD3 /* crc.c in Sources */,
 				E295535321F6248C00336DD3 /* q_shared.c in Sources */,
 				E295533621F623B600336DD3 /* cl_inv.c in Sources */,
+				E291112321F70CC900AE0164 /* q_shmacos.c in Sources */,
+				E291112521F70CC900AE0164 /* vid_menu.c in Sources */,
 				E295534F21F6242C00336DD3 /* files.c in Sources */,
 				E295532F21F623B600336DD3 /* keys.c in Sources */,
 				E295534C21F6242C00336DD3 /* net_chan.c in Sources */,
@@ -292,6 +325,7 @@
 				E295533B21F623B600336DD3 /* snd_dma.c in Sources */,
 				E295533E21F623B600336DD3 /* cl_fx.c in Sources */,
 				E295535021F6242C00336DD3 /* md4.c in Sources */,
+				E291112E21F71AE300AE0164 /* snd_macos.c in Sources */,
 				E295533F21F623B600336DD3 /* cl_input.c in Sources */,
 				E295533421F623B600336DD3 /* snd_mix.c in Sources */,
 				E295532E21F623B600336DD3 /* cl_tent.c in Sources */,
@@ -299,11 +333,15 @@
 				E295536321F624D600336DD3 /* sv_ents.c in Sources */,
 				E295536221F624D600336DD3 /* sv_game.c in Sources */,
 				E295533C21F623B600336DD3 /* cl_main.c in Sources */,
+				E291112C21F7108F00AE0164 /* net_udp.c in Sources */,
+				E291112721F70CC900AE0164 /* cd_macos.c in Sources */,
 				E295534A21F6242C00336DD3 /* cmd.c in Sources */,
 				E295535F21F624D600336DD3 /* sv_user.c in Sources */,
 				E295533321F623B600336DD3 /* menu.c in Sources */,
 				E295533121F623B600336DD3 /* cl_parse.c in Sources */,
 				E295535C21F624D600336DD3 /* sv_send.c in Sources */,
+				E291112621F70CC900AE0164 /* sys_macos.c in Sources */,
+				E291113021F71DE800AE0164 /* glob.c in Sources */,
 				E295535121F6242C00336DD3 /* pmove.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

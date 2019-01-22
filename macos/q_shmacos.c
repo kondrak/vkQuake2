@@ -67,13 +67,19 @@ void *Hunk_Alloc (int size)
 
 int Hunk_End (void)
 {
-	byte *n;
+ #ifndef round_page
+ size_t page_size = sysconf(_SC_PAGESIZE);
+ #define round_page(x) ((((size_t)(x)) + page_size-1) & ~(page_size-1))
+ #endif
 
-	n = mremap(membase, maxhunksize, curhunksize + sizeof(int), 0);
+	size_t old_size = round_page(maxhunksize);
+	size_t new_size = round_page(curhunksize + sizeof(size_t));
+	byte *n =  new_size < old_size ? munmap(membase + new_size, old_size - new_size) + membase : membase;
+
 	if (n != membase)
 		Sys_Error("Hunk_End:  Could not remap virtual block (%d)", errno);
 	*((int *)membase) = curhunksize + sizeof(int);
-	
+
 	return curhunksize;
 }
 

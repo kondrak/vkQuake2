@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E291113321F727F400AE0164 /* glob.h in Headers */ = {isa = PBXBuildFile; fileRef = E291113221F727F400AE0164 /* glob.h */; };
+		E291113521F7280D00AE0164 /* glob.c in Sources */ = {isa = PBXBuildFile; fileRef = E291113421F7280D00AE0164 /* glob.c */; };
 		E2D6968721F64044009AF955 /* qvk.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D6968021F64043009AF955 /* qvk.h */; };
 		E2D6968821F64044009AF955 /* vk_mem_alloc.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D6968121F64043009AF955 /* vk_mem_alloc.h */; };
 		E2D6968921F64044009AF955 /* vk_shaders.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D6968221F64044009AF955 /* vk_shaders.h */; };
@@ -46,6 +48,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		E291113221F727F400AE0164 /* glob.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glob.h; path = ../../linux/glob.h; sourceTree = "<group>"; };
+		E291113421F7280D00AE0164 /* glob.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = glob.c; path = ../../linux/glob.c; sourceTree = "<group>"; };
 		E295536D21F6264C00336DD3 /* ref_vk.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = ref_vk.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2D6968021F64043009AF955 /* qvk.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = qvk.h; path = ../qvk.h; sourceTree = "<group>"; };
 		E2D6968121F64043009AF955 /* vk_mem_alloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vk_mem_alloc.h; path = ../vk_mem_alloc.h; sourceTree = "<group>"; };
@@ -118,9 +122,9 @@
 		E2D6967F21F63FFA009AF955 /* Headers */ = {
 			isa = PBXGroup;
 			children = (
-				E2D6969921F64AE1009AF955 /* vk_macos.h */,
 				E2D6968421F64044009AF955 /* anorms.h */,
 				E2D6968621F64044009AF955 /* anormtab.h */,
+				E291113221F727F400AE0164 /* glob.h */,
 				E2D6968E21F64062009AF955 /* q_shared.h */,
 				E2D6969021F64086009AF955 /* qcommon.h */,
 				E2D6969121F64086009AF955 /* qfiles.h */,
@@ -128,6 +132,7 @@
 				E2D6968021F64043009AF955 /* qvk.h */,
 				E2D6969421F640B6009AF955 /* ref.h */,
 				E2D6968321F64044009AF955 /* vk_local.h */,
+				E2D6969921F64AE1009AF955 /* vk_macos.h */,
 				E2D6968121F64043009AF955 /* vk_mem_alloc.h */,
 				E2D6968521F64044009AF955 /* vk_model.h */,
 				E2D6968221F64044009AF955 /* vk_shaders.h */,
@@ -146,6 +151,7 @@
 		E2ED824221F626A60009C478 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				E291113421F7280D00AE0164 /* glob.c */,
 				E2ED828221F628EE0009C478 /* q_shared.c */,
 				E2D696A021F659C3009AF955 /* q_shmacos.c */,
 				E2ED826421F628D10009C478 /* vk_buffer.c */,
@@ -179,6 +185,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E291113321F727F400AE0164 /* glob.h in Headers */,
 				E2D6969621F640B6009AF955 /* ref.h in Headers */,
 				E2D6968C21F64044009AF955 /* vk_model.h in Headers */,
 				E2D6968F21F64062009AF955 /* q_shared.h in Headers */,
@@ -285,6 +292,7 @@
 				E2ED827F21F628D10009C478 /* vk_common.c in Sources */,
 				E2ED826F21F628D10009C478 /* vk_model.c in Sources */,
 				E2ED827E21F628D10009C478 /* vk_rmisc.c in Sources */,
+				E291113521F7280D00AE0164 /* glob.c in Sources */,
 				E2ED827521F628D10009C478 /* vk_validation.c in Sources */,
 				E2D696A121F659C3009AF955 /* vk_imp.c in Sources */,
 				E2ED827421F628D10009C478 /* vk_warp.c in Sources */,

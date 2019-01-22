@@ -45,7 +45,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "../client/keys.h"
 
 #include "../linux/rw_linux.h"
-#include "../linux/vk_linux.h"
+#include "../macos/vk_macos.h"
 
 #include <X11/Xatom.h>
 #include <X11/keysym.h>
