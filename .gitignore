@@ -12,7 +12,7 @@
 *.pdb
 *.tlog
 *.lastbuildstate
-*.xcworkspace
+project.xcworkspace
 xcuserdata
 debugx64
 releasex64
