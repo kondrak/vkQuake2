@@ -221,7 +221,7 @@ qboolean VID_LoadRefresh( char *name )
 	refimport_t	ri;
 	GetRefAPI_t	GetRefAPI;
 	char	fn[MAX_OSPATH];
-	char    so_path[MAX_OSPATH];
+	char    dylib_path[MAX_OSPATH];
 	struct stat st;
 	extern uid_t saved_euid;
 	
@@ -240,22 +240,21 @@ qboolean VID_LoadRefresh( char *name )
 	Com_Printf( "------- Loading %s -------\n", name );
 
 	// locate executable location so we don't need the silly /etc/quake2.conf file
-	snprintf(fn, sizeof(fn), "/proc/%d/exe", getpid());
-	int l = readlink(fn, so_path, MAX_OSPATH-1);
-	so_path[l <= 0 ? 0 : l] = '\0';
-	char *s = strrchr(so_path, '/');
-	// cut off binary from path
-	s[1] = '\0';
+    uint32_t size = MAX_OSPATH;
+    _NSGetExecutablePath(dylib_path, &size);
+    char *s = strrchr(dylib_path, '/');
+    // cut off binary from path
+    s[1] = '\0';
 
-	strcat(so_path, name);
+    strcat(dylib_path, name);
 
-	if ( ( reflib_library = dlopen( so_path, RTLD_LAZY | RTLD_GLOBAL ) ) == 0 )
+	if ( ( reflib_library = dlopen( dylib_path, RTLD_LAZY | RTLD_GLOBAL ) ) == 0 )
 	{
 		Com_Printf( "LoadLibrary(\"%s\") failed: %s\n", name , dlerror());
 		return false;
 	}
 
-  Com_Printf( "LoadLibrary(\"%s\")\n", so_path );
+  Com_Printf( "LoadLibrary(\"%s\")\n", dylib_path );
 
 	ri.Cmd_AddCommand = Cmd_AddCommand;
 	ri.Cmd_RemoveCommand = Cmd_RemoveCommand;
@@ -364,7 +363,7 @@ void VID_CheckChanges (void)
 		{
 			Cvar_Set("vid_ref", "vk");
 			vid_ref->modified = false;
-			Com_Printf("Only Vulkan renderer is supported on Linux.\n");
+			Com_Printf("Only Vulkan renderer is supported on MacOS.\n");
 			// don't restart the renderer if it's already loaded
 			if(reflib_active)
 				break;
@@ -375,7 +374,7 @@ void VID_CheckChanges (void)
 		cl.refresh_prepped = false;
 		cls.disable_screen = true;
 
-		sprintf( name, "ref_%s.so", vid_ref->string );
+		sprintf( name, "ref_%s.dylib", vid_ref->string );
 		if ( !VID_LoadRefresh( name ) )
 		{
 			if ( strcmp (vid_ref->string, "soft") == 0 ||
