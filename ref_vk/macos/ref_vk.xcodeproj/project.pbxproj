@@ -64,7 +64,7 @@
 		E2D6969421F640B6009AF955 /* ref.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ref.h; path = ../../client/ref.h; sourceTree = "<group>"; };
 		E2D6969521F640B6009AF955 /* qmenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = qmenu.h; path = ../../client/qmenu.h; sourceTree = "<group>"; };
 		E2D6969921F64AE1009AF955 /* vk_macos.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vk_macos.h; path = ../../macos/vk_macos.h; sourceTree = "<group>"; };
-		E2D6969D21F64DB6009AF955 /* libvulkan.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libvulkan.1.dylib; path = libvulkan.1.dylib; sourceTree = "<group>"; };
+		E2D6969D21F64DB6009AF955 /* libvulkan.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libvulkan.1.dylib; sourceTree = "<group>"; };
 		E2D6969F21F659C3009AF955 /* vk_imp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vk_imp.c; path = ../../macos/vk_imp.c; sourceTree = "<group>"; };
 		E2D696A021F659C3009AF955 /* q_shmacos.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = q_shmacos.c; path = ../../macos/q_shmacos.c; sourceTree = "<group>"; };
 		E2ED825C21F628D10009C478 /* vk_model.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vk_model.c; path = ../vk_model.c; sourceTree = "<group>"; };
@@ -429,6 +429,8 @@
 				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/lib";
 				HEADER_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/include";
 				LIBRARY_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/lib";
+				OTHER_CFLAGS = "-D_DEBUG";
+				OTHER_CPLUSPLUSFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				VALID_ARCHS = x86_64;
