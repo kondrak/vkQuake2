@@ -103,6 +103,18 @@
             ReferencedContainer = "container:quake2.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "VK_ICD_FILENAMES"
+            value = "$VULKAN_SDK/macOS/etc/vulkan/icd.d/MoltenVK_icd.json"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "VK_LAYER_PATH"
+            value = "$VULKAN_SDK/macOS/etc/vulkan/explicit_layer.d"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
