@@ -251,6 +251,7 @@
 				E29552F921F620FB00336DD3 /* Sources */,
 				E29552FA21F620FB00336DD3 /* Frameworks */,
 				E29552FB21F620FB00336DD3 /* CopyFiles */,
+				E296564421F8853000BEC8E0 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -291,6 +292,26 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		E296564421F8853000BEC8E0 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "mkdir -p ${PROJECT_DIR}/../vkQuake2\ncp -f ${BUILT_PRODUCTS_DIR}/${EXECUTABLE_NAME} ${PROJECT_DIR}/../vkQuake2\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		E29552F921F620FB00336DD3 /* Sources */ = {
