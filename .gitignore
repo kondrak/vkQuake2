@@ -3,6 +3,7 @@
 *~
 *.vcxproj.user
 *.VC.db
+*.dylib
 *.sd
 *.so
 *.o
