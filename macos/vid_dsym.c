@@ -25,6 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <assert.h>
 #include <ctype.h>
 #include <dlfcn.h> // ELF dl loader
+#include <mach-o/dyld.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
@@ -85,7 +86,6 @@ void VID_Printf (int print_level, char *fmt, ...)
 {
 	va_list		argptr;
 	char		msg[MAXPRINTMSG];
-	static qboolean	inupdate;
 	
 	va_start (argptr,fmt);
 	vsprintf (msg,fmt,argptr);
@@ -101,7 +101,6 @@ void VID_Error (int err_level, char *fmt, ...)
 {
 	va_list		argptr;
 	char		msg[MAXPRINTMSG];
-	static qboolean	inupdate;
 	
 	va_start (argptr,fmt);
 	vsprintf (msg,fmt,argptr);
@@ -220,9 +219,7 @@ qboolean VID_LoadRefresh( char *name )
 {
 	refimport_t	ri;
 	GetRefAPI_t	GetRefAPI;
-	char	fn[MAX_OSPATH];
 	char    dylib_path[MAX_OSPATH];
-	struct stat st;
 	extern uid_t saved_euid;
 	
 	if ( reflib_active )
@@ -358,7 +355,7 @@ void VID_CheckChanges (void)
 		** refresh has changed
 		*/
 
-		// only allow Vulkan on Linux
+		// only allow Vulkan on MacOS
 		if(strcmp("vk", vid_ref->string))
 		{
 			Cvar_Set("vid_ref", "vk");
