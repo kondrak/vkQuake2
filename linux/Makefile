@@ -1,5 +1,6 @@
 #
 # Quake2 Makefile for Linux 2.0
+# 64-bit version
 #
 # Nov '97 by Zoid <zoid@idsoftware.com>
 # Jan '19 by Krzysztof Kondrak <krzysztof.kondrak@gmail.com>
