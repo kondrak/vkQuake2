@@ -773,7 +773,7 @@ void Vkimp_GetSurfaceExtensions(char **extensions, uint32_t *extCount)
 	if (extensions)
 	{
 		extensions[0] = VK_KHR_SURFACE_EXTENSION_NAME;
-		extensions[1] = VK_KHR_XLIB_SURFACE_EXTENSION_NAME;
+		extensions[1] = VK_MVK_MACOS_SURFACE_EXTENSION_NAME;
 	}
 
 	if (extCount)
@@ -782,15 +782,14 @@ void Vkimp_GetSurfaceExtensions(char **extensions, uint32_t *extCount)
 
 VkResult Vkimp_CreateSurface()
 {
-	VkXlibSurfaceCreateInfoKHR surfaceCreateInfo = {
-		.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR,
+	VkMacOSSurfaceCreateInfoMVK surfaceCreateInfo = {
+		.sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK,
 		.pNext = NULL,
 		.flags = 0,
-		.dpy = dpy,
-		.window = win,
+		.pView = NULL // here be a view pointer to window on MacOS
 	};
 
-	return vkCreateXlibSurfaceKHR(vk_instance, &surfaceCreateInfo, NULL, &vk_surface);
+	return vkCreateMacOSSurfaceMVK(vk_instance, &surfaceCreateInfo, NULL, &vk_surface);
 }
 
 /*
