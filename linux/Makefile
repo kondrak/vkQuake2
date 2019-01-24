@@ -53,10 +53,10 @@ CC=gcc
 BASE_CFLAGS=-Dstricmp=strcasecmp -D_GNU_SOURCE -Wno-format-truncation -Wno-unused-result
 
 ifeq ($(ARCH),axp)
-RELEASE_CFLAGS=$(BASE_CFLAGS) -O6 -ffast-math -funroll-loops \
+RELEASE_CFLAGS=$(BASE_CFLAGS) -DNDEBUG -O6 -ffast-math -funroll-loops \
 	-fomit-frame-pointer -fexpensive-optimizations
 else
-RELEASE_CFLAGS=$(BASE_CFLAGS) -O6 -ffast-math -funroll-loops \
+RELEASE_CFLAGS=$(BASE_CFLAGS) -DNDEBUG -O6 -ffast-math -funroll-loops \
 	-fomit-frame-pointer -fexpensive-optimizations
 endif
 
