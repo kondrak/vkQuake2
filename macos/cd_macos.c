@@ -1,5 +1,6 @@
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
+Copyright (C) 2018-2019 Krzysztof Kondrak
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -20,38 +21,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // Quake is a trademark of Id Software, Inc., (c) 1996 Id Software, Inc. All
 // rights reserved.
 
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <sys/ioctl.h>
-#include <sys/file.h>
-#include <sys/types.h>
-#include <fcntl.h>
-#include <string.h>
-#include <time.h>
-#include <errno.h>
+// No CD support on MacOS
 
 #include "../client/client.h"
-
-static qboolean cdValid = false;
-static qboolean	playing = false;
-static qboolean	wasPlaying = false;
-static qboolean	initialized = false;
-static qboolean	enabled = true;
-static qboolean playLooping = false;
-static float	cdvolume;
-static byte 	remap[100];
-static byte		playTrack;
-static byte		maxTrack;
-
-static int cdfile = -1;
-
-//static char cd_dev[64] = "/dev/cdrom";
-
-cvar_t	*cd_volume;
-cvar_t *cd_nocd;
-cvar_t *cd_dev;
-
 
 void CDAudio_Play(int track, qboolean looping)
 {
@@ -67,7 +39,6 @@ void CDAudio_Pause(void)
 {
 
 }
-
 
 void CDAudio_Resume(void)
 {
