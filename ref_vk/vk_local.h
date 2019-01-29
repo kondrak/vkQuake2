@@ -18,7 +18,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-// disable data conversion warnings
+#ifndef __VK_LOCAL_H__
+#define __VK_LOCAL_H__
 
 #ifdef _WIN32
 #  include <windows.h>
@@ -354,3 +355,5 @@ void		Vkimp_EnableLogging( qboolean enable );
 void		Vkimp_LogNewFrame( void );
 void		Vkimp_GetSurfaceExtensions(char **extensions, uint32_t *extCount);
 VkResult	Vkimp_CreateSurface();
+
+#endif
