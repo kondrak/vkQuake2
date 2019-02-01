@@ -641,10 +641,8 @@ static Quake2WindowListener *windowListener = nil;
 static int KeyLate(NSEvent *keyEvent)
 {
     int key = 0;
-    int keyMod = [keyEvent modifierFlags] & NSEventModifierFlagShift ? 32 : 0;
-    int keySym = [keyEvent keyCode];
 
-    switch(keySym)
+    switch([keyEvent keyCode])
     {
         case kVK_Escape: key = K_ESCAPE; break;
         case kVK_Return: key = K_ENTER; break;
@@ -677,54 +675,54 @@ static int KeyLate(NSEvent *keyEvent)
         case kVK_RightOption: key = K_ALT; break;
         case kVK_Control:
         case kVK_RightControl: key = K_CTRL; break;
-        case kVK_ANSI_A: key = 'a' - keyMod; break;
-        case kVK_ANSI_B: key = 'b' - keyMod; break;
-        case kVK_ANSI_C: key = 'c' - keyMod; break;
-        case kVK_ANSI_D: key = 'd' - keyMod; break;
-        case kVK_ANSI_E: key = 'e' - keyMod; break;
-        case kVK_ANSI_F: key = 'f' - keyMod; break;
-        case kVK_ANSI_G: key = 'g' - keyMod; break;
-        case kVK_ANSI_H: key = 'h' - keyMod; break;
-        case kVK_ANSI_I: key = 'i' - keyMod; break;
-        case kVK_ANSI_J: key = 'j' - keyMod; break;
-        case kVK_ANSI_K: key = 'k' - keyMod; break;
-        case kVK_ANSI_L: key = 'l' - keyMod; break;
-        case kVK_ANSI_M: key = 'm' - keyMod; break;
-        case kVK_ANSI_N: key = 'n' - keyMod; break;
-        case kVK_ANSI_O: key = 'o' - keyMod; break;
-        case kVK_ANSI_P: key = 'p' - keyMod; break;
-        case kVK_ANSI_Q: key = 'q' - keyMod; break;
-        case kVK_ANSI_R: key = 'r' - keyMod; break;
-        case kVK_ANSI_S: key = 's' - keyMod; break;
-        case kVK_ANSI_T: key = 't' - keyMod; break;
-        case kVK_ANSI_U: key = 'u' - keyMod; break;
-        case kVK_ANSI_V: key = 'v' - keyMod; break;
-        case kVK_ANSI_W: key = 'w' - keyMod; break;
-        case kVK_ANSI_X: key = 'x' - keyMod; break;
-        case kVK_ANSI_Y: key = 'y' - keyMod; break;
-        case kVK_ANSI_Z: key = 'z' - keyMod; break;
-        case kVK_ANSI_0: key = keyMod ? ')' : '0'; break;
-        case kVK_ANSI_1: key = keyMod ? '!' : '1'; break;
-        case kVK_ANSI_2: key = keyMod ? '@' : '2'; break;
-        case kVK_ANSI_3: key = keyMod ? '#' : '3'; break;
-        case kVK_ANSI_4: key = keyMod ? '$' : '4'; break;
-        case kVK_ANSI_5: key = keyMod ? '%' : '5'; break;
-        case kVK_ANSI_6: key = keyMod ? '^' : '6'; break;
-        case kVK_ANSI_7: key = keyMod ? '&' : '7'; break;
-        case kVK_ANSI_8: key = keyMod ? '*' : '8'; break;
-        case kVK_ANSI_9: key = keyMod ? '(' : '9'; break;
+        case kVK_ANSI_A: key = 'a'; break;
+        case kVK_ANSI_B: key = 'b'; break;
+        case kVK_ANSI_C: key = 'c'; break;
+        case kVK_ANSI_D: key = 'd'; break;
+        case kVK_ANSI_E: key = 'e'; break;
+        case kVK_ANSI_F: key = 'f'; break;
+        case kVK_ANSI_G: key = 'g'; break;
+        case kVK_ANSI_H: key = 'h'; break;
+        case kVK_ANSI_I: key = 'i'; break;
+        case kVK_ANSI_J: key = 'j'; break;
+        case kVK_ANSI_K: key = 'k'; break;
+        case kVK_ANSI_L: key = 'l'; break;
+        case kVK_ANSI_M: key = 'm'; break;
+        case kVK_ANSI_N: key = 'n'; break;
+        case kVK_ANSI_O: key = 'o'; break;
+        case kVK_ANSI_P: key = 'p'; break;
+        case kVK_ANSI_Q: key = 'q'; break;
+        case kVK_ANSI_R: key = 'r'; break;
+        case kVK_ANSI_S: key = 's'; break;
+        case kVK_ANSI_T: key = 't'; break;
+        case kVK_ANSI_U: key = 'u'; break;
+        case kVK_ANSI_V: key = 'v'; break;
+        case kVK_ANSI_W: key = 'w'; break;
+        case kVK_ANSI_X: key = 'x'; break;
+        case kVK_ANSI_Y: key = 'y'; break;
+        case kVK_ANSI_Z: key = 'z'; break;
+        case kVK_ANSI_0: key = '0'; break;
+        case kVK_ANSI_1: key = '1'; break;
+        case kVK_ANSI_2: key = '2'; break;
+        case kVK_ANSI_3: key = '3'; break;
+        case kVK_ANSI_4: key = '4'; break;
+        case kVK_ANSI_5: key = '5'; break;
+        case kVK_ANSI_6: key = '6'; break;
+        case kVK_ANSI_7: key = '7'; break;
+        case kVK_ANSI_8: key = '8'; break;
+        case kVK_ANSI_9: key = '9'; break;
         case kVK_ANSI_Minus:
-        case kVK_ANSI_KeypadMinus: key = keyMod ? '_' : '-'; break;
+        case kVK_ANSI_KeypadMinus: key = '-'; break;
         case kVK_ANSI_KeypadEquals:
-        case kVK_ANSI_Equal: key = keyMod ? '+' : '='; break;
-        case kVK_ANSI_Period: key = keyMod ? '>' : '.'; break;
-        case kVK_ANSI_Comma: key = keyMod ? '<' : ','; break;
-        case kVK_ANSI_Semicolon: key = keyMod ? ':' : ';'; break;
-        case kVK_ANSI_Slash: key = keyMod ? '?' : '/'; break;
-        case kVK_ANSI_Backslash: key = keyMod ? '|' : '\\'; break;
-        case kVK_ANSI_LeftBracket: key = keyMod ? '{' : '['; break;
-        case kVK_ANSI_RightBracket: key = keyMod ? '}' : ']'; break;
-        case kVK_ANSI_Quote: key = keyMod ? '"' : '\''; break;
+        case kVK_ANSI_Equal: key = '='; break;
+        case kVK_ANSI_Period: key ='.'; break;
+        case kVK_ANSI_Comma: key = ','; break;
+        case kVK_ANSI_Semicolon: key = ';'; break;
+        case kVK_ANSI_Slash: key = '/'; break;
+        case kVK_ANSI_Backslash: key = '\\'; break;
+        case kVK_ANSI_LeftBracket: key = '['; break;
+        case kVK_ANSI_RightBracket: key = ']'; break;
+        case kVK_ANSI_Quote: key = '\''; break;
         case kVK_ISO_Section:
         case kVK_ANSI_Grave: key = '~'; break;
         default:
@@ -761,6 +759,9 @@ void MacOSHandleEvents()
                 break;
             case NSEventTypeKeyDown:
             case NSEventTypeKeyUp:
+                if(in_state && in_state->Key_Event_fp)
+                    in_state->Key_Event_fp(KeyLate(pEvent), [pEvent type] == NSEventTypeKeyDown);
+                break;
             case NSEventTypeFlagsChanged:
               /*  [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
                 [window setFrame:[[NSScreen mainScreen] frame] display:YES];
@@ -769,7 +770,13 @@ void MacOSHandleEvents()
                 [window setContentView:contentView];
                 [window toggleFullScreen:nil]; */
                 if(in_state && in_state->Key_Event_fp)
-                    in_state->Key_Event_fp(KeyLate(pEvent), [pEvent type] == NSEventTypeKeyDown);
+                {
+                    int keyCode = KeyLate(pEvent);
+                    qboolean ctrlDown = keyCode == K_CTRL && ([pEvent modifierFlags] & NSEventModifierFlagControl);
+                    qboolean shiftDown = keyCode == K_SHIFT && ([pEvent modifierFlags] & NSEventModifierFlagShift);
+                    qboolean altDown = keyCode == K_ALT && ([pEvent modifierFlags] & NSEventModifierFlagOption);
+                    in_state->Key_Event_fp(keyCode, ctrlDown || shiftDown || altDown);
+                }
                 break;
             default:
                 break;
