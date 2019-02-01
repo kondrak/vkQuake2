@@ -74,7 +74,7 @@ qvkrenderpass_t vk_renderpasses[RT_COUNT] = {
 	{
 		.rp = VK_NULL_HANDLE,
 		.colorLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-		.sampleCount = VK_SAMPLE_COUNT_2_BIT
+		.sampleCount = VK_SAMPLE_COUNT_4_BIT
 	} 
 };
 

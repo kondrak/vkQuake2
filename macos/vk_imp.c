@@ -46,6 +46,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "../linux/rw_linux.h"
 #include "../macos/vk_macos.h"
+#include "../macos/win_macos.h"
 
 vkwstate_t vkw_state;
 
@@ -237,6 +238,7 @@ void KBD_Init(Key_Event_fp_t fp)
 
 void KBD_Update(void)
 {
+	MacOSHandleEvents();
 }
 
 void KBD_Close(void)
@@ -272,7 +274,30 @@ static void InitSig(void)
 */
 int Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 {
-    ri.Vid_NewWindow(100, 100);
+    int width, height;
+    ri.Con_Printf(PRINT_ALL, "Initializing Metal display\n");
+
+    if(fullscreen)
+        ri.Con_Printf(PRINT_ALL, "...setting fullscreen mode %d:", mode);
+    else
+        ri.Con_Printf(PRINT_ALL, "...setting mode %d:", mode);
+
+    if(!ri.Vid_GetModeInfo(&width, &height, mode))
+    {
+        ri.Con_Printf(PRINT_ALL, " invalid mode\n");
+        return rserr_invalid_mode;
+    }
+
+    ri.Con_Printf(PRINT_ALL, " %d %d\n", width, height);
+
+    // destroy the existing window
+    Vkimp_Shutdown();
+
+    MacOSCreateWindow(100, 100, width, height);
+
+    *pwidth = width;
+    *pheight = height;
+    ri.Vid_NewWindow(width, height);
 	return rserr_ok;
 }
 
@@ -290,14 +315,7 @@ void Vkimp_GetSurfaceExtensions(char **extensions, uint32_t *extCount)
 
 VkResult Vkimp_CreateSurface()
 {
-	VkMacOSSurfaceCreateInfoMVK surfaceCreateInfo = {
-		.sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK,
-		.pNext = NULL,
-		.flags = 0,
-		.pView = NULL // here be a view pointer to window on MacOS
-	};
-
-	return vkCreateMacOSSurfaceMVK(vk_instance, &surfaceCreateInfo, NULL, &vk_surface);
+	return MacOSCreateVulkanSurface(vk_instance, &vk_surface);
 }
 
 /*

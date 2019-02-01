@@ -11,6 +11,8 @@ Makefile text eol=lf
 *.h text eol=lf
 *.inc text eol=lf
 *.c text eol=lf
+*.m text eol=lf
+*.mm text eol=lf
 *.sh text eol=lf
 *.vcxproj text eol=crlf
 *.aps binary
