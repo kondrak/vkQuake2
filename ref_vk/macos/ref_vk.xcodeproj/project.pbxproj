@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E206218E22045B2C0007E8F0 /* win_macos.h in Headers */ = {isa = PBXBuildFile; fileRef = E206218D22045B2C0007E8F0 /* win_macos.h */; };
+		E206219022045B390007E8F0 /* win_macos.m in Sources */ = {isa = PBXBuildFile; fileRef = E206218F22045B390007E8F0 /* win_macos.m */; };
 		E291113321F727F400AE0164 /* glob.h in Headers */ = {isa = PBXBuildFile; fileRef = E291113221F727F400AE0164 /* glob.h */; };
 		E291113521F7280D00AE0164 /* glob.c in Sources */ = {isa = PBXBuildFile; fileRef = E291113421F7280D00AE0164 /* glob.c */; };
 		E2D6968721F64044009AF955 /* qvk.h in Headers */ = {isa = PBXBuildFile; fileRef = E2D6968021F64043009AF955 /* qvk.h */; };
@@ -48,6 +50,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		E206218D22045B2C0007E8F0 /* win_macos.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = win_macos.h; path = ../../macos/win_macos.h; sourceTree = "<group>"; };
+		E206218F22045B390007E8F0 /* win_macos.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = win_macos.m; path = ../../macos/win_macos.m; sourceTree = "<group>"; };
 		E291113221F727F400AE0164 /* glob.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glob.h; path = ../../linux/glob.h; sourceTree = "<group>"; };
 		E291113421F7280D00AE0164 /* glob.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = glob.c; path = ../../linux/glob.c; sourceTree = "<group>"; };
 		E295536D21F6264C00336DD3 /* ref_vk.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = ref_vk.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -131,6 +135,7 @@
 				E2D6969521F640B6009AF955 /* qmenu.h */,
 				E2D6968021F64043009AF955 /* qvk.h */,
 				E2D6969421F640B6009AF955 /* ref.h */,
+				E206218D22045B2C0007E8F0 /* win_macos.h */,
 				E2D6968321F64044009AF955 /* vk_local.h */,
 				E2D6969921F64AE1009AF955 /* vk_macos.h */,
 				E2D6968121F64043009AF955 /* vk_mem_alloc.h */,
@@ -154,6 +159,7 @@
 				E291113421F7280D00AE0164 /* glob.c */,
 				E2ED828221F628EE0009C478 /* q_shared.c */,
 				E2D696A021F659C3009AF955 /* q_shmacos.c */,
+				E206218F22045B390007E8F0 /* win_macos.m */,
 				E2ED826421F628D10009C478 /* vk_buffer.c */,
 				E2ED825E21F628D10009C478 /* vk_cmd.c */,
 				E2ED826C21F628D10009C478 /* vk_common.c */,
@@ -185,6 +191,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E206218E22045B2C0007E8F0 /* win_macos.h in Headers */,
 				E291113321F727F400AE0164 /* glob.h in Headers */,
 				E2D6969621F640B6009AF955 /* ref.h in Headers */,
 				E2D6968C21F64044009AF955 /* vk_model.h in Headers */,
@@ -285,6 +292,7 @@
 				E2ED827A21F628D10009C478 /* vk_rsurf.c in Sources */,
 				E2ED827221F628D10009C478 /* vk_pipeline.c in Sources */,
 				E2ED827921F628D10009C478 /* vk_image.c in Sources */,
+				E206219022045B390007E8F0 /* win_macos.m in Sources */,
 				E2ED828121F628D10009C478 /* vk_light.c in Sources */,
 				E2ED827821F628D10009C478 /* vk_mem_alloc.cpp in Sources */,
 				E2ED827321F628D10009C478 /* vk_shaders.c in Sources */,
