@@ -156,19 +156,6 @@ enum ePendingOperation {
 -(void) rightMouseDragged:(NSEvent *) theEvent;
 -(void) otherMouseDragged:(NSEvent *) theEvent;
 -(void) scrollWheel:(NSEvent *) theEvent;
--(void) touchesBeganWithEvent:(NSEvent *) theEvent;
--(void) touchesMovedWithEvent:(NSEvent *) theEvent;
--(void) touchesEndedWithEvent:(NSEvent *) theEvent;
--(void) touchesCancelledWithEvent:(NSEvent *) theEvent;
-
-/* Touch event handling */
-typedef enum {
-    COCOA_TOUCH_DOWN,
-    COCOA_TOUCH_UP,
-    COCOA_TOUCH_MOVE,
-    COCOA_TOUCH_CANCELLED
-} cocoaTouchType;
--(void) handleTouches:(cocoaTouchType)type withEvent:(NSEvent*) event;
 
 @end
 
@@ -218,10 +205,6 @@ typedef enum {
     [window setAcceptsMouseMovedEvents:YES];
     
     [view setNextResponder:self];
-    
-    if ([view respondsToSelector:@selector(setAcceptsTouchEvents:)]) {
-        [view setAcceptsTouchEvents:YES];
-    }
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath
@@ -609,54 +592,6 @@ typedef enum {
 - (void)scrollWheel:(NSEvent *)theEvent
 {
     //    Cocoa_HandleMouseWheel(_data->window, theEvent);
-}
-
-- (void)touchesBeganWithEvent:(NSEvent *) theEvent
-{
-    [self handleTouches:COCOA_TOUCH_DOWN withEvent:theEvent];
-}
-
-- (void)touchesMovedWithEvent:(NSEvent *) theEvent
-{
-    [self handleTouches:COCOA_TOUCH_MOVE withEvent:theEvent];
-}
-
-- (void)touchesEndedWithEvent:(NSEvent *) theEvent
-{
-    [self handleTouches:COCOA_TOUCH_UP withEvent:theEvent];
-}
-
-- (void)touchesCancelledWithEvent:(NSEvent *) theEvent
-{
-    [self handleTouches:COCOA_TOUCH_CANCELLED withEvent:theEvent];
-}
-
-- (void)handleTouches:(cocoaTouchType)type withEvent:(NSEvent *)event
-{
-    NSSet *touches = 0;
-    NSEnumerator *enumerator;
-    NSTouch *touch;
-    
-    switch (type) {
-        case COCOA_TOUCH_DOWN:
-            touches = [event touchesMatchingPhase:NSTouchPhaseBegan inView:nil];
-            break;
-        case COCOA_TOUCH_UP:
-            touches = [event touchesMatchingPhase:NSTouchPhaseEnded inView:nil];
-            break;
-        case COCOA_TOUCH_CANCELLED:
-            touches = [event touchesMatchingPhase:NSTouchPhaseCancelled inView:nil];
-            break;
-        case COCOA_TOUCH_MOVE:
-            touches = [event touchesMatchingPhase:NSTouchPhaseMoved inView:nil];
-            break;
-    }
-    
-    enumerator = [touches objectEnumerator];
-    touch = (NSTouch*)[enumerator nextObject];
-    while (touch) {
-        touch = (NSTouch*)[enumerator nextObject];
-    }
 }
 
 @end
