@@ -79,7 +79,7 @@ static qboolean dgamouse = false;
 static qboolean vidmode_ext = false;
 
 // state struct passed in Init
-static in_state_t	*in_state;
+in_state_t	*in_state;
 
 static cvar_t *sensitivity;
 static cvar_t *lookstrafe;

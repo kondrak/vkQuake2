@@ -1,12 +1,17 @@
 #import <Cocoa/Cocoa.h>
 #import <QuartzCore/CAMetalLayer.h>
 #include "win_macos.h"
-
+#include "../client/keys.h"
+#include "../linux/rw_linux.h"
+// for the keycodes
+#include <Carbon/Carbon.h>
 
 // note that it has to be a .m file instead of .mm - .m symbols are visible in .c while .mm are visible in .cpp only ¯\_(ツ)_/¯
 
 //@interface Quake2Application : NSApplication
 //@end
+
+extern in_state_t *in_state;
 
 @interface MetalView : NSView
 - (instancetype)initWithFrame:(NSRect)frame;
@@ -358,8 +363,8 @@ enum ePendingOperation {
 
 - (BOOL)windowShouldClose:(id)sender
 {
-    //    SDL_SendWindowEvent(_data->window, SDL_WINDOWEVENT_CLOSE, 0, 0);
-    return NO;
+    in_state->Quit_fp();
+    return YES;
 }
 
 - (void)windowDidExpose:(NSNotification *)aNotification
@@ -633,6 +638,102 @@ enum ePendingOperation {
 static Quake2AppDelegate *appDelegate = nil;
 static Quake2WindowListener *windowListener = nil;
 
+static int KeyLate(NSEvent *keyEvent)
+{
+    int key = 0;
+    int keyMod = [keyEvent modifierFlags] & NSEventModifierFlagShift ? 32 : 0;
+    int keySym = [keyEvent keyCode];
+
+    switch(keySym)
+    {
+        case kVK_Escape: key = K_ESCAPE; break;
+        case kVK_Return: key = K_ENTER; break;
+        case kVK_Delete: key = K_BACKSPACE; break;
+        case kVK_UpArrow: key = K_UPARROW; break;
+        case kVK_LeftArrow: key = K_LEFTARROW; break;
+        case kVK_RightArrow: key = K_RIGHTARROW; break;
+        case kVK_DownArrow: key = K_DOWNARROW; break;
+        case kVK_PageUp: key = K_PGUP; break;
+        case kVK_PageDown: key = K_PGDN; break;
+        case kVK_Home: key = K_HOME; break;
+        case kVK_End: key = K_END; break;
+        case kVK_Tab: key = K_TAB; break;
+        case kVK_F1: key = K_F1; break;
+        case kVK_F2: key = K_F2; break;
+        case kVK_F3: key = K_F3; break;
+        case kVK_F4: key = K_F4; break;
+        case kVK_F5: key = K_F5; break;
+        case kVK_F6: key = K_F6; break;
+        case kVK_F7: key = K_F7; break;
+        case kVK_F8: key = K_F8; break;
+        case kVK_F9: key = K_F9; break;
+        case kVK_F10: key = K_F10; break;
+        case kVK_F11: key = K_F11; break;
+        case kVK_F12: key = K_F12; break;
+        case kVK_Space: key = K_SPACE; break;
+        case kVK_Shift:
+        case kVK_RightShift: key = K_SHIFT; break;
+        case kVK_Option:
+        case kVK_RightOption: key = K_ALT; break;
+        case kVK_Control:
+        case kVK_RightControl: key = K_CTRL; break;
+        case kVK_ANSI_A: key = 'a' - keyMod; break;
+        case kVK_ANSI_B: key = 'b' - keyMod; break;
+        case kVK_ANSI_C: key = 'c' - keyMod; break;
+        case kVK_ANSI_D: key = 'd' - keyMod; break;
+        case kVK_ANSI_E: key = 'e' - keyMod; break;
+        case kVK_ANSI_F: key = 'f' - keyMod; break;
+        case kVK_ANSI_G: key = 'g' - keyMod; break;
+        case kVK_ANSI_H: key = 'h' - keyMod; break;
+        case kVK_ANSI_I: key = 'i' - keyMod; break;
+        case kVK_ANSI_J: key = 'j' - keyMod; break;
+        case kVK_ANSI_K: key = 'k' - keyMod; break;
+        case kVK_ANSI_L: key = 'l' - keyMod; break;
+        case kVK_ANSI_M: key = 'm' - keyMod; break;
+        case kVK_ANSI_N: key = 'n' - keyMod; break;
+        case kVK_ANSI_O: key = 'o' - keyMod; break;
+        case kVK_ANSI_P: key = 'p' - keyMod; break;
+        case kVK_ANSI_Q: key = 'q' - keyMod; break;
+        case kVK_ANSI_R: key = 'r' - keyMod; break;
+        case kVK_ANSI_S: key = 's' - keyMod; break;
+        case kVK_ANSI_T: key = 't' - keyMod; break;
+        case kVK_ANSI_U: key = 'u' - keyMod; break;
+        case kVK_ANSI_V: key = 'v' - keyMod; break;
+        case kVK_ANSI_W: key = 'w' - keyMod; break;
+        case kVK_ANSI_X: key = 'x' - keyMod; break;
+        case kVK_ANSI_Y: key = 'y' - keyMod; break;
+        case kVK_ANSI_Z: key = 'z' - keyMod; break;
+        case kVK_ANSI_0: key = keyMod ? ')' : '0'; break;
+        case kVK_ANSI_1: key = keyMod ? '!' : '1'; break;
+        case kVK_ANSI_2: key = keyMod ? '@' : '2'; break;
+        case kVK_ANSI_3: key = keyMod ? '#' : '3'; break;
+        case kVK_ANSI_4: key = keyMod ? '$' : '4'; break;
+        case kVK_ANSI_5: key = keyMod ? '%' : '5'; break;
+        case kVK_ANSI_6: key = keyMod ? '^' : '6'; break;
+        case kVK_ANSI_7: key = keyMod ? '&' : '7'; break;
+        case kVK_ANSI_8: key = keyMod ? '*' : '8'; break;
+        case kVK_ANSI_9: key = keyMod ? '(' : '9'; break;
+        case kVK_ANSI_Minus:
+        case kVK_ANSI_KeypadMinus: key = keyMod ? '_' : '-'; break;
+        case kVK_ANSI_KeypadEquals:
+        case kVK_ANSI_Equal: key = keyMod ? '+' : '='; break;
+        case kVK_ANSI_Period: key = keyMod ? '>' : '.'; break;
+        case kVK_ANSI_Comma: key = keyMod ? '<' : ','; break;
+        case kVK_ANSI_Semicolon: key = keyMod ? ':' : ';'; break;
+        case kVK_ANSI_Slash: key = keyMod ? '?' : '/'; break;
+        case kVK_ANSI_Backslash: key = keyMod ? '|' : '\\'; break;
+        case kVK_ANSI_LeftBracket: key = keyMod ? '{' : '['; break;
+        case kVK_ANSI_RightBracket: key = keyMod ? '}' : ']'; break;
+        case kVK_ANSI_Quote: key = keyMod ? '"' : '\''; break;
+        case kVK_ISO_Section:
+        case kVK_ANSI_Grave: key = '~'; break;
+        default:
+            return key;
+    }
+
+    return key;
+}
+
 void MacOSHandleEvents()
 {
     if(window == nil) return;
@@ -667,9 +768,8 @@ void MacOSHandleEvents()
                 contentView = [[NSView alloc] initWithFrame:r];
                 [window setContentView:contentView];
                 [window toggleFullScreen:nil]; */
-                //if (pApp->m_pKeyboard) {
-                //   pApp->m_pKeyboard->ProcessEvent(pEvent);
-                // }
+                if(in_state && in_state->Key_Event_fp)
+                    in_state->Key_Event_fp(KeyLate(pEvent), [pEvent type] == NSEventTypeKeyDown);
                 break;
             default:
                 break;
