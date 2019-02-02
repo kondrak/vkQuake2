@@ -6,6 +6,6 @@
 
 VkResult MacOSCreateVulkanSurface(VkInstance instance, VkSurfaceKHR *surface);
 void MacOSHandleEvents();
-void MacOSCreateWindow(int x, int y, int w, int h);
+void MacOSCreateWindow(int x, int y, int *w, int *h, qboolean fullscreen);
 void MacOSDestroyWindow();
 #endif

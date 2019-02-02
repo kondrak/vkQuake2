@@ -765,12 +765,6 @@ void MacOSHandleEvents()
                     in_state->Key_Event_fp(KeyLate(pEvent), [pEvent type] == NSEventTypeKeyDown);
                 break;
             case NSEventTypeFlagsChanged:
-              /*  [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
-                [window setFrame:[[NSScreen mainScreen] frame] display:YES];
-                NSRect r = [window contentRectForFrameRect:[window frame]];
-                contentView = [[NSView alloc] initWithFrame:r];
-                [window setContentView:contentView];
-                [window toggleFullScreen:nil]; */
                 if(in_state && in_state->Key_Event_fp)
                 {
                     int keyCode = KeyLate(pEvent);
@@ -789,7 +783,7 @@ void MacOSHandleEvents()
     }
 }
 
-void MacOSCreateWindow(int x, int y, int w, int h)
+void MacOSCreateWindow(int x, int y, int *w, int *h, qboolean fullscreen)
 { //@autoreleasepool {
     if(window != nil) {
         return;
@@ -799,16 +793,29 @@ void MacOSCreateWindow(int x, int y, int w, int h)
     NSApplication *app = [NSApplication sharedApplication];
     [app setDelegate:appDelegate];
     [app setActivationPolicy:NSApplicationActivationPolicyRegular];
-    
-    NSUInteger windowStyle = NSWindowStyleMaskTitled|NSWindowStyleMaskClosable|NSWindowStyleMaskMiniaturizable;
-    NSRect r;
 
-    CGFloat s = [[NSScreen mainScreen] backingScaleFactor];
-    window = [[Quake2Window alloc] initWithContentRect:NSMakeRect(x, y, w/s, h/s) styleMask:windowStyle backing:NSBackingStoreBuffered defer:NO];
-    
-    r = [window contentRectForFrameRect:[window frame]];
-    contentView = [[NSView alloc] initWithFrame:r];
-    
+	NSRect windowFrame;
+	NSUInteger windowStyle = 0;
+	CGFloat s = [[NSScreen mainScreen] backingScaleFactor];
+
+	if(fullscreen)
+	{
+		windowFrame = [[NSScreen mainScreen] frame];
+		[NSMenu setMenuBarVisible:NO];
+		*w = windowFrame.size.width * s;
+		*h = windowFrame.size.height * s;
+	}
+	else
+	{
+		windowStyle = NSWindowStyleMaskTitled|NSWindowStyleMaskClosable|NSWindowStyleMaskMiniaturizable;
+		windowFrame = NSMakeRect(x, y, *w/s, *h/s);
+		[NSMenu setMenuBarVisible:YES];
+	}
+
+    window = [[Quake2Window alloc] initWithContentRect:windowFrame styleMask:windowStyle backing:NSBackingStoreBuffered defer:NO];
+
+    contentView = [[NSView alloc] initWithFrame:windowFrame];
+
     [window setContentView:contentView];
     [window setTitle:@"Quake 2 (Vulkan) "CPUSTRING];
    // [contentView release];
@@ -822,13 +829,13 @@ void MacOSDestroyWindow()
 {
 	[window close];
 	window = nil;
+	contentView = nil;
 }
 
 MetalView *AddMetalView()
 {
-    NSView *view = contentView;
-    MetalView *mv = [[MetalView alloc] initWithFrame:view.frame];
-    [view addSubview:mv];
+    MetalView *mv = [[MetalView alloc] initWithFrame:contentView.frame];
+    [contentView addSubview:mv];
     return mv;
 }
 

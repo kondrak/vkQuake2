@@ -293,7 +293,7 @@ int Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
     // destroy the existing window
     Vkimp_Shutdown();
 
-    MacOSCreateWindow(100, 100, width, height);
+    MacOSCreateWindow(100, 100, &width, &height, fullscreen);
 
     *pwidth = width;
     *pheight = height;
