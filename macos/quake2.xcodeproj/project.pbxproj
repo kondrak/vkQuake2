@@ -14,7 +14,7 @@
 		E291112821F70CC900AE0164 /* vid_dsym.c in Sources */ = {isa = PBXBuildFile; fileRef = E291112221F70CC900AE0164 /* vid_dsym.c */; };
 		E291112A21F7103600AE0164 /* m_flash.c in Sources */ = {isa = PBXBuildFile; fileRef = E291112921F7103600AE0164 /* m_flash.c */; };
 		E291112C21F7108F00AE0164 /* net_udp.c in Sources */ = {isa = PBXBuildFile; fileRef = E291112B21F7108F00AE0164 /* net_udp.c */; };
-		E291112E21F71AE300AE0164 /* snd_macos.c in Sources */ = {isa = PBXBuildFile; fileRef = E291112D21F71AE300AE0164 /* snd_macos.c */; };
+		E291112E21F71AE300AE0164 /* snd_macos.m in Sources */ = {isa = PBXBuildFile; fileRef = E291112D21F71AE300AE0164 /* snd_macos.m */; };
 		E291113021F71DE800AE0164 /* glob.c in Sources */ = {isa = PBXBuildFile; fileRef = E291112F21F71DE800AE0164 /* glob.c */; };
 		E295532D21F623B600336DD3 /* cl_newfx.c in Sources */ = {isa = PBXBuildFile; fileRef = E295531A21F623B500336DD3 /* cl_newfx.c */; };
 		E295532E21F623B600336DD3 /* cl_tent.c in Sources */ = {isa = PBXBuildFile; fileRef = E295531B21F623B500336DD3 /* cl_tent.c */; };
@@ -75,7 +75,7 @@
 		E291112221F70CC900AE0164 /* vid_dsym.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = vid_dsym.c; sourceTree = "<group>"; };
 		E291112921F7103600AE0164 /* m_flash.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m_flash.c; path = ../game/m_flash.c; sourceTree = "<group>"; };
 		E291112B21F7108F00AE0164 /* net_udp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = net_udp.c; path = ../linux/net_udp.c; sourceTree = "<group>"; };
-		E291112D21F71AE300AE0164 /* snd_macos.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = snd_macos.c; sourceTree = "<group>"; };
+		E291112D21F71AE300AE0164 /* snd_macos.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = snd_macos.m; sourceTree = "<group>"; };
 		E291112F21F71DE800AE0164 /* glob.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = glob.c; path = ../linux/glob.c; sourceTree = "<group>"; };
 		E291113121F71DF800AE0164 /* glob.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glob.h; path = ../linux/glob.h; sourceTree = "<group>"; };
 		E29552FD21F620FB00336DD3 /* quake2 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = quake2; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -199,7 +199,7 @@
 				E291111D21F70CC800AE0164 /* q_shmacos.c */,
 				E295532721F623B500336DD3 /* qmenu.c */,
 				E295532821F623B500336DD3 /* snd_dma.c */,
-				E291112D21F71AE300AE0164 /* snd_macos.c */,
+				E291112D21F71AE300AE0164 /* snd_macos.m */,
 				E295531F21F623B500336DD3 /* snd_mem.c */,
 				E295532121F623B500336DD3 /* snd_mix.c */,
 				E295535921F624D600336DD3 /* sv_ccmds.c */,
@@ -347,7 +347,7 @@
 				E295533B21F623B600336DD3 /* snd_dma.c in Sources */,
 				E295533E21F623B600336DD3 /* cl_fx.c in Sources */,
 				E295535021F6242C00336DD3 /* md4.c in Sources */,
-				E291112E21F71AE300AE0164 /* snd_macos.c in Sources */,
+				E291112E21F71AE300AE0164 /* snd_macos.m in Sources */,
 				E295533F21F623B600336DD3 /* cl_input.c in Sources */,
 				E295533421F623B600336DD3 /* snd_mix.c in Sources */,
 				E295532E21F623B600336DD3 /* cl_tent.c in Sources */,
