@@ -96,6 +96,7 @@
 				E29552AC21F61D9600336DD3 /* Products */,
 			);
 			sourceTree = "<group>";
+			usesTabs = 1;
 		};
 		E29552AC21F61D9600336DD3 /* Products */ = {
 			isa = PBXGroup;

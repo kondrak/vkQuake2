@@ -180,6 +180,7 @@
 				E295520221F618E100336DD3 /* Products */,
 			);
 			sourceTree = "<group>";
+			usesTabs = 1;
 		};
 		E295520221F618E100336DD3 /* Products */ = {
 			isa = PBXGroup;

@@ -154,6 +154,7 @@
 				E29552FE21F620FB00336DD3 /* Products */,
 			);
 			sourceTree = "<group>";
+			usesTabs = 1;
 		};
 		E29552FE21F620FB00336DD3 /* Products */ = {
 			isa = PBXGroup;
