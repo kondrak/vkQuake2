@@ -745,20 +745,31 @@ void MacOSHandleEvents()
         
         switch ([pEvent type]) {
             case NSEventTypeLeftMouseDown:
+			case NSEventTypeLeftMouseUp:
+				if (in_state && in_state->Key_Event_fp)
+					in_state->Key_Event_fp (K_MOUSE1, [pEvent type] == NSEventTypeLeftMouseDown);
+				break;
+			case NSEventTypeRightMouseDown:
+			case NSEventTypeRightMouseUp:
+				if (in_state && in_state->Key_Event_fp)
+					in_state->Key_Event_fp (K_MOUSE2, [pEvent type] == NSEventTypeRightMouseDown);
+				break;
             case NSEventTypeOtherMouseDown:
-            case NSEventTypeRightMouseDown:
-            case NSEventTypeLeftMouseUp:
-            case NSEventTypeOtherMouseUp:
-            case NSEventTypeRightMouseUp:
-            case NSEventTypeLeftMouseDragged:
-            case NSEventTypeRightMouseDragged:
-            case NSEventTypeOtherMouseDragged: /* usually middle mouse dragged */
-            case NSEventTypeMouseMoved:
+			case NSEventTypeOtherMouseUp:
+				if (in_state && in_state->Key_Event_fp)
+					in_state->Key_Event_fp (K_MOUSE3, [pEvent type] == NSEventTypeOtherMouseDown);
+				break;
             case NSEventTypeScrollWheel:
-                // if (pApp->m_pMouse) {
-                //    Cocoa_HandleMouseEvent(_this, event);
-                // }
+				if (in_state && in_state->Key_Event_fp)
+				{
+					if([pEvent deltaY] != 0)
+						in_state->Key_Event_fp ([pEvent deltaY] < 0 ? K_MWHEELDOWN : K_MWHEELUP, true);
+					in_state->Key_Event_fp (K_MWHEELUP, false);
+					in_state->Key_Event_fp (K_MWHEELDOWN, false);
+				}
                 break;
+			case NSEventTypeMouseMoved:
+				break;
             case NSEventTypeKeyDown:
             case NSEventTypeKeyUp:
                 if(in_state && in_state->Key_Event_fp)
