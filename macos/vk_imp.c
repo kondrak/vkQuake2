@@ -327,7 +327,7 @@ VkResult Vkimp_CreateSurface()
 */
 void Vkimp_Shutdown( void )
 {
-
+	MacOSDestroyWindow();
 }
 
 /*

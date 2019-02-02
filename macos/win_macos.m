@@ -815,6 +815,12 @@ void MacOSCreateWindow(int x, int y, int w, int h)
 //}
 }
 
+void MacOSDestroyWindow()
+{
+	[window close];
+	window = nil;
+}
+
 MetalView *AddMetalView()
 {
     NSView *view = contentView;

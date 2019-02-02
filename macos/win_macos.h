@@ -7,4 +7,5 @@
 VkResult MacOSCreateVulkanSurface(VkInstance instance, VkSurfaceKHR *surface);
 void MacOSHandleEvents();
 void MacOSCreateWindow(int x, int y, int w, int h);
+void MacOSDestroyWindow();
 #endif
