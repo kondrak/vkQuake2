@@ -39,6 +39,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <stdio.h>
 #include <signal.h>
 #include <unistd.h>
+#include <CoreGraphics/CGDirectDisplay.h>
 
 #include "../ref_vk/vk_local.h"
 
@@ -74,7 +75,7 @@ static qboolean vidmode_active = false;
 
 static qboolean	mlooking;
 
-static qboolean mouse_active = false;
+qboolean mouse_active = false;
 static qboolean dgamouse = false;
 static qboolean vidmode_ext = false;
 
@@ -197,6 +198,7 @@ static void IN_DeactivateMouse( void )
 
 	if (mouse_active) {
 		mouse_active = false;
+		CGDisplayShowCursor(kCGDirectMainDisplay);
 	}
 }
 
@@ -208,6 +210,7 @@ static void IN_ActivateMouse( void )
 	if (!mouse_active) {
 		mx = my = 0; // don't spazz
 		mouse_active = true;
+		CGDisplayHideCursor(kCGDirectMainDisplay);
 	}
 }
 

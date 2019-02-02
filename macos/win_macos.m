@@ -12,6 +12,7 @@
 //@end
 
 extern in_state_t *in_state;
+extern int mouse_active;
 extern int mx, my;
 
 @interface MetalView : NSView
@@ -788,18 +789,19 @@ void MacOSHandleEvents()
 			case NSEventTypeRightMouseDragged:
 			case NSEventTypeOtherMouseDragged:
 			case NSEventTypeMouseMoved:
-			{
-				CGEventRef event = CGEventCreate(NULL);
-				CGPoint cursor = CGEventGetLocation(event);
-				CFRelease(event);
-				mx += ((int)cursor.x - mwx) * 2;
-				my += ((int)cursor.y - mwy) * 2;
-				mwx = cursor.x;
-				mwy = cursor.y;
+				if (mouse_active)
+				{
+					CGEventRef event = CGEventCreate(NULL);
+					CGPoint cursor = CGEventGetLocation(event);
+					CFRelease(event);
+					mx += ((int)cursor.x - mwx) * 2;
+					my += ((int)cursor.y - mwy) * 2;
+					mwx = cursor.x;
+					mwy = cursor.y;
 
-				if (mx || my)
-					dowarp = true;
-			}
+					if (mx || my)
+						dowarp = true;
+				}
 				break;
             case NSEventTypeKeyDown:
             case NSEventTypeKeyUp:
@@ -827,7 +829,6 @@ void MacOSHandleEvents()
 				CGWarpMouseCursorPosition(CGPointMake([[NSScreen mainScreen] frame].size.width/2, [[NSScreen mainScreen] frame].size.height/2));
 			else
 				CGWarpMouseCursorPosition(CGPointMake([window frame].origin.x + [window frame].size.width/2, [[NSScreen mainScreen] frame].size.height - [window frame].size.height - [window frame].origin.y + [window frame].size.height/2));
-				//CGWarpMouseCursorPosition(CGPointMake(vid.width/2, vid.height/2));
 			CGAssociateMouseAndMouseCursorPosition(YES);
 		}
 
