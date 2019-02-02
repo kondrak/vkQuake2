@@ -57,7 +57,7 @@ vkwstate_t vkw_state;
 // this is inside the renderer shared lib, so these are called from vid_so
 
 static qboolean        mouse_avail;
-static int   mx, my;
+int   mx, my;
 static int	old_mouse_x, old_mouse_y;
 
 static int win_x, win_y;

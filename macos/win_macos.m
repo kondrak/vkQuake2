@@ -12,6 +12,7 @@
 //@end
 
 extern in_state_t *in_state;
+extern int mx, my;
 
 @interface MetalView : NSView
 - (instancetype)initWithFrame:(NSRect)frame;
@@ -737,6 +738,21 @@ static int KeyLate(NSEvent *keyEvent)
 void MacOSHandleEvents()
 {
     if(window == nil) return;
+
+	qboolean dowarp = false;
+	int mwx, mwy;
+
+	if(vid_fullscreen->value)
+	{
+		mwx = [[NSScreen mainScreen] frame].size.width / 2;
+		mwy = [[NSScreen mainScreen] frame].size.height / 2;
+	}
+	else
+	{
+		mwx = [window frame].origin.x + [window frame].size.width/2;
+		mwy = [[NSScreen mainScreen] frame].size.height - [window frame].size.height - [window frame].origin.y + [window frame].size.height/2;
+	}
+
     for (;;) {
         NSEvent *pEvent = [NSApp nextEventMatchingMask:NSEventMaskAny untilDate:[NSDate distantPast] inMode:NSDefaultRunLoopMode dequeue:YES ];
         if (!pEvent) {
@@ -768,7 +784,22 @@ void MacOSHandleEvents()
 					in_state->Key_Event_fp (K_MWHEELDOWN, false);
 				}
                 break;
+			case NSEventTypeLeftMouseDragged:
+			case NSEventTypeRightMouseDragged:
+			case NSEventTypeOtherMouseDragged:
 			case NSEventTypeMouseMoved:
+			{
+				CGEventRef event = CGEventCreate(NULL);
+				CGPoint cursor = CGEventGetLocation(event);
+				CFRelease(event);
+				mx += ((int)cursor.x - mwx) * 2;
+				my += ((int)cursor.y - mwy) * 2;
+				mwx = cursor.x;
+				mwy = cursor.y;
+
+				if (mx || my)
+					dowarp = true;
+			}
 				break;
             case NSEventTypeKeyDown:
             case NSEventTypeKeyUp:
@@ -789,6 +820,17 @@ void MacOSHandleEvents()
             default:
                 break;
         }
+
+		if(dowarp)
+		{
+			if(vid_fullscreen->value)
+				CGWarpMouseCursorPosition(CGPointMake([[NSScreen mainScreen] frame].size.width/2, [[NSScreen mainScreen] frame].size.height/2));
+			else
+				CGWarpMouseCursorPosition(CGPointMake([window frame].origin.x + [window frame].size.width/2, [[NSScreen mainScreen] frame].size.height - [window frame].size.height - [window frame].origin.y + [window frame].size.height/2));
+				//CGWarpMouseCursorPosition(CGPointMake(vid.width/2, vid.height/2));
+			CGAssociateMouseAndMouseCursorPosition(YES);
+		}
+
         // Send the event to the operating system
         [NSApp sendEvent:pEvent];
     }
