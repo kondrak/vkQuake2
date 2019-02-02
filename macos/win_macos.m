@@ -675,6 +675,8 @@ static int KeyLate(NSEvent *keyEvent)
         case kVK_RightOption: key = K_ALT; break;
         case kVK_Control:
         case kVK_RightControl: key = K_CTRL; break;
+		case kVK_Command:
+		case kVK_RightCommand: key = K_CMD; break;
         case kVK_ANSI_A: key = 'a'; break;
         case kVK_ANSI_B: key = 'b'; break;
         case kVK_ANSI_C: key = 'c'; break;
@@ -775,7 +777,8 @@ void MacOSHandleEvents()
                     qboolean ctrlDown = keyCode == K_CTRL && ([pEvent modifierFlags] & NSEventModifierFlagControl);
                     qboolean shiftDown = keyCode == K_SHIFT && ([pEvent modifierFlags] & NSEventModifierFlagShift);
                     qboolean altDown = keyCode == K_ALT && ([pEvent modifierFlags] & NSEventModifierFlagOption);
-                    in_state->Key_Event_fp(keyCode, ctrlDown || shiftDown || altDown);
+					qboolean cmdDown = keyCode == K_CMD && ([pEvent modifierFlags] & NSEventModifierFlagCommand);
+                    in_state->Key_Event_fp(keyCode, ctrlDown || shiftDown || altDown || cmdDown);
                 }
                 break;
             default:
