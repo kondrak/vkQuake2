@@ -764,6 +764,15 @@ void Key_Event (int key, qboolean down, unsigned time)
 		return;
 	}
 
+#ifdef __APPLE__
+	// ALT+F4 game shutdown
+    if (down && keydown[K_ALT] && key == K_F4)
+    {
+		CL_Quit_f();
+		return;
+    }
+#endif
+
 	// update auto-repeat status
 	if (down)
 	{
