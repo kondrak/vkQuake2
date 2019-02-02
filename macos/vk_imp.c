@@ -370,8 +370,3 @@ void Vkimp_EndFrame (void)
 void Vkimp_AppActivate( qboolean active )
 {
 }
-
-/*------------------------------------------------*/
-/* X11 Input Stuff
-/*------------------------------------------------*/
-
