@@ -259,30 +259,32 @@ static void InitSig(void)
 */
 int Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 {
-    int width, height;
-    ri.Con_Printf(PRINT_ALL, "Initializing Metal display\n");
+	int width, height;
+	ri.Con_Printf(PRINT_ALL, "Initializing Metal display\n");
 
-    if(fullscreen)
-        ri.Con_Printf(PRINT_ALL, "...setting fullscreen mode %d:", mode);
-    else
-        ri.Con_Printf(PRINT_ALL, "...setting mode %d:", mode);
+	if(fullscreen)
+		ri.Con_Printf(PRINT_ALL, "...setting fullscreen mode %d:", mode);
+	else
+		ri.Con_Printf(PRINT_ALL, "...setting mode %d:", mode);
 
-    if(!ri.Vid_GetModeInfo(&width, &height, mode))
-    {
-        ri.Con_Printf(PRINT_ALL, " invalid mode\n");
-        return rserr_invalid_mode;
-    }
+	if(!ri.Vid_GetModeInfo(&width, &height, mode))
+	{
+		ri.Con_Printf(PRINT_ALL, " invalid mode\n");
+		return rserr_invalid_mode;
+	}
 
-    ri.Con_Printf(PRINT_ALL, " %d %d\n", width, height);
+	ri.Con_Printf(PRINT_ALL, " %d %d\n", width, height);
 
-    // destroy the existing window
-    Vkimp_Shutdown();
+	// destroy the existing window
+	Vkimp_Shutdown();
 
-    MacOSCreateWindow(100, 100, &width, &height, fullscreen);
+	cvar_t *vid_xpos = ri.Cvar_Get("vid_xpos", "3", CVAR_ARCHIVE);
+	cvar_t *vid_ypos = ri.Cvar_Get("vid_ypos", "22", CVAR_ARCHIVE);
+	MacOSCreateWindow((int)vid_xpos->value, (int)vid_ypos->value, &width, &height, fullscreen);
 
-    *pwidth = width;
-    *pheight = height;
-    ri.Vid_NewWindow(width, height);
+	*pwidth = width;
+	*pheight = height;
+	ri.Vid_NewWindow(width, height);
 	return rserr_ok;
 }
 
