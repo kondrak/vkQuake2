@@ -340,8 +340,10 @@ void MacOSCreateWindow(int x, int y, int *w, int *h, qboolean fullscreen)
 	}
 	else
 	{
+		// convert Cocoa coordinates to origin in top-left corner of the screen
+		int yPos = [[NSScreen mainScreen] frame].size.height - *h - y + *h/2;
 		windowStyle = NSWindowStyleMaskTitled|NSWindowStyleMaskClosable|NSWindowStyleMaskMiniaturizable;
-		windowFrame = NSMakeRect(x, y, *w/s, *h/s);
+		windowFrame = NSMakeRect(x, yPos, *w/s, *h/s);
 		[NSMenu setMenuBarVisible:YES];
 	}
 
