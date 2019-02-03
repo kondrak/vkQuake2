@@ -55,32 +55,23 @@ vkwstate_t vkw_state;
 /* MOUSE                                                                     */
 /*****************************************************************************/
 
-// this is inside the renderer shared lib, so these are called from vid_so
+// this is inside the renderer shared lib, so these are called from vid_dylib
 
 static qboolean        mouse_avail;
-int   mx, my;
 static int	old_mouse_x, old_mouse_y;
-
-static int win_x, win_y;
 
 static cvar_t	*m_filter;
 static cvar_t	*in_mouse;
 static cvar_t	*in_dgamouse;
 
-static cvar_t	*r_fakeFullscreen;
-
-static int default_dotclock_vidmode;
-static int num_vidmodes;
 static qboolean vidmode_active = false;
 
 static qboolean	mlooking;
 
-qboolean mouse_active = false;
-static qboolean dgamouse = false;
-static qboolean vidmode_ext = false;
-
 // state struct passed in Init
 in_state_t	*in_state;
+int			mx, my;
+qboolean	mouse_active = false;
 
 static cvar_t *sensitivity;
 static cvar_t *lookstrafe;
@@ -109,9 +100,6 @@ static void RW_IN_MLookUp (void)
 
 void RW_IN_Init(in_state_t *in_state_p)
 {
-	int mtype;
-	int i;
-
 	in_state = in_state_p;
 
 	// mouse variables
@@ -229,9 +217,6 @@ void RW_IN_Activate(qboolean active)
 /*****************************************************************************/
 /* KEYBOARD                                                                  */
 /*****************************************************************************/
-
-
-
 Key_Event_fp_t Key_Event_fp;
 
 void KBD_Init(Key_Event_fp_t fp)
@@ -249,9 +234,6 @@ void KBD_Close(void)
 }
 
 /*****************************************************************************/
-
-static qboolean Vkimp_SwitchFullscreen( int width, int height );
-
 static void signal_handler(int sig)
 {
 	printf("Received signal %d, exiting...\n", sig);

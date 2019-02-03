@@ -306,22 +306,11 @@ qboolean VID_LoadRefresh( char *name )
 	}
 
 	/* Init KBD */
-#if 1
 	if ((KBD_Init_fp = dlsym(reflib_library, "KBD_Init")) == NULL ||
 		(KBD_Update_fp = dlsym(reflib_library, "KBD_Update")) == NULL ||
 		(KBD_Close_fp = dlsym(reflib_library, "KBD_Close")) == NULL)
 		Sys_Error("No KBD functions in REF.\n");
-#else
-	{
-		void KBD_Init(void);
-		void KBD_Update(void);
-		void KBD_Close(void);
 
-		KBD_Init_fp = KBD_Init;
-		KBD_Update_fp = KBD_Update;
-		KBD_Close_fp = KBD_Close;
-	}
-#endif
 	KBD_Init_fp(Do_Key_Event);
 	Key_ClearStates();
 
@@ -376,10 +365,10 @@ void VID_CheckChanges (void)
 		{
 			if ( strcmp (vid_ref->string, "soft") == 0 ||
 				strcmp (vid_ref->string, "softx") == 0 ) {
-Com_Printf("Refresh failed\n");
+				Com_Printf("Refresh failed\n");
 				sw_mode = Cvar_Get( "sw_mode", "0", 0 );
 				if (sw_mode->value != 0) {
-Com_Printf("Trying mode 0\n");
+					Com_Printf("Trying mode 0\n");
 					Cvar_SetValue("sw_mode", 0);
 					if ( !VID_LoadRefresh( name ) )
 						Com_Error (ERR_FATAL, "Couldn't fall back to software refresh!");
