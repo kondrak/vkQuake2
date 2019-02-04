@@ -29,7 +29,6 @@
 #include <CoreAudio/AudioHardware.h>
 
 #import <Foundation/NSData.h>
-#import <Foundation/NSError.h>
 #import <Foundation/NSString.h>
 
 static unsigned int  submissionChunk;
