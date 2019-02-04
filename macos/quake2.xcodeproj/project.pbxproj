@@ -69,7 +69,7 @@
 
 /* Begin PBXFileReference section */
 		E291111D21F70CC800AE0164 /* q_shmacos.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = q_shmacos.c; sourceTree = "<group>"; };
-		E291111F21F70CC900AE0164 /* vid_menu.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = vid_menu.c; sourceTree = "<group>"; };
+		E291111F21F70CC900AE0164 /* vid_menu.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vid_menu.c; path = ../linux/vid_menu.c; sourceTree = "<group>"; };
 		E291112021F70CC900AE0164 /* sys_macos.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sys_macos.c; sourceTree = "<group>"; };
 		E291112121F70CC900AE0164 /* cd_macos.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cd_macos.c; sourceTree = "<group>"; };
 		E291112221F70CC900AE0164 /* vid_dsym.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = vid_dsym.c; sourceTree = "<group>"; };

@@ -124,8 +124,8 @@ static void BrightnessCallback( void *s )
 		s_brightness_slider[i].curvalue = s_brightness_slider[s_current_menu_index].curvalue;
 	}
 
-	if ( stricmp( vid_ref->string, "soft" ) == 0 ||
-		 stricmp( vid_ref->string, "softx" ) == 0 )
+	if ( Q_stricmp( vid_ref->string, "soft" ) == 0 ||
+		 Q_stricmp( vid_ref->string, "softx" ) == 0 )
 	{
 		float gamma = ( 0.8 - ( slider->curvalue/10.0 - 0.5 ) ) + 0.5;
 
