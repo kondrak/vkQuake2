@@ -1,3 +1,5 @@
+# vkQuake2 for MacOS
+
 debug:
 	xcodebuild -workspace vkQuake2.xcworkspace -scheme vkQuake2 -configuration Debug build
 release:

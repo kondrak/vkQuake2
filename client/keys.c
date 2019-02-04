@@ -27,7 +27,6 @@ key up events are sent even if in console mode
 
 */
 
-
 #define		MAXCMDLINE	256
 char	key_lines[32][MAXCMDLINE];
 int		key_linepos;
