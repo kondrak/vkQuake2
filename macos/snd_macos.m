@@ -1,26 +1,26 @@
 /*
  Copyright (C) 1997-2005 Id Software, Inc.
  Copyright (C) 2018-2019 Krzysztof Kondrak
- 
+
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 2
  of the License, or (at your option) any later version.
- 
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- 
+
  See the GNU General Public License for more details.
- 
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- 
+
  */
 
 // snd_macos.m
-// CoreAudio sound support - modified Quake III Arena driver
+// CoreAudio sound support using an updated Quake III Arena driver
 
 #include "../client/client.h"
 #include "../client/snd_loc.h"
@@ -29,6 +29,7 @@
 #include <CoreAudio/AudioHardware.h>
 
 #import <Foundation/NSData.h>
+#import <Foundation/NSError.h>
 #import <Foundation/NSString.h>
 
 static unsigned int  submissionChunk;
@@ -38,6 +39,7 @@ static int          s_chunkCount;		// number of chunks submitted
 static qboolean     s_isRunning;
 
 static AudioDeviceID outputDeviceID;
+static AudioDeviceIOProcID outputDeviceProcID;
 static AudioStreamBasicDescription outputStreamBasicDescription;
 
 /*
@@ -162,8 +164,13 @@ qboolean SNDDMA_Init(void)
 
     // Get the output device
     propertySize = sizeof(outputDeviceID);
-    status = AudioHardwareGetProperty(kAudioHardwarePropertyDefaultOutputDevice, &propertySize, &outputDeviceID);
-    if (status) {
+	AudioObjectPropertyAddress propertyAddress = {
+		kAudioHardwarePropertyDefaultOutputDevice,
+		kAudioObjectPropertyScopeOutput,
+		kAudioObjectPropertyElementMaster
+	};
+	status = AudioObjectGetPropertyData(kAudioObjectSystemObject, &propertyAddress, 0, NULL, &propertySize, &outputDeviceID);
+    if (status != kAudioHardwareNoError) {
         Com_Printf("AudioHardwareGetProperty returned %d\n", status);
         return false;
     }
@@ -176,23 +183,25 @@ qboolean SNDDMA_Init(void)
     // Configure the output device	
     propertySize = sizeof(bufferByteCount);
     bufferByteCount = chunkSize->value * sizeof(float);
-    status = AudioDeviceSetProperty(outputDeviceID, NULL, 0, NO, kAudioDevicePropertyBufferSize, propertySize, &bufferByteCount);
-    if (status) {
+	propertyAddress.mSelector = kAudioDevicePropertyBufferSize;
+	status = AudioObjectSetPropertyData(outputDeviceID, &propertyAddress, 0, NULL, propertySize, &bufferByteCount);
+    if (status != kAudioHardwareNoError) {
         Com_Printf("AudioDeviceSetProperty: returned %d when setting kAudioDevicePropertyBufferSize to %d\n", status, (int)chunkSize->value);
         return false;
     }
     
     propertySize = sizeof(bufferByteCount);
-    status = AudioDeviceGetProperty(outputDeviceID, 0, NO, kAudioDevicePropertyBufferSize, &propertySize, &bufferByteCount);
-    if (status) {
-        Com_Printf("AudioDeviceGetProperty: returned %d when setting kAudioDevicePropertyBufferSize\n", status);
+	status = AudioObjectGetPropertyData(outputDeviceID, &propertyAddress, 0, NULL, &propertySize, &bufferByteCount);
+    if (status != kAudioHardwareNoError) {
+        Com_Printf("AudioDeviceGetProperty: returned %d when getting kAudioDevicePropertyBufferSize\n", status);
         return false;
     }
 
     // Print out the device status
     propertySize = sizeof(outputStreamBasicDescription);
-    status = AudioDeviceGetProperty(outputDeviceID, 0, NO, kAudioDevicePropertyStreamFormat, &propertySize, &outputStreamBasicDescription);
-    if (status) {
+	propertyAddress.mSelector = kAudioDevicePropertyStreamFormat;
+	status = AudioObjectGetPropertyData(outputDeviceID, &propertyAddress, 0, NULL, &propertySize, &outputStreamBasicDescription);
+    if (status != kAudioHardwareNoError) {
         Com_Printf("AudioDeviceGetProperty: returned %d when getting kAudioDevicePropertyStreamFormat\n", status);
         return false;
     }
@@ -216,7 +225,7 @@ qboolean SNDDMA_Init(void)
     }
     
     // Start sound running
-    status = AudioDeviceAddIOProc(outputDeviceID, audioDeviceIOProc, NULL);
+	status = AudioDeviceCreateIOProcID(outputDeviceID, audioDeviceIOProc, NULL, &outputDeviceProcID);
     if (status) {
         Com_Printf("AudioDeviceAddIOProc: returned %d\n", status);
         return false;
@@ -291,8 +300,8 @@ void SNDDMA_Shutdown(void)
     }
     
     s_isRunning = false;
-    
-    status = AudioDeviceRemoveIOProc(outputDeviceID, audioDeviceIOProc);
+
+	status = AudioDeviceDestroyIOProcID(outputDeviceID, outputDeviceProcID);
     if (status) {
         Com_Printf("AudioDeviceRemoveIOProc: returned %d\n", status);
         return;
