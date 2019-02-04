@@ -147,22 +147,8 @@ static	DIR		*fdir;
 static qboolean CompareAttributes(char *path, char *name,
 	unsigned musthave, unsigned canthave )
 {
-	struct stat st;
-	char fn[MAX_OSPATH];
-
 // . and .. never match
 	if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0)
-		return false;
-
-	return true;
-
-	if (stat(fn, &st) == -1)
-		return false; // shouldn't happen
-
-	if ( ( st.st_mode & S_IFDIR ) && ( canthave & SFF_SUBDIR ) )
-		return false;
-
-	if ( ( musthave & SFF_SUBDIR ) && !( st.st_mode & S_IFDIR ) )
 		return false;
 
 	return true;

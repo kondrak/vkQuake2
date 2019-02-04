@@ -487,7 +487,14 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				"LD_RUNPATH_SEARCH_PATHS[arch=*]" = $VULKAN_SDK/macOS/lib;
-				"OTHER_CFLAGS[arch=*]" = "-D_DEBUG";
+				"OTHER_CFLAGS[arch=*]" = (
+					"-D_DEBUG",
+					"-Wno-dangling-else",
+					"-Wno-unused-function",
+					"-Wno-comma",
+					"-Wno-shorten-64-to-32",
+					"-Wno-pointer-sign",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				VALID_ARCHS = x86_64;
 			};
@@ -498,7 +505,14 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				"LD_RUNPATH_SEARCH_PATHS[arch=*]" = $VULKAN_SDK/macOS/lib;
-				"OTHER_CFLAGS[arch=*]" = "-DNDEBUG";
+				"OTHER_CFLAGS[arch=*]" = (
+					"-DNDEBUG",
+					"-Wno-dangling-else",
+					"-Wno-unused-function",
+					"-Wno-comma",
+					"-Wno-shorten-64-to-32",
+					"-Wno-pointer-sign",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				VALID_ARCHS = x86_64;
 			};

@@ -395,7 +395,7 @@ G_SetStats
 void G_SetStats (edict_t *ent)
 {
 	gitem_t		*item;
-	int			index, cells;
+	int			index, cells = 0;
 	int			power_armor_type;
 
 	//

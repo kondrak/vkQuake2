@@ -395,7 +395,12 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_PREFIX = "";
-				"OTHER_CFLAGS[arch=*]" = "-D_DEBUG";
+				"OTHER_CFLAGS[arch=*]" = (
+					"-D_DEBUG",
+					"-Wno-dangling-else",
+					"-Wno-comma",
+					"-Wno-shorten-64-to-32",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				VALID_ARCHS = x86_64;
@@ -409,7 +414,12 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_PREFIX = "";
-				"OTHER_CFLAGS[arch=*]" = "-DNDEBUG";
+				"OTHER_CFLAGS[arch=*]" = (
+					"-DNDEBUG",
+					"-Wno-dangling-else",
+					"-Wno-comma",
+					"-Wno-shorten-64-to-32",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				VALID_ARCHS = x86_64;

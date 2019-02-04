@@ -1353,7 +1353,7 @@ void CL_AddPlayerBeams (void)
 	float		yaw, pitch;
 	float		forward;
 	float		len, steps;
-	int			framenum;
+	int			framenum = 0;
 	float		model_length;
 	
 	float		hand_multiplier;
@@ -1668,6 +1668,8 @@ void CL_AddExplosions (void)
 			ent->alpha = (5.0 - (float)f)/5.0;
 			ent->skinnum = 0;
 			ent->flags |= RF_TRANSLUCENT;
+			break;
+		default:
 			break;
 		}
 

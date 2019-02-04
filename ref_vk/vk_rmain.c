@@ -1072,7 +1072,7 @@ qboolean R_SetMode (void)
 		vk_texturemode->modified = false;
 	}
 
-	if ((err = Vkimp_SetMode(&vid.width, &vid.height, vk_mode->value, fullscreen)) == rserr_ok)
+	if ((err = Vkimp_SetMode((int*)&vid.width, (int*)&vid.height, vk_mode->value, fullscreen)) == rserr_ok)
 	{
 		vk_state.prev_mode = vk_mode->value;
 	}
@@ -1083,7 +1083,7 @@ qboolean R_SetMode (void)
 			ri.Cvar_SetValue("vid_fullscreen", 0);
 			vid_fullscreen->modified = false;
 			ri.Con_Printf(PRINT_ALL, "ref_vk::R_SetMode() - fullscreen unavailable in this mode\n");
-			if ((err = Vkimp_SetMode(&vid.width, &vid.height, vk_mode->value, false)) == rserr_ok)
+			if ((err = Vkimp_SetMode((int*)&vid.width, (int*)&vid.height, vk_mode->value, false)) == rserr_ok)
 				return true;
 		}
 		else if (err == rserr_invalid_mode)
@@ -1094,7 +1094,7 @@ qboolean R_SetMode (void)
 		}
 
 		// try setting it back to something safe
-		if ((err = Vkimp_SetMode(&vid.width, &vid.height, vk_state.prev_mode, false)) != rserr_ok)
+		if ((err = Vkimp_SetMode((int*)&vid.width, (int*)&vid.height, vk_state.prev_mode, false)) != rserr_ok)
 		{
 			ri.Con_Printf(PRINT_ALL, "ref_vk::R_SetMode() - could not revert to safe mode\n");
 			return false;

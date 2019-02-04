@@ -412,7 +412,7 @@ void R_RenderBrushPoly (msurface_t *fa, float *modelMatrix, float alpha)
 	}
 
 	// dynamic this frame or dynamic previously
-	if ((fa->dlightframe == r_framecount))
+	if (fa->dlightframe == r_framecount)
 	{
 	dynamic:
 		if (vk_dynamic->value)
@@ -589,7 +589,7 @@ static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, floa
 	}
 
 	// dynamic this frame or dynamic previously
-	if ((surf->dlightframe == r_framecount))
+	if (surf->dlightframe == r_framecount)
 	{
 	dynamic:
 		if (vk_dynamic->value)

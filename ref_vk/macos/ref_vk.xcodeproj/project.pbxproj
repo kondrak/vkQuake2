@@ -36,7 +36,7 @@
 		E2ED827521F628D10009C478 /* vk_validation.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED826221F628D10009C478 /* vk_validation.c */; };
 		E2ED827621F628D10009C478 /* vk_mesh.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED826321F628D10009C478 /* vk_mesh.c */; };
 		E2ED827721F628D10009C478 /* vk_buffer.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED826421F628D10009C478 /* vk_buffer.c */; };
-		E2ED827821F628D10009C478 /* vk_mem_alloc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2ED826521F628D10009C478 /* vk_mem_alloc.cpp */; };
+		E2ED827821F628D10009C478 /* vk_mem_alloc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2ED826521F628D10009C478 /* vk_mem_alloc.cpp */; settings = {COMPILER_FLAGS = "-Wno-conditional-uninitialized"; }; };
 		E2ED827921F628D10009C478 /* vk_image.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED826621F628D10009C478 /* vk_image.c */; };
 		E2ED827A21F628D10009C478 /* vk_rsurf.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED826721F628D10009C478 /* vk_rsurf.c */; };
 		E2ED827B21F628D10009C478 /* vk_renderpass.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED826821F628D10009C478 /* vk_renderpass.c */; };
@@ -431,14 +431,22 @@
 		E295537221F6264C00336DD3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_WARN_DOCUMENTATION_COMMENTS = NO;
 				CODE_SIGN_STYLE = Automatic;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_PREFIX = "";
 				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/lib";
+				GCC_WARN_UNUSED_VARIABLE = NO;
 				HEADER_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/include";
 				LIBRARY_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/lib";
-				OTHER_CFLAGS = "-D_DEBUG";
+				OTHER_CFLAGS = (
+					"-D_DEBUG",
+					"-Wno-dangling-else",
+					"-Wno-unused-function",
+					"-Wno-comma",
+					"-Wno-shorten-64-to-32",
+				);
 				OTHER_CPLUSPLUSFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -449,14 +457,23 @@
 		E295537321F6264C00336DD3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_WARN_DOCUMENTATION_COMMENTS = NO;
 				CODE_SIGN_STYLE = Automatic;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_PREFIX = "";
 				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/lib";
+				GCC_WARN_UNUSED_VARIABLE = NO;
 				HEADER_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/include";
 				LIBRARY_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/lib";
-				"OTHER_CFLAGS[arch=*]" = "-DNDEBUG";
+				OTHER_CFLAGS = "";
+				"OTHER_CFLAGS[arch=*]" = (
+					"-DNDEBUG",
+					"-Wno-dangling-else",
+					"-Wno-unused-function",
+					"-Wno-comma",
+					"-Wno-shorten-64-to-32",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				VALID_ARCHS = x86_64;

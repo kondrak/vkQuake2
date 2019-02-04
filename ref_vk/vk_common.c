@@ -112,7 +112,7 @@ VkCommandBuffer vk_activeCmdbuffer = VK_NULL_HANDLE;
 // index of active command buffer
 int vk_activeBufferIdx = 0;
 // index of currently acquired image
-int vk_imageIndex = 0;
+uint32_t vk_imageIndex = 0;
 // index of currently used staging buffer
 int vk_activeStagingBuffer = 0;
 // started rendering frame?
@@ -1418,6 +1418,7 @@ const char *QVk_GetError(VkResult errorCode)
 		ERRSTR(ERROR_INCOMPATIBLE_DISPLAY_KHR);
 		ERRSTR(ERROR_VALIDATION_FAILED_EXT);
 		ERRSTR(ERROR_INVALID_SHADER_NV);
+		default: return "<unknown>";
 	}
 #undef ERRSTR
 	return "UNKNOWN ERROR";
