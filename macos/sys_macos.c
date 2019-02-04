@@ -96,9 +96,6 @@ void Sys_Quit (void)
 
 void Sys_Init(void)
 {
-#if id386
-//	Sys_SetFPCW();
-#endif
 }
 
 void Sys_Error (char *error, ...)
@@ -295,7 +292,6 @@ int main (int argc, char **argv)
 	nostdout = Cvar_Get("nostdout", "0", 0);
 	if (!nostdout->value) {
 		fcntl(0, F_SETFL, fcntl (0, F_GETFL, 0) | FNDELAY);
-//		printf ("Linux Quake -- Version %0.3f\n", LINUX_VERSION);
 	}
 
     oldtime = Sys_Milliseconds ();
@@ -316,30 +312,3 @@ void Sys_CopyProtect(void)
 {
     // don't care about copy protection on MacOS
 }
-
-#if 0
-/*
-================
-Sys_MakeCodeWriteable
-================
-*/
-void Sys_MakeCodeWriteable (unsigned long startaddr, unsigned long length)
-{
-
-	int r;
-	unsigned long addr;
-	int psize = getpagesize();
-
-	addr = (startaddr & ~(psize-1)) - psize;
-
-//	fprintf(stderr, "writable code %lx(%lx)-%lx, length=%lx\n", startaddr,
-//			addr, startaddr+length, length);
-
-	r = mprotect((char*)addr, length + startaddr - addr + psize, 7);
-
-	if (r < 0)
-    		Sys_Error("Protection change failed\n");
-
-}
-
-#endif
