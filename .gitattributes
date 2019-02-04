@@ -18,6 +18,7 @@ Makefile text eol=lf
 *.aps binary
 *.exe binary
 *.dll binary
+*.dylib binary
 *.lib binary
 *.o binary
 *.gif binary
