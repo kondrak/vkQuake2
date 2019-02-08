@@ -298,8 +298,9 @@ void R_DrawNullModel (void)
 	VkDescriptorSet descriptorSets[] = { uboDescriptorSet };
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawNullModel.layout, 0, 1, descriptorSets, 1, &uboOffset);
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
-	vkCmdDraw(vk_activeCmdbuffer, 6, 1, 0, 0);
-	vkCmdDraw(vk_activeCmdbuffer, 6, 1, 6, 0);
+	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_triangleFanIbo.buffer, 0, VK_INDEX_TYPE_UINT16);
+	vkCmdDrawIndexed(vk_activeCmdbuffer, 12, 1, 0, 0, 0);
+	vkCmdDrawIndexed(vk_activeCmdbuffer, 12, 1, 0, 6, 0);
 }
 
 /*

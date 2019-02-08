@@ -147,8 +147,9 @@ void DrawVkPoly (vkpoly_t *p, image_t *texture, float *color)
 
 	VkDescriptorSet descriptorSets[] = { uboDescriptorSet, texture->vk_texture.descriptorSet };
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
+	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_triangleFanIbo.buffer, 0, VK_INDEX_TYPE_UINT16);
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
-	vkCmdDraw(vk_activeCmdbuffer, p->numverts, 1, 0, 0);
+	vkCmdDrawIndexed(vk_activeCmdbuffer, (p->numverts - 2) * 3, 1, 0, 0, 0);
 }
 
 //============
@@ -214,8 +215,9 @@ void DrawVkFlowingPoly (msurface_t *fa, image_t *texture, float *color)
 
 	VkDescriptorSet descriptorSets[] = { uboDescriptorSet, texture->vk_texture.descriptorSet };
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
+	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_triangleFanIbo.buffer, 0, VK_INDEX_TYPE_UINT16);
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
-	vkCmdDraw(vk_activeCmdbuffer, p->numverts, 1, 0, 0);
+	vkCmdDrawIndexed(vk_activeCmdbuffer, (p->numverts - 2) * 3, 1, 0, 0, 0);
 }
 //PGM
 //============
@@ -340,7 +342,8 @@ void DrawVkPolyChain( vkpoly_t *p, float soffset, float toffset, image_t *textur
 			memcpy(data, verts, sizeof(polyvert) * p->numverts);
 
 			vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
-			vkCmdDraw(vk_activeCmdbuffer, p->numverts, 1, 0, 0);
+			vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_triangleFanIbo.buffer, 0, VK_INDEX_TYPE_UINT16);
+			vkCmdDrawIndexed(vk_activeCmdbuffer, (p->numverts - 2) * 3, 1, 0, 0, 0);
 		}
 	}
 	else
@@ -663,7 +666,8 @@ static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, floa
 				memcpy(data, verts, sizeof(lmappolyvert) * nv);
 
 				vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
-				vkCmdDraw(vk_activeCmdbuffer, nv, 1, 0, 0);
+				vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_triangleFanIbo.buffer, 0, VK_INDEX_TYPE_UINT16);
+				vkCmdDrawIndexed(vk_activeCmdbuffer, (nv - 2) * 3, 1, 0, 0, 0);
 			}
 		}
 		else
@@ -691,7 +695,8 @@ static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, floa
 				memcpy(data, verts, sizeof(lmappolyvert) * nv);
 
 				vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
-				vkCmdDraw(vk_activeCmdbuffer, nv, 1, 0, 0);
+				vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_triangleFanIbo.buffer, 0, VK_INDEX_TYPE_UINT16);
+				vkCmdDrawIndexed(vk_activeCmdbuffer, (nv - 2) * 3, 1, 0, 0, 0);
 			}
 		}
 		//PGM
@@ -730,9 +735,10 @@ static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, floa
 				memcpy(data, verts, sizeof(lmappolyvert) * nv);
 
 				VkDescriptorSet descriptorSets[] = { uboDescriptorSet, image->vk_texture.descriptorSet, vk_state.lightmap_textures[lmtex].descriptorSet };
-				vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 				vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyLmapPipeline.layout, 0, 3, descriptorSets, 1, &uboOffset);
-				vkCmdDraw(vk_activeCmdbuffer, nv, 1, 0, 0);
+				vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
+				vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_triangleFanIbo.buffer, 0, VK_INDEX_TYPE_UINT16);
+				vkCmdDrawIndexed(vk_activeCmdbuffer, (nv - 2) * 3, 1, 0, 0, 0);
 			}
 		}
 		else
@@ -758,9 +764,10 @@ static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, floa
 				memcpy(data, verts, sizeof(lmappolyvert) * nv);
 
 				VkDescriptorSet descriptorSets[] = { uboDescriptorSet, image->vk_texture.descriptorSet, vk_state.lightmap_textures[lmtex].descriptorSet };
-				vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 				vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyLmapPipeline.layout, 0, 3, descriptorSets, 1, &uboOffset);
-				vkCmdDraw(vk_activeCmdbuffer, nv, 1, 0, 0);
+				vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
+				vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_triangleFanIbo.buffer, 0, VK_INDEX_TYPE_UINT16);
+				vkCmdDrawIndexed(vk_activeCmdbuffer, (nv - 2) * 3, 1, 0, 0, 0);
 			}
 			//==========
 			//PGM

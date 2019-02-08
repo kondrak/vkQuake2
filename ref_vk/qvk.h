@@ -248,6 +248,8 @@ extern qvkpipeline_t vk_showTrisPipeline;
 extern qvkpipeline_t vk_shadowsPipelineStrip;
 extern qvkpipeline_t vk_shadowsPipelineFan;
 
+extern qvkbuffer_t vk_triangleFanIbo;
+
 // function pointers
 extern PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;
 extern PFN_vkDestroyDebugUtilsMessengerEXT qvkDestroyDebugUtilsMessengerEXT;
