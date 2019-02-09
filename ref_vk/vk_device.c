@@ -235,6 +235,7 @@ static const char *deviceTypeString(VkPhysicalDeviceType dType)
 		DEVTYPESTR(PHYSICAL_DEVICE_TYPE_DISCRETE_GPU);
 		DEVTYPESTR(PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU);
 		DEVTYPESTR(PHYSICAL_DEVICE_TYPE_CPU);
+		default: return "<unknown>";
 	}
 #undef DEVTYPESTR
 	return "UNKNOWN DEVICE";

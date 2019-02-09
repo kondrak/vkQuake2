@@ -27,7 +27,6 @@ key up events are sent even if in console mode
 
 */
 
-
 #define		MAXCMDLINE	256
 char	key_lines[32][MAXCMDLINE];
 int		key_linepos;
@@ -86,6 +85,7 @@ keyname_t keynames[] =
 	{"PGUP", K_PGUP},
 	{"HOME", K_HOME},
 	{"END", K_END},
+	{"CMD", K_CMD},
 
 	{"MOUSE1", K_MOUSE1},
 	{"MOUSE2", K_MOUSE2},
@@ -763,6 +763,15 @@ void Key_Event (int key, qboolean down, unsigned time)
 		vid_fullscreen->modified = true;
 		return;
 	}
+
+#ifdef __APPLE__
+	// ALT+F4 game shutdown
+    if (down && keydown[K_ALT] && key == K_F4)
+    {
+		CL_Quit_f();
+		return;
+    }
+#endif
 
 	// update auto-repeat status
 	if (down)

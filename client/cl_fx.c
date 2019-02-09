@@ -2191,7 +2191,7 @@ void CL_AddParticles (void)
 {
 	cparticle_t		*p, *next;
 	float			alpha;
-	float			time, time2;
+	float			time = 0, time2;
 	vec3_t			org;
 	int				color;
 	cparticle_t		*active, *tail;

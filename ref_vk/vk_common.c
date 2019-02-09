@@ -36,6 +36,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifdef __linux__
 #include "../linux/vk_linux.h"
 #endif
+#ifdef __APPLE__
+#include "../macos/vk_macos.h"
+#endif
 
 FILE *vk_logfp = NULL;
 
@@ -71,7 +74,7 @@ qvkrenderpass_t vk_renderpasses[RT_COUNT] = {
 	{
 		.rp = VK_NULL_HANDLE,
 		.colorLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-		.sampleCount = VK_SAMPLE_COUNT_2_BIT
+		.sampleCount = VK_SAMPLE_COUNT_4_BIT
 	} 
 };
 
@@ -109,7 +112,7 @@ VkCommandBuffer vk_activeCmdbuffer = VK_NULL_HANDLE;
 // index of active command buffer
 int vk_activeBufferIdx = 0;
 // index of currently acquired image
-int vk_imageIndex = 0;
+uint32_t vk_imageIndex = 0;
 // index of currently used staging buffer
 int vk_activeStagingBuffer = 0;
 // started rendering frame?
@@ -173,6 +176,7 @@ qvkpipeline_t vk_shadowsPipelineFan = QVKPIPELINE_INIT;
 qvkbuffer_t vk_texRectVbo;
 qvkbuffer_t vk_colorRectVbo;
 qvkbuffer_t vk_rectIbo;
+qvkbuffer_t vk_triangleFanIbo;
 
 // global dynamic buffers (double buffered)
 #define NUM_DYNBUFFERS 2
@@ -187,6 +191,7 @@ static int vk_activeDynBufferIdx = 0;
 #define INDEX_BUFFER_MAXSIZE 2048
 #define UNIFORM_BUFFER_MAXSIZE 4096
 #define STAGING_BUFFER_MAXSIZE 16384
+#define TRIANGLE_FAN_IBO_MAXSIZE 252 // index count in triangle fan buffer (assuming max 84 triangles per object)
 
 // we will need multiple of these
 VkDescriptorSetLayout vk_uboDescSetLayout;
@@ -434,6 +439,26 @@ static void CreateDynamicBuffers()
 	}
 }
 
+static void CreateTriangleFanIndexBuffer()
+{
+	VkDeviceSize bufferSize = TRIANGLE_FAN_IBO_MAXSIZE * sizeof(uint16_t);
+	VkBuffer stagingBuffer;
+	VkCommandBuffer cmdBuffer;
+	uint32_t stagingOffset;
+	int idx = 0;
+	uint16_t *stagingMemory = (uint16_t *)QVk_GetStagingBuffer(bufferSize, 1, &cmdBuffer, &stagingBuffer, &stagingOffset);
+
+	// fill the index buffer so that we can emulate triangle fans via triangle lists
+	for (int i = 0; i < TRIANGLE_FAN_IBO_MAXSIZE / 3; ++i)
+	{
+		stagingMemory[idx++] = 0;
+		stagingMemory[idx++] = i + 1;
+		stagingMemory[idx++] = i + 2;
+	}
+
+	QVk_CreateIndexBuffer(stagingMemory, bufferSize, &vk_triangleFanIbo, NULL, VMA_ALLOCATION_CREATE_MAPPED_BIT);
+}
+
 static void CreateStagingBuffers()
 {
 	QVk_CreateCommandPool(&vk_stagingCommandPool, vk_device.gfxFamilyIndex);
@@ -574,7 +599,7 @@ static void CreatePipelines()
 	VK_LOAD_VERTFRAG_SHADERS(shaders, nullmodel);
 
 	vk_drawNullModel.cullMode = VK_CULL_MODE_NONE;
-	vk_drawNullModel.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+	vk_drawNullModel.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	VkDescriptorSetLayout dsLayoutsNullModel[] = { vk_uboDescSetLayout };
 	QVk_CreatePipeline(dsLayoutsNullModel, 1, &nullVertInfo, &vk_drawNullModel, shaders, 2);
 
@@ -593,7 +618,7 @@ static void CreatePipelines()
 	vk_drawModelPipelineStrip.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
 	vk_drawModelPipelineStrip.blendOpts.blendEnable = VK_TRUE;
 	QVk_CreatePipeline(dsLayoutsModel, 2, &modelVertInfo, &vk_drawModelPipelineStrip, shaders, 2);
-	vk_drawModelPipelineFan.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+	vk_drawModelPipelineFan.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	vk_drawModelPipelineFan.blendOpts.blendEnable = VK_TRUE;
 	QVk_CreatePipeline(dsLayoutsModel, 2, &modelVertInfo, &vk_drawModelPipelineFan, shaders, 2);
 
@@ -602,7 +627,7 @@ static void CreatePipelines()
 	vk_drawNoDepthModelPipelineStrip.depthWriteEnable = VK_FALSE;
 	vk_drawNoDepthModelPipelineStrip.blendOpts.blendEnable = VK_TRUE;
 	QVk_CreatePipeline(dsLayoutsModel, 2, &modelVertInfo, &vk_drawNoDepthModelPipelineStrip, shaders, 2);
-	vk_drawNoDepthModelPipelineFan.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+	vk_drawNoDepthModelPipelineFan.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	vk_drawNoDepthModelPipelineFan.depthWriteEnable = VK_FALSE;
 	vk_drawNoDepthModelPipelineFan.blendOpts.blendEnable = VK_TRUE;
 	QVk_CreatePipeline(dsLayoutsModel, 2, &modelVertInfo, &vk_drawNoDepthModelPipelineFan, shaders, 2);
@@ -611,7 +636,7 @@ static void CreatePipelines()
 	vk_drawLefthandModelPipelineStrip.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
 	vk_drawLefthandModelPipelineStrip.cullMode = VK_CULL_MODE_FRONT_BIT;
 	QVk_CreatePipeline(dsLayoutsModel, 2, &modelVertInfo, &vk_drawLefthandModelPipelineStrip, shaders, 2);
-	vk_drawLefthandModelPipelineFan.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+	vk_drawLefthandModelPipelineFan.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	vk_drawLefthandModelPipelineFan.cullMode = VK_CULL_MODE_FRONT_BIT;
 	QVk_CreatePipeline(dsLayoutsModel, 2, &modelVertInfo, &vk_drawLefthandModelPipelineFan, shaders, 2);
 
@@ -633,7 +658,7 @@ static void CreatePipelines()
 	// draw polygon pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, polygon);
 
-	vk_drawPolyPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+	vk_drawPolyPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	vk_drawPolyPipeline.blendOpts.blendEnable = VK_TRUE;
 
 	QVk_CreatePipeline(spriteDsLayouts, 2, &spriteVertexInputInfo, &vk_drawPolyPipeline, shaders, 2);
@@ -649,7 +674,7 @@ static void CreatePipelines()
 	VkPipelineVertexInputStateCreateInfo polyLmapVertexInputInfo = VK_VERTEXINPUT_CINF(polyLmapBindingDesc, polyLmapAttributeDescriptions);
 	VK_LOAD_VERTFRAG_SHADERS(shaders, polygon_lmap);
 
-	vk_drawPolyLmapPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+	vk_drawPolyLmapPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
 	VkDescriptorSetLayout polyLmapDsLayouts[] = { vk_uboDescSetLayout, vk_samplerDescSetLayout, vk_samplerLightmapDescSetLayout };
 	QVk_CreatePipeline(polyLmapDsLayouts, 3, &polyLmapVertexInputInfo, &vk_drawPolyLmapPipeline, shaders, 2);
@@ -657,7 +682,7 @@ static void CreatePipelines()
 	// draw polygon with warp effect (liquid) pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, polygon_warp);
 
-	vk_drawPolyWarpPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+	vk_drawPolyWarpPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	vk_drawPolyWarpPipeline.blendOpts.blendEnable = VK_TRUE;
 
 	QVk_CreatePipeline(spriteDsLayouts, 2, &spriteVertexInputInfo, &vk_drawPolyWarpPipeline, shaders, 2);
@@ -701,7 +726,7 @@ static void CreatePipelines()
 	VkPipelineVertexInputStateCreateInfo dLightVertexInputInfo = VK_VERTEXINPUT_CINF(dLightBindingDesc, dLightAttributeDescriptions);
 	VK_LOAD_VERTFRAG_SHADERS(shaders, d_light);
 
-	vk_drawDLightPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+	vk_drawDLightPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	vk_drawDLightPipeline.depthWriteEnable = VK_FALSE;
 	vk_drawDLightPipeline.cullMode = VK_CULL_MODE_FRONT_BIT;
 	vk_drawDLightPipeline.blendOpts.blendEnable = VK_TRUE;
@@ -736,7 +761,7 @@ static void CreatePipelines()
 	vk_shadowsPipelineStrip.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
 	QVk_CreatePipeline(showtrisLayouts, 1, &showtrisVertInfo, &vk_shadowsPipelineStrip, shaders, 2);
 	vk_shadowsPipelineFan.blendOpts.blendEnable = VK_TRUE;
-	vk_shadowsPipelineFan.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+	vk_shadowsPipelineFan.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	QVk_CreatePipeline(showtrisLayouts, 1, &showtrisVertInfo, &vk_shadowsPipelineFan, shaders, 2);
 
 	// final cleanup
@@ -779,6 +804,7 @@ void QVk_Shutdown( void )
 		QVk_FreeBuffer(&vk_texRectVbo);
 		QVk_FreeBuffer(&vk_colorRectVbo);
 		QVk_FreeBuffer(&vk_rectIbo);
+		QVk_FreeBuffer(&vk_triangleFanIbo);
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 		{
 			QVk_FreeBuffer(&vk_dynVertexBuffers[i]);
@@ -1116,6 +1142,8 @@ qboolean QVk_Init()
 	CreateDynamicBuffers();
 	// create staging buffers
 	CreateStagingBuffers();
+	// create index buffer for triangle fan emulation
+	CreateTriangleFanIndexBuffer();
 	CreatePipelines();
 
 	return true;
@@ -1415,6 +1443,7 @@ const char *QVk_GetError(VkResult errorCode)
 		ERRSTR(ERROR_INCOMPATIBLE_DISPLAY_KHR);
 		ERRSTR(ERROR_VALIDATION_FAILED_EXT);
 		ERRSTR(ERROR_INVALID_SHADER_NV);
+		default: return "<unknown>";
 	}
 #undef ERRSTR
 	return "UNKNOWN ERROR";

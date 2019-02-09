@@ -30,7 +30,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifdef WIN32
 
 #ifdef NDEBUG
-#define BUILDSTRING "Win32 RELEASE"
+#define BUILDSTRING "Win32"
 #else
 #define BUILDSTRING "Win32 DEBUG"
 #endif
@@ -45,7 +45,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #elif defined __linux__
 
+#ifdef NDEBUG
 #define BUILDSTRING "Linux"
+#else
+#define BUILDSTRING "Linux DEBUG"
+#endif
 
 #ifdef __i386__
 #define CPUSTRING "i386"
@@ -56,6 +60,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #else
 #define CPUSTRING "Unknown"
 #endif
+
+#elif defined __APPLE__
+
+#ifdef NDEBUG
+#define BUILDSTRING "MacOS"
+#else
+#define BUILDSTRING "MacOS DEBUG"
+#endif
+#define CPUSTRING "x64"
 
 #elif defined __sun__
 

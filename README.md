@@ -47,6 +47,21 @@ sudo apt install mesa-vulkan-drivers
 ```
 - in the main repository, enter the `linux` subfolder and type `make release` or `make debug` depending on which variant you want to build - the output binaries will be placed in `releasex64` and `debugx64` directories respectively
 
+## MacOS
+- download and extract the [Vulkan SDK](https://vulkan.lunarg.com/) package
+- set the `VULKAN_SDK` environment variable so that it points to the location of macOS Vulkan SDK - you can place the defintion in your `.bash_profile` file
+- install XCode 10.1 or higher
+- open `macos/vkQuake2.xcworkspace` - it should build and run without any additional steps - the output binary will be put in `macos/vkQuake2` subfolder
+- alternatively, you can compile the game from command line - modify your `.bash_profile` file and add these entries (replace SDK version and location with the one corresponding to your system):
+```
+export VULKAN_SDK=/home/user/VulkanSDK/1.1.92.1/macOS
+export VK_ICD_FILENAMES=$VULKAN_SDK/etc/vulkan/icd.d/MoltenVK_icd.json
+export VK_LAYER_PATH=$VULKAN_SDK/etc/vulkan/explicit_layer.d
+```
+- enter `macos` directory and run `make debug` or `make release` depending on which variant you want to build - output binaries will be put in `macos/vkQuake2` subfolder
+
+This project uses the Vulkan loader bundled with the SDK, rather than directly linking against `MoltenVK.framework`. This is done so that validation layers are available for debugging. Builds have been tested using MacOS 10.14.2.
+
 Running
 ===
 ## Windows
@@ -91,4 +106,6 @@ The Vulkan renderer comes with a set of its own additional console commands:
 
 Known Issues
 ===
-Some Intel UHD GPUs (most notably the 6XX series) may encounter crashes on startup due to faulty drivers - this has been confirmed by Intel to affect dual-GPU setups.
+- some Intel UHD GPUs (most notably the 6XX series) may encounter crashes on startup due to faulty drivers - this has been confirmed by Intel to affect dual-GPU setups
+- on MacOS, enabling validation layers breaks world rendering - issue is being investigated by MoltenVK team
+- on MacOS, using SDK higher than 1.1.92.1 causes severe performance penalties when running fullscreen

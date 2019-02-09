@@ -3,6 +3,7 @@
 *~
 *.vcxproj.user
 *.VC.db
+*.dylib
 *.sd
 *.so
 *.o
@@ -12,6 +13,9 @@
 *.pdb
 *.tlog
 *.lastbuildstate
+project.xcworkspace
+xcuserdata
+macos/vkQuake2
 debugx64
 releasex64
 Debug

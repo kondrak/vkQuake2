@@ -276,9 +276,22 @@ void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *skin, fl
 		VkDescriptorSet descriptorSets[] = { uboDescriptorSet, skin->vk_texture.descriptorSet };
 		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[translucentIdx][p + leftHandOffset].layout, 0, 2, descriptorSets, 1, &uboOffset);
 		vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
-		for (int i = 0; i < pipeCounters[p]; i++)
+
+		if (p == TRIANGLE_STRIP)
 		{
-			vkCmdDraw(vk_activeCmdbuffer, drawInfo[p][i].vertexCount, 1, drawInfo[p][i].firstVertex, 0);
+			for (i = 0; i < pipeCounters[p]; i++)
+			{
+				vkCmdDraw(vk_activeCmdbuffer, drawInfo[p][i].vertexCount, 1, drawInfo[p][i].firstVertex, 0);
+			}
+		}
+		else
+		{
+			vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_triangleFanIbo.buffer, 0, VK_INDEX_TYPE_UINT16);
+
+			for (i = 0; i < pipeCounters[p]; i++)
+			{
+				vkCmdDrawIndexed(vk_activeCmdbuffer, (drawInfo[p][i].vertexCount - 2) * 3, 1, 0, drawInfo[p][i].firstVertex, 0);
+			}
 		}
 	}
 }
@@ -374,7 +387,16 @@ void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatrix)
 			QVk_BindPipeline(&pipelines[pipelineIdx]);
 			vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[pipelineIdx].layout, 0, 1, descriptorSets, 1, &uboOffset);
 			vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
-			vkCmdDraw(vk_activeCmdbuffer, i, 1, 0, 0);
+
+			if (pipelineIdx == TRIANGLE_STRIP)
+			{
+				vkCmdDraw(vk_activeCmdbuffer, i, 1, 0, 0);
+			}
+			else
+			{
+				vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_triangleFanIbo.buffer, 0, VK_INDEX_TYPE_UINT16);
+				vkCmdDrawIndexed(vk_activeCmdbuffer, (i - 2) * 3, 1, 0, 0, 0);
+			}
 		}
 	}
 }

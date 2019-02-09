@@ -18,7 +18,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-// r_main.c
+// vk_rmain.c
 #include "vk_local.h"
 
 viddef_t	vid;
@@ -298,8 +298,9 @@ void R_DrawNullModel (void)
 	VkDescriptorSet descriptorSets[] = { uboDescriptorSet };
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawNullModel.layout, 0, 1, descriptorSets, 1, &uboOffset);
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
-	vkCmdDraw(vk_activeCmdbuffer, 6, 1, 0, 0);
-	vkCmdDraw(vk_activeCmdbuffer, 6, 1, 6, 0);
+	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_triangleFanIbo.buffer, 0, VK_INDEX_TYPE_UINT16);
+	vkCmdDrawIndexed(vk_activeCmdbuffer, 12, 1, 0, 0, 0);
+	vkCmdDrawIndexed(vk_activeCmdbuffer, 12, 1, 0, 6, 0);
 }
 
 /*
@@ -1002,7 +1003,9 @@ void R_Register( void )
 
 	r_lightlevel = ri.Cvar_Get("r_lightlevel", "0", 0);
 
-#ifdef _DEBUG
+// At the time of writing this, MoltenVK has problems when rendering multiple pipelines
+// if validation layers are enabled, so keep them off on MacOS by default for now.
+#if defined(_DEBUG) && !defined(__APPLE__)
 	vk_validation = ri.Cvar_Get("vk_validation", "2", 0);
 #else
 	vk_validation = ri.Cvar_Get("vk_validation", "0", 0);
@@ -1072,7 +1075,7 @@ qboolean R_SetMode (void)
 		vk_texturemode->modified = false;
 	}
 
-	if ((err = Vkimp_SetMode(&vid.width, &vid.height, vk_mode->value, fullscreen)) == rserr_ok)
+	if ((err = Vkimp_SetMode((int*)&vid.width, (int*)&vid.height, vk_mode->value, fullscreen)) == rserr_ok)
 	{
 		vk_state.prev_mode = vk_mode->value;
 	}
@@ -1083,7 +1086,7 @@ qboolean R_SetMode (void)
 			ri.Cvar_SetValue("vid_fullscreen", 0);
 			vid_fullscreen->modified = false;
 			ri.Con_Printf(PRINT_ALL, "ref_vk::R_SetMode() - fullscreen unavailable in this mode\n");
-			if ((err = Vkimp_SetMode(&vid.width, &vid.height, vk_mode->value, false)) == rserr_ok)
+			if ((err = Vkimp_SetMode((int*)&vid.width, (int*)&vid.height, vk_mode->value, false)) == rserr_ok)
 				return true;
 		}
 		else if (err == rserr_invalid_mode)
@@ -1094,7 +1097,7 @@ qboolean R_SetMode (void)
 		}
 
 		// try setting it back to something safe
-		if ((err = Vkimp_SetMode(&vid.width, &vid.height, vk_state.prev_mode, false)) != rserr_ok)
+		if ((err = Vkimp_SetMode((int*)&vid.width, (int*)&vid.height, vk_state.prev_mode, false)) != rserr_ok)
 		{
 			ri.Con_Printf(PRINT_ALL, "ref_vk::R_SetMode() - could not revert to safe mode\n");
 			return false;

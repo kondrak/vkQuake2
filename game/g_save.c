@@ -315,6 +315,8 @@ void WriteField2 (FILE *f, field_t *field, byte *base)
 			fwrite (*(char **)p, len, 1, f);
 		}
 		break;
+	default:
+		break;
 	}
 }
 

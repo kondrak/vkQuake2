@@ -29,7 +29,7 @@ cvar_t	*sv_timedemo;
 
 cvar_t	*sv_enforcetime;
 
-cvar_t	*timeout;				// seconds without any message
+cvar_t	*msg_timeout;			// seconds without any message
 cvar_t	*zombietime;			// seconds to sink messages after disconnect
 
 cvar_t	*rcon_password;			// password for remote server commands
@@ -667,7 +667,7 @@ void SV_CheckTimeouts (void)
 	int			droppoint;
 	int			zombiepoint;
 
-	droppoint = svs.realtime - 1000*timeout->value;
+	droppoint = svs.realtime - 1000*msg_timeout->value;
 	zombiepoint = svs.realtime - 1000*zombietime->value;
 
 	for (i=0,cl=svs.clients ; i<maxclients->value ; i++,cl++)
@@ -960,7 +960,7 @@ void SV_Init (void)
 	Cvar_Get ("protocol", va("%i", PROTOCOL_VERSION), CVAR_SERVERINFO|CVAR_NOSET);;
 	maxclients = Cvar_Get ("maxclients", "1", CVAR_SERVERINFO | CVAR_LATCH);
 	hostname = Cvar_Get ("hostname", "noname", CVAR_SERVERINFO | CVAR_ARCHIVE);
-	timeout = Cvar_Get ("timeout", "125", 0);
+	msg_timeout = Cvar_Get ("timeout", "125", 0);
 	zombietime = Cvar_Get ("zombietime", "2", 0);
 	sv_showclamp = Cvar_Get ("showclamp", "0", 0);
 	sv_paused = Cvar_Get ("paused", "0", 0);

@@ -36,6 +36,7 @@ static const char *presentModeString(VkPresentModeKHR presentMode)
 		PMSTR(PRESENT_MODE_MAILBOX_KHR);
 		PMSTR(PRESENT_MODE_FIFO_KHR);
 		PMSTR(PRESENT_MODE_FIFO_RELAXED_KHR);
+		default: return "<unknown>";
 	}
 #undef PMSTR
 	return "UNKNOWN PRESENT MODE";
@@ -77,7 +78,7 @@ static VkPresentModeKHR getSwapPresentMode(const VkPresentModeKHR *presentModes,
 		}
 	}
 
-	VkPresentModeKHR usedPresentMode;
+	VkPresentModeKHR usedPresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
 	// preferred present mode not found - choose the next best thing
 	for (uint32_t i = 0; i < presentModesCount; ++i)
 	{

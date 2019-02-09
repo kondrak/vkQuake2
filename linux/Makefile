@@ -1,5 +1,6 @@
 #
 # Quake2 Makefile for Linux 2.0
+# 64-bit version
 #
 # Nov '97 by Zoid <zoid@idsoftware.com>
 # Jan '19 by Krzysztof Kondrak <krzysztof.kondrak@gmail.com>
@@ -53,10 +54,10 @@ CC=gcc
 BASE_CFLAGS=-Dstricmp=strcasecmp -D_GNU_SOURCE -Wno-format-truncation -Wno-unused-result
 
 ifeq ($(ARCH),axp)
-RELEASE_CFLAGS=$(BASE_CFLAGS) -O6 -ffast-math -funroll-loops \
+RELEASE_CFLAGS=$(BASE_CFLAGS) -DNDEBUG -O6 -ffast-math -funroll-loops \
 	-fomit-frame-pointer -fexpensive-optimizations
 else
-RELEASE_CFLAGS=$(BASE_CFLAGS) -O6 -ffast-math -funroll-loops \
+RELEASE_CFLAGS=$(BASE_CFLAGS) -DNDEBUG -O6 -ffast-math -funroll-loops \
 	-fomit-frame-pointer -fexpensive-optimizations
 endif
 

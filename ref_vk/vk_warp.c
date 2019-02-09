@@ -19,7 +19,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 // vk_warp.c -- sky and water polygons
-
 #include "vk_local.h"
 
 extern	model_t	*loadmodel;
@@ -269,7 +268,8 @@ void EmitWaterPolys (msurface_t *fa, image_t *texture, float *modelMatrix, float
 		memcpy(data, verts, sizeof(polyvert) * p->numverts);
 
 		vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
-		vkCmdDraw(vk_activeCmdbuffer, p->numverts, 1, 0, 0);
+		vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_triangleFanIbo.buffer, 0, VK_INDEX_TYPE_UINT16);
+		vkCmdDrawIndexed(vk_activeCmdbuffer, (p->numverts - 2) * 3, 1, 0, 0, 0);
 	}
 }
 

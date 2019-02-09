@@ -573,7 +573,7 @@ void CTFFragBonuses(edict_t *targ, edict_t *inflictor, edict_t *attacker)
 	edict_t *ent;
 	gitem_t *flag_item, *enemy_flag_item;
 	int otherteam;
-	edict_t *flag, *carrier;
+	edict_t *flag, *carrier = NULL;
 	char *c;
 	vec3_t v1, v2;
 
@@ -2734,7 +2734,6 @@ void CTFStartMatch(void)
 {
 	int i;
 	edict_t *ent;
-	int ghost = 0;
 
 	ctfgame.match = MATCH_GAME;
 	ctfgame.matchtime = level.time + matchtime->value * 60;
@@ -2837,6 +2836,8 @@ void CTFWinElection(void)
 			ctfgame.etarget->client->pers.netname, ctfgame.elevel);
 		strncpy(level.forcemap, ctfgame.elevel, sizeof(level.forcemap) - 1);
 		EndDMLevel();
+		break;
+	default:
 		break;
 	}
 	ctfgame.election = ELECT_NONE;
@@ -3215,10 +3216,10 @@ int CTFUpdateJoinMenu(edict_t *ent)
 	}
 
 	if (ctf_forcejoin->string && *ctf_forcejoin->string) {
-		if (stricmp(ctf_forcejoin->string, "red") == 0) {
+		if (Q_stricmp(ctf_forcejoin->string, "red") == 0) {
 			joinmenu[jmenu_blue].text = NULL;
 			joinmenu[jmenu_blue].SelectFunc = NULL;
-		} else if (stricmp(ctf_forcejoin->string, "blue") == 0) {
+		} else if (Q_stricmp(ctf_forcejoin->string, "blue") == 0) {
 			joinmenu[jmenu_red].text = NULL;
 			joinmenu[jmenu_red].SelectFunc = NULL;
 		}
@@ -3259,6 +3260,8 @@ int CTFUpdateJoinMenu(edict_t *ent)
 
 	case MATCH_GAME :
 		joinmenu[jmenu_match].text = "*MATCH IN PROGRESS";
+		break;
+	default:
 		break;
 	}
 
@@ -3400,6 +3403,8 @@ qboolean CTFCheckRules(void)
 				CTFEndMatch();
 				gi.positioned_sound (world->s.origin, world, CHAN_AUTO | CHAN_RELIABLE, gi.soundindex("misc/bigtele.wav"), 1, ATTN_NONE, 0);
 				return false;
+			default:
+				return false;
 			}
 		}
 
@@ -3448,6 +3453,8 @@ qboolean CTFCheckRules(void)
 				ctfgame.countdown = true;
 				gi.positioned_sound (world->s.origin, world, CHAN_AUTO | CHAN_RELIABLE, gi.soundindex("world/10_0.wav"), 1, ATTN_NONE, 0);
 			}
+			break;
+		default:
 			break;
 		}
 		return false;
@@ -3714,8 +3721,6 @@ void CTFAdmin_SettingsApply(edict_t *ent, pmenuhnd_t *p)
 
 void CTFAdmin_SettingsCancel(edict_t *ent, pmenuhnd_t *p)
 {
-	admin_settings_t *settings = p->arg;
-
 	PMenu_Close(ent);
 	CTFOpenAdminMenu(ent);
 }
