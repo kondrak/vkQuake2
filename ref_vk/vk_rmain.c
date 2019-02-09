@@ -18,7 +18,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-// r_main.c
+// vk_rmain.c
 #include "vk_local.h"
 
 viddef_t	vid;
@@ -1003,7 +1003,9 @@ void R_Register( void )
 
 	r_lightlevel = ri.Cvar_Get("r_lightlevel", "0", 0);
 
-#ifdef _DEBUG
+// At the time of writing this, MoltenVK has problems when rendering multiple pipelines
+// if validation layers are enabled, so keep them off on MacOS by default for now.
+#if defined(_DEBUG) && !defined(__APPLE__)
 	vk_validation = ri.Cvar_Get("vk_validation", "2", 0);
 #else
 	vk_validation = ri.Cvar_Get("vk_validation", "0", 0);
