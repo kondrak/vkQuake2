@@ -19,7 +19,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 /*
-** VK_IMP.C
+** VK_IMP.M
 **
 ** This file contains ALL Linux specific stuff having to do with the
 ** Vulkan refresh.  When a port is being made the following functions
@@ -39,7 +39,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <stdio.h>
 #include <signal.h>
 #include <unistd.h>
-#include <CoreGraphics/CGDirectDisplay.h>
+#import <CoreGraphics/CGDirectDisplay.h>
+#import <QuartzCore/CAMetalLayer.h>
 
 #include "../ref_vk/vk_local.h"
 
@@ -226,7 +227,7 @@ void KBD_Init(Key_Event_fp_t fp)
 
 void KBD_Update(void)
 {
-	MacOSHandleEvents();
+	CocoaHandleEvents();
 }
 
 void KBD_Close(void)
@@ -280,7 +281,7 @@ int Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 
 	cvar_t *vid_xpos = ri.Cvar_Get("vid_xpos", "3", CVAR_ARCHIVE);
 	cvar_t *vid_ypos = ri.Cvar_Get("vid_ypos", "22", CVAR_ARCHIVE);
-	MacOSCreateWindow((int)vid_xpos->value, (int)vid_ypos->value, &width, &height, fullscreen);
+	CocoaCreateWindow((int)vid_xpos->value, (int)vid_ypos->value, &width, &height, fullscreen);
 
 	*pwidth = width;
 	*pheight = height;
@@ -302,7 +303,14 @@ void Vkimp_GetSurfaceExtensions(char **extensions, uint32_t *extCount)
 
 VkResult Vkimp_CreateSurface()
 {
-	return MacOSCreateVulkanSurface(vk_instance, &vk_surface);
+	VkMacOSSurfaceCreateInfoMVK surfaceCreateInfo = {
+		.sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK,
+		.pNext = NULL,
+		.flags = 0,
+		.pView = CocoaAddMetalView()
+	};
+	
+	return vkCreateMacOSSurfaceMVK(vk_instance, &surfaceCreateInfo, NULL, &vk_surface);
 }
 
 /*
@@ -314,7 +322,7 @@ VkResult Vkimp_CreateSurface()
 */
 void Vkimp_Shutdown( void )
 {
-	MacOSDestroyWindow();
+	CocoaDestroyWindow();
 }
 
 /*

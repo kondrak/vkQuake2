@@ -4,8 +4,10 @@
 #include "../ref_vk/vk_local.h"
 #include "../macos/vk_macos.h"
 
-VkResult MacOSCreateVulkanSurface(VkInstance instance, VkSurfaceKHR *surface);
-void MacOSHandleEvents(void);
-void MacOSCreateWindow(int x, int y, int *w, int *h, qboolean fullscreen);
-void MacOSDestroyWindow(void);
+// MacOS window creation, destruction and event handling.
+
+void CocoaHandleEvents(void);
+void CocoaCreateWindow(int x, int y, int *w, int *h, qboolean fullscreen);
+void CocoaDestroyWindow(void);
+const void *CocoaAddMetalView(void);
 #endif
