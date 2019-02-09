@@ -106,4 +106,6 @@ The Vulkan renderer comes with a set of its own additional console commands:
 
 Known Issues
 ===
-Some Intel UHD GPUs (most notably the 6XX series) may encounter crashes on startup due to faulty drivers - this has been confirmed by Intel to affect dual-GPU setups.
+- some Intel UHD GPUs (most notably the 6XX series) may encounter crashes on startup due to faulty drivers - this has been confirmed by Intel to affect dual-GPU setups
+- on MacOS, enabling validation layers breaks world rendering - issue is being investigated by MoltenVK team
+- on MacOS, using SDK higher than 1.1.92.1 causes severe performance penalties when running fullscreen
