@@ -16,6 +16,7 @@ This is the official Quake 2 code v3.21 with additional Vulkan renderer. The goa
 - warped texture effect (lava, water, slime) is now properly drawn (though only with Vulkan and software renderer!)
 - software renderer has been completely replaced with [KolorSoft 1.1](https://github.com/qbism/Quake2-colored-refsoft) - this adds colored lighting and fixes severe instabilities of the original renderer
 - on first launch, the game attempts to use Vulkan at 1920x1080 resolution by default
+- triangle fans have been replaced with indexed triangle lists due to Metal/MoltenVK limitations
 - on Linux, sound is now handled by ALSA instead of OSS
 
 Building
@@ -50,13 +51,13 @@ sudo apt install mesa-vulkan-drivers
 ## MacOS
 - download and extract the [Vulkan SDK](https://vulkan.lunarg.com/) package
 - set the `VULKAN_SDK` environment variable so that it points to the location of macOS Vulkan SDK - you can place the defintion in your `.bash_profile` file
-- install XCode 10.1 or higher
+- install XCode 10.1 or later
 - open `macos/vkQuake2.xcworkspace` - it should build and run without any additional steps - the output binary will be put in `macos/vkQuake2` subfolder
 - alternatively, you can compile the game from command line - modify your `.bash_profile` file and add these entries (replace SDK version and location with the one corresponding to your system):
 ```
-export VULKAN_SDK=/home/user/VulkanSDK/1.1.92.1/macOS
-export VK_ICD_FILENAMES=$VULKAN_SDK/etc/vulkan/icd.d/MoltenVK_icd.json
-export VK_LAYER_PATH=$VULKAN_SDK/etc/vulkan/explicit_layer.d
+export VULKAN_SDK=/home/user/VulkanSDK/1.1.92.1
+export VK_ICD_FILENAMES=$VULKAN_SDK/macOS/etc/vulkan/icd.d/MoltenVK_icd.json
+export VK_LAYER_PATH=$VULKAN_SDK/macOS/etc/vulkan/explicit_layer.d
 ```
 - enter `macos` directory and run `make debug` or `make release` depending on which variant you want to build - output binaries will be put in `macos/vkQuake2` subfolder
 
