@@ -248,6 +248,7 @@ extern qvkpipeline_t vk_showTrisPipeline;
 extern qvkpipeline_t vk_shadowsPipelineStrip;
 extern qvkpipeline_t vk_shadowsPipelineFan;
 
+// index buffer for triangle fan emulation - all because Metal/MoltenVK don't support them
 extern qvkbuffer_t vk_triangleFanIbo;
 
 // function pointers

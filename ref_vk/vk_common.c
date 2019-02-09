@@ -176,7 +176,6 @@ qvkpipeline_t vk_shadowsPipelineFan = QVKPIPELINE_INIT;
 qvkbuffer_t vk_texRectVbo;
 qvkbuffer_t vk_colorRectVbo;
 qvkbuffer_t vk_rectIbo;
-// index buffer emulating triangle fans
 qvkbuffer_t vk_triangleFanIbo;
 
 // global dynamic buffers (double buffered)
@@ -192,7 +191,7 @@ static int vk_activeDynBufferIdx = 0;
 #define INDEX_BUFFER_MAXSIZE 2048
 #define UNIFORM_BUFFER_MAXSIZE 4096
 #define STAGING_BUFFER_MAXSIZE 16384
-#define TRIANGLE_BUFFER_INDEX_MAXSIZE 252 // maximum number of vertices per polygon (assuming max 84 triangles per model/brush)
+#define TRIANGLE_FAN_IBO_MAXSIZE 252 // index count in triangle fan buffer (assuming max 84 triangles per object)
 
 // we will need multiple of these
 VkDescriptorSetLayout vk_uboDescSetLayout;
@@ -442,18 +441,19 @@ static void CreateDynamicBuffers()
 
 static void CreateTriangleFanIndexBuffer()
 {
-	VkDeviceSize bufferSize = TRIANGLE_BUFFER_INDEX_MAXSIZE * sizeof(uint16_t);
+	VkDeviceSize bufferSize = TRIANGLE_FAN_IBO_MAXSIZE * sizeof(uint16_t);
 	VkBuffer stagingBuffer;
 	VkCommandBuffer cmdBuffer;
 	uint32_t stagingOffset;
 	int idx = 0;
 	uint16_t *stagingMemory = (uint16_t *)QVk_GetStagingBuffer(bufferSize, 1, &cmdBuffer, &stagingBuffer, &stagingOffset);
 
-	for (int i = 0; i < TRIANGLE_BUFFER_INDEX_MAXSIZE / 3; ++i)
+	// fill the index buffer so that we can emulate triangle fans via triangle lists
+	for (int i = 0; i < TRIANGLE_FAN_IBO_MAXSIZE / 3; ++i)
 	{
 		stagingMemory[idx++] = 0;
-		stagingMemory[idx++] = i+1;
-		stagingMemory[idx++] = i+2;
+		stagingMemory[idx++] = i + 1;
+		stagingMemory[idx++] = i + 2;
 	}
 
 	QVk_CreateIndexBuffer(stagingMemory, bufferSize, &vk_triangleFanIbo, NULL, VMA_ALLOCATION_CREATE_MAPPED_BIT);

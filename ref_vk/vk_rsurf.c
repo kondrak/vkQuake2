@@ -35,7 +35,6 @@ msurface_t	*r_alpha_surfaces;
 #define	BLOCK_WIDTH		128
 #define	BLOCK_HEIGHT	128
 
-
 int		c_visible_lightmaps;
 int		c_visible_textures;
 
