@@ -97,17 +97,17 @@ static void getBestPhysicalDevice(const VkPhysicalDevice *devices, int preferred
 				VK_VERIFY(vkGetPhysicalDeviceSurfaceSupportKHR(devices[i], j, vk_surface, &presentSupported));
 
 				// good optimization would be to find a queue where presentIdx == gfxQueueIdx for less overhead
-				if (queueFamilies[j].queueCount > 0 && presentSupported)
+				if (vk_device.presentFamilyIndex < 0 && queueFamilies[j].queueCount > 0 && presentSupported)
 				{
 					vk_device.presentFamilyIndex = j;
 				}
 
-				if (queueFamilies[j].queueCount > 0 && queueFamilies[j].queueFlags & VK_QUEUE_GRAPHICS_BIT)
+				if (vk_device.gfxFamilyIndex < 0 && queueFamilies[j].queueCount > 0 && (queueFamilies[j].queueFlags & VK_QUEUE_GRAPHICS_BIT))
 				{
 					vk_device.gfxFamilyIndex = j;
 				}
 
-				if (queueFamilies[j].queueCount > 0 && !(queueFamilies[j].queueFlags & VK_QUEUE_GRAPHICS_BIT) && (queueFamilies[j].queueFlags & VK_QUEUE_TRANSFER_BIT))
+				if (vk_device.transferFamilyIndex < 0 && queueFamilies[j].queueCount > 0 && !(queueFamilies[j].queueFlags & VK_QUEUE_GRAPHICS_BIT) && (queueFamilies[j].queueFlags & VK_QUEUE_TRANSFER_BIT))
 				{
 					vk_device.transferFamilyIndex = j;
 				}
