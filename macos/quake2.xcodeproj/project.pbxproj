@@ -310,7 +310,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "mkdir -p ${PROJECT_DIR}/../vkQuake2\ncp -f ${BUILT_PRODUCTS_DIR}/${EXECUTABLE_NAME} ${PROJECT_DIR}/../vkQuake2\n";
+			shellScript = "mkdir -p ${PROJECT_DIR}/../macos/vkQuake2\ncp -f ${BUILT_PRODUCTS_DIR}/${EXECUTABLE_NAME} ${PROJECT_DIR}/../macos/vkQuake2\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

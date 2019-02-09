@@ -278,7 +278,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cp $VULKAN_SDK/macOS/lib/libvulkan.1.dylib ./\nmkdir -p ${PROJECT_DIR}/../../vkQuake2\ncp -f ${BUILT_PRODUCTS_DIR}/${EXECUTABLE_NAME} ${PROJECT_DIR}/../../vkQuake2\n";
+			shellScript = "cp $VULKAN_SDK/macOS/lib/libvulkan.1.dylib ./\nmkdir -p ${PROJECT_DIR}/../../macos/vkQuake2\ncp -f ${BUILT_PRODUCTS_DIR}/${EXECUTABLE_NAME} ${PROJECT_DIR}/../../macos/vkQuake2\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
