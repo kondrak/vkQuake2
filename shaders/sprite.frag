@@ -10,4 +10,6 @@ layout(location = 0) out vec4 fragmentColor;
 void main()
 {
     fragmentColor = texture(sTexture, texCoord) * vec4(1.0, 1.0, 1.0, alpha);
+    if(fragmentColor.a < 0.0666)
+        discard;
 }
