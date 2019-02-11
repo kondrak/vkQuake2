@@ -1,5 +1,6 @@
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
+Copyright (C) 2018-2019 Krzysztof Kondrak
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -712,15 +713,6 @@ void ReadLevel (char *filename)
 
 	// check function pointer base address
 	fread (&base, sizeof(base), 1, f);
-#ifdef _WIN32
-	if (base != (void *)InitGame)
-	{
-		fclose (f);
-		gi.error ("ReadLevel: function pointers have moved");
-	}
-#else
-	gi.dprintf("Function offsets %d\n", ((byte *)base) - ((byte *)InitGame));
-#endif
 
 	// load the level locals
 	ReadLevelLocals (f);
