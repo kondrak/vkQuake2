@@ -507,6 +507,7 @@ void R_DrawParticles (void)
 		struct {
 			float mvp[16];
 			float particleSize;
+			float particleScale;
 			float minPointSize;
 			float maxPointSize;
 			float att_a;
@@ -515,6 +516,7 @@ void R_DrawParticles (void)
 		} particleUbo;
 
 		particleUbo.particleSize = vk_particle_size->value;
+		particleUbo.particleScale = vid.width / 1024.f;
 		particleUbo.minPointSize = vk_particle_min_size->value;
 		particleUbo.maxPointSize = vk_particle_max_size->value;
 		particleUbo.att_a = vk_particle_att_a->value;

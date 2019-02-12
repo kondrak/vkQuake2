@@ -8,6 +8,7 @@ layout(binding = 0) uniform UniformBufferObject
 {
     mat4 mvpMatrix;
     float pointSize;
+    float pointScale;
     float minPointSize;
     float maxPointSize;
     float att_a;
@@ -24,8 +25,8 @@ out gl_PerVertex {
 
 void main() {
     gl_Position = ubo.mvpMatrix * vec4(inVertex, 1.0);
-    float dist_atten = 1.0 / (ubo.att_a + ubo.att_b * gl_Position.w + ubo.att_c * gl_Position.w * gl_Position.w);
-    gl_PointSize = ubo.pointSize * sqrt(dist_atten);
+    float dist_atten = ubo.pointScale / (ubo.att_a + ubo.att_b * gl_Position.w + ubo.att_c * gl_Position.w * gl_Position.w);
+    gl_PointSize = ubo.pointScale * ubo.pointSize * sqrt(dist_atten);
 
     if(gl_PointSize < ubo.minPointSize)
         gl_PointSize = ubo.minPointSize;
