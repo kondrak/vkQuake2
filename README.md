@@ -106,8 +106,9 @@ The Vulkan renderer comes with a set of its own additional console commands:
 
 Acknowledgments
 ===
-- Sascha Willems' [Vulkan Samples](https://github.com/SaschaWillems/Vulkan) which provided excellent examples of some more complex Vulkan features
-- Axel Gneiting's [vkQuake](https://github.com/Novum/vkQuake) project which was a great inspiration and a rich source of neat solutions to some problems
+- Sascha Willems for his [Vulkan Samples](https://github.com/SaschaWillems/Vulkan) which provided excellent examples of some more complex Vulkan features
+- Axel Gneiting for [vkQuake](https://github.com/Novum/vkQuake) which was a great inspiration and a rich source of knowledge
+- the Khronos Group for their invaluable help and resources
 
 Known Issues
 ===
