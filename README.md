@@ -104,6 +104,11 @@ The Vulkan renderer comes with a set of its own additional console commands:
 | vk_lightmap           | Display lightmaps. (default: 0)                         |
 | vk_texturemode        | Change current texture filtering.<br>VK_NEAREST - nearest filter, no mipmaps<br>VK_LINEAR - linear filter, no mipmaps<br>VK_MIPMAP_NEAREST - nearest filter with mipmaps<br>VK_MIPMAP_LINEAR - linear filter with mipmaps (default) |
 
+Acknowledgments
+===
+- Sascha Willems' [Vulkan Samples](https://github.com/SaschaWillems/Vulkan) which provided excellent examples of some more complex Vulkan features
+- Axel Gneiting's [vkQuake](https://github.com/Novum/vkQuake) project which was a great inspiration and a rich source of neat solutions to some problems
+
 Known Issues
 ===
 - some Intel UHD GPUs (most notably the 6XX series) may encounter crashes on startup due to faulty drivers - this has been confirmed by Intel to affect dual-GPU setups
