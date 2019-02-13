@@ -42,8 +42,13 @@ static qboolean deviceExtensionsSupported(const VkPhysicalDevice *physicalDevice
 
 			// all requested extensions must be available
 			if (!available)
+			{
+				free(extensions);
 				return false;
+			}
 		}
+
+		free(extensions);
 	}
 
 	return true;
