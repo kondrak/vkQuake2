@@ -1005,9 +1005,7 @@ void R_Register( void )
 
 	r_lightlevel = ri.Cvar_Get("r_lightlevel", "0", 0);
 
-// At the time of writing this, MoltenVK has problems when rendering multiple pipelines
-// if validation layers are enabled, so keep them off on MacOS by default for now.
-#if defined(_DEBUG) && !defined(__APPLE__)
+#if defined(_DEBUG)
 	vk_validation = ri.Cvar_Get("vk_validation", "2", 0);
 #else
 	vk_validation = ri.Cvar_Get("vk_validation", "0", 0);

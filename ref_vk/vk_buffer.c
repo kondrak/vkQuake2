@@ -91,7 +91,7 @@ VkResult QVk_CreateBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, const qvkbu
 	VmaAllocationCreateInfo vmallocInfo = {
 		.flags = options.vmaFlags,
 		.usage = options.vmaUsage,
-		.requiredFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+		.requiredFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 		.preferredFlags = options.memFlags,
 		.memoryTypeBits = 0,
 		.pool = VK_NULL_HANDLE,
