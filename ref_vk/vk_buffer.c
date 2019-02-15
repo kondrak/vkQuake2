@@ -114,7 +114,7 @@ VkResult QVk_CreateStagingBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, VmaA
 {
 	qvkbufferopts_t stagingOpts = {
 		.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-		.memFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		.memFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
 		.vmaUsage = VMA_MEMORY_USAGE_CPU_ONLY,
 		.vmaFlags = vmaFlags
 	};
@@ -125,10 +125,10 @@ VkResult QVk_CreateStagingBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, VmaA
 VkResult QVk_CreateUniformBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, VmaAllocationCreateFlags vmaFlags)
 {
 	qvkbufferopts_t dstOpts = {
-	dstOpts.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-	dstOpts.memFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-	dstOpts.vmaUsage = VMA_MEMORY_USAGE_CPU_TO_GPU,
-	dstOpts.vmaFlags = vmaFlags
+		.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+		.memFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+		.vmaUsage = VMA_MEMORY_USAGE_CPU_TO_GPU,
+		.vmaFlags = vmaFlags
 	};
 
 	return QVk_CreateBuffer(size, dstBuffer, dstOpts);
