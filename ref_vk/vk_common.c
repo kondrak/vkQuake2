@@ -401,9 +401,9 @@ static void CreateDynamicBuffers()
 {
 	for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 	{
-		QVk_CreateVertexBuffer(NULL, VERTEX_BUFFER_MAXSIZE * 1024, &vk_dynVertexBuffers[i], NULL, VMA_ALLOCATION_CREATE_MAPPED_BIT);
-		QVk_CreateIndexBuffer(NULL, INDEX_BUFFER_MAXSIZE * 1024, &vk_dynIndexBuffers[i], NULL, VMA_ALLOCATION_CREATE_MAPPED_BIT);
-		QVk_CreateUniformBuffer(UNIFORM_BUFFER_MAXSIZE * 1024, &vk_dynUniformBuffers[i], VMA_ALLOCATION_CREATE_MAPPED_BIT);
+		QVk_CreateVertexBuffer(NULL, VERTEX_BUFFER_MAXSIZE * 1024, &vk_dynVertexBuffers[i], NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VMA_ALLOCATION_CREATE_MAPPED_BIT);
+		QVk_CreateIndexBuffer(NULL, INDEX_BUFFER_MAXSIZE * 1024, &vk_dynIndexBuffers[i], NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VMA_ALLOCATION_CREATE_MAPPED_BIT);
+		QVk_CreateUniformBuffer(UNIFORM_BUFFER_MAXSIZE * 1024, &vk_dynUniformBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VMA_ALLOCATION_CREATE_MAPPED_BIT);
 
 		// create descriptor set
 		VkDescriptorSetAllocateInfo dsAllocInfo = {
@@ -456,7 +456,7 @@ static void CreateTriangleFanIndexBuffer()
 		stagingMemory[idx++] = i + 2;
 	}
 
-	QVk_CreateIndexBuffer(stagingMemory, bufferSize, &vk_triangleFanIbo, NULL, VMA_ALLOCATION_CREATE_MAPPED_BIT);
+	QVk_CreateIndexBuffer(stagingMemory, bufferSize, &vk_triangleFanIbo, NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VMA_ALLOCATION_CREATE_MAPPED_BIT);
 }
 
 static void CreateStagingBuffers()
@@ -470,7 +470,7 @@ static void CreateStagingBuffers()
 
 	for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 	{
-		QVk_CreateStagingBuffer(STAGING_BUFFER_MAXSIZE * 1024, &vk_stagingBuffers[i].buffer, VMA_ALLOCATION_CREATE_MAPPED_BIT);
+		QVk_CreateStagingBuffer(STAGING_BUFFER_MAXSIZE * 1024, &vk_stagingBuffers[i].buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VMA_ALLOCATION_CREATE_MAPPED_BIT);
 		vk_stagingBuffers[i].submitted = false;
 
 		VK_VERIFY(vkCreateFence(vk_device.logical, &fCreateInfo, NULL, &vk_stagingBuffers[i].fence));
@@ -517,9 +517,9 @@ static void CreateStaticBuffers()
 
 	const uint32_t indices[] = { 0, 1, 2, 0, 3, 1 };
 
-	QVk_CreateVertexBuffer(texVerts, sizeof(texVerts), &vk_texRectVbo, NULL, 0);
-	QVk_CreateVertexBuffer(colorVerts, sizeof(colorVerts), &vk_colorRectVbo, NULL, 0);
-	QVk_CreateIndexBuffer(indices, sizeof(indices), &vk_rectIbo, NULL, 0);
+	QVk_CreateVertexBuffer(texVerts, sizeof(texVerts), &vk_texRectVbo, NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0);
+	QVk_CreateVertexBuffer(colorVerts, sizeof(colorVerts), &vk_colorRectVbo, NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0);
+	QVk_CreateIndexBuffer(indices, sizeof(indices), &vk_rectIbo, NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0);
 }
 
 static void CreatePipelines()
