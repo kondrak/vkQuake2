@@ -91,8 +91,8 @@ VkResult QVk_CreateBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, const qvkbu
 	VmaAllocationCreateInfo vmallocInfo = {
 		.flags = options.vmaFlags,
 		.usage = options.vmaUsage,
-		.requiredFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		.preferredFlags = options.memFlags,
+		.requiredFlags = options.reqMemFlags,
+		.preferredFlags = options.prefMemFlags,
 		.memoryTypeBits = 0,
 		.pool = VK_NULL_HANDLE,
 		.pUserData = NULL
@@ -114,7 +114,8 @@ VkResult QVk_CreateStagingBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, VmaA
 {
 	qvkbufferopts_t stagingOpts = {
 		.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-		.memFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+		.reqMemFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		.prefMemFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
 		.vmaUsage = VMA_MEMORY_USAGE_CPU_ONLY,
 		.vmaFlags = vmaFlags
 	};
@@ -126,7 +127,8 @@ VkResult QVk_CreateUniformBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, VmaA
 {
 	qvkbufferopts_t dstOpts = {
 		.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-		.memFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+		.reqMemFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		.prefMemFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
 		.vmaUsage = VMA_MEMORY_USAGE_CPU_TO_GPU,
 		.vmaFlags = vmaFlags
 	};
@@ -138,7 +140,8 @@ void QVk_CreateVertexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *ds
 {
 	qvkbufferopts_t dstOpts = {
 		.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-		.memFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+		.reqMemFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		.prefMemFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 		.vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY,
 		.vmaFlags = vmaFlags
 	};
@@ -150,7 +153,8 @@ void QVk_CreateIndexBuffer(const void *data, VkDeviceSize size, qvkbuffer_t *dst
 {
 	qvkbufferopts_t dstOpts = {
 		.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-		.memFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+		.reqMemFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		.prefMemFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 		.vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY,
 		.vmaFlags = vmaFlags
 	};

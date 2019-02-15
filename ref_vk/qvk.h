@@ -143,7 +143,8 @@ typedef struct
 typedef struct
 {
 	VkBufferUsageFlags usage;
-	VkMemoryPropertyFlags memFlags;
+	VkMemoryPropertyFlags reqMemFlags;
+	VkMemoryPropertyFlags prefMemFlags;
 	VmaMemoryUsage vmaUsage;
 	VmaAllocationCreateFlags vmaFlags;
 } qvkbufferopts_t;
