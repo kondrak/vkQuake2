@@ -1002,9 +1002,7 @@ void R_Register( void )
 	r_nocull = ri.Cvar_Get("r_nocull", "0", 0);
 	r_lerpmodels = ri.Cvar_Get("r_lerpmodels", "1", 0);
 	r_speeds = ri.Cvar_Get("r_speeds", "0", 0);
-
 	r_lightlevel = ri.Cvar_Get("r_lightlevel", "0", 0);
-
 #if defined(_DEBUG)
 	vk_validation = ri.Cvar_Get("vk_validation", "2", 0);
 #else

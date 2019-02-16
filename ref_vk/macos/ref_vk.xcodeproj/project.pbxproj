@@ -160,7 +160,6 @@
 				E291113421F7280D00AE0164 /* glob.c */,
 				E2ED828221F628EE0009C478 /* q_shared.c */,
 				E2D696A021F659C3009AF955 /* q_shmacos.c */,
-				E206218F22045B390007E8F0 /* win_macos.m */,
 				E2ED826421F628D10009C478 /* vk_buffer.c */,
 				E2ED825E21F628D10009C478 /* vk_cmd.c */,
 				E2ED826C21F628D10009C478 /* vk_common.c */,
@@ -181,6 +180,7 @@
 				E2ED826D21F628D10009C478 /* vk_swapchain.c */,
 				E2ED826221F628D10009C478 /* vk_validation.c */,
 				E2ED826121F628D10009C478 /* vk_warp.c */,
+				E206218F22045B390007E8F0 /* win_macos.m */,
 			);
 			name = Sources;
 			sourceTree = "<group>";
