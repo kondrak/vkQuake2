@@ -237,8 +237,13 @@ static VkSampleCountFlagBits GetSampleCount()
 
 static void DestroyImageViews()
 {
+	if(!vk_imageviews)
+		return;
+
 	for (int i = 0; i < vk_swapchain.imageCount; i++)
+	{
 		vkDestroyImageView(vk_device.logical, vk_imageviews[i], NULL);
+	}
 	free(vk_imageviews);
 	vk_imageviews = NULL;
 }
@@ -810,14 +815,20 @@ void QVk_Shutdown( void )
 			QVk_FreeBuffer(&vk_dynVertexBuffers[i]);
 			QVk_FreeBuffer(&vk_dynIndexBuffers[i]);
 			QVk_FreeBuffer(&vk_dynUniformBuffers[i]);
-			QVk_FreeBuffer(&vk_stagingBuffers[i].buffer);
-			vkDestroyFence(vk_device.logical, vk_stagingBuffers[i].fence, NULL);
+			if(vk_stagingBuffers[i].buffer.buffer != VK_NULL_HANDLE)
+			{
+				QVk_FreeBuffer(&vk_stagingBuffers[i].buffer);
+				vkDestroyFence(vk_device.logical, vk_stagingBuffers[i].fence, NULL);
+			}
 		}
-		vkDestroyDescriptorPool(vk_device.logical, vk_descriptorPool, NULL);
-		vkDestroyDescriptorSetLayout(vk_device.logical, vk_uboDescSetLayout, NULL);
-		vkDestroyDescriptorSetLayout(vk_device.logical, vk_samplerDescSetLayout, NULL);
-		vkDestroyDescriptorSetLayout(vk_device.logical, vk_samplerLightmapDescSetLayout, NULL);
-
+		if(vk_descriptorPool != VK_NULL_HANDLE)
+			vkDestroyDescriptorPool(vk_device.logical, vk_descriptorPool, NULL);
+		if(vk_uboDescSetLayout != VK_NULL_HANDLE)
+			vkDestroyDescriptorSetLayout(vk_device.logical, vk_uboDescSetLayout, NULL);
+		if(vk_samplerDescSetLayout != VK_NULL_HANDLE)
+			vkDestroyDescriptorSetLayout(vk_device.logical, vk_samplerDescSetLayout, NULL);
+		if(vk_samplerLightmapDescSetLayout != VK_NULL_HANDLE)
+			vkDestroyDescriptorSetLayout(vk_device.logical, vk_samplerLightmapDescSetLayout, NULL);
 		for (int i = 0; i < RT_COUNT; i++)
 		{
 			if (vk_renderpasses[i].rp != VK_NULL_HANDLE)
@@ -865,6 +876,13 @@ void QVk_Shutdown( void )
 		vk_instance = VK_NULL_HANDLE;
 		vk_activeFramebuffer = VK_NULL_HANDLE;
 		vk_activeCmdbuffer = VK_NULL_HANDLE;
+		vk_descriptorPool = VK_NULL_HANDLE;
+		vk_uboDescSetLayout = VK_NULL_HANDLE;
+		vk_samplerDescSetLayout = VK_NULL_HANDLE;
+		vk_samplerLightmapDescSetLayout = VK_NULL_HANDLE;
+		vk_commandPool = VK_NULL_HANDLE;
+		vk_transferCommandPool = VK_NULL_HANDLE;
+		vk_stagingCommandPool = VK_NULL_HANDLE;
 		vk_activeBufferIdx = 0;
 		vk_imageIndex = 0;
 	}
@@ -1046,13 +1064,20 @@ qboolean QVk_Init()
 	}
 	ri.Con_Printf(PRINT_ALL, "...created Vulkan renderpass\n");
 	VkSampleCountFlagBits msaaMode = GetSampleCount();
+	VkSampleCountFlagBits supportedMsaa = vk_device.properties.limits.framebufferColorSampleCounts;
+	if(!(supportedMsaa & msaaMode))
+	{
+		ri.Con_Printf(PRINT_ALL, "MSAAx%d mode not supported, aborting...\n", msaaMode);
+		ri.Cvar_Set("vk_msaa", "0");
+		return false;
+	}
 
 	if (msaaMode != VK_SAMPLE_COUNT_1_BIT)
 		vk_renderpasses[1].sampleCount = msaaMode;
 	res = QVk_CreateRenderpass(&vk_renderpasses[1]);
 	if (res != VK_SUCCESS)
 	{
-		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan MSAA%d renderpass: %s\n", QVk_GetError(res), vk_renderpasses[1].sampleCount);
+		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan MSAAx%d renderpass: %s\n", QVk_GetError(res), vk_renderpasses[1].sampleCount);
 		return false;
 	}
 	ri.Con_Printf(PRINT_ALL, "...created Vulkan MSAAx%d renderpass\n", vk_renderpasses[1].sampleCount);
