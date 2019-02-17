@@ -401,10 +401,12 @@ static void CreateDynamicBuffers()
 {
 	for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 	{
-		QVk_CreateVertexBuffer(NULL, VERTEX_BUFFER_MAXSIZE * 1024, &vk_dynVertexBuffers[i], NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VMA_ALLOCATION_CREATE_MAPPED_BIT);
-		QVk_CreateIndexBuffer(NULL, INDEX_BUFFER_MAXSIZE * 1024, &vk_dynIndexBuffers[i], NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VMA_ALLOCATION_CREATE_MAPPED_BIT);
-		QVk_CreateUniformBuffer(UNIFORM_BUFFER_MAXSIZE * 1024, &vk_dynUniformBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VMA_ALLOCATION_CREATE_MAPPED_BIT);
-
+		QVk_CreateVertexBuffer(NULL, VERTEX_BUFFER_MAXSIZE * 1024, &vk_dynVertexBuffers[i], NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT, 0);
+		QVk_CreateIndexBuffer(NULL, INDEX_BUFFER_MAXSIZE * 1024, &vk_dynIndexBuffers[i], NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT, 0);
+		QVk_CreateUniformBuffer(UNIFORM_BUFFER_MAXSIZE * 1024, &vk_dynUniformBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT, 0);
+		vmaMapMemory(vk_malloc, vk_dynVertexBuffers[i].allocation, &vk_dynVertexBuffers[i].allocInfo.pMappedData);
+		vmaMapMemory(vk_malloc, vk_dynIndexBuffers[i].allocation, &vk_dynIndexBuffers[i].allocInfo.pMappedData);
+		vmaMapMemory(vk_malloc, vk_dynUniformBuffers[i].allocation, &vk_dynUniformBuffers[i].allocInfo.pMappedData);
 		// create descriptor set
 		VkDescriptorSetAllocateInfo dsAllocInfo = {
 			.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
@@ -807,6 +809,9 @@ void QVk_Shutdown( void )
 		QVk_FreeBuffer(&vk_triangleFanIbo);
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 		{
+			vmaUnmapMemory(vk_malloc, vk_dynUniformBuffers[i].allocation);
+			vmaUnmapMemory(vk_malloc, vk_dynIndexBuffers[i].allocation);
+			vmaUnmapMemory(vk_malloc, vk_dynVertexBuffers[i].allocation);
 			QVk_FreeBuffer(&vk_dynVertexBuffers[i]);
 			QVk_FreeBuffer(&vk_dynIndexBuffers[i]);
 			QVk_FreeBuffer(&vk_dynUniformBuffers[i]);
@@ -1163,6 +1168,9 @@ VkResult QVk_BeginFrame()
 	vk_dynUniformBuffers[vk_activeDynBufferIdx].currentOffset = 0;
 	vk_dynVertexBuffers[vk_activeDynBufferIdx].currentOffset = 0;
 	vk_dynIndexBuffers[vk_activeDynBufferIdx].currentOffset = 0;
+	vmaInvalidateAllocation(vk_malloc, vk_dynUniformBuffers[vk_activeDynBufferIdx].allocation, 0, VK_WHOLE_SIZE);
+	vmaInvalidateAllocation(vk_malloc, vk_dynVertexBuffers[vk_activeDynBufferIdx].allocation, 0, VK_WHOLE_SIZE);
+	vmaInvalidateAllocation(vk_malloc, vk_dynIndexBuffers[vk_activeDynBufferIdx].allocation, 0, VK_WHOLE_SIZE);
 
 	// swapchain has become incompatible - need to recreate it
 	if (result == VK_ERROR_OUT_OF_DATE_KHR)
@@ -1220,6 +1228,9 @@ VkResult QVk_EndFrame()
 
 	// submit
 	QVk_SubmitStagingBuffers();
+	vmaFlushAllocation(vk_malloc, vk_dynUniformBuffers[vk_activeDynBufferIdx].allocation, 0, VK_WHOLE_SIZE);
+	vmaFlushAllocation(vk_malloc, vk_dynVertexBuffers[vk_activeDynBufferIdx].allocation, 0, VK_WHOLE_SIZE);
+	vmaFlushAllocation(vk_malloc, vk_dynIndexBuffers[vk_activeDynBufferIdx].allocation, 0, VK_WHOLE_SIZE);
 
 	vkCmdEndRenderPass(vk_commandbuffers[vk_activeBufferIdx]);
 	VK_VERIFY(vkEndCommandBuffer(vk_commandbuffers[vk_activeBufferIdx]));
