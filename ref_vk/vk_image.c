@@ -524,7 +524,7 @@ void QVk_ReadPixels(uint8_t *dstBuffer, uint32_t width, uint32_t height)
 	qvkbufferopts_t buffOpts = {
 		.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 		.reqMemFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		.prefMemFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		.prefMemFlags = VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
 		.vmaUsage = VMA_MEMORY_USAGE_CPU_ONLY,
 		.vmaFlags = VMA_ALLOCATION_CREATE_MAPPED_BIT
 	};
@@ -568,6 +568,7 @@ void QVk_ReadPixels(uint8_t *dstBuffer, uint32_t width, uint32_t height)
 
 	// copy the swapchain image
 	vkCmdCopyImageToBuffer(cmdBuffer, vk_swapchain.images[vk_activeBufferIdx], VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, buff.buffer, 1, &region);
+	VK_VERIFY(vkDeviceWaitIdle(vk_device.logical));
 	QVk_SubmitCommand(&cmdBuffer, &vk_device.gfxQueue);
 
 	// store image in destination buffer
