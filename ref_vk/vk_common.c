@@ -472,7 +472,7 @@ static void CreateStagingBuffers()
 
 	for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 	{
-		QVk_CreateStagingBuffer(STAGING_BUFFER_MAXSIZE * 1024, &vk_stagingBuffers[i].buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+		QVk_CreateStagingBuffer(STAGING_BUFFER_MAXSIZE * 1024, &vk_stagingBuffers[i].buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
 		vmaMapMemory(vk_malloc, vk_stagingBuffers[i].buffer.allocation, &vk_stagingBuffers[i].buffer.allocInfo.pMappedData);
 		vk_stagingBuffers[i].submitted = false;
 

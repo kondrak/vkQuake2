@@ -45,12 +45,13 @@ static void createStagedBuffer(const void *data, VkDeviceSize size, qvkbuffer_t 
 	if (!stagingBuffer)
 	{
 		stgBuffer = (qvkbuffer_t *)malloc(sizeof(qvkbuffer_t));
-		VK_VERIFY(QVk_CreateStagingBuffer(size, stgBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT));
+		VK_VERIFY(QVk_CreateStagingBuffer(size, stgBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT));
 	}
 
 	if (data)
 	{
 		void *dst;
+		// staging buffers in vkQuake2 are requried to be host coherent, so no flushing/invalidation is involved
 		vmaMapMemory(vk_malloc, stgBuffer->allocation, &dst);
 		memcpy(dst, data, (size_t)size);
 		vmaUnmapMemory(vk_malloc, stgBuffer->allocation);
