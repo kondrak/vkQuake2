@@ -548,15 +548,14 @@ static void CreatePipelines()
 	QVk_CreatePipeline(dsLayouts, 2, &vertexInputInfo, &vk_drawTexQuadPipeline, shaders, 2);
 
 	// draw particles pipeline (using a texture)
-	VkVertexInputBindingDescription particleBindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 9);
+	VkVertexInputBindingDescription particleBindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 5);
 	VkVertexInputAttributeDescription particleAttributeDescriptions[] = {
 		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
 		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 3),
-		VK_INPUTATTR_DESC(2, VK_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 5),
 	};
 
 	VkPipelineVertexInputStateCreateInfo particleVertexInputInfo = VK_VERTEXINPUT_CINF(particleBindingDesc, particleAttributeDescriptions);
-	VK_LOAD_VERTFRAG_SHADERS(shaders, particle, polygon);
+	VK_LOAD_VERTFRAG_SHADERS(shaders, polygon, polygon);
 
 	vk_drawParticlesPipeline.depthWriteEnable = VK_FALSE;
 	vk_drawParticlesPipeline.blendOpts.blendEnable = VK_TRUE;
@@ -753,7 +752,7 @@ static void CreatePipelines()
 	};
 
 	VkPipelineVertexInputStateCreateInfo showtrisVertInfo = VK_VERTEXINPUT_CINF(showtrisBind, showtrisAttrDesc);
-	VK_LOAD_VERTFRAG_SHADERS(shaders, showtris, showtris);
+	VK_LOAD_VERTFRAG_SHADERS(shaders, shadows, showtris);
 
 	vk_showTrisPipeline.cullMode = VK_CULL_MODE_NONE;
 	vk_showTrisPipeline.depthTestEnable = VK_FALSE;

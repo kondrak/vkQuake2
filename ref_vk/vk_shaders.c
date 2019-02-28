@@ -28,7 +28,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "spirv/model_vert.c"
 #include "spirv/model_frag.c"
 #include "spirv/nullmodel_vert.c"
-#include "spirv/particle_vert.c"
 #include "spirv/point_particle_vert.c"
 #include "spirv/point_particle_frag.c"
 #include "spirv/sprite_vert.c"
@@ -42,7 +41,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "spirv/polygon_lmap_vert.c"
 #include "spirv/polygon_lmap_frag.c"
 #include "spirv/polygon_warp_vert.c"
-#include "spirv/showtris_vert.c"
 #include "spirv/showtris_frag.c"
 #include "spirv/shadows_vert.c"
 #include "spirv/shadows_frag.c"
@@ -57,8 +55,6 @@ const size_t model_vert_size = sizeof(model_vert_spv);
 const size_t model_frag_size = sizeof(model_frag_spv);
 
 const size_t nullmodel_vert_size = sizeof(nullmodel_vert_spv);
-
-const size_t particle_vert_size = sizeof(particle_vert_spv);
 
 const size_t point_particle_vert_size = sizeof(point_particle_vert_spv);
 const size_t point_particle_frag_size = sizeof(point_particle_frag_spv);
@@ -81,7 +77,6 @@ const size_t polygon_lmap_frag_size = sizeof(polygon_lmap_frag_spv);
 
 const size_t polygon_warp_vert_size = sizeof(polygon_warp_vert_spv);
 
-const size_t showtris_vert_size = sizeof(showtris_vert_spv);
 const size_t showtris_frag_size = sizeof(showtris_frag_spv);
 
 const size_t shadows_vert_size = sizeof(shadows_vert_spv);
