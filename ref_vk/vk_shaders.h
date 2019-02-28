@@ -48,15 +48,9 @@ extern const size_t model_frag_size;
 extern const uint32_t nullmodel_vert_spv[];
 extern const size_t nullmodel_vert_size;
 
-extern const uint32_t nullmodel_frag_spv[];
-extern const size_t nullmodel_frag_size;
-
 // particle (texture)
 extern const uint32_t particle_vert_spv[];
 extern const size_t particle_vert_size;
-
-extern const uint32_t particle_frag_spv[];
-extern const size_t particle_frag_size;
 
 // particle (point)
 extern const uint32_t point_particle_vert_spv[];
@@ -76,9 +70,6 @@ extern const size_t sprite_frag_size;
 extern const uint32_t beam_vert_spv[];
 extern const size_t beam_vert_size;
 
-extern const uint32_t beam_frag_spv[];
-extern const size_t beam_frag_size;
-
 // skybox
 extern const uint32_t skybox_vert_spv[];
 extern const size_t skybox_vert_size;
@@ -89,9 +80,6 @@ extern const size_t skybox_frag_size;
 // dynamic lights
 extern const uint32_t d_light_vert_spv[];
 extern const size_t d_light_vert_size;
-
-extern const uint32_t d_light_frag_spv[];
-extern const size_t d_light_frag_size;
 
 // textured, alpha blended polygon
 extern const uint32_t polygon_vert_spv[];
@@ -110,9 +98,6 @@ extern const size_t polygon_lmap_frag_size;
 // warped polygon (liquids)
 extern const uint32_t polygon_warp_vert_spv[];
 extern const size_t polygon_warp_vert_size;
-
-extern const uint32_t polygon_warp_frag_spv[];
-extern const size_t polygon_warp_frag_size;
 
 // debug triangle rendering
 extern const uint32_t showtris_vert_spv[];

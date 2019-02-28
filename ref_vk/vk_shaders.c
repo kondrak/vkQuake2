@@ -28,25 +28,20 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "spirv/model_vert.c"
 #include "spirv/model_frag.c"
 #include "spirv/nullmodel_vert.c"
-#include "spirv/nullmodel_frag.c"
 #include "spirv/particle_vert.c"
-#include "spirv/particle_frag.c"
 #include "spirv/point_particle_vert.c"
 #include "spirv/point_particle_frag.c"
 #include "spirv/sprite_vert.c"
 #include "spirv/sprite_frag.c"
 #include "spirv/beam_vert.c"
-#include "spirv/beam_frag.c"
 #include "spirv/skybox_vert.c"
 #include "spirv/skybox_frag.c"
 #include "spirv/d_light_vert.c"
-#include "spirv/d_light_frag.c"
 #include "spirv/polygon_vert.c"
 #include "spirv/polygon_frag.c"
 #include "spirv/polygon_lmap_vert.c"
 #include "spirv/polygon_lmap_frag.c"
 #include "spirv/polygon_warp_vert.c"
-#include "spirv/polygon_warp_frag.c"
 #include "spirv/showtris_vert.c"
 #include "spirv/showtris_frag.c"
 #include "spirv/shadows_vert.c"
@@ -62,10 +57,8 @@ const size_t model_vert_size = sizeof(model_vert_spv);
 const size_t model_frag_size = sizeof(model_frag_spv);
 
 const size_t nullmodel_vert_size = sizeof(nullmodel_vert_spv);
-const size_t nullmodel_frag_size = sizeof(nullmodel_frag_spv);
 
 const size_t particle_vert_size = sizeof(particle_vert_spv);
-const size_t particle_frag_size = sizeof(particle_frag_spv);
 
 const size_t point_particle_vert_size = sizeof(point_particle_vert_spv);
 const size_t point_particle_frag_size = sizeof(point_particle_frag_spv);
@@ -74,13 +67,11 @@ const size_t sprite_vert_size = sizeof(sprite_vert_spv);
 const size_t sprite_frag_size = sizeof(sprite_frag_spv);
 
 const size_t beam_vert_size = sizeof(beam_vert_spv);
-const size_t beam_frag_size = sizeof(beam_frag_spv);
 
 const size_t skybox_vert_size = sizeof(skybox_vert_spv);
 const size_t skybox_frag_size = sizeof(skybox_frag_spv);
 
 const size_t d_light_vert_size = sizeof(d_light_vert_spv);
-const size_t d_light_frag_size = sizeof(d_light_frag_spv);
 
 const size_t polygon_vert_size = sizeof(polygon_vert_spv);
 const size_t polygon_frag_size = sizeof(polygon_frag_spv);
@@ -89,7 +80,6 @@ const size_t polygon_lmap_vert_size = sizeof(polygon_lmap_vert_spv);
 const size_t polygon_lmap_frag_size = sizeof(polygon_lmap_frag_spv);
 
 const size_t polygon_warp_vert_size = sizeof(polygon_warp_vert_spv);
-const size_t polygon_warp_frag_size = sizeof(polygon_warp_frag_spv);
 
 const size_t showtris_vert_size = sizeof(showtris_vert_spv);
 const size_t showtris_frag_size = sizeof(showtris_frag_spv);
