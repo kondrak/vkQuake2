@@ -11,5 +11,5 @@ void main()
     vec4 color = texture(sTexture, texCoord);
     if(color.a < 0.666)
         discard;
-    fragmentColor = texture(sTexture, texCoord);
+    fragmentColor = color;
 }
