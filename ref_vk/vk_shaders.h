@@ -48,6 +48,10 @@ extern const size_t model_frag_size;
 extern const uint32_t nullmodel_vert_spv[];
 extern const size_t nullmodel_vert_size;
 
+// particle (texture)
+extern const uint32_t particle_vert_spv[];
+extern const size_t particle_vert_size;
+
 // particle (point)
 extern const uint32_t point_particle_vert_spv[];
 extern const size_t point_particle_vert_size;
