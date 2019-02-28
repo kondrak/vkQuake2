@@ -56,6 +56,9 @@ vec3_t	vright;
 vec3_t	r_origin;
 
 float	r_projection_matrix[16];
+float	r_proj_aspect;
+float	r_proj_fovx;
+float	r_proj_fovy;
 float	r_view_matrix[16];
 float	r_viewproj_matrix[16];
 // correction matrix for perspective in Vulkan
@@ -599,16 +602,16 @@ int SignbitsForPlane (cplane_t *out)
 }
 
 
-void R_SetFrustum (void)
+void R_SetFrustum (float fovx, float fovy)
 {
 	// rotate VPN right by FOV_X/2 degrees
-	RotatePointAroundVector(frustum[0].normal, vup, vpn, -(90 - r_newrefdef.fov_x / 2));
+	RotatePointAroundVector(frustum[0].normal, vup, vpn, -(90 - fovx / 2));
 	// rotate VPN left by FOV_X/2 degrees
-	RotatePointAroundVector(frustum[1].normal, vup, vpn, 90 - r_newrefdef.fov_x / 2);
+	RotatePointAroundVector(frustum[1].normal, vup, vpn, 90 - fovx / 2);
 	// rotate VPN up by FOV_X/2 degrees
-	RotatePointAroundVector(frustum[2].normal, vright, vpn, 90 - r_newrefdef.fov_y / 2);
+	RotatePointAroundVector(frustum[2].normal, vright, vpn, 90 - fovy / 2);
 	// rotate VPN down by FOV_X/2 degrees
-	RotatePointAroundVector(frustum[3].normal, vright, vpn, -(90 - r_newrefdef.fov_y / 2));
+	RotatePointAroundVector(frustum[3].normal, vright, vpn, -(90 - fovy / 2));
 
 	for (int i = 0; i < 4; i++)
 	{
@@ -845,7 +848,24 @@ void R_SetupVulkan (void)
 	vkCmdSetViewport(vk_activeCmdbuffer, 0, 1, &viewport);
 
 	// set up projection matrix
-	Mat_Perspective(r_projection_matrix, r_vulkan_correction, r_newrefdef.fov_y, (float)r_newrefdef.width / r_newrefdef.height, 4, 4096);
+	r_proj_fovx = r_newrefdef.fov_x;
+	r_proj_fovy = r_newrefdef.fov_y;
+	r_proj_aspect = (float)r_newrefdef.width / r_newrefdef.height;
+
+	// fov based fullscreen warp when player is underwater (GLQuake version)
+	if (r_newrefdef.rdflags & RDF_UNDERWATER)
+	{
+#ifndef DEG2RAD
+#	define DEG2RAD( a ) ( a * M_PI ) / 180.0F
+#endif
+		r_proj_fovx = atan(tan(DEG2RAD(r_newrefdef.fov_x) / 2) * (0.97 + sin(r_newrefdef.time * 1.5) * 0.03)) * 2 / (M_PI / 180);
+		r_proj_fovy = atan(tan(DEG2RAD(r_newrefdef.fov_y) / 2) * (1.03 - sin(r_newrefdef.time * 1.5) * 0.03)) * 2 / (M_PI / 180);
+		r_proj_aspect = tan(DEG2RAD(r_proj_fovx) / 2) / tan(DEG2RAD(r_proj_fovy) / 2);
+#undef DEG2RAD
+	}
+	Mat_Perspective(r_projection_matrix, r_vulkan_correction, r_proj_fovy, r_proj_aspect, 4, 4096);
+
+	R_SetFrustum(r_proj_fovx, r_proj_fovy);
 
 	// set up view matrix
 	Mat_Identity(r_view_matrix);
@@ -903,8 +923,6 @@ void R_RenderView (refdef_t *fd)
 		vkDeviceWaitIdle(vk_device.logical);
 
 	R_SetupFrame();
-
-	R_SetFrustum();
 
 	R_SetupVulkan();
 

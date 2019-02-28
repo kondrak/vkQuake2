@@ -691,12 +691,13 @@ void R_DrawAliasModel (entity_t *e)
 	// draw all the triangles
 	//
 	if (currententity->flags & RF_DEPTHHACK || r_newrefdef.rdflags & RDF_NOWORLDMODEL) { // hack the depth range to prevent view model from poking into walls
+		extern float r_proj_aspect, r_proj_fovy;
 		// use different range for player setup screen so it doesn't collide with the viewmodel
 		r_vulkan_correction_dh[10] = 0.3f - (r_newrefdef.rdflags & RDF_NOWORLDMODEL) * 0.1f;
 		r_vulkan_correction_dh[14] = 0.3f - (r_newrefdef.rdflags & RDF_NOWORLDMODEL) * 0.1f;
 
 		memcpy(prev_viewproj, r_viewproj_matrix, sizeof(r_viewproj_matrix));
-		Mat_Perspective(r_projection_matrix, r_vulkan_correction_dh, r_newrefdef.fov_y, (float)r_newrefdef.width / r_newrefdef.height, 4, 4096);
+		Mat_Perspective(r_projection_matrix, r_vulkan_correction_dh, r_proj_fovy, r_proj_aspect, 4, 4096);
 		Mat_Mul(r_view_matrix, r_projection_matrix, r_viewproj_matrix);
 	}
 
