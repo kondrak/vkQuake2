@@ -619,7 +619,7 @@ static void CreatePipelines()
 	};
 
 	VkPipelineVertexInputStateCreateInfo nullVertInfo = VK_VERTEXINPUT_CINF(nullBind, nullAttrDesc);
-	VK_LOAD_VERTFRAG_SHADERS(shaders, nullmodel, basic_color_quad);
+	VK_LOAD_VERTFRAG_SHADERS(shaders, d_light, basic_color_quad);
 
 	vk_drawNullModel.cullMode = VK_CULL_MODE_NONE;
 	vk_drawNullModel.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
