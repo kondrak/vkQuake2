@@ -587,20 +587,17 @@ static void CreatePipelines()
 
 	// textured quad pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, basic, basic);
-
 	vk_drawTexQuadPipeline.depthTestEnable = VK_FALSE;
 	QVk_CreatePipeline(uboSamplerDsLayouts, 2, &vertInfoRG_RG, &vk_drawTexQuadPipeline, shaders, 2);
 
 	// draw particles pipeline (using a texture)
 	VK_LOAD_VERTFRAG_SHADERS(shaders, particle, polygon);
-
 	vk_drawParticlesPipeline.depthWriteEnable = VK_FALSE;
 	vk_drawParticlesPipeline.blendOpts.blendEnable = VK_TRUE;
 	QVk_CreatePipeline(uboSamplerDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawParticlesPipeline, shaders, 2);
 
 	// draw particles pipeline (using point list)
 	VK_LOAD_VERTFRAG_SHADERS(shaders, point_particle, point_particle);
-
 	vk_drawPointParticlesPipeline.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
 	vk_drawPointParticlesPipeline.depthWriteEnable = VK_FALSE;
 	vk_drawPointParticlesPipeline.blendOpts.blendEnable = VK_TRUE;
@@ -608,21 +605,18 @@ static void CreatePipelines()
 
 	// colored quad pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, basic_color_quad, basic_color_quad);
-
 	vk_drawColorQuadPipeline.depthTestEnable = VK_FALSE;
 	vk_drawColorQuadPipeline.blendOpts.blendEnable = VK_TRUE;
 	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRG, &vk_drawColorQuadPipeline, shaders, 2);
 
 	// untextured null model
 	VK_LOAD_VERTFRAG_SHADERS(shaders, d_light, basic_color_quad);
-
 	vk_drawNullModel.cullMode = VK_CULL_MODE_NONE;
 	vk_drawNullModel.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRGB_RGB, &vk_drawNullModel, shaders, 2);
 
 	// textured model
 	VK_LOAD_VERTFRAG_SHADERS(shaders, model, model);
-
 	vk_drawModelPipelineStrip.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
 	vk_drawModelPipelineStrip.blendOpts.blendEnable = VK_TRUE;
 	QVk_CreatePipeline(uboSamplerDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawModelPipelineStrip, shaders, 2);
@@ -653,33 +647,28 @@ static void CreatePipelines()
 
 	// draw sprite pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, sprite, sprite);
-
 	vk_drawSpritePipeline.blendOpts.blendEnable = VK_TRUE;
 	QVk_CreatePipeline(uboSamplerDsLayouts, 2, &vertInfoRGB_RG, &vk_drawSpritePipeline, shaders, 2);
 
 	// draw polygon pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, polygon, polygon);
-
 	vk_drawPolyPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	vk_drawPolyPipeline.blendOpts.blendEnable = VK_TRUE;
 	QVk_CreatePipeline(uboSamplerDsLayouts, 2, &vertInfoRGB_RG, &vk_drawPolyPipeline, shaders, 2);
 
 	// draw lightmapped polygon
 	VK_LOAD_VERTFRAG_SHADERS(shaders, polygon_lmap, polygon_lmap);
-
 	vk_drawPolyLmapPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	QVk_CreatePipeline(uboSamplerLmapDsLayouts, 3, &vertInfoRGB_RG_RG, &vk_drawPolyLmapPipeline, shaders, 2);
 
 	// draw polygon with warp effect (liquid) pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, polygon_warp, polygon);
-
 	vk_drawPolyWarpPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	vk_drawPolyWarpPipeline.blendOpts.blendEnable = VK_TRUE;
 	QVk_CreatePipeline(uboSamplerLmapDsLayouts, 2, &vertInfoRGB_RG, &vk_drawPolyWarpPipeline, shaders, 2);
 
 	// draw beam pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, beam, basic_color_quad);
-
 	vk_drawBeamPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
 	vk_drawBeamPipeline.depthWriteEnable = VK_FALSE;
 	vk_drawBeamPipeline.blendOpts.blendEnable = VK_TRUE;
@@ -691,7 +680,6 @@ static void CreatePipelines()
 
 	// draw dynamic light pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, d_light, basic_color_quad);
-
 	vk_drawDLightPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	vk_drawDLightPipeline.depthWriteEnable = VK_FALSE;
 	vk_drawDLightPipeline.cullMode = VK_CULL_MODE_FRONT_BIT;
@@ -704,7 +692,6 @@ static void CreatePipelines()
 
 	// vk_showtris render pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, shadows, showtris);
-
 	vk_showTrisPipeline.cullMode = VK_CULL_MODE_NONE;
 	vk_showTrisPipeline.depthTestEnable = VK_FALSE;
 	vk_showTrisPipeline.depthWriteEnable = VK_FALSE;
@@ -713,7 +700,6 @@ static void CreatePipelines()
 
 	//vk_shadows render pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, shadows, shadows);
-
 	vk_shadowsPipelineStrip.blendOpts.blendEnable = VK_TRUE;
 	vk_shadowsPipelineStrip.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
 	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRGB, &vk_shadowsPipelineStrip, shaders, 2);
