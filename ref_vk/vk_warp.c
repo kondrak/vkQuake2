@@ -223,7 +223,7 @@ void EmitWaterPolys (msurface_t *fa, image_t *texture, float *modelMatrix, float
 	polyUbo.color[3] = color[3];
 	polyUbo.time = r_newrefdef.time;
 
-	polyvert verts[MAX_VERTS];
+	static polyvert verts[MAX_VERTS];
 
 	if (fa->texinfo->flags & SURF_FLOWING)
 		polyUbo.scroll = (-64 * ((r_newrefdef.time*0.5) - (int)(r_newrefdef.time*0.5))) / 64.f;

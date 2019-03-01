@@ -33,6 +33,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "vk_mem_alloc.h"
 #include "vk_shaders.h"
 
+// Vulkan device
 typedef struct
 {
 	VkPhysicalDevice physical;
@@ -47,6 +48,7 @@ typedef struct
 	int transferFamilyIndex;
 } qvkdevice_t;
 
+// Vulkan swapchain
 typedef struct
 {
 	VkSwapchainKHR sc;
@@ -57,6 +59,7 @@ typedef struct
 	int imageCount;
 } qvkswapchain_t;
 
+// texture options
 typedef struct
 {
 	VkFilter  minFilter;
@@ -65,6 +68,7 @@ typedef struct
 	VkSamplerMipmapMode mipmapMode;
 } qvktextureopts_t;
 
+// texture object
 typedef struct 
 {
 	VkImage image;
@@ -117,6 +121,7 @@ typedef struct
 	(i).mipmapFilter = VK_FILTER_LINEAR; \
 }
 
+// Vulkan renderpass
 typedef struct
 {
 	VkRenderPass rp;
@@ -124,6 +129,7 @@ typedef struct
 	VkSampleCountFlagBits sampleCount;
 } qvkrenderpass_t;
 
+// Vulkan buffer
 typedef struct
 {
 	VkBuffer buffer;
@@ -132,6 +138,7 @@ typedef struct
 	VkDeviceSize currentOffset;
 } qvkbuffer_t;
 
+// Vulkan staging buffer
 typedef struct
 {
 	qvkbuffer_t buffer;
@@ -140,6 +147,7 @@ typedef struct
 	qboolean submitted;
 } qvkstagingbuffer_t;
 
+// Vulkan buffer options
 typedef struct
 {
 	VkBufferUsageFlags usage;
@@ -149,6 +157,7 @@ typedef struct
 	VmaAllocationCreateFlags vmaFlags;
 } qvkbufferopts_t;
 
+// Vulkan pipeline
 typedef struct
 {
 	VkPipelineLayout layout;
@@ -165,6 +174,7 @@ typedef struct
 	float minSampleShading; // sample shading minimum fraction - >= 0 to enable
 } qvkpipeline_t;
 
+// Vulkan shader
 typedef struct
 {
 	VkPipelineShaderStageCreateInfo createInfo;
@@ -195,6 +205,7 @@ typedef struct
 	.minSampleShading = -1.f \
 }
 
+// type of renderpass (non-MSAA/MSAA)
 typedef enum
 {
 	RT_STANDARD = 0,
@@ -256,6 +267,7 @@ extern qvkbuffer_t vk_triangleFanIbo;
 extern PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;
 extern PFN_vkDestroyDebugUtilsMessengerEXT qvkDestroyDebugUtilsMessengerEXT;
 
+// The Interface Functions (tm)
 qboolean	QVk_Init(void);
 void		QVk_Shutdown(void);
 void		QVk_CreateValidationLayers(void);

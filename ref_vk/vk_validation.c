@@ -27,6 +27,7 @@ extern FILE *vk_logfp;
 	fprintf(vk_logfp, msg, __VA_ARGS__); \
 }
 
+// layer message to string
 static const char* msgToString(VkDebugUtilsMessageTypeFlagsEXT type)
 {
 	int g = (type & VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT) != 0 ? 1 : 0;

@@ -44,7 +44,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "qvk.h"
 
 #define	REF_VERSION	"Vulkan (vkQuake2 v"VKQUAKE2_VERSION")"
-#define VKQUAKE2_VERSION "0.4"
+#define VKQUAKE2_VERSION "0.5"
 
 // verify if VkResult is VK_SUCCESS
 #ifdef _DEBUG
@@ -243,7 +243,6 @@ qboolean R_CullBox (vec3_t mins, vec3_t maxs);
 void R_RotateForEntity (entity_t *e, float *mvMatrix);
 void R_MarkLeaves (void);
 
-vkpoly_t *WaterWarpPolyVerts (vkpoly_t *p);
 void EmitWaterPolys (msurface_t *fa, image_t *texture, float *modelMatrix, float *color);
 void R_AddSkySurface (msurface_t *fa);
 void R_ClearSkyBox (void);

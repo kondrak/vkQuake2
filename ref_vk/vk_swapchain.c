@@ -27,6 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 #endif
 
+// internal helper
 static const char *presentModeString(VkPresentModeKHR presentMode)
 {
 #define PMSTR(r) case VK_ ##r: return "VK_"#r
@@ -42,6 +43,7 @@ static const char *presentModeString(VkPresentModeKHR presentMode)
 	return "UNKNOWN PRESENT MODE";
 }
 
+// internal helper
 static VkSurfaceFormatKHR getSwapSurfaceFormat(const VkSurfaceFormatKHR *surfaceFormats, uint32_t formatCount)
 {
 	VkSurfaceFormatKHR swapSurfaceFormat;
@@ -63,7 +65,7 @@ static VkSurfaceFormatKHR getSwapSurfaceFormat(const VkSurfaceFormatKHR *surface
 	return swapSurfaceFormat;
 }
 
-
+// internal helper
 static VkPresentModeKHR getSwapPresentMode(const VkPresentModeKHR *presentModes, uint32_t presentModesCount, VkPresentModeKHR desiredMode)
 {
 	// check if the desired present mode is supported
@@ -99,6 +101,7 @@ static VkPresentModeKHR getSwapPresentMode(const VkPresentModeKHR *presentModes,
 	return usedPresentMode;
 }
 
+// internal helper
 static VkCompositeAlphaFlagBitsKHR getSupportedCompositeAlpha(VkCompositeAlphaFlagsKHR supportedFlags)
 {
 	VkCompositeAlphaFlagBitsKHR compositeAlphaFlags[] = {

@@ -167,10 +167,10 @@ void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *skin, fl
 	} modelvert;
 
 	int vertCounts[2] = { 0, 0 };
-	modelvert vertList[2][MAX_VERTS];
+	static modelvert vertList[2][MAX_VERTS];
 	int pipeCounters[2] = { 0, 0 };
 
-	struct {
+	static struct {
 		int vertexCount;
 		int firstVertex;
 	} drawInfo[2][MAX_VERTS];
@@ -341,7 +341,7 @@ void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatrix)
 	memcpy(uboData, &mvp, sizeof(mvp));
 	VkDescriptorSet descriptorSets[] = { uboDescriptorSet };
 
-	vec3_t shadowverts[MAX_VERTS];
+	static vec3_t shadowverts[MAX_VERTS];
 	while (1)
 	{
 		i = 0;

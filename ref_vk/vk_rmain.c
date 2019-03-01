@@ -417,14 +417,14 @@ void Vk_DrawParticles( int num_particles, const particle_t particles[], const un
 		float x,y,z,u,v,r,g,b,a;
 	} pvertex;
 	
-	pvertex visibleParticles[MAX_PARTICLES*3];
+	static pvertex visibleParticles[MAX_PARTICLES*3];
 
 	for (p = particles, i = 0; i < num_particles; i++, p++)
 	{
 		// hack a scale up to keep particles from disapearing
 		scale = (p->origin[0] - r_origin[0]) * vpn[0] +
-			(p->origin[1] - r_origin[1]) * vpn[1] +
-			(p->origin[2] - r_origin[2]) * vpn[2];
+				(p->origin[1] - r_origin[1]) * vpn[1] +
+				(p->origin[2] - r_origin[2]) * vpn[2];
 
 		if (scale < 20)
 			scale = 1;
@@ -525,7 +525,8 @@ void R_DrawParticles (void)
 		particleUbo.att_a = vk_particle_att_a->value;
 		particleUbo.att_b = vk_particle_att_b->value;
 		particleUbo.att_c = vk_particle_att_c->value;
-		ppoint visibleParticles[MAX_PARTICLES];
+
+		static ppoint visibleParticles[MAX_PARTICLES];
 
 		for (i = 0, p = r_newrefdef.particles; i < r_newrefdef.num_particles; i++, p++)
 		{

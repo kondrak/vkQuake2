@@ -22,6 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 static const char *devExtensions[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
+// internal helper
 static qboolean deviceExtensionsSupported(const VkPhysicalDevice *physicalDevice, const char **requested, int count)
 {
 	uint32_t extCount;
@@ -54,6 +55,7 @@ static qboolean deviceExtensionsSupported(const VkPhysicalDevice *physicalDevice
 	return true;
 }
 
+// internal helper
 static void getBestPhysicalDevice(const VkPhysicalDevice *devices, int preferredIdx, int count)
 {
 	VkPhysicalDeviceProperties deviceProperties;
@@ -137,7 +139,8 @@ static void getBestPhysicalDevice(const VkPhysicalDevice *devices, int preferred
 	}
 }
 
-qboolean selectPhysicalDevice(int preferredDeviceIdx)
+// internal helper
+static qboolean selectPhysicalDevice(int preferredDeviceIdx)
 {
 	uint32_t physicalDeviceCount = 0;
 	VK_VERIFY(vkEnumeratePhysicalDevices(vk_instance, &physicalDeviceCount, NULL));
@@ -165,7 +168,7 @@ qboolean selectPhysicalDevice(int preferredDeviceIdx)
 	return true;
 }
 
-
+// internal helper
 static VkResult createLogicalDevice()
 {
 	// at least one queue (graphics and present combined) has to be present
@@ -230,6 +233,7 @@ static VkResult createLogicalDevice()
 	return vkCreateDevice(vk_device.physical, &deviceCreateInfo, NULL, &vk_device.logical);
 }
 
+// internal helper
 static const char *deviceTypeString(VkPhysicalDeviceType dType)
 {
 #define DEVTYPESTR(r) case VK_ ##r: return "VK_"#r
@@ -246,6 +250,7 @@ static const char *deviceTypeString(VkPhysicalDeviceType dType)
 	return "UNKNOWN DEVICE";
 }
 
+// internal helper
 static const char *vendorNameString(uint32_t vendorId)
 {
 	switch (vendorId)

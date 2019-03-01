@@ -37,6 +37,7 @@ unsigned	d_8to24table[256];
 uint32_t Vk_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboolean is_sky );
 uint32_t Vk_Upload32 (unsigned *data, int width, int height,  qboolean mipmap);
 
+// default global texture settings
 qvktextureopts_t vk_global_tex_opts = {
 	.minFilter = VK_FILTER_LINEAR,
 	.magFilter = VK_FILTER_LINEAR,
@@ -44,6 +45,7 @@ qvktextureopts_t vk_global_tex_opts = {
 	.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR
 };
 
+// internal helper
 static VkImageAspectFlags getDepthStencilAspect(VkFormat depthFormat)
 {
 	switch (depthFormat)
@@ -57,6 +59,7 @@ static VkImageAspectFlags getDepthStencilAspect(VkFormat depthFormat)
 	}
 }
 
+// internal helper
 static void transitionImageLayout(const VkCommandBuffer *cmdBuffer, const VkQueue *queue, const qvktexture_t *texture, const VkImageLayout oldLayout, const VkImageLayout newLayout)
 {
 	VkPipelineStageFlags srcStage = 0;
@@ -165,6 +168,7 @@ static void transitionImageLayout(const VkCommandBuffer *cmdBuffer, const VkQueu
 	vkCmdPipelineBarrier(*cmdBuffer, srcStage, dstStage, 0, 0, NULL, 0, NULL, 1, &imgBarrier);
 }
 
+// internal helper
 static void generateMipmaps(const VkCommandBuffer *cmdBuffer, const qvktexture_t *texture, uint32_t width, uint32_t height)
 {
 	int32_t mipWidth = width;
@@ -234,6 +238,7 @@ static void generateMipmaps(const VkCommandBuffer *cmdBuffer, const qvktexture_t
 	vkCmdPipelineBarrier(*cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, NULL, 0, NULL, 1, &imgBarrier);
 }
 
+// internal helper
 static void createTextureImage(qvktexture_t *dstTex, const unsigned char *data, uint32_t width, uint32_t height)
 {
 	int unifiedTransferAndGfx = vk_device.transferQueue == vk_device.gfxQueue ? 1 : 0;
@@ -350,7 +355,7 @@ void QVk_CreateDepthBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *dept
 {
 	depthBuffer->format = QVk_FindDepthFormat();
 	depthBuffer->sampleCount = sampleCount;
-	// On 64-bit builds Intel drivers throw a warning:
+	// On 64-bit builds, Intel drivers throw a warning:
 	// "Mapping an image with layout VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL can result in undefined behavior if this memory is used by the device. Only GENERAL or PREINITIALIZED should be used."
 	// Minor annoyance but we don't want any validation warning either, so we crate dedicated allocation for depth buffer.
 	// more details: https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/issues/34
@@ -370,7 +375,7 @@ void QVk_CreateColorBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *colo
 {
 	colorBuffer->format = vk_swapchain.format;
 	colorBuffer->sampleCount = sampleCount;
-	// On 64-bit builds Intel drivers throw a warning:
+	// On 64-bit builds, Intel drivers throw a warning:
 	// "Mapping an image with layout VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL can result in undefined behavior if this memory is used by the device. Only GENERAL or PREINITIALIZED should be used."
 	// Minor annoyance but we don't want any validation warning either, so we crate dedicated allocation for color buffer.
 	// more details: https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/issues/34

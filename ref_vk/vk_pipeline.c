@@ -48,7 +48,6 @@ qvkshader_t QVk_CreateShader(const uint32_t *shaderSrc, size_t shaderCodeSize, V
 	return shader;
 }
 
-
 void QVk_CreatePipeline(const VkDescriptorSetLayout *descriptorLayout, const uint32_t descLayoutCount, const VkPipelineVertexInputStateCreateInfo *vertexInputInfo,
 						qvkpipeline_t *pipeline, const qvkshader_t *shaders, uint32_t shaderCount)
 {

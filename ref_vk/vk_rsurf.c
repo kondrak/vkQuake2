@@ -118,7 +118,7 @@ void DrawVkPoly (vkpoly_t *p, image_t *texture, float *color)
 	polyUbo.color[2] = color[2];
 	polyUbo.color[3] = color[3];
 
-	polyvert verts[MAX_VERTS];
+	static polyvert verts[MAX_VERTS];
 
 	v = p->verts[0];
 	for (i = 0; i < p->numverts; i++, v += VERTEXSIZE)
@@ -180,7 +180,7 @@ void DrawVkFlowingPoly (msurface_t *fa, image_t *texture, float *color)
 	polyUbo.color[2] = color[2];
 	polyUbo.color[3] = color[3];
 
-	polyvert verts[MAX_VERTS];
+	static polyvert verts[MAX_VERTS];
 
 	p = fa->polys;
 
@@ -304,7 +304,7 @@ void DrawVkPolyChain( vkpoly_t *p, float soffset, float toffset, image_t *textur
 	polyUbo.color[2] = color[2];
 	polyUbo.color[3] = color[3];
 
-	polyvert verts[MAX_VERTS];
+	static polyvert verts[MAX_VERTS];
 	memcpy(polyUbo.mvp, r_viewproj_matrix, sizeof(r_viewproj_matrix));
 
 	QVk_BindPipeline(&vk_drawPolyPipeline);
@@ -559,7 +559,7 @@ static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, floa
 		float texCoordLmap[2];
 	} lmappolyvert;
 
-	lmappolyvert verts[MAX_VERTS];
+	static lmappolyvert verts[MAX_VERTS];
 
 	struct {
 		float mvp[16];
