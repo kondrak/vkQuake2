@@ -8,8 +8,7 @@ layout(location = 0) out vec4 fragmentColor;
 
 void main()
 {
-    vec4 color = texture(sTexture, texCoord);
-    if(color.a < 0.666)
+    fragmentColor = texture(sTexture, texCoord);
+    if(fragmentColor.a < 0.666)
         discard;
-    fragmentColor = color;
 }
