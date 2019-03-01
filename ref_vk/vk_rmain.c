@@ -414,7 +414,7 @@ void Vk_DrawParticles( int num_particles, const particle_t particles[], const un
 	VectorScale(vright, 1.5, right);
 
 	typedef struct {
-		float x,y,z,u,v,r,g,b,a;
+		float x,y,z,r,g,b,a,u,v;
 	} pvertex;
 	
 	static pvertex visibleParticles[MAX_PARTICLES*3];
@@ -441,32 +441,32 @@ void Vk_DrawParticles( int num_particles, const particle_t particles[], const un
 		visibleParticles[idx].x = p->origin[0];
 		visibleParticles[idx].y = p->origin[1];
 		visibleParticles[idx].z = p->origin[2];
-		visibleParticles[idx].u = 0.0625;
-		visibleParticles[idx].v = 0.0625;
 		visibleParticles[idx].r = r;
 		visibleParticles[idx].g = g;
 		visibleParticles[idx].b = b;
 		visibleParticles[idx].a = p->alpha;
+		visibleParticles[idx].u = 0.0625;
+		visibleParticles[idx].v = 0.0625;
 
 		visibleParticles[idx + 1].x = p->origin[0] + up[0] * scale;
 		visibleParticles[idx + 1].y = p->origin[1] + up[1] * scale;
 		visibleParticles[idx + 1].z = p->origin[2] + up[2] * scale;
-		visibleParticles[idx + 1].u = 1.0625;
-		visibleParticles[idx + 1].v = 0.0625;
 		visibleParticles[idx + 1].r = r;
 		visibleParticles[idx + 1].g = g;
 		visibleParticles[idx + 1].b = b;
 		visibleParticles[idx + 1].a = p->alpha;
+		visibleParticles[idx + 1].u = 1.0625;
+		visibleParticles[idx + 1].v = 0.0625;
 
 		visibleParticles[idx + 2].x = p->origin[0] + right[0] * scale;
 		visibleParticles[idx + 2].y = p->origin[1] + right[1] * scale;
 		visibleParticles[idx + 2].z = p->origin[2] + right[2] * scale;
-		visibleParticles[idx + 2].u = 0.0625;
-		visibleParticles[idx + 2].v = 1.0625;
 		visibleParticles[idx + 2].r = r;
 		visibleParticles[idx + 2].g = g;
 		visibleParticles[idx + 2].b = b;
 		visibleParticles[idx + 2].a = p->alpha;
+		visibleParticles[idx + 2].u = 0.0625;
+		visibleParticles[idx + 2].v = 1.0625;
 	}
 
 	QVk_BindPipeline(&vk_drawParticlesPipeline);

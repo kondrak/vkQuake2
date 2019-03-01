@@ -547,15 +547,45 @@ static void CreateStaticBuffers()
 // internal helper
 static void CreatePipelines()
 {
-	qvkshader_t shaders[2] = { VK_NULL_HANDLE, VK_NULL_HANDLE };
-	// textured quad pipeline
-	VkVertexInputBindingDescription bindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 4);
-	VkVertexInputAttributeDescription attributeDescriptions[] = {
+	// shared vertex input attribute descriptions
+	VkVertexInputAttributeDescription attrDescRG[] = {
+		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32_SFLOAT, 0)
+	};
+	VkVertexInputAttributeDescription attrDescRGB[] = {
+		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0)
+	};
+	VkVertexInputAttributeDescription attrDescRG_RG[] = {
 		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32_SFLOAT, 0),
 		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 2),
 	};
+	VkVertexInputAttributeDescription attrDescRGB_RGBA[] = {
+		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
+		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 3),
+	};
+	VkVertexInputAttributeDescription attrDescRGB_RG[] = {
+		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
+		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 3)
+	};
+	VkVertexInputAttributeDescription attrDescRGB_RGB[] = {
+		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
+		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 3),
+	};
+	VkVertexInputAttributeDescription attrDescRGB_RGBA_RG[] = {
+		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
+		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 3),
+		VK_INPUTATTR_DESC(2, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 7),
+	};
+	VkVertexInputAttributeDescription attrDescRGB_RG_RG[] = {
+		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
+		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 3),
+		VK_INPUTATTR_DESC(2, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 5)
+	};
 
-	VkPipelineVertexInputStateCreateInfo vertexInputInfo = VK_VERTEXINPUT_CINF(bindingDesc, attributeDescriptions);
+	qvkshader_t shaders[2] = { VK_NULL_HANDLE, VK_NULL_HANDLE };
+	// textured quad pipeline
+	VkVertexInputBindingDescription bindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 4);
+
+	VkPipelineVertexInputStateCreateInfo vertexInputInfo = VK_VERTEXINPUT_CINF(bindingDesc, attrDescRG_RG);
 	VK_LOAD_VERTFRAG_SHADERS(shaders, basic, basic);
 
 	vk_drawTexQuadPipeline.depthTestEnable = VK_FALSE;
@@ -564,13 +594,8 @@ static void CreatePipelines()
 
 	// draw particles pipeline (using a texture)
 	VkVertexInputBindingDescription particleBindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 9);
-	VkVertexInputAttributeDescription particleAttributeDescriptions[] = {
-		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
-		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 3),
-		VK_INPUTATTR_DESC(2, VK_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 5)
-	};
 
-	VkPipelineVertexInputStateCreateInfo particleVertexInputInfo = VK_VERTEXINPUT_CINF(particleBindingDesc, particleAttributeDescriptions);
+	VkPipelineVertexInputStateCreateInfo particleVertexInputInfo = VK_VERTEXINPUT_CINF(particleBindingDesc, attrDescRGB_RGBA_RG);
 	VK_LOAD_VERTFRAG_SHADERS(shaders, particle, polygon);
 
 	vk_drawParticlesPipeline.depthWriteEnable = VK_FALSE;
@@ -581,12 +606,8 @@ static void CreatePipelines()
 
 	// draw particles pipeline (using point list)
 	VkVertexInputBindingDescription pointParticleBindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 7);
-	VkVertexInputAttributeDescription pointParticleAttributeDescriptions[] = {
-		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
-		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 3),
-	};
 
-	VkPipelineVertexInputStateCreateInfo pointParticleVertexInputInfo = VK_VERTEXINPUT_CINF(pointParticleBindingDesc, pointParticleAttributeDescriptions);
+	VkPipelineVertexInputStateCreateInfo pointParticleVertexInputInfo = VK_VERTEXINPUT_CINF(pointParticleBindingDesc, attrDescRGB_RGBA);
 	VK_LOAD_VERTFRAG_SHADERS(shaders, point_particle, point_particle);
 
 	vk_drawPointParticlesPipeline.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
@@ -598,11 +619,8 @@ static void CreatePipelines()
 
 	// colored quad pipeline
 	VkVertexInputBindingDescription colorQuadDesc = VK_INPUTBIND_DESC(sizeof(float) * 2);
-	VkVertexInputAttributeDescription colorQuadAttrDesc[] = {
-		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32_SFLOAT, 0)
-	};
 
-	VkPipelineVertexInputStateCreateInfo colorQuadVertInfo = VK_VERTEXINPUT_CINF(colorQuadDesc, colorQuadAttrDesc);
+	VkPipelineVertexInputStateCreateInfo colorQuadVertInfo = VK_VERTEXINPUT_CINF(colorQuadDesc, attrDescRG);
 	VK_LOAD_VERTFRAG_SHADERS(shaders, basic_color_quad, basic_color_quad);
 
 	vk_drawColorQuadPipeline.depthTestEnable = VK_FALSE;
@@ -613,12 +631,8 @@ static void CreatePipelines()
 
 	// untextured null model
 	VkVertexInputBindingDescription nullBind = VK_INPUTBIND_DESC(sizeof(float) * 6);
-	VkVertexInputAttributeDescription nullAttrDesc[] = {
-		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
-		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 3),
-	};
 
-	VkPipelineVertexInputStateCreateInfo nullVertInfo = VK_VERTEXINPUT_CINF(nullBind, nullAttrDesc);
+	VkPipelineVertexInputStateCreateInfo nullVertInfo = VK_VERTEXINPUT_CINF(nullBind, attrDescRGB_RGB);
 	VK_LOAD_VERTFRAG_SHADERS(shaders, d_light, basic_color_quad);
 
 	vk_drawNullModel.cullMode = VK_CULL_MODE_NONE;
@@ -628,13 +642,8 @@ static void CreatePipelines()
 
 	// textured model
 	VkVertexInputBindingDescription modelBind = VK_INPUTBIND_DESC(sizeof(float) * 9);
-	VkVertexInputAttributeDescription modelAttrDesc[] = {
-		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
-		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 3),
-		VK_INPUTATTR_DESC(2, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 7),
-	};
 
-	VkPipelineVertexInputStateCreateInfo modelVertInfo = VK_VERTEXINPUT_CINF(modelBind, modelAttrDesc);
+	VkPipelineVertexInputStateCreateInfo modelVertInfo = VK_VERTEXINPUT_CINF(modelBind, attrDescRGB_RGBA_RG);
 	VK_LOAD_VERTFRAG_SHADERS(shaders, model, model);
 
 	VkDescriptorSetLayout dsLayoutsModel[] = { vk_uboDescSetLayout, vk_samplerDescSetLayout };
@@ -665,12 +674,8 @@ static void CreatePipelines()
 
 	// draw sprite pipeline
 	VkVertexInputBindingDescription spriteBindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 5);
-	VkVertexInputAttributeDescription spriteAttributeDescriptions[] = {
-		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
-		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 3)
-	};
 
-	VkPipelineVertexInputStateCreateInfo spriteVertexInputInfo = VK_VERTEXINPUT_CINF(spriteBindingDesc, spriteAttributeDescriptions);
+	VkPipelineVertexInputStateCreateInfo spriteVertexInputInfo = VK_VERTEXINPUT_CINF(spriteBindingDesc, attrDescRGB_RG);
 	VK_LOAD_VERTFRAG_SHADERS(shaders, sprite, sprite);
 
 	vk_drawSpritePipeline.blendOpts.blendEnable = VK_TRUE;
@@ -688,13 +693,8 @@ static void CreatePipelines()
 
 	// draw lightmapped polygon
 	VkVertexInputBindingDescription polyLmapBindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 7);
-	VkVertexInputAttributeDescription polyLmapAttributeDescriptions[] = {
-		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
-		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 3),
-		VK_INPUTATTR_DESC(2, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 5)
-	};
 
-	VkPipelineVertexInputStateCreateInfo polyLmapVertexInputInfo = VK_VERTEXINPUT_CINF(polyLmapBindingDesc, polyLmapAttributeDescriptions);
+	VkPipelineVertexInputStateCreateInfo polyLmapVertexInputInfo = VK_VERTEXINPUT_CINF(polyLmapBindingDesc, attrDescRGB_RG_RG);
 	VK_LOAD_VERTFRAG_SHADERS(shaders, polygon_lmap, polygon_lmap);
 
 	vk_drawPolyLmapPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
@@ -712,11 +712,8 @@ static void CreatePipelines()
 
 	// draw beam pipeline
 	VkVertexInputBindingDescription beamBindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 3);
-	VkVertexInputAttributeDescription beamAttributeDescriptions[] = {
-		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0)
-	};
 
-	VkPipelineVertexInputStateCreateInfo beamVertexInputInfo = VK_VERTEXINPUT_CINF(beamBindingDesc, beamAttributeDescriptions);
+	VkPipelineVertexInputStateCreateInfo beamVertexInputInfo = VK_VERTEXINPUT_CINF(beamBindingDesc, attrDescRGB);
 	VK_LOAD_VERTFRAG_SHADERS(shaders, beam, basic_color_quad);
 
 	vk_drawBeamPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
@@ -728,12 +725,8 @@ static void CreatePipelines()
 
 	// draw skybox pipeline
 	VkVertexInputBindingDescription skyboxBindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 5);
-	VkVertexInputAttributeDescription skyboxAttributeDescriptions[] = {
-		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
-		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 3)
-	};
 
-	VkPipelineVertexInputStateCreateInfo skyboxVertexInputInfo = VK_VERTEXINPUT_CINF(skyboxBindingDesc, skyboxAttributeDescriptions);
+	VkPipelineVertexInputStateCreateInfo skyboxVertexInputInfo = VK_VERTEXINPUT_CINF(skyboxBindingDesc, attrDescRGB_RG);
 	VK_LOAD_VERTFRAG_SHADERS(shaders, skybox, skybox);
 
 	VkDescriptorSetLayout skyboxDsLayouts[] = { vk_uboDescSetLayout, vk_samplerDescSetLayout };
@@ -741,12 +734,8 @@ static void CreatePipelines()
 
 	// draw dynamic light pipeline
 	VkVertexInputBindingDescription dLightBindingDesc = VK_INPUTBIND_DESC(sizeof(float) * 6);
-	VkVertexInputAttributeDescription dLightAttributeDescriptions[] = {
-		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
-		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 3)
-	};
 
-	VkPipelineVertexInputStateCreateInfo dLightVertexInputInfo = VK_VERTEXINPUT_CINF(dLightBindingDesc, dLightAttributeDescriptions);
+	VkPipelineVertexInputStateCreateInfo dLightVertexInputInfo = VK_VERTEXINPUT_CINF(dLightBindingDesc, attrDescRGB_RGB);
 	VK_LOAD_VERTFRAG_SHADERS(shaders, d_light, basic_color_quad);
 
 	vk_drawDLightPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
@@ -763,11 +752,8 @@ static void CreatePipelines()
 
 	// vk_showtris render pipeline
 	VkVertexInputBindingDescription showtrisBind = VK_INPUTBIND_DESC(sizeof(float) * 3);
-	VkVertexInputAttributeDescription showtrisAttrDesc[] = {
-		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0)
-	};
 
-	VkPipelineVertexInputStateCreateInfo showtrisVertInfo = VK_VERTEXINPUT_CINF(showtrisBind, showtrisAttrDesc);
+	VkPipelineVertexInputStateCreateInfo showtrisVertInfo = VK_VERTEXINPUT_CINF(showtrisBind, attrDescRGB);
 	VK_LOAD_VERTFRAG_SHADERS(shaders, shadows, showtris);
 
 	vk_showTrisPipeline.cullMode = VK_CULL_MODE_NONE;
