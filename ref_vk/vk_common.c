@@ -167,9 +167,10 @@ qvkpipeline_t vk_shadowsPipelineFan = QVKPIPELINE_INIT;
 	.pVertexAttributeDescriptions = a \
 }
 
-#define VK_VERTEXINPUT(name, a, b) \
-	VkVertexInputBindingDescription name##bindingDesc = VK_INPUTBIND_DESC(a); \
-	VkPipelineVertexInputStateCreateInfo name = VK_VERTEXINPUT_CINF(name##bindingDesc, b);
+#define VK_VERTINFO(name, bindSize, ...) \
+	VkVertexInputAttributeDescription attrDesc##name[] = { __VA_ARGS__ }; \
+	VkVertexInputBindingDescription name##bindingDesc = VK_INPUTBIND_DESC(bindSize); \
+	VkPipelineVertexInputStateCreateInfo vertInfo##name = VK_VERTEXINPUT_CINF(name##bindingDesc, attrDesc##name);
 
 #define VK_LOAD_VERTFRAG_SHADERS(shaders, namevert, namefrag) \
 	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL); \
@@ -552,49 +553,30 @@ static void CreateStaticBuffers()
 // internal helper
 static void CreatePipelines()
 {
-	// shared vertex input attribute descriptions
-	VkVertexInputAttributeDescription attrDescRG[] = {
-		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32_SFLOAT, 0)
-	};
-	VkVertexInputAttributeDescription attrDescRGB[] = {
-		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0)
-	};
-	VkVertexInputAttributeDescription attrDescRG_RG[] = {
-		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32_SFLOAT, 0),
-		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 2),
-	};
-	VkVertexInputAttributeDescription attrDescRGB_RGBA[] = {
-		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
-		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 3),
-	};
-	VkVertexInputAttributeDescription attrDescRGB_RG[] = {
-		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
-		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 3)
-	};
-	VkVertexInputAttributeDescription attrDescRGB_RGB[] = {
-		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
-		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 3),
-	};
-	VkVertexInputAttributeDescription attrDescRGB_RGBA_RG[] = {
-		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
-		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 3),
-		VK_INPUTATTR_DESC(2, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 7),
-	};
-	VkVertexInputAttributeDescription attrDescRGB_RG_RG[] = {
-		VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
-		VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 3),
-		VK_INPUTATTR_DESC(2, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 5)
-	};
-
 	// shared pipeline vertex input state create infos
-	VK_VERTEXINPUT(vertInfoRG, sizeof(float) * 2, attrDescRG);
-	VK_VERTEXINPUT(vertInfoRGB, sizeof(float) * 3, attrDescRGB);
-	VK_VERTEXINPUT(vertInfoRG_RG, sizeof(float) * 4, attrDescRG_RG);
-	VK_VERTEXINPUT(vertInfoRGB_RG, sizeof(float) * 5, attrDescRGB_RG);
-	VK_VERTEXINPUT(vertInfoRGB_RGB, sizeof(float) * 6, attrDescRGB_RGB);
-	VK_VERTEXINPUT(vertInfoRGB_RGBA, sizeof(float) * 7, attrDescRGB_RGBA);
-	VK_VERTEXINPUT(vertInfoRGB_RG_RG, sizeof(float) * 7, attrDescRGB_RG_RG);
-	VK_VERTEXINPUT(vertInfoRGB_RGBA_RG, sizeof(float) * 9, attrDescRGB_RGBA_RG);
+	VK_VERTINFO(RG, sizeof(float) * 2, VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32_SFLOAT, 0));
+
+	VK_VERTINFO(RGB, sizeof(float) * 3, VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0));
+
+	VK_VERTINFO(RG_RG, sizeof(float) * 4,	VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32_SFLOAT, 0),
+											VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 2));
+
+	VK_VERTINFO(RGB_RG, sizeof(float) * 5,	VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0), 
+											VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 3));
+
+	VK_VERTINFO(RGB_RGB, sizeof(float) * 6, VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
+											VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 3));
+
+	VK_VERTINFO(RGB_RGBA,  sizeof(float) * 7,	VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
+												VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 3));
+
+	VK_VERTINFO(RGB_RG_RG, sizeof(float) * 7,	VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
+												VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 3),
+												VK_INPUTATTR_DESC(2, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 5));
+
+	VK_VERTINFO(RGB_RGBA_RG, sizeof(float) * 9, VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
+												VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 3),
+												VK_INPUTATTR_DESC(2, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 7));
 
 	// shared descriptor set layouts
 	VkDescriptorSetLayout uboSamplerDsLayouts[] = { vk_uboDescSetLayout, vk_samplerDescSetLayout };
