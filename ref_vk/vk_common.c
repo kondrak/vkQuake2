@@ -78,11 +78,11 @@ qvkrenderpass_t vk_renderpasses[RT_COUNT] = {
 	} 
 };
 
+// Vulkan pools
 VkCommandPool vk_commandPool = VK_NULL_HANDLE;
 VkCommandPool vk_transferCommandPool = VK_NULL_HANDLE;
-static VkCommandPool vk_stagingCommandPool = VK_NULL_HANDLE;
 VkDescriptorPool vk_descriptorPool = VK_NULL_HANDLE;
-
+static VkCommandPool vk_stagingCommandPool = VK_NULL_HANDLE;
 // Vulkan image views
 VkImageView *vk_imageviews = NULL;
 // Vulkan framebuffers
@@ -116,7 +116,7 @@ uint32_t vk_imageIndex = 0;
 // index of currently used staging buffer
 int vk_activeStagingBuffer = 0;
 // started rendering frame?
-static qboolean vk_frame_started = false;
+static qboolean vk_frameStarted = false;
 
 PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;
 PFN_vkDestroyDebugUtilsMessengerEXT qvkDestroyDebugUtilsMessengerEXT;
@@ -220,7 +220,7 @@ VkFormat QVk_FindDepthFormat()
 	return VK_FORMAT_D16_UNORM;
 }
 
-// internal helpers
+// internal helper
 static VkSampleCountFlagBits GetSampleCount()
 {
 	extern cvar_t *vk_msaa;
@@ -235,6 +235,7 @@ static VkSampleCountFlagBits GetSampleCount()
 	return msaaModes[(int)vk_msaa->value];
 }
 
+// internal helper
 static void DestroyImageViews()
 {
 	if(!vk_imageviews)
@@ -248,6 +249,7 @@ static void DestroyImageViews()
 	vk_imageviews = NULL;
 }
 
+// internal helper
 static VkResult CreateImageViews()
 {
 	VkResult res = VK_SUCCESS;
@@ -267,6 +269,7 @@ static VkResult CreateImageViews()
 	return res;
 }
 
+// internal helper
 static void DestroyFramebuffers()
 {
 	for (int f = 0; f < RT_COUNT; f++)
@@ -284,6 +287,7 @@ static void DestroyFramebuffers()
 	}
 }
 
+// internal helper
 static VkResult CreateFramebuffers(const qvkrenderpass_t *renderpass, qvkrendertype_t framebufferType)
 {
 	VkResult res = VK_SUCCESS;
@@ -318,6 +322,7 @@ static VkResult CreateFramebuffers(const qvkrenderpass_t *renderpass, qvkrendert
 	return res;
 }
 
+// internal helper
 static void CreateDrawBuffers()
 {
 	QVk_CreateDepthBuffer(vk_renderpasses[RT_STANDARD].sampleCount, &vk_depthbuffer);
@@ -328,6 +333,7 @@ static void CreateDrawBuffers()
 	ri.Con_Printf(PRINT_ALL, "...created MSAAx%d color buffer\n", vk_renderpasses[1].sampleCount);
 }
 
+// internal helper
 static void DestroyDrawBuffer(qvktexture_t *drawBuffer)
 {
 	if (drawBuffer->image != VK_NULL_HANDLE)
@@ -339,6 +345,7 @@ static void DestroyDrawBuffer(qvktexture_t *drawBuffer)
 	}
 }
 
+// internal helper
 static void DestroyDrawBuffers()
 {
 	DestroyDrawBuffer(&vk_depthbuffer);
@@ -346,6 +353,7 @@ static void DestroyDrawBuffers()
 	DestroyDrawBuffer(&vk_msaaColorbuffer);
 }
 
+// internal helper
 static void CreateDescriptorSetLayouts()
 {
 	VkDescriptorSetLayoutBinding layoutBinding = {
@@ -375,6 +383,7 @@ static void CreateDescriptorSetLayouts()
 	VK_VERIFY(vkCreateDescriptorSetLayout(vk_device.logical, &layoutInfo, NULL, &vk_samplerLightmapDescSetLayout));
 }
 
+// internal helper
 static void CreateDescriptorPool()
 {
 	VkDescriptorPoolSize poolSizes[] = {
@@ -402,6 +411,7 @@ static void CreateDescriptorPool()
 	VK_VERIFY(vkCreateDescriptorPool(vk_device.logical, &poolInfo, NULL, &vk_descriptorPool));
 }
 
+// internal helper
 static void CreateDynamicBuffers()
 {
 	for (int i = 0; i < NUM_DYNBUFFERS; ++i)
@@ -446,6 +456,7 @@ static void CreateDynamicBuffers()
 	}
 }
 
+// internal helper
 static void CreateTriangleFanIndexBuffer()
 {
 	VkDeviceSize bufferSize = TRIANGLE_FAN_IBO_MAXSIZE * sizeof(uint16_t);
@@ -466,6 +477,7 @@ static void CreateTriangleFanIndexBuffer()
 	QVk_CreateIndexBuffer(stagingMemory, bufferSize, &vk_triangleFanIbo, NULL, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0);
 }
 
+// internal helper
 static void CreateStagingBuffers()
 {
 	QVk_CreateCommandPool(&vk_stagingCommandPool, vk_device.gfxFamilyIndex);
@@ -488,6 +500,7 @@ static void CreateStagingBuffers()
 	}
 }
 
+// internal helper
 static void SubmitStagingBuffer(int index)
 {
 	VkMemoryBarrier memory_barrier;
@@ -511,6 +524,7 @@ static void SubmitStagingBuffer(int index)
 	vk_activeStagingBuffer = (vk_activeStagingBuffer + 1) % NUM_DYNBUFFERS;
 }
 
+// internal helper
 static void CreateStaticBuffers()
 {
 	const float texVerts[] = {  -1., -1., 0., 0.,
@@ -530,6 +544,7 @@ static void CreateStaticBuffers()
 	QVk_CreateIndexBuffer(indices, sizeof(indices), &vk_rectIbo, NULL, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0);
 }
 
+// internal helper
 static void CreatePipelines()
 {
 	qvkshader_t shaders[2] = { VK_NULL_HANDLE, VK_NULL_HANDLE };
@@ -1235,22 +1250,18 @@ VkResult QVk_BeginFrame()
 		.pClearValues = clearColors
 	};
 
-#if 0
-	vkCmdBeginRenderPass(vk_commandbuffers[vk_activeBufferIdx], &renderBeginInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
-#else
 	vkCmdBeginRenderPass(vk_commandbuffers[vk_activeBufferIdx], &renderBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 	vkCmdSetViewport(vk_commandbuffers[vk_activeBufferIdx], 0, 1, &vk_viewport);
 	vkCmdSetScissor(vk_commandbuffers[vk_activeBufferIdx], 0, 1, &vk_scissor);
-#endif
 
-	vk_frame_started = true;
+	vk_frameStarted = true;
 	return VK_SUCCESS;
 }
 
 VkResult QVk_EndFrame()
 {
 	// continue only if QVk_BeginFrame() had been previously issued
-	if (!vk_frame_started)
+	if (!vk_frameStarted)
 		return VK_NOT_READY;
 
 	// submit
@@ -1299,7 +1310,7 @@ VkResult QVk_EndFrame()
 
 	vk_activeBufferIdx = (vk_activeBufferIdx + 1) % NUM_CMDBUFFERS;
 
-	vk_frame_started = false;
+	vk_frameStarted = false;
 	return renderResult;
 }
 
