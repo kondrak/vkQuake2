@@ -179,7 +179,7 @@ void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *skin, fl
 	drawInfo[1][0].firstVertex = 0;
 
 	struct {
-		float mvp[16];
+		float model[16];
 		int textured;
 	} meshUbo;
 
@@ -254,11 +254,10 @@ void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *skin, fl
 		drawInfo[pipelineIdx][pipeCounters[pipelineIdx]].firstVertex = vertCounts[pipelineIdx];
 	}
 
-	Mat_Mul(modelMatrix, r_viewproj_matrix, meshUbo.mvp);
-
 	uint32_t uboOffset;
 	VkDescriptorSet uboDescriptorSet;
 	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(meshUbo), &uboOffset, &uboDescriptorSet);
+	memcpy(meshUbo.model, modelMatrix, sizeof(float) * 16);
 	memcpy(uboData, &meshUbo, sizeof(meshUbo));
 
 	// non-depth write alias models don't occur with RF_WEAPONMODEL set, so no need for additional left-handed pipelines
