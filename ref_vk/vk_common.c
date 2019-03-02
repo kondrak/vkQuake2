@@ -45,6 +45,8 @@ FILE *vk_logfp = NULL;
 VkInstance	 vk_instance = VK_NULL_HANDLE;
 VkSurfaceKHR vk_surface = VK_NULL_HANDLE;
 VmaAllocator vk_malloc  = VK_NULL_HANDLE;
+
+// Vulkan device
 qvkdevice_t	 vk_device = {
 	.physical = VK_NULL_HANDLE,
 	.logical = VK_NULL_HANDLE,
@@ -55,6 +57,8 @@ qvkdevice_t	 vk_device = {
 	.presentFamilyIndex = -1,
 	.transferFamilyIndex = -1
 };
+
+// Vulkan swapchain
 qvkswapchain_t vk_swapchain = {
 	.sc = VK_NULL_HANDLE,
 	.format = VK_FORMAT_UNDEFINED,
@@ -118,9 +122,6 @@ int vk_activeStagingBuffer = 0;
 // started rendering frame?
 static qboolean vk_frameStarted = false;
 
-PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;
-PFN_vkDestroyDebugUtilsMessengerEXT qvkDestroyDebugUtilsMessengerEXT;
-
 // render pipelines
 qvkpipeline_t vk_drawTexQuadPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawColorQuadPipeline = QVKPIPELINE_INIT;
@@ -143,6 +144,9 @@ qvkpipeline_t vk_drawDLightPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_showTrisPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_shadowsPipelineStrip = QVKPIPELINE_INIT;
 qvkpipeline_t vk_shadowsPipelineFan = QVKPIPELINE_INIT;
+
+PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;
+PFN_vkDestroyDebugUtilsMessengerEXT qvkDestroyDebugUtilsMessengerEXT;
 
 #define VK_INPUTBIND_DESC(s) { \
 	.binding = 0, \
@@ -199,7 +203,7 @@ static int vk_activeDynBufferIdx = 0;
 #define STAGING_BUFFER_MAXSIZE 16384
 #define TRIANGLE_FAN_IBO_MAXSIZE 252 // index count in triangle fan buffer (assuming max 84 triangles per object)
 
-// we will need multiple of these
+// Vulkan common descriptor sets for UBO, primary texture sampler and optional lightmap texture
 VkDescriptorSetLayout vk_uboDescSetLayout;
 VkDescriptorSetLayout vk_samplerDescSetLayout;
 VkDescriptorSetLayout vk_samplerLightmapDescSetLayout;
