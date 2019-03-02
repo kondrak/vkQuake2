@@ -211,7 +211,7 @@ void EmitWaterPolys (msurface_t *fa, image_t *texture, float *modelMatrix, float
 	} polyvert;
 
 	struct {
-		float mvp[16];
+		float model[16];
 		float color[4];
 		float time;
 		float scroll;
@@ -232,11 +232,11 @@ void EmitWaterPolys (msurface_t *fa, image_t *texture, float *modelMatrix, float
 
 	if (modelMatrix)
 	{
-		Mat_Mul(modelMatrix, r_viewproj_matrix, polyUbo.mvp);
+		memcpy(polyUbo.model, modelMatrix, sizeof(float) * 16);
 	}
 	else
 	{
-		memcpy(polyUbo.mvp, r_viewproj_matrix, sizeof(r_viewproj_matrix));
+		Mat_Identity(polyUbo.model);
 	}
 
 	QVk_BindPipeline(&vk_drawPolyWarpPipeline);
@@ -248,7 +248,7 @@ void EmitWaterPolys (msurface_t *fa, image_t *texture, float *modelMatrix, float
 
 	VkBuffer vbo;
 	VkDeviceSize vboOffset;
-	VkDescriptorSet descriptorSets[] = { uboDescriptorSet, texture->vk_texture.descriptorSet };
+	VkDescriptorSet descriptorSets[] = { texture->vk_texture.descriptorSet, uboDescriptorSet };
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyWarpPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
 
 	for (bp = fa->polys; bp; bp = bp->next)
@@ -588,22 +588,17 @@ void R_DrawSkyBox (void)
 			return;		// nothing visible
 	}
 
-	float mvp[16];
 	float model[16];
 	Mat_Identity(model);
 	Mat_Rotate(model, r_newrefdef.time * skyrotate, skyaxis[0], skyaxis[1], skyaxis[2]);
 	Mat_Translate(model, r_origin[0], r_origin[1], r_origin[2]);
-	Mat_Mul(model, r_viewproj_matrix, mvp);
 
 	struct {
 		float data[5];
 	} skyVerts[4];
 
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawSkyboxPipeline.layout, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(r_viewproj_matrix), sizeof(model), model);
 	QVk_BindPipeline(&vk_drawSkyboxPipeline);
-	uint32_t uboOffset;
-	VkDescriptorSet uboDescriptorSet;
-	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(mvp), &uboOffset, &uboDescriptorSet);
-	memcpy(uboData, mvp, sizeof(mvp));
 
 	for (i = 0; i<6; i++)
 	{
@@ -638,9 +633,9 @@ void R_DrawSkyBox (void)
 		uint8_t *data = QVk_GetVertexBuffer(sizeof(verts), &vbo, &vboOffset);
 		memcpy(data, verts, sizeof(verts));
 		
-		VkDescriptorSet descriptorSets[] = { uboDescriptorSet, sky_images[skytexorder[i]]->vk_texture.descriptorSet };
+		VkDescriptorSet descriptorSets[] = { sky_images[skytexorder[i]]->vk_texture.descriptorSet };
 		vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
-		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawSkyboxPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
+		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawSkyboxPipeline.layout, 0, 1, descriptorSets, 0, NULL);
 		vkCmdDraw(vk_activeCmdbuffer, 6, 1, 0, 0);
 	}
 }

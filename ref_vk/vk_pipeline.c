@@ -49,7 +49,7 @@ qvkshader_t QVk_CreateShader(const uint32_t *shaderSrc, size_t shaderCodeSize, V
 }
 
 void QVk_CreatePipeline(const VkDescriptorSetLayout *descriptorLayout, const uint32_t descLayoutCount, const VkPipelineVertexInputStateCreateInfo *vertexInputInfo,
-						qvkpipeline_t *pipeline, const qvkshader_t *shaders, uint32_t shaderCount)
+						qvkpipeline_t *pipeline, const qvkshader_t *shaders, uint32_t shaderCount, VkPushConstantRange *pcRange)
 {
 	VkPipelineShaderStageCreateInfo *ssCreateInfos = (VkPipelineShaderStageCreateInfo *)malloc(shaderCount * sizeof(VkPipelineShaderStageCreateInfo));
 	for (int i = 0; i < shaderCount; i++)
@@ -162,8 +162,8 @@ void QVk_CreatePipeline(const VkDescriptorSetLayout *descriptorLayout, const uin
 		.flags = 0,
 		.setLayoutCount = descLayoutCount,
 		.pSetLayouts = descriptorLayout,
-		.pushConstantRangeCount = 0,
-		.pPushConstantRanges = NULL
+		.pushConstantRangeCount = pcRange ? 1 : 0, // for simplicity assume only one push constant range is passed, so it's not the most flexible approach
+		.pPushConstantRanges = pcRange
 	};
 
 	VK_VERIFY(vkCreatePipelineLayout(vk_device.logical, &plCreateInfo, NULL, &pipeline->layout));

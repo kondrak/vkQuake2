@@ -5,10 +5,10 @@ layout(location = 0) in vec3 inVertex;
 layout(location = 1) in vec4 inColor;
 layout(location = 2) in vec2 inTexCoord;
 
-layout(binding = 0) uniform UniformBufferObject
+layout(push_constant) uniform PushConstant
 {
     mat4 mvpMatrix;
-} ubo;
+} pc;
 
 layout(location = 0) out vec2 texCoord;
 layout(location = 1) out vec4 color;
@@ -18,7 +18,7 @@ out gl_PerVertex {
 };
 
 void main() {
-    gl_Position = ubo.mvpMatrix * vec4(inVertex, 1.0);
+    gl_Position = pc.mvpMatrix * vec4(inVertex, 1.0);
     texCoord = inTexCoord;
     color = inColor;
 }

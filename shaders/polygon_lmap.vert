@@ -5,9 +5,14 @@ layout(location = 0) in vec3 inVertex;
 layout(location = 1) in vec2 inTexCoord;
 layout(location = 2) in vec2 inTexCoordLmap;
 
+layout(push_constant) uniform PushConstant
+{
+    mat4 vpMatrix;
+} pc;
+
 layout(binding = 0) uniform UniformBufferObject
 {
-    mat4 mvpMatrix;
+    mat4 model;
     float viewLightmaps;
 } ubo;
 
@@ -20,7 +25,7 @@ out gl_PerVertex {
 };
 
 void main() {
-    gl_Position = ubo.mvpMatrix * vec4(inVertex, 1.0);
+    gl_Position = pc.vpMatrix * ubo.model * vec4(inVertex, 1.0);
     texCoord = inTexCoord;
     texCoordLmap = inTexCoordLmap;
     viewLightmaps = ubo.viewLightmaps;

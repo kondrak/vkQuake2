@@ -4,7 +4,7 @@
 layout(location = 0) in vec3 inVertex;
 layout(location = 1) in vec4 inColor;
 
-layout(binding = 0) uniform UniformBufferObject
+layout(push_constant) uniform PushConstant
 {
     mat4 mvpMatrix;
     float pointSize;
@@ -14,7 +14,7 @@ layout(binding = 0) uniform UniformBufferObject
     float att_a;
     float att_b;
     float att_c;
-} ubo;
+} pc;
 
 layout(location = 0) out vec4 color;
 
@@ -24,15 +24,15 @@ out gl_PerVertex {
 };
 
 void main() {
-    gl_Position = ubo.mvpMatrix * vec4(inVertex, 1.0);
-    float dist_atten = ubo.pointScale / (ubo.att_a + ubo.att_b * gl_Position.w + ubo.att_c * gl_Position.w * gl_Position.w);
-    gl_PointSize = ubo.pointScale * ubo.pointSize * sqrt(dist_atten);
+    gl_Position = pc.mvpMatrix * vec4(inVertex, 1.0);
+    float dist_atten = pc.pointScale / (pc.att_a + pc.att_b * gl_Position.w + pc.att_c * gl_Position.w * gl_Position.w);
+    gl_PointSize = pc.pointScale * pc.pointSize * sqrt(dist_atten);
 
-    if(gl_PointSize < ubo.minPointSize)
-        gl_PointSize = ubo.minPointSize;
+    if(gl_PointSize < pc.minPointSize)
+        gl_PointSize = pc.minPointSize;
 
-    if(gl_PointSize > ubo.maxPointSize)
-        gl_PointSize = ubo.maxPointSize;
+    if(gl_PointSize > pc.maxPointSize)
+        gl_PointSize = pc.maxPointSize;
 
     color = inColor;
 }

@@ -4,9 +4,14 @@
 layout(location = 0) in vec3 inVertex;
 layout(location = 1) in vec2 inTexCoord;
 
-layout(binding = 0) uniform UniformBufferObject
+layout(push_constant) uniform PushConstant
 {
-    mat4 mvpMatrix;
+    mat4 vpMatrix;
+} pc;
+
+layout(set = 1, binding = 0) uniform UniformBufferObject
+{
+    mat4 model;
     vec4 color;
     float time;
     float scroll;
@@ -20,7 +25,7 @@ out gl_PerVertex {
 };
 
 void main() {
-    gl_Position = ubo.mvpMatrix * vec4(inVertex, 1.0);
+    gl_Position = pc.vpMatrix * ubo.model * vec4(inVertex, 1.0);
     texCoord = inTexCoord + vec2(sin(2.0 * ubo.time + inTexCoord.y * 3.28), sin(2.0 * ubo.time + inTexCoord.x * 3.28)) * 0.05;
     texCoord.x += ubo.scroll;
     color = ubo.color;
