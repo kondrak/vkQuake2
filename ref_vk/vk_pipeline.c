@@ -191,7 +191,7 @@ void QVk_CreatePipeline(const VkDescriptorSetLayout *descriptorLayout, const uin
 		.basePipelineIndex = -1
 	};
 
-	VK_VERIFY(vkCreateGraphicsPipelines(vk_device.logical, pipeline->cache, 1, &pCreateInfo, NULL, &pipeline->pl));
+	VK_VERIFY(vkCreateGraphicsPipelines(vk_device.logical, VK_NULL_HANDLE, 1, &pCreateInfo, NULL, &pipeline->pl));
 	free(ssCreateInfos);
 }
 

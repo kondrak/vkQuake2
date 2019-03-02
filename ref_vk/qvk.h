@@ -163,7 +163,6 @@ typedef struct
 	VkPipelineLayout layout;
 	VkPipeline pl;
 	VkPipeline basePipelineHandle;
-	VkPipelineCache cache;
 	VkPipelineCreateFlags flags;
 	VkPolygonMode mode;
 	VkCullModeFlags cullMode;
@@ -185,7 +184,6 @@ typedef struct
 	.layout = VK_NULL_HANDLE, \
 	.pl = VK_NULL_HANDLE, \
 	.basePipelineHandle = VK_NULL_HANDLE, \
-	.cache = VK_NULL_HANDLE, \
 	.flags = 0, \
 	.mode = VK_POLYGON_MODE_FILL, \
 	.cullMode = VK_CULL_MODE_BACK_BIT, \
