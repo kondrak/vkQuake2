@@ -430,6 +430,7 @@ static void CreateDynamicBuffers()
 		QVk_CreateVertexBuffer(NULL, VERTEX_BUFFER_MAXSIZE * 1024, &vk_dynVertexBuffers[i], NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
 		QVk_CreateIndexBuffer(NULL, INDEX_BUFFER_MAXSIZE * 1024, &vk_dynIndexBuffers[i], NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
 		QVk_CreateUniformBuffer(UNIFORM_BUFFER_MAXSIZE * 1024, &vk_dynUniformBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
+		// keep dynamic buffers persistently mapped
 		vmaMapMemory(vk_malloc, vk_dynVertexBuffers[i].allocation, &vk_dynVertexBuffers[i].allocInfo.pMappedData);
 		vmaMapMemory(vk_malloc, vk_dynIndexBuffers[i].allocation, &vk_dynIndexBuffers[i].allocInfo.pMappedData);
 		vmaMapMemory(vk_malloc, vk_dynUniformBuffers[i].allocation, &vk_dynUniformBuffers[i].allocInfo.pMappedData);
@@ -538,7 +539,7 @@ static void SubmitStagingBuffer(int index)
 // internal helper
 static void CreateStaticBuffers()
 {
-	const float texVerts[] = {  -1., -1., 0., 0.,
+	const float texVerts[] = {	-1., -1., 0., 0.,
 								 1.,  1., 1., 1.,
 								-1.,  1., 0., 1.,
 								 1., -1., 1., 0. };
