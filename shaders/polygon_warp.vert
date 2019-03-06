@@ -9,7 +9,7 @@ layout(push_constant) uniform PushConstant
     mat4 vpMatrix;
 } pc;
 
-layout(set = 1, binding = 0) uniform UniformBufferObject
+layout(set = 0, binding = 0) uniform UniformBufferObject
 {
     mat4 model;
     vec4 color;

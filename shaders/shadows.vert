@@ -6,13 +6,17 @@ layout(location = 0) in vec3 inVertex;
 layout(push_constant) uniform PushConstant
 {
     mat4 vpMatrix;
-    mat4 model;
 } pc;
+
+layout(binding = 0) uniform UniformBufferObject
+{
+    mat4 model;
+} ubo;
 
 out gl_PerVertex {
     vec4 gl_Position;
 };
 
 void main() {
-    gl_Position = pc.vpMatrix * pc.model * vec4(inVertex, 1.0);
+    gl_Position = pc.vpMatrix * ubo.model * vec4(inVertex, 1.0);
 }
