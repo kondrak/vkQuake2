@@ -616,7 +616,7 @@ static void CreatePipelines()
 	vk_drawPointParticlesPipeline.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
 	vk_drawPointParticlesPipeline.depthWriteEnable = VK_FALSE;
 	vk_drawPointParticlesPipeline.blendOpts.blendEnable = VK_TRUE;
-	QVk_CreatePipeline(NULL, 0, &vertInfoRGB_RGBA, &vk_drawPointParticlesPipeline, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRGB_RGBA, &vk_drawPointParticlesPipeline, shaders, 2, &pushConstantRange);
 
 	// colored quad pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, basic_color_quad, basic_color_quad);
