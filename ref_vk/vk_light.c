@@ -65,17 +65,19 @@ void R_RenderDlight (dlight_t *light)
 		}
 	}
 
-	float model[16];
-	Mat_Identity(model);
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(r_viewproj_matrix), sizeof(model), model);
 	QVk_BindPipeline(&vk_drawDLightPipeline);
 
 	VkBuffer vbo;
 	VkDeviceSize vboOffset;
 	uint8_t *data = QVk_GetVertexBuffer(sizeof(lightVerts), &vbo, &vboOffset);
 	memcpy(data, lightVerts, sizeof(lightVerts));
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(r_viewproj_matrix), &uboOffset, &uboDescriptorSet);
+	memcpy(uboData, r_viewproj_matrix, sizeof(r_viewproj_matrix));
 
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawDLightPipeline.layout, 0, 1, &uboDescriptorSet, 1, &uboOffset);
 	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_triangleFanIbo.buffer, 0, VK_INDEX_TYPE_UINT16);
 	vkCmdDrawIndexed(vk_activeCmdbuffer, 48, 1, 0, 0, 0);
 }

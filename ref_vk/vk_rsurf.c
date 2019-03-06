@@ -120,18 +120,21 @@ void DrawVkPoly (vkpoly_t *p, image_t *texture, float *color)
 		verts[i].texCoord[1] = v[4];
 	}
 
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawPolyPipeline.layout, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(r_viewproj_matrix), sizeof(float) * 4, color);
 	QVk_BindPipeline(&vk_drawPolyPipeline);
 
 	VkBuffer vbo;
 	VkDeviceSize vboOffset;
 	uint8_t *data = QVk_GetVertexBuffer(sizeof(polyvert) * p->numverts, &vbo, &vboOffset);
 	memcpy(data, verts, sizeof(polyvert) * p->numverts);
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(float) * 4, &uboOffset, &uboDescriptorSet);
+	memcpy(uboData, color, sizeof(float) * 4);
 
-	VkDescriptorSet descriptorSets[] = { texture->vk_texture.descriptorSet };
+	VkDescriptorSet descriptorSets[] = { uboDescriptorSet, texture->vk_texture.descriptorSet };
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_triangleFanIbo.buffer, 0, VK_INDEX_TYPE_UINT16);
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyPipeline.layout, 0, 1, descriptorSets, 0, NULL);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
 	vkCmdDrawIndexed(vk_activeCmdbuffer, (p->numverts - 2) * 3, 1, 0, 0, 0);
 }
 
@@ -172,18 +175,21 @@ void DrawVkFlowingPoly (msurface_t *fa, image_t *texture, float *color)
 		verts[i].texCoord[1] = v[4];
 	}
 
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawPolyPipeline.layout, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(r_viewproj_matrix), sizeof(float) * 4, color);
 	QVk_BindPipeline(&vk_drawPolyPipeline);
 
 	VkBuffer vbo;
 	VkDeviceSize vboOffset;
 	uint8_t *data = QVk_GetVertexBuffer(sizeof(polyvert) * p->numverts, &vbo, &vboOffset);
 	memcpy(data, verts, sizeof(polyvert) * p->numverts);
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(float) * 4, &uboOffset, &uboDescriptorSet);
+	memcpy(uboData, color, sizeof(float) * 4);
 
-	VkDescriptorSet descriptorSets[] = { texture->vk_texture.descriptorSet };
+	VkDescriptorSet descriptorSets[] = { uboDescriptorSet, texture->vk_texture.descriptorSet };
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_triangleFanIbo.buffer, 0, VK_INDEX_TYPE_UINT16);
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyPipeline.layout, 0, 1, descriptorSets, 0, NULL);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
 	vkCmdDrawIndexed(vk_activeCmdbuffer, (p->numverts - 2) * 3, 1, 0, 0, 0);
 }
 //PGM
@@ -202,12 +208,18 @@ void R_DrawTriangleOutlines (void)
 
 	VkBuffer vbo;
 	VkDeviceSize vboOffset;
-	vec3_t verts[4];
+	float color[3] = { 1.f, 1.f, 1.f };
+	struct {
+		vec3_t v;
+		float color[3];
+	} triVert[4];
 
-	float model[16];
-	Mat_Identity(model);
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(r_viewproj_matrix), sizeof(model), model);
 	QVk_BindPipeline(&vk_showTrisPipeline);
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(r_viewproj_matrix), &uboOffset, &uboDescriptorSet);
+	memcpy(uboData, r_viewproj_matrix, sizeof(r_viewproj_matrix));
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_showTrisPipeline.layout, 0, 1, &uboDescriptorSet, 1, &uboOffset);
 
 	for (i = 0; i < MAX_LIGHTMAPS; i++)
 	{
@@ -220,24 +232,28 @@ void R_DrawTriangleOutlines (void)
 			{
 				for (j = 2, k = 0; j < p->numverts; j++, k++)
 				{
-					verts[0][0] = p->verts[0][0];
-					verts[0][1] = p->verts[0][1];
-					verts[0][2] = p->verts[0][2];
+					triVert[0].v[0] = p->verts[0][0];
+					triVert[0].v[1] = p->verts[0][1];
+					triVert[0].v[2] = p->verts[0][2];
+					memcpy(triVert[0].color, color, sizeof(color));
 
-					verts[1][0] = p->verts[j - 1][0];
-					verts[1][1] = p->verts[j - 1][1];
-					verts[1][2] = p->verts[j - 1][2];
+					triVert[1].v[0] = p->verts[j - 1][0];
+					triVert[1].v[1] = p->verts[j - 1][1];
+					triVert[1].v[2] = p->verts[j - 1][2];
+					memcpy(triVert[1].color, color, sizeof(color));
 
-					verts[2][0] = p->verts[j][0];
-					verts[2][1] = p->verts[j][1];
-					verts[2][2] = p->verts[j][2];
+					triVert[2].v[0] = p->verts[j][0];
+					triVert[2].v[1] = p->verts[j][1];
+					triVert[2].v[2] = p->verts[j][2];
+					memcpy(triVert[2].color, color, sizeof(color));
 
-					verts[3][0] = p->verts[0][0];
-					verts[3][1] = p->verts[0][1];
-					verts[3][2] = p->verts[0][2];
+					triVert[3].v[0] = p->verts[0][0];
+					triVert[3].v[1] = p->verts[0][1];
+					triVert[3].v[2] = p->verts[0][2];
+					memcpy(triVert[3].color, color, sizeof(color));
 
-					uint8_t *data = QVk_GetVertexBuffer(4 * sizeof(vec3_t), &vbo, &vboOffset);
-					memcpy(data, verts, sizeof(vec3_t) * 4);
+					uint8_t *data = QVk_GetVertexBuffer(sizeof(triVert), &vbo, &vboOffset);
+					memcpy(data, triVert, sizeof(triVert));
 
 					vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 					vkCmdDraw(vk_activeCmdbuffer, 4, 1, 0, 0);
@@ -259,13 +275,14 @@ void DrawVkPolyChain( vkpoly_t *p, float soffset, float toffset, image_t *textur
 
 	static polyvert verts[MAX_VERTS];
 
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawPolyPipeline.layout, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(r_viewproj_matrix), sizeof(float) * 4, color);
 	QVk_BindPipeline(&vk_drawPolyPipeline);
-
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(float) * 4, &uboOffset, &uboDescriptorSet);
+	memcpy(uboData, color, sizeof(float) * 4);
 	VkBuffer vbo;
 	VkDeviceSize vboOffset;
-	VkDescriptorSet descriptorSets[] = { texture->vk_texture.descriptorSet };
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyPipeline.layout, 0, 1, descriptorSets, 0, NULL);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyPipeline.layout, 0, 1, &texture->vk_texture.descriptorSet, 1, &uboOffset);
 
 	if (soffset == 0 && toffset == 0)
 	{

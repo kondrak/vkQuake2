@@ -331,7 +331,11 @@ void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatrix)
 
 	height = -lheight + 1.0;
 
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_shadowsPipelineStrip.layout, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(r_viewproj_matrix), sizeof(float) * 16, modelMatrix);
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(float) * 16, &uboOffset, &uboDescriptorSet);
+	memcpy(uboData, modelMatrix, sizeof(float) * 16);
+	VkDescriptorSet descriptorSets[] = { uboDescriptorSet };
 
 	static vec3_t shadowverts[MAX_VERTS];
 	while (1)
@@ -377,6 +381,7 @@ void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatrix)
 			memcpy(data, shadowverts, vaoSize);
 
 			QVk_BindPipeline(&pipelines[pipelineIdx]);
+			vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[pipelineIdx].layout, 0, 1, descriptorSets, 1, &uboOffset);
 			vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 
 			if (pipelineIdx == TRIANGLE_STRIP)
@@ -690,7 +695,7 @@ void R_DrawAliasModel (entity_t *e)
 		memcpy(prev_viewproj, r_viewproj_matrix, sizeof(r_viewproj_matrix));
 		Mat_Perspective(r_projection_matrix, r_vulkan_correction_dh, r_proj_fovy, r_proj_aspect, 4, 4096);
 		Mat_Mul(r_view_matrix, r_projection_matrix, r_viewproj_matrix);
-		vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout, VK_SHADER_STAGE_ALL_GRAPHICS, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
+		vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
 	}
 
 	if ( ( currententity->flags & RF_WEAPONMODEL ) && ( r_lefthand->value == 1.0F ) )
@@ -753,7 +758,7 @@ void R_DrawAliasModel (entity_t *e)
 	if (currententity->flags & RF_DEPTHHACK || r_newrefdef.rdflags & RDF_NOWORLDMODEL)
 	{
 		memcpy(r_viewproj_matrix, prev_viewproj, sizeof(prev_viewproj));
-		vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout, VK_SHADER_STAGE_ALL_GRAPHICS, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
+		vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
 	}
 
 	if (vk_shadows->value && !(currententity->flags & (RF_TRANSLUCENT | RF_WEAPONMODEL)))

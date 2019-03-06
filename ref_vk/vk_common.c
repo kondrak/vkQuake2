@@ -586,16 +586,15 @@ static void CreatePipelines()
 
 	// shared descriptor set layouts
 	VkDescriptorSetLayout uboSamplerDsLayouts[] = { vk_uboDescSetLayout, vk_samplerDescSetLayout };
-	VkDescriptorSetLayout samplerUboDsLayouts[] = { vk_samplerDescSetLayout, vk_uboDescSetLayout };
 	VkDescriptorSetLayout uboSamplerLmapDsLayouts[] = { vk_uboDescSetLayout, vk_samplerDescSetLayout, vk_samplerLightmapDescSetLayout };
 
 	// shader array (vertex and fragment, no compute... yet)
 	qvkshader_t shaders[2] = { VK_NULL_HANDLE, VK_NULL_HANDLE };
 
-	// we'll be using some push constants, make them visible both in vertex and fragment shaders
+	// we'll be using some push constants in vertex shaders
 	// size accomodates for maximum number of uploaded elements (should probably be checked against the hardware's maximum supported value)
 	VkPushConstantRange pushConstantRange = {
-		.stageFlags = VK_SHADER_STAGE_ALL_GRAPHICS,
+		.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
 		.offset = 0,
 		.size = 32 * sizeof(float)
 	};
@@ -625,7 +624,7 @@ static void CreatePipelines()
 	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRG, &vk_drawColorQuadPipeline, shaders, 2, &pushConstantRange);
 
 	// untextured null model
-	VK_LOAD_VERTFRAG_SHADERS(shaders, d_light, basic_color_quad);
+	VK_LOAD_VERTFRAG_SHADERS(shaders, nullmodel, basic_color_quad);
 	vk_drawNullModel.cullMode = VK_CULL_MODE_NONE;
 	vk_drawNullModel.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRGB_RGB, &vk_drawNullModel, shaders, 2, &pushConstantRange);
@@ -706,12 +705,12 @@ static void CreatePipelines()
 	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRGB_RGB, &vk_drawDLightPipeline, shaders, 2, &pushConstantRange);
 
 	// vk_showtris render pipeline
-	VK_LOAD_VERTFRAG_SHADERS(shaders, shadows, showtris);
+	VK_LOAD_VERTFRAG_SHADERS(shaders, d_light, basic_color_quad);
 	vk_showTrisPipeline.cullMode = VK_CULL_MODE_NONE;
 	vk_showTrisPipeline.depthTestEnable = VK_FALSE;
 	vk_showTrisPipeline.depthWriteEnable = VK_FALSE;
 	vk_showTrisPipeline.topology = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
-	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRGB, &vk_showTrisPipeline, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRGB_RGB, &vk_showTrisPipeline, shaders, 2, &pushConstantRange);
 
 	//vk_shadows render pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, shadows, shadows);
