@@ -114,4 +114,3 @@ Acknowledgments
 Known Issues
 ===
 - some Intel UHD GPUs (most notably the 6XX series) may encounter crashes on startup due to faulty drivers - this has been confirmed by Intel to affect dual-GPU setups
-- on MacOS, using SDK higher than 1.1.92.1 causes severe performance penalties when running fullscreen

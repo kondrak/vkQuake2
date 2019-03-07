@@ -204,13 +204,13 @@ void R_DrawSpriteModel (entity_t *e)
 						  spriteQuad[2][0], spriteQuad[2][1], spriteQuad[2][2], 1.f, 0.f,
 						  spriteQuad[3][0], spriteQuad[3][1], spriteQuad[3][2], 1.f, 1.f };
 
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawSpritePipeline.layout, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(r_viewproj_matrix), sizeof(float), &alpha);
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawSpritePipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, sizeof(r_viewproj_matrix), sizeof(float), &alpha);
 	QVk_BindPipeline(&vk_drawSpritePipeline);
 
 	VkBuffer vbo;
 	VkDeviceSize vboOffset;
-	uint8_t *data = QVk_GetVertexBuffer(sizeof(quadVerts), &vbo, &vboOffset);
-	memcpy(data, quadVerts, sizeof(quadVerts));
+	uint8_t *vertData = QVk_GetVertexBuffer(sizeof(quadVerts), &vbo, &vboOffset);
+	memcpy(vertData, quadVerts, sizeof(quadVerts));
 	
 	VkDescriptorSet descriptorSets[] = { currentmodel->skins[e->frame]->vk_texture.descriptorSet };
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
@@ -276,11 +276,15 @@ void R_DrawNullModel (void)
 
 	VkBuffer vbo;
 	VkDeviceSize vboOffset;
-	uint8_t *data = QVk_GetVertexBuffer(sizeof(verts), &vbo, &vboOffset);
-	memcpy(data, verts, sizeof(verts));
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *vertData = QVk_GetVertexBuffer(sizeof(verts), &vbo, &vboOffset);
+	uint8_t *uboData  = QVk_GetUniformBuffer(sizeof(model), &uboOffset, &uboDescriptorSet);
+	memcpy(vertData, verts, sizeof(verts));
+	memcpy(uboData,  model, sizeof(model));
 
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(r_viewproj_matrix), sizeof(model), model);
 	QVk_BindPipeline(&vk_drawNullModel);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawNullModel.layout, 0, 1, &uboDescriptorSet, 1, &uboOffset);
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_triangleFanIbo.buffer, 0, VK_INDEX_TYPE_UINT16);
 	vkCmdDrawIndexed(vk_activeCmdbuffer, 12, 1, 0, 0, 0);
@@ -454,12 +458,12 @@ void Vk_DrawParticles( int num_particles, const particle_t particles[], const un
 
 	VkBuffer vbo;
 	VkDeviceSize vboOffset;
-	uint8_t *data = QVk_GetVertexBuffer(3 * sizeof(pvertex) * num_particles, &vbo, &vboOffset);
-	memcpy(data, &visibleParticles, 3 * sizeof(pvertex) * num_particles);
-	
-	VkDescriptorSet descriptorSets[] = { r_particletexture->vk_texture.descriptorSet };
+	uint8_t *vertData = QVk_GetVertexBuffer(3 * sizeof(pvertex) * num_particles, &vbo, &vboOffset);
+	memcpy(vertData, &visibleParticles, 3 * sizeof(pvertex) * num_particles);
+
+	VkDescriptorSet descriptorSets[] = { r_particletexture->vk_texture.descriptorSet, r_particletexture->vk_texture.descriptorSet };
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawParticlesPipeline.layout, 0, 2, descriptorSets, 0, NULL);
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawParticlesPipeline.layout, 0, 1, descriptorSets, 0, NULL);
 	vkCmdDraw(vk_activeCmdbuffer, 3 * num_particles, 1, 0, 0);
 }
 
@@ -491,15 +495,15 @@ void R_DrawParticles (void)
 			float att_a;
 			float att_b;
 			float att_c;
-		} particlePc;
+		} particleUbo;
 
-		particlePc.particleSize = vk_particle_size->value;
-		particlePc.particleScale = vid.width / 1024.f;
-		particlePc.minPointSize = vk_particle_min_size->value;
-		particlePc.maxPointSize = vk_particle_max_size->value;
-		particlePc.att_a = vk_particle_att_a->value;
-		particlePc.att_b = vk_particle_att_b->value;
-		particlePc.att_c = vk_particle_att_c->value;
+		particleUbo.particleSize = vk_particle_size->value;
+		particleUbo.particleScale = vid.width / 1024.f;
+		particleUbo.minPointSize = vk_particle_min_size->value;
+		particleUbo.maxPointSize = vk_particle_max_size->value;
+		particleUbo.att_a = vk_particle_att_a->value;
+		particleUbo.att_b = vk_particle_att_b->value;
+		particleUbo.att_c = vk_particle_att_c->value;
 
 		static ppoint visibleParticles[MAX_PARTICLES];
 
@@ -520,14 +524,17 @@ void R_DrawParticles (void)
 			visibleParticles[i].a = p->alpha;
 		}
 
-		vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(r_viewproj_matrix), sizeof(particlePc), &particlePc);
 		QVk_BindPipeline(&vk_drawPointParticlesPipeline);
 
 		VkBuffer vbo;
 		VkDeviceSize vboOffset;
-		uint8_t *data = QVk_GetVertexBuffer(sizeof(ppoint) * r_newrefdef.num_particles, &vbo, &vboOffset);
-		memcpy(data, &visibleParticles, sizeof(ppoint) * r_newrefdef.num_particles);
-
+		uint32_t uboOffset;
+		VkDescriptorSet uboDescriptorSet;
+		uint8_t *vertData = QVk_GetVertexBuffer(sizeof(ppoint) * r_newrefdef.num_particles, &vbo, &vboOffset);
+		uint8_t *uboData  = QVk_GetUniformBuffer(sizeof(particleUbo), &uboOffset, &uboDescriptorSet);
+		memcpy(vertData, &visibleParticles, sizeof(ppoint) * r_newrefdef.num_particles);
+		memcpy(uboData,  &particleUbo, sizeof(particleUbo));
+		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPointParticlesPipeline.layout, 0, 1, &uboDescriptorSet, 1, &uboOffset);
 		vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 		vkCmdDraw(vk_activeCmdbuffer, r_newrefdef.num_particles, 1, 0, 0);
 	}
@@ -849,7 +856,7 @@ void R_SetupVulkan (void)
 	// precalculate view-projection matrix
 	Mat_Mul(r_view_matrix, r_projection_matrix, r_viewproj_matrix);
 	// view-projection matrix will always be stored as the first push constant item, so set no offset
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout, VK_SHADER_STAGE_ALL_GRAPHICS, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
 }
 
 void R_Flash( void )
@@ -1328,14 +1335,18 @@ void R_DrawBeam( entity_t *e )
 		beamvertex[idx + 3].v[2] = end_points[(i + 1) % NUM_BEAM_SEGS][2];
 	}
 
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(r_viewproj_matrix), sizeof(color), color);
 	QVk_BindPipeline(&vk_drawBeamPipeline);
 
 	VkBuffer vbo;
 	VkDeviceSize vboOffset;
-	uint8_t *data = QVk_GetVertexBuffer(sizeof(beamvertex), &vbo, &vboOffset);
-	memcpy(data, beamvertex, sizeof(beamvertex));
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *vertData = QVk_GetVertexBuffer(sizeof(beamvertex), &vbo, &vboOffset);
+	uint8_t *uboData  = QVk_GetUniformBuffer(sizeof(color), &uboOffset, &uboDescriptorSet);
+	memcpy(vertData, beamvertex, sizeof(beamvertex));
+	memcpy(uboData,  color, sizeof(color));
 
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawBeamPipeline.layout, 0, 1, &uboDescriptorSet, 1, &uboOffset);
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 	vkCmdDraw(vk_activeCmdbuffer, NUM_BEAM_SEGS * 4, 1, 0, 0);
 }

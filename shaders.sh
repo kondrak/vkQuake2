@@ -6,6 +6,7 @@ glslangValidator --variable-name basic_color_quad_vert_spv -V shaders/basic_colo
 glslangValidator --variable-name basic_color_quad_frag_spv -V shaders/basic_color_quad.frag -o ref_vk/spirv/basic_color_quad_frag.c
 glslangValidator --variable-name model_vert_spv -V shaders/model.vert -o ref_vk/spirv/model_vert.c
 glslangValidator --variable-name model_frag_spv -V shaders/model.frag -o ref_vk/spirv/model_frag.c
+glslangValidator --variable-name nullmodel_vert_spv -V shaders/nullmodel.vert -o ref_vk/spirv/nullmodel_vert.c
 glslangValidator --variable-name particle_vert_spv -V shaders/particle.vert -o ref_vk/spirv/particle_vert.c
 glslangValidator --variable-name point_particle_vert_spv -V shaders/point_particle.vert -o ref_vk/spirv/point_particle_vert.c
 glslangValidator --variable-name point_particle_frag_spv -V shaders/point_particle.frag -o ref_vk/spirv/point_particle_frag.c

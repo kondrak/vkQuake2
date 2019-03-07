@@ -248,7 +248,7 @@ void EmitWaterPolys (msurface_t *fa, image_t *texture, float *modelMatrix, float
 
 	VkBuffer vbo;
 	VkDeviceSize vboOffset;
-	VkDescriptorSet descriptorSets[] = { texture->vk_texture.descriptorSet, uboDescriptorSet };
+	VkDescriptorSet descriptorSets[] = { uboDescriptorSet, texture->vk_texture.descriptorSet };
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyWarpPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
 
 	for (bp = fa->polys; bp; bp = bp->next)
@@ -264,8 +264,8 @@ void EmitWaterPolys (msurface_t *fa, image_t *texture, float *modelMatrix, float
 			verts[i].texCoord[1] = v[4] / 64.f;
 		}
 
-		uint8_t *data = QVk_GetVertexBuffer(sizeof(polyvert) * p->numverts, &vbo, &vboOffset);
-		memcpy(data, verts, sizeof(polyvert) * p->numverts);
+		uint8_t *vertData = QVk_GetVertexBuffer(sizeof(polyvert) * p->numverts, &vbo, &vboOffset);
+		memcpy(vertData, verts, sizeof(polyvert) * p->numverts);
 
 		vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 		vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_triangleFanIbo.buffer, 0, VK_INDEX_TYPE_UINT16);
@@ -597,8 +597,11 @@ void R_DrawSkyBox (void)
 		float data[5];
 	} skyVerts[4];
 
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawSkyboxPipeline.layout, VK_SHADER_STAGE_ALL_GRAPHICS, sizeof(r_viewproj_matrix), sizeof(model), model);
 	QVk_BindPipeline(&vk_drawSkyboxPipeline);
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
+	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(model), &uboOffset, &uboDescriptorSet);
+	memcpy(uboData, model, sizeof(model));
 
 	for (i = 0; i<6; i++)
 	{
@@ -630,12 +633,12 @@ void R_DrawSkyBox (void)
 
 		VkBuffer vbo;
 		VkDeviceSize vboOffset;
-		uint8_t *data = QVk_GetVertexBuffer(sizeof(verts), &vbo, &vboOffset);
-		memcpy(data, verts, sizeof(verts));
+		uint8_t *vertData = QVk_GetVertexBuffer(sizeof(verts), &vbo, &vboOffset);
+		memcpy(vertData, verts, sizeof(verts));
 		
-		VkDescriptorSet descriptorSets[] = { sky_images[skytexorder[i]]->vk_texture.descriptorSet };
+		VkDescriptorSet descriptorSets[] = { uboDescriptorSet, sky_images[skytexorder[i]]->vk_texture.descriptorSet };
+		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawSkyboxPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
 		vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
-		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawSkyboxPipeline.layout, 0, 1, descriptorSets, 0, NULL);
 		vkCmdDraw(vk_activeCmdbuffer, 6, 1, 0, 0);
 	}
 }
