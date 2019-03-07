@@ -69,12 +69,12 @@ void R_RenderDlight (dlight_t *light)
 
 	VkBuffer vbo;
 	VkDeviceSize vboOffset;
-	uint8_t *data = QVk_GetVertexBuffer(sizeof(lightVerts), &vbo, &vboOffset);
-	memcpy(data, lightVerts, sizeof(lightVerts));
 	uint32_t uboOffset;
 	VkDescriptorSet uboDescriptorSet;
-	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(r_viewproj_matrix), &uboOffset, &uboDescriptorSet);
-	memcpy(uboData, r_viewproj_matrix, sizeof(r_viewproj_matrix));
+	uint8_t *vertData = QVk_GetVertexBuffer(sizeof(lightVerts), &vbo, &vboOffset);
+	uint8_t *uboData  = QVk_GetUniformBuffer(sizeof(r_viewproj_matrix), &uboOffset, &uboDescriptorSet);
+	memcpy(vertData, lightVerts, sizeof(lightVerts));
+	memcpy(uboData,  r_viewproj_matrix, sizeof(r_viewproj_matrix));
 
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawDLightPipeline.layout, 0, 1, &uboDescriptorSet, 1, &uboOffset);

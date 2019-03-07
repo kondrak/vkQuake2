@@ -268,8 +268,8 @@ void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *skin, fl
 		VkDeviceSize vaoSize = sizeof(modelvert) * vertCounts[p];
 		VkBuffer vbo;
 		VkDeviceSize vboOffset;
-		uint8_t *data = QVk_GetVertexBuffer(vaoSize, &vbo, &vboOffset);
-		memcpy(data, vertList[p], vaoSize);
+		uint8_t *vertData = QVk_GetVertexBuffer(vaoSize, &vbo, &vboOffset);
+		memcpy(vertData, vertList[p], vaoSize);
 
 		QVk_BindPipeline(&pipelines[translucentIdx][p + leftHandOffset]);
 		VkDescriptorSet descriptorSets[] = { uboDescriptorSet, skin->vk_texture.descriptorSet };
@@ -335,7 +335,6 @@ void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatrix)
 	VkDescriptorSet uboDescriptorSet;
 	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(float) * 16, &uboOffset, &uboDescriptorSet);
 	memcpy(uboData, modelMatrix, sizeof(float) * 16);
-	VkDescriptorSet descriptorSets[] = { uboDescriptorSet };
 
 	static vec3_t shadowverts[MAX_VERTS];
 	while (1)
@@ -377,11 +376,11 @@ void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatrix)
 			VkDeviceSize vaoSize = sizeof(vec3_t) * i;
 			VkBuffer vbo;
 			VkDeviceSize vboOffset;
-			uint8_t *data = QVk_GetVertexBuffer(vaoSize, &vbo, &vboOffset);
-			memcpy(data, shadowverts, vaoSize);
+			uint8_t *vertData = QVk_GetVertexBuffer(vaoSize, &vbo, &vboOffset);
+			memcpy(vertData, shadowverts, vaoSize);
 
 			QVk_BindPipeline(&pipelines[pipelineIdx]);
-			vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[pipelineIdx].layout, 0, 1, descriptorSets, 1, &uboOffset);
+			vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[pipelineIdx].layout, 0, 1, &uboDescriptorSet, 1, &uboOffset);
 			vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 
 			if (pipelineIdx == TRIANGLE_STRIP)

@@ -209,8 +209,8 @@ void R_DrawSpriteModel (entity_t *e)
 
 	VkBuffer vbo;
 	VkDeviceSize vboOffset;
-	uint8_t *data = QVk_GetVertexBuffer(sizeof(quadVerts), &vbo, &vboOffset);
-	memcpy(data, quadVerts, sizeof(quadVerts));
+	uint8_t *vertData = QVk_GetVertexBuffer(sizeof(quadVerts), &vbo, &vboOffset);
+	memcpy(vertData, quadVerts, sizeof(quadVerts));
 	
 	VkDescriptorSet descriptorSets[] = { currentmodel->skins[e->frame]->vk_texture.descriptorSet };
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
@@ -276,12 +276,12 @@ void R_DrawNullModel (void)
 
 	VkBuffer vbo;
 	VkDeviceSize vboOffset;
-	uint8_t *data = QVk_GetVertexBuffer(sizeof(verts), &vbo, &vboOffset);
-	memcpy(data, verts, sizeof(verts));
 	uint32_t uboOffset;
 	VkDescriptorSet uboDescriptorSet;
-	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(model), &uboOffset, &uboDescriptorSet);
-	memcpy(uboData, model, sizeof(model));
+	uint8_t *vertData = QVk_GetVertexBuffer(sizeof(verts), &vbo, &vboOffset);
+	uint8_t *uboData  = QVk_GetUniformBuffer(sizeof(model), &uboOffset, &uboDescriptorSet);
+	memcpy(vertData, verts, sizeof(verts));
+	memcpy(uboData,  model, sizeof(model));
 
 	QVk_BindPipeline(&vk_drawNullModel);
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawNullModel.layout, 0, 1, &uboDescriptorSet, 1, &uboOffset);
@@ -458,15 +458,12 @@ void Vk_DrawParticles( int num_particles, const particle_t particles[], const un
 
 	VkBuffer vbo;
 	VkDeviceSize vboOffset;
-	uint8_t *data = QVk_GetVertexBuffer(3 * sizeof(pvertex) * num_particles, &vbo, &vboOffset);
-	memcpy(data, &visibleParticles, 3 * sizeof(pvertex) * num_particles);
-	uint32_t uboOffset;
-	VkDescriptorSet uboDescriptorSet;
-	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(float), &uboOffset, &uboDescriptorSet);
+	uint8_t *vertData = QVk_GetVertexBuffer(3 * sizeof(pvertex) * num_particles, &vbo, &vboOffset);
+	memcpy(vertData, &visibleParticles, 3 * sizeof(pvertex) * num_particles);
 
+	VkDescriptorSet descriptorSets[] = { r_particletexture->vk_texture.descriptorSet, r_particletexture->vk_texture.descriptorSet };
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawParticlesPipeline.layout, 0, 2, descriptorSets, 0, NULL);
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
-	VkDescriptorSet descriptorSets[] = { uboDescriptorSet, r_particletexture->vk_texture.descriptorSet };
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawParticlesPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
 	vkCmdDraw(vk_activeCmdbuffer, 3 * num_particles, 1, 0, 0);
 }
 
@@ -531,12 +528,12 @@ void R_DrawParticles (void)
 
 		VkBuffer vbo;
 		VkDeviceSize vboOffset;
-		uint8_t *data = QVk_GetVertexBuffer(sizeof(ppoint) * r_newrefdef.num_particles, &vbo, &vboOffset);
-		memcpy(data, &visibleParticles, sizeof(ppoint) * r_newrefdef.num_particles);
 		uint32_t uboOffset;
 		VkDescriptorSet uboDescriptorSet;
-		uint8_t *uboData = QVk_GetUniformBuffer(sizeof(particleUbo), &uboOffset, &uboDescriptorSet);
-		memcpy(uboData, &particleUbo, sizeof(particleUbo));
+		uint8_t *vertData = QVk_GetVertexBuffer(sizeof(ppoint) * r_newrefdef.num_particles, &vbo, &vboOffset);
+		uint8_t *uboData  = QVk_GetUniformBuffer(sizeof(particleUbo), &uboOffset, &uboDescriptorSet);
+		memcpy(vertData, &visibleParticles, sizeof(ppoint) * r_newrefdef.num_particles);
+		memcpy(uboData,  &particleUbo, sizeof(particleUbo));
 		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPointParticlesPipeline.layout, 0, 1, &uboDescriptorSet, 1, &uboOffset);
 		vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 		vkCmdDraw(vk_activeCmdbuffer, r_newrefdef.num_particles, 1, 0, 0);
@@ -1342,12 +1339,12 @@ void R_DrawBeam( entity_t *e )
 
 	VkBuffer vbo;
 	VkDeviceSize vboOffset;
-	uint8_t *data = QVk_GetVertexBuffer(sizeof(beamvertex), &vbo, &vboOffset);
-	memcpy(data, beamvertex, sizeof(beamvertex));
 	uint32_t uboOffset;
 	VkDescriptorSet uboDescriptorSet;
-	uint8_t *uboData = QVk_GetUniformBuffer(sizeof(color), &uboOffset, &uboDescriptorSet);
-	memcpy(uboData, color, sizeof(color));
+	uint8_t *vertData = QVk_GetVertexBuffer(sizeof(beamvertex), &vbo, &vboOffset);
+	uint8_t *uboData  = QVk_GetUniformBuffer(sizeof(color), &uboOffset, &uboDescriptorSet);
+	memcpy(vertData, beamvertex, sizeof(beamvertex));
+	memcpy(uboData,  color, sizeof(color));
 
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawBeamPipeline.layout, 0, 1, &uboDescriptorSet, 1, &uboOffset);
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
