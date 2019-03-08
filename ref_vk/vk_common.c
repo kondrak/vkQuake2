@@ -766,15 +766,24 @@ void QVk_Shutdown( void )
 		QVk_FreeBuffer(&vk_triangleFanIbo);
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 		{
-			vmaUnmapMemory(vk_malloc, vk_dynUniformBuffers[i].allocation);
-			vmaUnmapMemory(vk_malloc, vk_dynIndexBuffers[i].allocation);
-			vmaUnmapMemory(vk_malloc, vk_dynVertexBuffers[i].allocation);
-			vmaUnmapMemory(vk_malloc, vk_stagingBuffers[i].buffer.allocation);
-			QVk_FreeBuffer(&vk_dynVertexBuffers[i]);
-			QVk_FreeBuffer(&vk_dynIndexBuffers[i]);
-			QVk_FreeBuffer(&vk_dynUniformBuffers[i]);
+			if(vk_dynUniformBuffers[i].buffer != VK_NULL_HANDLE)
+			{
+				vmaUnmapMemory(vk_malloc, vk_dynUniformBuffers[i].allocation);
+				QVk_FreeBuffer(&vk_dynUniformBuffers[i]);
+			}
+			if(vk_dynIndexBuffers[i].buffer != VK_NULL_HANDLE)
+			{
+				vmaUnmapMemory(vk_malloc, vk_dynIndexBuffers[i].allocation);
+				QVk_FreeBuffer(&vk_dynIndexBuffers[i]);
+			}
+			if(vk_dynVertexBuffers[i].buffer != VK_NULL_HANDLE)
+			{
+				vmaUnmapMemory(vk_malloc, vk_dynVertexBuffers[i].allocation);
+				QVk_FreeBuffer(&vk_dynVertexBuffers[i]);
+			}
 			if(vk_stagingBuffers[i].buffer.buffer != VK_NULL_HANDLE)
 			{
+				vmaUnmapMemory(vk_malloc, vk_stagingBuffers[i].buffer.allocation);
 				QVk_FreeBuffer(&vk_stagingBuffers[i].buffer);
 				vkDestroyFence(vk_device.logical, vk_stagingBuffers[i].fence, NULL);
 			}
