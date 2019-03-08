@@ -700,6 +700,7 @@ void R_DrawAliasModel (entity_t *e)
 	if ( ( currententity->flags & RF_WEAPONMODEL ) && ( r_lefthand->value == 1.0F ) )
 	{
 		Mat_Scale(r_viewproj_matrix, -1.f, 1.f, 1.f);
+		vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
 		leftHandOffset = 2;
 	}
 
@@ -752,6 +753,7 @@ void R_DrawAliasModel (entity_t *e)
 	if ( ( currententity->flags & RF_WEAPONMODEL ) && ( r_lefthand->value == 1.0F ) )
 	{
 		Mat_Scale(r_viewproj_matrix, -1.f, 1.f, 1.f);
+		vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
 	}
 
 	if (currententity->flags & RF_DEPTHHACK || r_newrefdef.rdflags & RDF_NOWORLDMODEL)
