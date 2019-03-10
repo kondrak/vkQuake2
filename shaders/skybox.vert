@@ -15,6 +15,8 @@ layout(set = 1, binding = 0) uniform UniformBufferObject
 } ubo;
 
 layout(location = 0) out vec2 texCoord;
+layout(location = 1) out vec4 color;
+layout(location = 2) out float aTreshold;
 
 out gl_PerVertex {
     vec4 gl_Position;
@@ -23,4 +25,6 @@ out gl_PerVertex {
 void main() {
     gl_Position = pc.vpMatrix * ubo.model * vec4(inVertex, 1.0);
     texCoord = inTexCoord;
+    color = vec4(1.0, 1.0, 1.0, 1.0);
+    aTreshold = 0.0;
 }

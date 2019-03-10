@@ -690,7 +690,7 @@ static void CreatePipelines()
 	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRGB, &vk_drawBeamPipeline, shaders, 2, &pushConstantRange);
 
 	// draw skybox pipeline
-	VK_LOAD_VERTFRAG_SHADERS(shaders, skybox, skybox);
+	VK_LOAD_VERTFRAG_SHADERS(shaders, skybox, basic);
 	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RG, &vk_drawSkyboxPipeline, shaders, 2, &pushConstantRange);
 
 	// draw dynamic light pipeline
