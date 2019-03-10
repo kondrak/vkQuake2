@@ -13,7 +13,6 @@ glslangValidator --variable-name point_particle_frag_spv -V shaders/point_partic
 glslangValidator --variable-name sprite_vert_spv -V shaders/sprite.vert -o ref_vk/spirv/sprite_vert.c
 glslangValidator --variable-name beam_vert_spv -V shaders/beam.vert -o ref_vk/spirv/beam_vert.c
 glslangValidator --variable-name skybox_vert_spv -V shaders/skybox.vert -o ref_vk/spirv/skybox_vert.c
-glslangValidator --variable-name skybox_frag_spv -V shaders/skybox.frag -o ref_vk/spirv/skybox_frag.c
 glslangValidator --variable-name d_light_vert_spv -V shaders/d_light.vert -o ref_vk/spirv/d_light_vert.c
 glslangValidator --variable-name polygon_vert_spv -V shaders/polygon.vert -o ref_vk/spirv/polygon_vert.c
 glslangValidator --variable-name polygon_lmap_vert_spv -V shaders/polygon_lmap.vert -o ref_vk/spirv/polygon_lmap_vert.c
