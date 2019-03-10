@@ -21,6 +21,4 @@ glslangValidator --variable-name polygon_frag_spv -V shaders/polygon.frag -o ref
 glslangValidator --variable-name polygon_lmap_vert_spv -V shaders/polygon_lmap.vert -o ref_vk/spirv/polygon_lmap_vert.c
 glslangValidator --variable-name polygon_lmap_frag_spv -V shaders/polygon_lmap.frag -o ref_vk/spirv/polygon_lmap_frag.c
 glslangValidator --variable-name polygon_warp_vert_spv -V shaders/polygon_warp.vert -o ref_vk/spirv/polygon_warp_vert.c
-glslangValidator --variable-name showtris_frag_spv -V shaders/showtris.frag -o ref_vk/spirv/showtris_frag.c
 glslangValidator --variable-name shadows_vert_spv -V shaders/shadows.vert -o ref_vk/spirv/shadows_vert.c
-glslangValidator --variable-name shadows_frag_spv -V shaders/shadows.frag -o ref_vk/spirv/shadows_frag.c
