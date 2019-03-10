@@ -460,8 +460,7 @@ void Vk_DrawParticles( int num_particles, const particle_t particles[], const un
 	uint8_t *vertData = QVk_GetVertexBuffer(3 * sizeof(pvertex) * num_particles, &vbo, &vboOffset);
 	memcpy(vertData, &visibleParticles, 3 * sizeof(pvertex) * num_particles);
 
-	VkDescriptorSet descriptorSets[] = { r_particletexture->vk_texture.descriptorSet, r_particletexture->vk_texture.descriptorSet };
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawParticlesPipeline.layout, 0, 2, descriptorSets, 0, NULL);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawParticlesPipeline.layout, 0, 1, &r_particletexture->vk_texture.descriptorSet, 0, NULL);
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 	vkCmdDraw(vk_activeCmdbuffer, 3 * num_particles, 1, 0, 0);
 }

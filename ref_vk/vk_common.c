@@ -586,7 +586,6 @@ static void CreatePipelines()
 
 	// shared descriptor set layouts
 	VkDescriptorSetLayout samplerUboDsLayouts[] = { vk_samplerDescSetLayout, vk_uboDescSetLayout };
-	VkDescriptorSetLayout dummySamplerDsLayouts[] = { vk_samplerDescSetLayout, vk_samplerDescSetLayout };
 	VkDescriptorSetLayout samplerUboLmapDsLayouts[] = { vk_samplerDescSetLayout, vk_uboDescSetLayout, vk_samplerLightmapDescSetLayout };
 
 	// shader array (vertex and fragment, no compute... yet)
@@ -609,7 +608,7 @@ static void CreatePipelines()
 	VK_LOAD_VERTFRAG_SHADERS(shaders, particle, basic);
 	vk_drawParticlesPipeline.depthWriteEnable = VK_FALSE;
 	vk_drawParticlesPipeline.blendOpts.blendEnable = VK_TRUE;
-	QVk_CreatePipeline(dummySamplerDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawParticlesPipeline, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(&vk_samplerDescSetLayout, 1, &vertInfoRGB_RGBA_RG, &vk_drawParticlesPipeline, shaders, 2, &pushConstantRange);
 
 	// draw particles pipeline (using point list)
 	VK_LOAD_VERTFRAG_SHADERS(shaders, point_particle, point_particle);
