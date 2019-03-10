@@ -585,9 +585,9 @@ static void CreatePipelines()
 												VK_INPUTATTR_DESC(2, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 7));
 
 	// shared descriptor set layouts
-	VkDescriptorSetLayout uboSamplerDsLayouts[] = { vk_uboDescSetLayout, vk_samplerDescSetLayout };
+	VkDescriptorSetLayout samplerUboDsLayouts[] = { vk_samplerDescSetLayout, vk_uboDescSetLayout };
 	VkDescriptorSetLayout dummySamplerDsLayouts[] = { vk_samplerDescSetLayout, vk_samplerDescSetLayout };
-	VkDescriptorSetLayout uboSamplerLmapDsLayouts[] = { vk_uboDescSetLayout, vk_samplerDescSetLayout, vk_samplerLightmapDescSetLayout };
+	VkDescriptorSetLayout samplerUboLmapDsLayouts[] = { vk_samplerDescSetLayout, vk_uboDescSetLayout, vk_samplerLightmapDescSetLayout };
 
 	// shader array (vertex and fragment, no compute... yet)
 	qvkshader_t shaders[2] = { VK_NULL_HANDLE, VK_NULL_HANDLE };
@@ -603,10 +603,10 @@ static void CreatePipelines()
 	// textured quad pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, basic, basic);
 	vk_drawTexQuadPipeline.depthTestEnable = VK_FALSE;
-	QVk_CreatePipeline(uboSamplerDsLayouts, 2, &vertInfoRG_RG, &vk_drawTexQuadPipeline, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRG_RG, &vk_drawTexQuadPipeline, shaders, 2, &pushConstantRange);
 
 	// draw particles pipeline (using a texture)
-	VK_LOAD_VERTFRAG_SHADERS(shaders, particle, polygon);
+	VK_LOAD_VERTFRAG_SHADERS(shaders, particle, basic);
 	vk_drawParticlesPipeline.depthWriteEnable = VK_FALSE;
 	vk_drawParticlesPipeline.blendOpts.blendEnable = VK_TRUE;
 	QVk_CreatePipeline(dummySamplerDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawParticlesPipeline, shaders, 2, &pushConstantRange);
@@ -634,53 +634,53 @@ static void CreatePipelines()
 	VK_LOAD_VERTFRAG_SHADERS(shaders, model, model);
 	vk_drawModelPipelineStrip.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
 	vk_drawModelPipelineStrip.blendOpts.blendEnable = VK_TRUE;
-	QVk_CreatePipeline(uboSamplerDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawModelPipelineStrip, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawModelPipelineStrip, shaders, 2, &pushConstantRange);
 
 	vk_drawModelPipelineFan.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	vk_drawModelPipelineFan.blendOpts.blendEnable = VK_TRUE;
-	QVk_CreatePipeline(uboSamplerDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawModelPipelineFan, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawModelPipelineFan, shaders, 2, &pushConstantRange);
 
 	// dedicated model pipelines for translucent objects with depth write disabled
 	vk_drawNoDepthModelPipelineStrip.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
 	vk_drawNoDepthModelPipelineStrip.depthWriteEnable = VK_FALSE;
 	vk_drawNoDepthModelPipelineStrip.blendOpts.blendEnable = VK_TRUE;
-	QVk_CreatePipeline(uboSamplerDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawNoDepthModelPipelineStrip, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawNoDepthModelPipelineStrip, shaders, 2, &pushConstantRange);
 
 	vk_drawNoDepthModelPipelineFan.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	vk_drawNoDepthModelPipelineFan.depthWriteEnable = VK_FALSE;
 	vk_drawNoDepthModelPipelineFan.blendOpts.blendEnable = VK_TRUE;
-	QVk_CreatePipeline(uboSamplerDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawNoDepthModelPipelineFan, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawNoDepthModelPipelineFan, shaders, 2, &pushConstantRange);
 
 	// dedicated model pipelines for when left-handed weapon model is drawn
 	vk_drawLefthandModelPipelineStrip.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
 	vk_drawLefthandModelPipelineStrip.cullMode = VK_CULL_MODE_FRONT_BIT;
-	QVk_CreatePipeline(uboSamplerDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawLefthandModelPipelineStrip, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawLefthandModelPipelineStrip, shaders, 2, &pushConstantRange);
 
 	vk_drawLefthandModelPipelineFan.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	vk_drawLefthandModelPipelineFan.cullMode = VK_CULL_MODE_FRONT_BIT;
-	QVk_CreatePipeline(uboSamplerDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawLefthandModelPipelineFan, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawLefthandModelPipelineFan, shaders, 2, &pushConstantRange);
 
 	// draw sprite pipeline
-	VK_LOAD_VERTFRAG_SHADERS(shaders, sprite, sprite);
+	VK_LOAD_VERTFRAG_SHADERS(shaders, sprite, basic);
 	vk_drawSpritePipeline.blendOpts.blendEnable = VK_TRUE;
 	QVk_CreatePipeline(&vk_samplerDescSetLayout, 1, &vertInfoRGB_RG, &vk_drawSpritePipeline, shaders, 2, &pushConstantRange);
 
 	// draw polygon pipeline
-	VK_LOAD_VERTFRAG_SHADERS(shaders, polygon, polygon);
+	VK_LOAD_VERTFRAG_SHADERS(shaders, polygon, basic);
 	vk_drawPolyPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	vk_drawPolyPipeline.blendOpts.blendEnable = VK_TRUE;
-	QVk_CreatePipeline(uboSamplerDsLayouts, 2, &vertInfoRGB_RG, &vk_drawPolyPipeline, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RG, &vk_drawPolyPipeline, shaders, 2, &pushConstantRange);
 
 	// draw lightmapped polygon
 	VK_LOAD_VERTFRAG_SHADERS(shaders, polygon_lmap, polygon_lmap);
 	vk_drawPolyLmapPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-	QVk_CreatePipeline(uboSamplerLmapDsLayouts, 3, &vertInfoRGB_RG_RG, &vk_drawPolyLmapPipeline, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(samplerUboLmapDsLayouts, 3, &vertInfoRGB_RG_RG, &vk_drawPolyLmapPipeline, shaders, 2, &pushConstantRange);
 
 	// draw polygon with warp effect (liquid) pipeline
-	VK_LOAD_VERTFRAG_SHADERS(shaders, polygon_warp, polygon);
+	VK_LOAD_VERTFRAG_SHADERS(shaders, polygon_warp, basic);
 	vk_drawPolyWarpPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	vk_drawPolyWarpPipeline.blendOpts.blendEnable = VK_TRUE;
-	QVk_CreatePipeline(uboSamplerLmapDsLayouts, 2, &vertInfoRGB_RG, &vk_drawPolyWarpPipeline, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(samplerUboLmapDsLayouts, 2, &vertInfoRGB_RG, &vk_drawPolyWarpPipeline, shaders, 2, &pushConstantRange);
 
 	// draw beam pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, beam, basic_color_quad);
@@ -691,7 +691,7 @@ static void CreatePipelines()
 
 	// draw skybox pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, skybox, skybox);
-	QVk_CreatePipeline(uboSamplerDsLayouts, 2, &vertInfoRGB_RG, &vk_drawSkyboxPipeline, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RG, &vk_drawSkyboxPipeline, shaders, 2, &pushConstantRange);
 
 	// draw dynamic light pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, d_light, basic_color_quad);
@@ -1392,7 +1392,7 @@ void QVk_DrawTexRect(float *ubo, VkDeviceSize uboSize, qvktexture_t *texture)
 
 	QVk_BindPipeline(&vk_drawTexQuadPipeline);
 	VkDeviceSize offsets = 0;
-	VkDescriptorSet descriptorSets[] = { uboDescriptorSet, texture->descriptorSet };
+	VkDescriptorSet descriptorSets[] = { texture->descriptorSet, uboDescriptorSet };
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawTexQuadPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vk_texRectVbo.buffer, &offsets);
 	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_rectIbo.buffer, 0, VK_INDEX_TYPE_UINT32);

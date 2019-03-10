@@ -248,7 +248,7 @@ void EmitWaterPolys (msurface_t *fa, image_t *texture, float *modelMatrix, float
 
 	VkBuffer vbo;
 	VkDeviceSize vboOffset;
-	VkDescriptorSet descriptorSets[] = { uboDescriptorSet, texture->vk_texture.descriptorSet };
+	VkDescriptorSet descriptorSets[] = { texture->vk_texture.descriptorSet, uboDescriptorSet };
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyWarpPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
 
 	for (bp = fa->polys; bp; bp = bp->next)
@@ -636,7 +636,7 @@ void R_DrawSkyBox (void)
 		uint8_t *vertData = QVk_GetVertexBuffer(sizeof(verts), &vbo, &vboOffset);
 		memcpy(vertData, verts, sizeof(verts));
 		
-		VkDescriptorSet descriptorSets[] = { uboDescriptorSet, sky_images[skytexorder[i]]->vk_texture.descriptorSet };
+		VkDescriptorSet descriptorSets[] = { sky_images[skytexorder[i]]->vk_texture.descriptorSet, uboDescriptorSet };
 		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawSkyboxPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
 		vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 		vkCmdDraw(vk_activeCmdbuffer, 6, 1, 0, 0);

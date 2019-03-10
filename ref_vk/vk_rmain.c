@@ -212,9 +212,8 @@ void R_DrawSpriteModel (entity_t *e)
 	uint8_t *vertData = QVk_GetVertexBuffer(sizeof(quadVerts), &vbo, &vboOffset);
 	memcpy(vertData, quadVerts, sizeof(quadVerts));
 	
-	VkDescriptorSet descriptorSets[] = { currentmodel->skins[e->frame]->vk_texture.descriptorSet };
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawSpritePipeline.layout, 0, 1, descriptorSets, 0, NULL);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawSpritePipeline.layout, 0, 1, &currentmodel->skins[e->frame]->vk_texture.descriptorSet, 0, NULL);
 	vkCmdDraw(vk_activeCmdbuffer, 6, 1, 0, 0);
 }
 

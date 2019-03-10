@@ -11,7 +11,8 @@ layout(push_constant) uniform PushConstant
 } pc;
 
 layout(location = 0) out vec2 texCoord;
-layout(location = 1) out float alpha;
+layout(location = 1) out vec4 color;
+layout(location = 2) out float aTreshold;
 
 out gl_PerVertex {
     vec4 gl_Position;
@@ -20,5 +21,6 @@ out gl_PerVertex {
 void main() {
     gl_Position = pc.mvpMatrix * vec4(inVertex, 1.0);
     texCoord = inTexCoord;
-    alpha = pc.alpha;
+    color = vec4(1.0, 1.0, 1.0, pc.alpha);
+    aTreshold = 0.0666;
 }

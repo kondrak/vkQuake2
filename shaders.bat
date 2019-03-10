@@ -9,13 +9,11 @@
 %VULKAN_SDK%\bin32\glslangValidator.exe --variable-name point_particle_vert_spv -V shaders/point_particle.vert -o ref_vk/spirv/point_particle_vert.c
 %VULKAN_SDK%\bin32\glslangValidator.exe --variable-name point_particle_frag_spv -V shaders/point_particle.frag -o ref_vk/spirv/point_particle_frag.c
 %VULKAN_SDK%\bin32\glslangValidator.exe --variable-name sprite_vert_spv -V shaders/sprite.vert -o ref_vk/spirv/sprite_vert.c
-%VULKAN_SDK%\bin32\glslangValidator.exe --variable-name sprite_frag_spv -V shaders/sprite.frag -o ref_vk/spirv/sprite_frag.c
 %VULKAN_SDK%\bin32\glslangValidator.exe --variable-name beam_vert_spv -V shaders/beam.vert -o ref_vk/spirv/beam_vert.c
 %VULKAN_SDK%\bin32\glslangValidator.exe --variable-name skybox_vert_spv -V shaders/skybox.vert -o ref_vk/spirv/skybox_vert.c
 %VULKAN_SDK%\bin32\glslangValidator.exe --variable-name skybox_frag_spv -V shaders/skybox.frag -o ref_vk/spirv/skybox_frag.c
 %VULKAN_SDK%\bin32\glslangValidator.exe --variable-name d_light_vert_spv -V shaders/d_light.vert -o ref_vk/spirv/d_light_vert.c
 %VULKAN_SDK%\bin32\glslangValidator.exe --variable-name polygon_vert_spv -V shaders/polygon.vert -o ref_vk/spirv/polygon_vert.c
-%VULKAN_SDK%\bin32\glslangValidator.exe --variable-name polygon_frag_spv -V shaders/polygon.frag -o ref_vk/spirv/polygon_frag.c
 %VULKAN_SDK%\bin32\glslangValidator.exe --variable-name polygon_lmap_vert_spv -V shaders/polygon_lmap.vert -o ref_vk/spirv/polygon_lmap_vert.c
 %VULKAN_SDK%\bin32\glslangValidator.exe --variable-name polygon_lmap_frag_spv -V shaders/polygon_lmap.frag -o ref_vk/spirv/polygon_lmap_frag.c
 %VULKAN_SDK%\bin32\glslangValidator.exe --variable-name polygon_warp_vert_spv -V shaders/polygon_warp.vert -o ref_vk/spirv/polygon_warp_vert.c

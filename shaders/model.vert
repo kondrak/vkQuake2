@@ -10,7 +10,7 @@ layout(push_constant) uniform PushConstant
     mat4 vpMatrix;
 } pc;
 
-layout(binding = 0) uniform UniformBufferObject
+layout(set = 1, binding = 0) uniform UniformBufferObject
 {
     mat4 model;
     int textured;

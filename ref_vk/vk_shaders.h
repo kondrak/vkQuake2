@@ -67,9 +67,6 @@ extern const size_t point_particle_frag_size;
 extern const uint32_t sprite_vert_spv[];
 extern const size_t sprite_vert_size;
 
-extern const uint32_t sprite_frag_spv[];
-extern const size_t sprite_frag_size;
-
 // beam
 extern const uint32_t beam_vert_spv[];
 extern const size_t beam_vert_size;
@@ -88,9 +85,6 @@ extern const size_t d_light_vert_size;
 // textured, alpha blended polygon
 extern const uint32_t polygon_vert_spv[];
 extern const size_t polygon_vert_size;
-
-extern const uint32_t polygon_frag_spv[];
-extern const size_t polygon_frag_size;
 
 // textured, lightmapped polygon
 extern const uint32_t polygon_lmap_vert_spv[];
