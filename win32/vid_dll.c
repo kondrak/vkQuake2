@@ -46,6 +46,8 @@ cvar_t		*vid_xpos;			// X coordinate of window position
 cvar_t		*vid_ypos;			// Y coordinate of window position
 cvar_t		*vid_fullscreen;
 cvar_t		*vid_hudscale;
+cvar_t		*r_customwidth;
+cvar_t		*r_customheight;
 
 // Global variables used internally by this module
 viddef_t	viddef;				// global video state; used by other modules
@@ -499,16 +501,24 @@ vidmode_t vid_modes[] =
 	{ "Mode 5: 960x720",   960, 720,   5 },
 	{ "Mode 6: 1024x768",  1024, 768,  6 },
 	{ "Mode 7: 1152x864",  1152, 864,  7 },
-	{ "Mode 8: 1280x960",  1280, 960, 8 },
-	{ "Mode 9: 1600x1200", 1600, 1200, 9 },
-	{ "Mode 10: 1920x1080", 1920, 1080, 10 },
-	{ "Mode 11: 2048x1536", 2048, 1536, 11 },
-	{ "Mode 12: 2560x1440", 2560, 1440, 12 },
-	{ "Mode 13: 3840x2160", 3840, 2160, 13 },
+	{ "Mode 8: 1280x960",  1280, 960,  8 },
+	{ "Mode 9: 1366x768",  1366, 768,  9 },
+	{ "Mode 10: 1600x1200", 1600, 1200, 10 },
+	{ "Mode 11: 1920x1080", 1920, 1080, 11 },
+	{ "Mode 12: 2048x1536", 2048, 1536, 12 },
+	{ "Mode 13: 2560x1440", 2560, 1440, 13 },
+	{ "Mode 14: 3840x2160", 3840, 2160, 14 },
 };
 
 qboolean VID_GetModeInfo( int *width, int *height, int mode )
 {
+	if (mode == -1) // custom mode (using r_customwidth and r_customheight)
+	{
+		*width = r_customwidth->value;
+		*height = r_customheight->value;
+		return true;
+	}
+
 	if ( mode < 0 || mode >= VID_NUM_MODES )
 		return false;
 
@@ -740,6 +750,8 @@ void VID_Init (void)
 	vid_fullscreen = Cvar_Get ("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = Cvar_Get( "vid_gamma", "1", CVAR_ARCHIVE );
 	win_noalttab = Cvar_Get( "win_noalttab", "0", CVAR_ARCHIVE );
+	r_customwidth = Cvar_Get("r_customwidth", "1024", CVAR_ARCHIVE);
+	r_customheight = Cvar_Get("r_customheight", "768", CVAR_ARCHIVE);
 
 	/* Add some console commands that we want to handle */
 	Cmd_AddCommand ("vid_restart", VID_Restart_f);

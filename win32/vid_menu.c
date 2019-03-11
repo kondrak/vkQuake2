@@ -165,9 +165,9 @@ static void ApplyChanges( void *unused )
 	Cvar_SetValue( "gl_ext_palettedtexture", s_paletted_texture_box.curvalue );
 	Cvar_SetValue( "gl_finish", s_finish_box.curvalue );
 	Cvar_SetValue( "vk_finish", s_vkfinish_box.curvalue );
-	Cvar_SetValue( "sw_mode", s_mode_list[SOFTWARE_MENU].curvalue );
-	Cvar_SetValue( "gl_mode", s_mode_list[OPENGL_MENU].curvalue );
-	Cvar_SetValue( "vk_mode", s_mode_list[VULKAN_MENU].curvalue );
+	Cvar_SetValue( "sw_mode", s_mode_list[SOFTWARE_MENU].curvalue == 0 ? -1 : s_mode_list[SOFTWARE_MENU].curvalue - 1 );
+	Cvar_SetValue( "gl_mode", s_mode_list[OPENGL_MENU].curvalue == 0 ? -1 : s_mode_list[OPENGL_MENU].curvalue - 1);
+	Cvar_SetValue( "vk_mode", s_mode_list[VULKAN_MENU].curvalue == 0 ? -1 : s_mode_list[VULKAN_MENU].curvalue - 1);
 	Cvar_SetValue( "vk_msaa", s_msaa_mode.curvalue);
 	Cvar_SetValue( "vk_picmip", 3 - s_tqvk_slider.curvalue );
 
@@ -250,6 +250,7 @@ void VID_MenuInit( void )
 {
 	static const char *resolutions[] = 
 	{
+		"[custom   ]",
 		"[320 240  ]",
 		"[400 300  ]",
 		"[512 384  ]",
@@ -259,6 +260,7 @@ void VID_MenuInit( void )
 		"[1024 768 ]",
 		"[1152 864 ]",
 		"[1280 960 ]",
+		"[1366 768 ]",
 		"[1600 1200]",
 		"[1920 1080]",
 		"[2048 1536]",
@@ -314,13 +316,13 @@ void VID_MenuInit( void )
 		sw_stipplealpha = Cvar_Get( "sw_stipplealpha", "0", CVAR_ARCHIVE );
 
 	if( !vk_mode )
-		vk_mode = Cvar_Get( "vk_mode", "10", 0 );
+		vk_mode = Cvar_Get( "vk_mode", "11", 0 );
 	if( !vk_driver )
 		vk_driver = Cvar_Get( "vk_driver", "vulkan", 0 );
 
-	s_mode_list[SOFTWARE_MENU].curvalue = sw_mode->value;
-	s_mode_list[OPENGL_MENU].curvalue = gl_mode->value;
-	s_mode_list[VULKAN_MENU].curvalue = vk_mode->value;
+	s_mode_list[SOFTWARE_MENU].curvalue = sw_mode->value < 0 ? 0 : sw_mode->value + 1;
+	s_mode_list[OPENGL_MENU].curvalue = gl_mode->value < 0 ? 0 : gl_mode->value + 1;
+	s_mode_list[VULKAN_MENU].curvalue = vk_mode->value < 0 ? 0 : vk_mode->value + 1;
 
 	if ( !scr_viewsize )
 		scr_viewsize = Cvar_Get ("viewsize", "100", CVAR_ARCHIVE);
