@@ -369,6 +369,10 @@ void VID_CheckChanges (void)
 		cl.refresh_prepped = false;
 		cls.disable_screen = true;
 
+		// fullscreen is always rendered at native resolution which may result in broken menu layouts if vid_hudscale is changed, so just close all the menus after toggle
+		extern void M_ForceMenuOff( void );
+		M_ForceMenuOff();
+
 		sprintf( name, "ref_%s.dylib", vid_ref->string );
 		if ( !VID_LoadRefresh( name ) )
 		{
