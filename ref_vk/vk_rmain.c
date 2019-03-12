@@ -1116,7 +1116,7 @@ qboolean R_Init( void *hinstance, void *hWnd )
 	}
 
 	// set our "safe" modes
-	vk_state.prev_mode = 3;
+	vk_state.prev_mode = 6;
 	// set video mode/screen resolution
 	if (!R_SetMode())
 	{
