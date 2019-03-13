@@ -75,7 +75,8 @@ VKCFLAGS=-I$(VULKAN_SDK)/include
 
 SHLIBEXT=so
 
-SHLIBCFLAGS=-fPIC
+SHLIBCFLAGS=-fPIC -std=c99
+SHLIBCPPFLAGS=-fPIC -std=c++11
 SHLIBLDFLAGS=-shared
 
 DO_CC=$(CC) $(CFLAGS) -o $@ -c $<
@@ -89,6 +90,7 @@ DO_SHLIB_DEBUG_CC=$(CC) $(DEBUG_CFLAGS) $(SHLIBCFLAGS) -o $@ -c $<
 DO_GL_SHLIB_CC=$(CC) $(CFLAGS) $(SHLIBCFLAGS) $(GLCFLAGS) -o $@ -c $<
 DO_GL_SHLIB_O_CC=$(CC) $(CFLAGS) -O $(SHLIBCFLAGS) $(GLCFLAGS) -o $@ -c $<
 DO_VK_SHLIB_CC=$(CC) $(CFLAGS) $(SHLIBCFLAGS) $(VKCFLAGS) -o $@ -c $<
+DO_VK_SHLIB_CPP=$(CC) $(CFLAGS) $(SHLIBCPPFLAGS) $(VKCFLAGS) -o $@ -c $<
 DO_VK_SHLIB_O_CC=$(CC) $(CFLAGS) -O $(SHLIBCFLAGS) $(VKCFLAGS) -o $@ -c $<
 DO_AS=$(CC) $(CFLAGS) -DELF -x assembler-with-cpp -o $@ -c $<
 DO_SHLIB_AS=$(CC) $(CFLAGS) $(SHLIBCFLAGS) -DELF -x assembler-with-cpp -o $@ -c $<
@@ -1558,7 +1560,7 @@ $(BUILDDIR)/ref_vk/vk_light.o :       $(REF_VK_DIR)/vk_light.c
 	$(DO_VK_SHLIB_CC)
 
 $(BUILDDIR)/ref_vk/vk_mem_alloc.o :       $(REF_VK_DIR)/vk_mem_alloc.cpp
-	$(DO_VK_SHLIB_CC)
+	$(DO_VK_SHLIB_CPP)
 
 $(BUILDDIR)/ref_vk/vk_mesh.o :       $(REF_VK_DIR)/vk_mesh.c
 	$(DO_VK_SHLIB_CC)
