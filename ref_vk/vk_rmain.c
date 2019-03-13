@@ -1218,6 +1218,7 @@ void R_BeginFrame( float camera_separation )
 	{
 		vid_ref->modified = true;
 		vid_fullscreen->value = false;
+		ri.Cvar_SetValue("vid_fullscreen", 0);
 	}
 }
 
