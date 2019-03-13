@@ -1,5 +1,11 @@
 <p align="center"><img src="vkQuake2.png"></p>
 
+**Build status:**
+
+| Windows  | [![Build status](https://ci.appveyor.com/api/projects/status/73kmpd5e6hpg8jt5?svg=true)](https://ci.appveyor.com/project/kondrak/vkquake2) |
+|----------|:------------:|
+| <b>Linux/MacOS</b> | [![Build Status](https://travis-ci.org/kondrak/vkQuake2.svg?branch=master)](https://travis-ci.org/kondrak/vkQuake2) |
+
 Overview
 ===
 This is the official Quake 2 code v3.21 with additional Vulkan renderer. The goal is to maintain as much compatibility as possible with the original game, so there are no fancy visual upgrades here - just pure, vanilla Quake 2 experience as we knew it back in 1997. There are, however, a few notable differences that made the cut for various reasons:
