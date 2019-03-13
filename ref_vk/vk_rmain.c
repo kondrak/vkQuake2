@@ -1213,7 +1213,12 @@ void R_BeginFrame( float camera_separation )
 	Vkimp_BeginFrame(camera_separation);
 
 	VkResult swapChainValid = QVk_BeginFrame();
-	vid_ref->modified |= (swapChainValid != VK_SUCCESS);
+	// if the swapchain is invalid, just recreate the video system and revert to safe windowed mode
+	if (swapChainValid != VK_SUCCESS)
+	{
+		vid_ref->modified = true;
+		vid_fullscreen->value = false;
+	}
 }
 
 /*
