@@ -1211,7 +1211,9 @@ void R_BeginFrame( float camera_separation )
 	}
 
 	Vkimp_BeginFrame(camera_separation);
-	QVk_BeginFrame();
+
+	VkResult swapChainValid = QVk_BeginFrame();
+	vid_ref->modified |= (swapChainValid != VK_SUCCESS);
 }
 
 /*

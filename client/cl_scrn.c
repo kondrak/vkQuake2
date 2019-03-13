@@ -61,6 +61,7 @@ cvar_t		*scr_graphshift;
 cvar_t		*scr_drawall;
 
 extern cvar_t	*vid_hudscale;
+extern cvar_t	*vid_ref;
 
 typedef struct
 {
@@ -1258,6 +1259,12 @@ void SCR_UpdateScreen (void)
 	for ( i = 0; i < numframes; i++ )
 	{
 		re.BeginFrame( separation[i] );
+		// end frame and force video restart if swapchain is out of date
+		if (vid_ref->modified)
+		{
+			re.EndFrame();
+			return;
+		}
 
 		if (scr_draw_loading == 2)
 		{	//  loading plaque over black screen
