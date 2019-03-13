@@ -21,7 +21,8 @@ matrix:
         - tar zxf vulkansdk-linux-x86_64-$VK_VERSION.tar.gz
       script:
         - cd linux
-        - make release
+        - make clean debug
+        - make clean release
     - os: osx
       osx_image: xcode10.1
       install:
@@ -30,7 +31,8 @@ matrix:
         - tar zxf vulkansdk-macos-x86_64-$VK_VERSION.tar.gz
       script:
         - cd macos
-        - make release
+        - make clean debug
+        - make clean release
 
 notifications:
   email:
