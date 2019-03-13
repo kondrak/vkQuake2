@@ -22,10 +22,10 @@ platform:
 - x86
 
 install:
-- pwsh: >-
-    appveyor DownloadFile https://vulkan.lunarg.com/sdk/download/$env:VK_VERSION/windows/VulkanSDK-$env:VK_VERSION-Installer.exe -FileName VulkanSDK.exe
+- ps: curl -o VulkanSDK.exe https://vulkan.lunarg.com/sdk/download/$env:VK_VERSION/windows/VulkanSDK-$env:VK_VERSION-Installer.exe?Human=true
 
-    .\VulkanSDK.exe /S
+before_build:
+- cmd: .\VulkanSDK.exe /S
 
 build:
   project: quake2.sln
