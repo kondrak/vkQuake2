@@ -29,16 +29,9 @@ out gl_PerVertex {
 
 void main() {
     gl_Position = pc.mvpMatrix * vec4(inVertex, 1.0);
-    float pointSize = ubo.pointSize;
-
-    if(pointSize < ubo.minPointSize)
-        pointSize = ubo.minPointSize;
-
-    if(pointSize > ubo.maxPointSize)
-        pointSize = ubo.maxPointSize;
 
     float dist_atten = ubo.pointScale / (ubo.att_a + ubo.att_b * gl_Position.w + ubo.att_c * gl_Position.w * gl_Position.w);
-    gl_PointSize = ubo.pointScale * pointSize * sqrt(dist_atten);
+    gl_PointSize = clamp(ubo.pointScale * ubo.pointSize * sqrt(dist_atten), ubo.minPointSize, ubo.maxPointSize);
 
     color = inColor;
 }
