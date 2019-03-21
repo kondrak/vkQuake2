@@ -702,6 +702,9 @@ void Vk_TextureMode( char *string )
 		if (vk_state.lightmap_textures[j].image != VK_NULL_HANDLE)
 			QVk_UpdateTextureSampler(&vk_state.lightmap_textures[j], i);
 	}
+
+	if (vk_rawTexture.image != VK_NULL_HANDLE)
+		QVk_UpdateTextureSampler(&vk_rawTexture, i);
 }
 
 /*
