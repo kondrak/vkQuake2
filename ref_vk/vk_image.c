@@ -531,59 +531,6 @@ void QVk_ReadPixels(uint8_t *dstBuffer, uint32_t width, uint32_t height)
 	QVk_FreeBuffer(&buff);
 }
 
-typedef struct
-{
-	char *name;
-	qvksampler_t samplerType;
-} vkmode_t;
-
-vkmode_t modes[] = {
-	{"VK_NEAREST", S_NEAREST },
-	{"VK_LINEAR", S_LINEAR },
-	{"VK_MIPMAP_NEAREST", S_MIPMAP_NEAREST },
-	{"VK_MIPMAP_LINEAR", S_MIPMAP_LINEAR }
-};
-
-#define NUM_VK_MODES (sizeof(modes) / sizeof (vkmode_t))
-
-/*
-===============
-Vk_TextureMode
-===============
-*/
-void Vk_TextureMode( char *string )
-{
-	int		i,j;
-	image_t	*image;
-	static char prev_mode[32] = { "VK_MIPMAP_LINEAR" };
-
-	for (i = 0; i < NUM_VK_MODES; i++)
-	{
-		if (!Q_stricmp(modes[i].name, string))
-			break;
-	}
-
-	if (i == NUM_VK_MODES)
-	{
-		ri.Con_Printf(PRINT_ALL, "bad filter name (valid values: VK_NEAREST, VK_LINEAR, VK_MIPMAP_NEAREST, VK_MIPMAP_LINEAR)\n");
-		ri.Cvar_Set("vk_texturemode", prev_mode);
-		return;
-	}
-
-	memcpy(prev_mode, string, strlen(string));
-	prev_mode[strlen(string)] = '\0';
-
-	i += vk_aniso->value > 0 ? NUM_VK_MODES : 0;
-	vk_current_sampler = i;
-
-	vkDeviceWaitIdle(vk_device.logical);
-	for (j = 0, image = vktextures; j < numvktextures; j++, image++)
-	{
-		if (image->vk_texture.image != VK_NULL_HANDLE)
-			QVk_UpdateTextureSampler(&image->vk_texture, i);
-	}
-}
-
 /*
 ===============
 Vk_ImageList_f
@@ -689,6 +636,72 @@ int Scrap_AllocBlock (int w, int h, int *x, int *y)
 
 	return -1;
 //	Sys_Error ("Scrap_AllocBlock: full");
+}
+
+typedef struct
+{
+	char *name;
+	qvksampler_t samplerType;
+} vkmode_t;
+
+vkmode_t modes[] = {
+	{"VK_NEAREST", S_NEAREST },
+	{"VK_LINEAR", S_LINEAR },
+	{"VK_MIPMAP_NEAREST", S_MIPMAP_NEAREST },
+	{"VK_MIPMAP_LINEAR", S_MIPMAP_LINEAR }
+};
+
+#define NUM_VK_MODES (sizeof(modes) / sizeof (vkmode_t))
+
+/*
+ ===============
+ Vk_TextureMode
+ ===============
+ */
+void Vk_TextureMode( char *string )
+{
+	int		i,j;
+	image_t	*image;
+	static char prev_mode[32] = { "VK_MIPMAP_LINEAR" };
+
+	for (i = 0; i < NUM_VK_MODES; i++)
+	{
+		if (!Q_stricmp(modes[i].name, string))
+			break;
+	}
+
+	if (i == NUM_VK_MODES)
+	{
+		ri.Con_Printf(PRINT_ALL, "bad filter name (valid values: VK_NEAREST, VK_LINEAR, VK_MIPMAP_NEAREST, VK_MIPMAP_LINEAR)\n");
+		ri.Cvar_Set("vk_texturemode", prev_mode);
+		return;
+	}
+
+	memcpy(prev_mode, string, strlen(string));
+	prev_mode[strlen(string)] = '\0';
+
+	i += vk_aniso->value > 0 ? NUM_VK_MODES : 0;
+	vk_current_sampler = i;
+
+	vkDeviceWaitIdle(vk_device.logical);
+	for (j = 0, image = vktextures; j < numvktextures; j++, image++)
+	{
+		// skip console characters - we want them unfiltered at all times
+		if (image->vk_texture.image != VK_NULL_HANDLE && Q_stricmp(image->name, "pics/conchars.pcx"))
+			QVk_UpdateTextureSampler(&image->vk_texture, i);
+	}
+
+	for (j = 0; j < MAX_SCRAPS; j++)
+	{
+		if (vk_scrapTextures[j].image != VK_NULL_HANDLE)
+			QVk_UpdateTextureSampler(&vk_scrapTextures[j], i);
+	}
+
+	for (j = 0; j < MAX_LIGHTMAPS*2; j++)
+	{
+		if (vk_state.lightmap_textures[j].image != VK_NULL_HANDLE)
+			QVk_UpdateTextureSampler(&vk_state.lightmap_textures[j], i);
+	}
 }
 
 /*
