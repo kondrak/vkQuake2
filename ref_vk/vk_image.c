@@ -31,19 +31,15 @@ static byte			 intensitytable[256];
 static unsigned char gammatable[256];
 
 cvar_t		*intensity;
+extern cvar_t	*vk_mip_nearfilter;
 
 unsigned	d_8to24table[256];
 
 uint32_t Vk_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboolean is_sky );
 uint32_t Vk_Upload32 (unsigned *data, int width, int height,  qboolean mipmap);
 
-// default global texture settings
-qvktextureopts_t vk_global_tex_opts = {
-	.minFilter = VK_FILTER_LINEAR,
-	.magFilter = VK_FILTER_LINEAR,
-	.mipmapFilter = VK_FILTER_LINEAR,
-	.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR
-};
+// default global texture sampler
+qvksampler_t vk_current_sampler = S_LINEAR;
 
 // internal helper
 static VkImageAspectFlags getDepthStencilAspect(VkFormat depthFormat)
@@ -173,6 +169,7 @@ static void generateMipmaps(const VkCommandBuffer *cmdBuffer, const qvktexture_t
 {
 	int32_t mipWidth = width;
 	int32_t mipHeight = height;
+	VkFilter mipFilter = vk_mip_nearfilter->value > 0 ? VK_FILTER_NEAREST : VK_FILTER_LINEAR;
 
 	VkImageMemoryBarrier imgBarrier = {
 		.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -215,7 +212,7 @@ static void generateMipmaps(const VkCommandBuffer *cmdBuffer, const qvktexture_t
 
 		// src image == dst image, because we're blitting between different mip levels of the same image
 		vkCmdBlitImage(*cmdBuffer, texture->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-			texture->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, texture->mipmapFilter);
+			texture->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, mipFilter);
 
 		imgBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 		imgBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
@@ -391,37 +388,10 @@ void QVk_CreateColorBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *colo
 	vkFreeCommandBuffers(vk_device.logical, vk_commandPool, 1, &cmdBuffer);
 }
 
-void QVk_CreateTexture(qvktexture_t *texture, const unsigned char *data, uint32_t width, uint32_t height, qvktextureopts_t *texOpts)
+void QVk_CreateTexture(qvktexture_t *texture, const unsigned char *data, uint32_t width, uint32_t height, qvksampler_t samplerType)
 {
 	createTextureImage(texture, data, width, height);
 	VK_VERIFY(QVk_CreateImageView(&texture->image, VK_IMAGE_ASPECT_COLOR_BIT, &texture->imageView, texture->format, texture->mipLevels));
-
-	// create sampler
-	VkSamplerCreateInfo samplerInfo = {
-		.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-		.pNext = NULL,
-		.flags = 0,
-		.magFilter = texOpts->magFilter,
-		.minFilter = texOpts->minFilter,
-		.mipmapMode = texture->mipmapMode,
-		.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-		.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-		.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
-		.mipLodBias = texture->mipLodBias,
-		.anisotropyEnable = (texOpts->magFilter == texOpts->minFilter) && texOpts->minFilter == VK_FILTER_NEAREST ? VK_FALSE : VK_TRUE,
-		.maxAnisotropy = vk_device.properties.limits.maxSamplerAnisotropy,
-		.compareEnable = VK_FALSE,
-		.compareOp = VK_COMPARE_OP_ALWAYS,
-		.minLod = texture->mipMinLod,
-		.maxLod = (float)texture->mipLevels,
-		.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
-		.unnormalizedCoordinates = VK_FALSE
-	};
-
-	if (vk_device.properties.limits.maxSamplerAnisotropy == 1.f)
-		samplerInfo.anisotropyEnable = VK_FALSE;
-
-	VK_VERIFY(vkCreateSampler(vk_device.logical, &samplerInfo, NULL, &texture->sampler));
 
 	// create descriptor set for the texture
 	VkDescriptorSetAllocateInfo dsAllocInfo = {
@@ -434,29 +404,11 @@ void QVk_CreateTexture(qvktexture_t *texture, const unsigned char *data, uint32_
 
 	VK_VERIFY(vkAllocateDescriptorSets(vk_device.logical, &dsAllocInfo, &texture->descriptorSet));
 
-	VkDescriptorImageInfo imageInfo = {
-		.sampler = texture->sampler,
-		.imageView = texture->imageView,
-		.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-	};
-
-	VkWriteDescriptorSet descriptorWrite = {
-		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-		.pNext = NULL,
-		.dstSet = texture->descriptorSet,
-		.dstBinding = 0,
-		.dstArrayElement = 0,
-		.descriptorCount = 1,
-		.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-		.pImageInfo = &imageInfo,
-		.pBufferInfo = NULL,
-		.pTexelBufferView = NULL
-	};
-
-	vkUpdateDescriptorSets(vk_device.logical, 1, &descriptorWrite, 0, NULL);
+	// attach sampler
+	QVk_UpdateTextureSampler(texture, samplerType);
 }
 
-void QVk_UpdateTexture(qvktexture_t *texture, const unsigned char *data, uint32_t offset_x, uint32_t offset_y, uint32_t width, uint32_t height)
+void QVk_UpdateTextureData(qvktexture_t *texture, const unsigned char *data, uint32_t offset_x, uint32_t offset_y, uint32_t width, uint32_t height)
 {
 	int unifiedTransferAndGfx = vk_device.transferQueue == vk_device.gfxQueue ? 1 : 0;
 	// assuming 32bit images
@@ -511,14 +463,11 @@ void QVk_ReleaseTexture(qvktexture_t *texture)
 		vmaDestroyImage(vk_malloc, texture->image, texture->allocation);
 	if (texture->imageView != VK_NULL_HANDLE)
 		vkDestroyImageView(vk_device.logical, texture->imageView, NULL);
-	if (texture->sampler != VK_NULL_HANDLE)
-		vkDestroySampler(vk_device.logical, texture->sampler, NULL);
 	if (texture->descriptorSet != VK_NULL_HANDLE)
 		vkFreeDescriptorSets(vk_device.logical, vk_descriptorPool, 1, &texture->descriptorSet);
 
 	texture->image = VK_NULL_HANDLE;
 	texture->imageView = VK_NULL_HANDLE;
-	texture->sampler = VK_NULL_HANDLE;
 	texture->descriptorSet = VK_NULL_HANDLE;
 }
 
@@ -585,16 +534,14 @@ void QVk_ReadPixels(uint8_t *dstBuffer, uint32_t width, uint32_t height)
 typedef struct
 {
 	char *name;
-	VkFilter minFilter, magFilter;
-	VkFilter mipFilter;
-	VkSamplerMipmapMode	mipMode;
+	qvksampler_t samplerType;
 } vkmode_t;
 
 vkmode_t modes[] = {
-	{"VK_NEAREST", VK_FILTER_NEAREST, VK_FILTER_NEAREST, VK_FILTER_NEAREST, VK_SAMPLER_MIPMAP_MODE_MAX_ENUM },
-	{"VK_LINEAR", VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_MAX_ENUM },
-	{"VK_MIPMAP_NEAREST", VK_FILTER_NEAREST, VK_FILTER_NEAREST, VK_FILTER_NEAREST, VK_SAMPLER_MIPMAP_MODE_NEAREST},
-	{"VK_MIPMAP_LINEAR", VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_SAMPLER_MIPMAP_MODE_LINEAR}
+	{"VK_NEAREST", S_NEAREST },
+	{"VK_LINEAR", S_LINEAR },
+	{"VK_MIPMAP_NEAREST", S_MIPMAP_NEAREST },
+	{"VK_MIPMAP_LINEAR", S_MIPMAP_LINEAR }
 };
 
 #define NUM_VK_MODES (sizeof(modes) / sizeof (vkmode_t))
@@ -604,9 +551,10 @@ vkmode_t modes[] = {
 Vk_TextureMode
 ===============
 */
-qboolean Vk_TextureMode( char *string )
+void Vk_TextureMode( char *string )
 {
-	int		i;
+	int		i,j;
+	image_t	*image;
 	static char prev_mode[32] = { "VK_MIPMAP_LINEAR" };
 
 	for (i = 0; i < NUM_VK_MODES; i++)
@@ -619,19 +567,21 @@ qboolean Vk_TextureMode( char *string )
 	{
 		ri.Con_Printf(PRINT_ALL, "bad filter name (valid values: VK_NEAREST, VK_LINEAR, VK_MIPMAP_NEAREST, VK_MIPMAP_LINEAR)\n");
 		ri.Cvar_Set("vk_texturemode", prev_mode);
-		vk_texturemode->modified = false;
-		return false;
+		return;
 	}
 
 	memcpy(prev_mode, string, strlen(string));
 	prev_mode[strlen(string)] = '\0';
 
-	vk_global_tex_opts.minFilter = modes[i].minFilter;
-	vk_global_tex_opts.magFilter = modes[i].magFilter;
-	vk_global_tex_opts.mipmapFilter = modes[i].mipFilter;
-	vk_global_tex_opts.mipmapMode = modes[i].mipMode;
+	i += vk_aniso->value > 0 ? NUM_VK_MODES : 0;
+	vk_current_sampler = i;
 
-	return true;
+	vkDeviceWaitIdle(vk_device.logical);
+	for (j = 0, image = vktextures; j < numvktextures; j++, image++)
+	{
+		if (image->vk_texture.image != VK_NULL_HANDLE)
+			QVk_UpdateTextureSampler(&image->vk_texture, i);
+	}
 }
 
 /*
@@ -1373,7 +1323,7 @@ Vk_LoadPic
 This is also used as an entry point for the generated r_notexture
 ================
 */
-image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type, int bits, qvktextureopts_t *texOpts)
+image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type, int bits, qvksampler_t *samplerType)
 {
 	image_t		*image;
 	int			i;
@@ -1435,12 +1385,12 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 
 		if (vk_scrapTextures[texnum].image != VK_NULL_HANDLE)
 		{
-			QVk_UpdateTexture(&vk_scrapTextures[texnum], (unsigned char*)texBuffer, 0, 0, image->upload_width, image->upload_height);
+			QVk_UpdateTextureData(&vk_scrapTextures[texnum], (unsigned char*)texBuffer, 0, 0, image->upload_width, image->upload_height);
 		}
 		else
 		{
 			QVVKTEXTURE_CLEAR(vk_scrapTextures[texnum]);
-			QVk_CreateTexture(&vk_scrapTextures[texnum], (unsigned char*)texBuffer, image->upload_width, image->upload_height, texOpts ? texOpts : &vk_global_tex_opts);
+			QVk_CreateTexture(&vk_scrapTextures[texnum], (unsigned char*)texBuffer, image->upload_width, image->upload_height, samplerType ? *samplerType : vk_current_sampler);
 		}
 
 		image->vk_texture = vk_scrapTextures[texnum];
@@ -1454,11 +1404,6 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 		else
 			image->vk_texture.mipLevels = Vk_Upload32((unsigned *)pic, width, height, (image->type != it_pic && image->type != it_sky));
 
-		// check if vk_texturemode explicitly disable mipmaps
-		if (vk_global_tex_opts.mipmapMode == VK_SAMPLER_MIPMAP_MODE_MAX_ENUM)
-			image->vk_texture.mipLevels = 1;
-
-		image->vk_texture.mipmapFilter = vk_global_tex_opts.mipmapFilter;
 		image->upload_width = upload_width;		// after power of 2 and scales
 		image->upload_height = upload_height;
 		image->sl = 0;
@@ -1466,7 +1411,7 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 		image->tl = 0;
 		image->th = 1;
 
-		QVk_CreateTexture(&image->vk_texture, (unsigned char*)texBuffer, image->upload_width, image->upload_height, texOpts ? texOpts : &vk_global_tex_opts);
+		QVk_CreateTexture(&image->vk_texture, (unsigned char*)texBuffer, image->upload_width, image->upload_height, samplerType ? *samplerType : vk_current_sampler);
 	}
 
 	return image;
@@ -1509,7 +1454,7 @@ Vk_FindImage
 Finds or loads the given image
 ===============
 */
-image_t	*Vk_FindImage (char *name, imagetype_t type, qvktextureopts_t *texOpts)
+image_t	*Vk_FindImage (char *name, imagetype_t type, qvksampler_t *samplerType)
 {
 	image_t	*image;
 	int		i, len;
@@ -1542,7 +1487,7 @@ image_t	*Vk_FindImage (char *name, imagetype_t type, qvktextureopts_t *texOpts)
 		LoadPCX (name, &pic, &palette, &width, &height);
 		if (!pic)
 			return NULL; // ri.Sys_Error (ERR_DROP, "Vk_FindImage: can't load %s", name);
-		image = Vk_LoadPic (name, pic, width, height, type, 8, texOpts);
+		image = Vk_LoadPic (name, pic, width, height, type, 8, samplerType);
 	}
 	else if (!strcmp(name+len-4, ".wal"))
 	{
@@ -1553,7 +1498,7 @@ image_t	*Vk_FindImage (char *name, imagetype_t type, qvktextureopts_t *texOpts)
 		LoadTGA (name, &pic, &width, &height);
 		if (!pic)
 			return NULL; // ri.Sys_Error (ERR_DROP, "Vk_FindImage: can't load %s", name);
-		image = Vk_LoadPic (name, pic, width, height, type, 32, texOpts);
+		image = Vk_LoadPic (name, pic, width, height, type, 32, samplerType);
 	}
 	else
 		return NULL;	//	ri.Sys_Error (ERR_DROP, "Vk_FindImage: bad extension on: %s", name);

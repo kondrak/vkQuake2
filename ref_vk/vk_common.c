@@ -146,6 +146,9 @@ qvkpipeline_t vk_showTrisPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_shadowsPipelineStrip = QVKPIPELINE_INIT;
 qvkpipeline_t vk_shadowsPipelineFan = QVKPIPELINE_INIT;
 
+// samplers
+static VkSampler vk_samplers[S_SAMPLER_CNT];
+
 PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;
 PFN_vkDestroyDebugUtilsMessengerEXT qvkDestroyDebugUtilsMessengerEXT;
 
@@ -392,6 +395,81 @@ static void CreateDescriptorSetLayouts()
 	VK_VERIFY(vkCreateDescriptorSetLayout(vk_device.logical, &layoutInfo, NULL, &vk_samplerDescSetLayout));
 	// secondary sampler: lightmaps
 	VK_VERIFY(vkCreateDescriptorSetLayout(vk_device.logical, &layoutInfo, NULL, &vk_samplerLightmapDescSetLayout));
+}
+
+// internal helper
+static void CreateSamplers()
+{
+	VkSamplerCreateInfo samplerInfo = {
+		.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+		.pNext = NULL,
+		.flags = 0,
+		.magFilter = VK_FILTER_NEAREST,
+		.minFilter = VK_FILTER_NEAREST,
+		.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST,
+		.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+		.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+		.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+		.mipLodBias = 0.f,
+		.anisotropyEnable = VK_FALSE,
+		.maxAnisotropy = 1.f,
+		.compareEnable = VK_FALSE,
+		.compareOp = VK_COMPARE_OP_ALWAYS,
+		.minLod = 0.f,
+		.maxLod = 1.f,
+		.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+		.unnormalizedCoordinates = VK_FALSE
+	};
+
+	VK_VERIFY(vkCreateSampler(vk_device.logical, &samplerInfo, NULL, &vk_samplers[S_NEAREST]));
+
+	samplerInfo.maxLod = FLT_MAX;
+	VK_VERIFY(vkCreateSampler(vk_device.logical, &samplerInfo, NULL, &vk_samplers[S_MIPMAP_NEAREST]));
+
+	samplerInfo.magFilter = VK_FILTER_LINEAR;
+	samplerInfo.minFilter = VK_FILTER_LINEAR;
+	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	VK_VERIFY(vkCreateSampler(vk_device.logical, &samplerInfo, NULL, &vk_samplers[S_MIPMAP_LINEAR]));
+
+	samplerInfo.maxLod = 1.f;
+	VK_VERIFY(vkCreateSampler(vk_device.logical, &samplerInfo, NULL, &vk_samplers[S_LINEAR]));
+
+	// aniso samplers
+	assert((vk_device.properties.limits.maxSamplerAnisotropy > 1.f) && "maxSamplerAnisotropy is 1");
+
+	samplerInfo.magFilter = VK_FILTER_NEAREST;
+	samplerInfo.minFilter = VK_FILTER_NEAREST;
+	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+	samplerInfo.anisotropyEnable = VK_TRUE;
+	samplerInfo.maxAnisotropy = vk_device.properties.limits.maxSamplerAnisotropy;
+	samplerInfo.maxLod = 1.f;
+
+	VK_VERIFY(vkCreateSampler(vk_device.logical, &samplerInfo, NULL, &vk_samplers[S_ANISO_NEAREST]));
+
+	samplerInfo.maxLod = FLT_MAX;
+	VK_VERIFY(vkCreateSampler(vk_device.logical, &samplerInfo, NULL, &vk_samplers[S_ANISO_MIPMAP_NEAREST]));
+
+	samplerInfo.magFilter = VK_FILTER_LINEAR;
+	samplerInfo.minFilter = VK_FILTER_LINEAR;
+	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	VK_VERIFY(vkCreateSampler(vk_device.logical, &samplerInfo, NULL, &vk_samplers[S_ANISO_MIPMAP_LINEAR]));
+
+	samplerInfo.maxLod = 1.f;
+	VK_VERIFY(vkCreateSampler(vk_device.logical, &samplerInfo, NULL, &vk_samplers[S_ANISO_LINEAR]));
+}
+
+
+// internal helper
+static void DestroySamplers()
+{
+	int i;
+	for (i = 0; i < S_SAMPLER_CNT; ++i)
+	{
+		if (vk_samplers[i] != VK_NULL_HANDLE)
+			vkDestroySampler(vk_device.logical, vk_samplers[i], NULL);
+
+		vk_samplers[i] = VK_NULL_HANDLE;
+	}
 }
 
 // internal helper
@@ -813,6 +891,7 @@ void QVk_Shutdown( void )
 			vkDestroyCommandPool(vk_device.logical, vk_transferCommandPool, NULL);
 		if(vk_stagingCommandPool != VK_NULL_HANDLE)
 			vkDestroyCommandPool(vk_device.logical, vk_stagingCommandPool, NULL);
+		DestroySamplers();
 		DestroyFramebuffers();
 		DestroyImageViews();
 		DestroyDrawBuffers();
@@ -1136,6 +1215,7 @@ qboolean QVk_Init()
 	// create index buffer for triangle fan emulation
 	CreateTriangleFanIndexBuffer();
 	CreatePipelines();
+	CreateSamplers();
 
 	return true;
 }
@@ -1365,6 +1445,34 @@ void QVk_SubmitStagingBuffers()
 		if (!vk_stagingBuffers[i].submitted && vk_stagingBuffers[i].buffer.currentOffset > 0)
 			SubmitStagingBuffer(i);
 	}
+}
+
+VkSampler QVk_UpdateTextureSampler(qvktexture_t *texture, qvksampler_t samplerType)
+{
+	assert((vk_samplers[samplerType] != VK_NULL_HANDLE) && "Sampler is VK_NULL_HANDLE!");
+
+	VkDescriptorImageInfo dImgInfo = {
+		.sampler = vk_samplers[samplerType],
+		.imageView = texture->imageView,
+		.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+	};
+
+	VkWriteDescriptorSet writeSet = {
+		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+		.pNext = NULL,
+		.dstSet = texture->descriptorSet,
+		.dstBinding = 0,
+		.dstArrayElement = 0,
+		.descriptorCount = 1,
+		.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+		.pImageInfo = &dImgInfo,
+		.pBufferInfo = NULL,
+		.pTexelBufferView = NULL
+	};
+
+	vkUpdateDescriptorSets(vk_device.logical, 1, &writeSet, 0, NULL);
+
+	return vk_samplers[samplerType];
 }
 
 void QVk_DrawColorRect(float *ubo, VkDeviceSize uboSize)

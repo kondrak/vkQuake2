@@ -331,7 +331,7 @@ void R_RenderBrushPoly (msurface_t *fa, float *modelMatrix, float alpha)
 			R_BuildLightMap(fa, (void *)temp, smax * 4);
 			R_SetCacheState(fa);
 
-			QVk_UpdateTexture(&vk_state.lightmap_textures[fa->lightmaptexturenum], (unsigned char*)temp, fa->light_s, fa->light_t, smax, tmax);
+			QVk_UpdateTextureData(&vk_state.lightmap_textures[fa->lightmaptexturenum], (unsigned char*)temp, fa->light_s, fa->light_t, smax, tmax);
 			
 			fa->lightmapchain = vk_lms.lightmap_surfaces[fa->lightmaptexturenum];
 			vk_lms.lightmap_surfaces[fa->lightmaptexturenum] = fa;
@@ -509,7 +509,7 @@ static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, floa
 			R_SetCacheState(surf);
 
 			lmtex = surf->lightmaptexturenum;
-			QVk_UpdateTexture(&vk_state.lightmap_textures[surf->lightmaptexturenum], (unsigned char *)temp, surf->light_s, surf->light_t, smax, tmax);
+			QVk_UpdateTextureData(&vk_state.lightmap_textures[surf->lightmaptexturenum], (unsigned char *)temp, surf->light_s, surf->light_t, smax, tmax);
 		}
 		else
 		{
@@ -519,7 +519,7 @@ static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, floa
 			R_BuildLightMap(surf, (void *)temp, smax * 4);
 
 			lmtex = surf->lightmaptexturenum + DYNLIGHTMAP_OFFSET;
-			QVk_UpdateTexture(&vk_state.lightmap_textures[lmtex], (unsigned char *)temp, surf->light_s, surf->light_t, smax, tmax);
+			QVk_UpdateTextureData(&vk_state.lightmap_textures[lmtex], (unsigned char *)temp, surf->light_s, surf->light_t, smax, tmax);
 		}
 
 		c_brush_polys++;
@@ -1073,16 +1073,16 @@ static void LM_UploadBlock( qboolean dynamic )
 			if ( vk_lms.allocated[i] > height )
 				height = vk_lms.allocated[i];
 		}
-		QVk_UpdateTexture(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer, 0, 0, BLOCK_WIDTH, height);
+		QVk_UpdateTextureData(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer, 0, 0, BLOCK_WIDTH, height);
 	}
 	else
 	{
 		if (vk_state.lightmap_textures[texture].image != VK_NULL_HANDLE)
-			QVk_UpdateTexture(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer, 0, 0, BLOCK_WIDTH, BLOCK_HEIGHT);
+			QVk_UpdateTextureData(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer, 0, 0, BLOCK_WIDTH, BLOCK_HEIGHT);
 		else
 		{
 			QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[texture]);
-			QVk_CreateTexture(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer, BLOCK_WIDTH, BLOCK_HEIGHT, &vk_global_tex_opts);
+			QVk_CreateTexture(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer, BLOCK_WIDTH, BLOCK_HEIGHT, vk_current_sampler);
 		}
 		if ( ++vk_lms.current_lightmap_texture == MAX_LIGHTMAPS )
 			ri.Sys_Error( ERR_DROP, "LM_UploadBlock() - MAX_LIGHTMAPS exceeded\n" );
@@ -1275,7 +1275,7 @@ void Vk_BeginBuildingLightmaps (model_t *m)
 		for (i = DYNLIGHTMAP_OFFSET; i < MAX_LIGHTMAPS*2; i++)
 		{
 			QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[i]);
-			QVk_CreateTexture(&vk_state.lightmap_textures[i], (unsigned char*)dummy, BLOCK_WIDTH, BLOCK_HEIGHT, &vk_global_tex_opts);
+			QVk_CreateTexture(&vk_state.lightmap_textures[i], (unsigned char*)dummy, BLOCK_WIDTH, BLOCK_HEIGHT, vk_current_sampler);
 		}
 	}
 }
