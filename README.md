@@ -93,22 +93,24 @@ The Vulkan renderer comes with a set of its own additional console commands:
 | vk_skymip             | Toggle the usage of mipmap information for the sky graphics. (default: 0)   |
 | vk_finish             | Inserts vkDeviceWaitIdle() on render start (default: 0).<br>Don't use this, it's just for the sake of having a gl_finish equivalent. |
 | vk_point_particles    | Use POINT_LIST to render particles, textured triangles otherwise. (default: 1) |
-| vk_particle_size      | Rendered particle size. (default: 40)                   |
-| vk_particle_att_a     | Intensity of the particle A attribute. (default: 0.01)  |
-| vk_particle_att_b     | Intensity of the particle B attribute. (default: 0)     |
-| vk_particle_att_c     | Intensity of the particle C attribute. (default: 0.01)  |
-| vk_particle_min_size  | The minimum size for a rendered particle. (default: 2)  |
-| vk_particle_max_size  | The maximum size for a rendered particle. (default: 40) |
-| vk_lockpvs            | Lock current PVS table. (default: 0)                    |
-| vk_clear              | Clear the color buffer each frame. (default: 0)         |
-| vk_modulate           | Texture brightness modifier. (default: 1)               |
-| vk_shadows            | Draw experimental entity shadows. (default: 0)          |
-| vk_picmip             | Shrink factor for the textures. (default: 0)            |
-| vk_round_down         | Toggle the rounding of texture sizes. (default: 1)      |
-| vk_log                | Log frame validation data to file. (default: 0)         |
-| vk_dynamic            | Use dynamic lighting. (default: 1)                      |
-| vk_showtris           | Display mesh triangles. (default: 0)                    |
-| vk_lightmap           | Display lightmaps. (default: 0)                         |
+| vk_particle_size      | Rendered particle size. (default: 40)                    |
+| vk_particle_att_a     | Intensity of the particle A attribute. (default: 0.01)   |
+| vk_particle_att_b     | Intensity of the particle B attribute. (default: 0)      |
+| vk_particle_att_c     | Intensity of the particle C attribute. (default: 0.01)   |
+| vk_particle_min_size  | The minimum size for a rendered particle. (default: 2)   |
+| vk_particle_max_size  | The maximum size for a rendered particle. (default: 40)  |
+| vk_lockpvs            | Lock current PVS table. (default: 0)                     |
+| vk_clear              | Clear the color buffer each frame. (default: 0)          |
+| vk_modulate           | Texture brightness modifier. (default: 1)                |
+| vk_shadows            | Draw experimental entity shadows. (default: 0)           |
+| vk_picmip             | Shrink factor for the textures. (default: 0)             |
+| vk_round_down         | Toggle the rounding of texture sizes. (default: 1)       |
+| vk_log                | Log frame validation data to file. (default: 0)          |
+| vk_dynamic            | Use dynamic lighting. (default: 1)                       |
+| vk_showtris           | Display mesh triangles. (default: 0)                     |
+| vk_lightmap           | Display lightmaps. (default: 0)                          |
+| vk_aniso              | Toggle anisotropic filtering (default: 1)                |
+| vk_mip_nearfilter     | Use nearest neighbour filtering for mipmaps (default: 0) |
 | vk_texturemode        | Change current texture filtering.<br>VK_NEAREST - nearest filter, no mipmaps<br>VK_LINEAR - linear filter, no mipmaps<br>VK_MIPMAP_NEAREST - nearest filter with mipmaps<br>VK_MIPMAP_LINEAR - linear filter with mipmaps (default) |
 
 Acknowledgments
