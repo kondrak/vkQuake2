@@ -504,11 +504,11 @@ void VID_MenuInit( void )
 	s_texture_filter.generic.y = 90 * vid_hudscale->value;
 	s_texture_filter.itemnames = filter_modes;
 	s_texture_filter.curvalue = 0;
-	if(!Q_stricmp( vk_texturemode->string, "VK_LINEAR" ))
+	if ( !Q_stricmp( vk_texturemode->string, "VK_LINEAR" ) )
 		s_texture_filter.curvalue = 1;
-	if(!Q_stricmp( vk_texturemode->string, "VK_MIPMAP_NEAREST" ))
+	if ( !Q_stricmp( vk_texturemode->string, "VK_MIPMAP_NEAREST" ) )
 		s_texture_filter.curvalue = 2;
-	if(!Q_stricmp( vk_texturemode->string, "VK_MIPMAP_LINEAR" ))
+	if ( !Q_stricmp( vk_texturemode->string, "VK_MIPMAP_LINEAR" ) )
 		s_texture_filter.curvalue = 3;
 
 	Menu_AddItem( &s_software_menu, ( void * ) &s_ref_list[SOFTWARE_MENU] );
@@ -543,9 +543,9 @@ void VID_MenuInit( void )
 	Menu_AddItem( &s_opengl_menu, ( void * ) &s_apply_action[OPENGL_MENU] );
 	Menu_AddItem( &s_opengl_menu, ( void * ) &s_defaults_action[OPENGL_MENU] );
 	Menu_AddItem( &s_opengl_menu, ( void * ) &s_cancel_action[OPENGL_MENU] );
-	Menu_AddItem( &s_vulkan_menu, (void * ) &s_apply_action[VULKAN_MENU]);
-	Menu_AddItem( &s_vulkan_menu, (void * ) &s_defaults_action[VULKAN_MENU]);
-	Menu_AddItem( &s_vulkan_menu, (void * ) &s_cancel_action[VULKAN_MENU]);
+	Menu_AddItem( &s_vulkan_menu, (void * ) &s_apply_action[VULKAN_MENU] );
+	Menu_AddItem( &s_vulkan_menu, (void * ) &s_defaults_action[VULKAN_MENU] );
+	Menu_AddItem( &s_vulkan_menu, (void * ) &s_cancel_action[VULKAN_MENU] );
 
 	Menu_Center( &s_software_menu );
 	Menu_Center( &s_opengl_menu );

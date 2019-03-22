@@ -522,11 +522,11 @@ void VID_MenuInit( void )
 	s_texture_filter.generic.y = 100 * vid_hudscale->value;
 	s_texture_filter.itemnames = filter_modes;
 	s_texture_filter.curvalue = 0;
-	if (!Q_stricmp(vk_texturemode->string, "VK_LINEAR"))
+	if ( !Q_stricmp( vk_texturemode->string, "VK_LINEAR" ) )
 		s_texture_filter.curvalue = 1;
-	if (!Q_stricmp(vk_texturemode->string, "VK_MIPMAP_NEAREST"))
+	if ( !Q_stricmp( vk_texturemode->string, "VK_MIPMAP_NEAREST" ) )
 		s_texture_filter.curvalue = 2;
-	if (!Q_stricmp(vk_texturemode->string, "VK_MIPMAP_LINEAR"))
+	if ( !Q_stricmp( vk_texturemode->string, "VK_MIPMAP_LINEAR" ) )
 		s_texture_filter.curvalue = 3;
 
 	Menu_AddItem( &s_software_menu, ( void * ) &s_ref_list[SOFTWARE_MENU] );

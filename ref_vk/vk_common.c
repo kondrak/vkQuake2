@@ -212,6 +212,8 @@ VkDescriptorSetLayout vk_uboDescSetLayout;
 VkDescriptorSetLayout vk_samplerDescSetLayout;
 VkDescriptorSetLayout vk_samplerLightmapDescSetLayout;
 
+extern cvar_t *vk_msaa;
+
 VkFormat QVk_FindDepthFormat()
 {
 	VkFormat depthFormats[] = {
@@ -237,8 +239,6 @@ VkFormat QVk_FindDepthFormat()
 // internal helper
 static VkSampleCountFlagBits GetSampleCount()
 {
-	extern cvar_t *vk_msaa;
-
 	static VkSampleCountFlagBits msaaModes[] = {
 		VK_SAMPLE_COUNT_1_BIT,
 		VK_SAMPLE_COUNT_2_BIT,
@@ -1117,7 +1117,6 @@ qboolean QVk_Init()
 		ri.Cvar_Set("vk_msaa", "0");
 		msaaMode = VK_SAMPLE_COUNT_1_BIT;
 		// avoid secondary video reload
-		extern cvar_t *vk_msaa;
 		vk_msaa->modified = false;
 	}
 

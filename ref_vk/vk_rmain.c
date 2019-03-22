@@ -1032,6 +1032,7 @@ void R_Register( void )
 	vk_aniso = ri.Cvar_Get("vk_aniso", "1", CVAR_ARCHIVE);
 	vk_mip_nearfilter = ri.Cvar_Get("vk_mip_nearfilter", "0", CVAR_ARCHIVE);
 	vk_device_idx = ri.Cvar_Get("vk_device", "-1", CVAR_ARCHIVE);
+	// clamp vk_msaa to accepted range so that video menu doesn't crash on us
 	if (vk_msaa->value < 0)
 		ri.Cvar_Set("vk_msaa", "0");
 	else if (vk_msaa->value > 4)
