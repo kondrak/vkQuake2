@@ -86,7 +86,7 @@ The Vulkan renderer comes with a set of its own additional console commands:
 | vk_validation         | Toggle validation layers.<br>0 - disabled (default in Release)<br> 1 - only errors and warnings<br>2 - full validation (default in Debug) |
 | vk_strings            | Print some basic Vulkan/GPU information.                                    |
 | vk_device             | Specifiy preferred Vulkan device index on systems with multiple GPUs.<br>-1 - prefer first DISCRETE_GPU (default)<br>0..n - use device #n (full list of devices is returned by vk_strings command) |
-| vk_msaa               | Toggle MSAA.<br>0 - off (default)<br>1 - MSAAx2<br>2 - MSAAx4<br>3 - MSAAx8 |
+| vk_msaa               | Toggle MSAA.<br>0 - off (default)<br>1 - MSAAx2<br>2 - MSAAx4<br>3 - MSAAx8<br>4 - MSAAx16 |
 | vk_mode               | Vulkan video mode (default: 11). Setting this to `-1` uses a custom screen resolution defined by `r_customwidth` (default: 1024) and `r_customheight` (default: 768) console variables. |
 | vk_flashblend         | Toggle the blending of lights onto the environment. (default: 0)            |
 | vk_polyblend          | Blend fullscreen effects: blood, powerups etc. (default: 1)                 |
