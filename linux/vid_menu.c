@@ -292,6 +292,7 @@ void VID_MenuInit( void )
 		"x2",
 		"x4",
 		"x8",
+		"x16",
 		0
 	};
 	static const char *filter_modes[] =
@@ -430,19 +431,19 @@ void VID_MenuInit( void )
 		s_apply_action[i].generic.type = MTYPE_ACTION;
 		s_apply_action[i].generic.name = "apply changes";
 		s_apply_action[i].generic.x = 0;
-		s_apply_action[i].generic.y = 100 * vid_hudscale->value;
+		s_apply_action[i].generic.y = 110 * vid_hudscale->value;
 		s_apply_action[i].generic.callback = ApplyChanges;
 
 		s_defaults_action[i].generic.type = MTYPE_ACTION;
 		s_defaults_action[i].generic.name = "reset to defaults";
 		s_defaults_action[i].generic.x    = 0;
-		s_defaults_action[i].generic.y    = 110 * vid_hudscale->value;
+		s_defaults_action[i].generic.y    = 120 * vid_hudscale->value;
 		s_defaults_action[i].generic.callback = ResetDefaults;
 
 		s_cancel_action[i].generic.type = MTYPE_ACTION;
 		s_cancel_action[i].generic.name = "cancel";
 		s_cancel_action[i].generic.x    = 0;
-		s_cancel_action[i].generic.y    = 120 * vid_hudscale->value;
+		s_cancel_action[i].generic.y    = 130 * vid_hudscale->value;
 		s_cancel_action[i].generic.callback = CancelChanges;
 	}
 
