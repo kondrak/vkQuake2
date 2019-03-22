@@ -1034,8 +1034,8 @@ void R_Register( void )
 	vk_device_idx = ri.Cvar_Get("vk_device", "-1", CVAR_ARCHIVE);
 	if (vk_msaa->value < 0)
 		ri.Cvar_Set("vk_msaa", "0");
-	else if (vk_msaa->value > 3)
-		ri.Cvar_Set("vk_msaa", "3");
+	else if (vk_msaa->value > 4)
+		ri.Cvar_Set("vk_msaa", "4");
 
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);

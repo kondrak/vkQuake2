@@ -243,7 +243,8 @@ static VkSampleCountFlagBits GetSampleCount()
 		VK_SAMPLE_COUNT_1_BIT,
 		VK_SAMPLE_COUNT_2_BIT,
 		VK_SAMPLE_COUNT_4_BIT,
-		VK_SAMPLE_COUNT_8_BIT
+		VK_SAMPLE_COUNT_8_BIT,
+		VK_SAMPLE_COUNT_16_BIT
 	};
 
 	return msaaModes[(int)vk_msaa->value];
@@ -1114,7 +1115,10 @@ qboolean QVk_Init()
 	{
 		ri.Con_Printf(PRINT_ALL, "MSAAx%d mode not supported, aborting...\n", msaaMode);
 		ri.Cvar_Set("vk_msaa", "0");
-		return false;
+		msaaMode = VK_SAMPLE_COUNT_1_BIT;
+		// avoid secondary video reload
+		extern cvar_t *vk_msaa;
+		vk_msaa->modified = false;
 	}
 
 	if (msaaMode != VK_SAMPLE_COUNT_1_BIT)

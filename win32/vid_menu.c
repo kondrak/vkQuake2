@@ -41,6 +41,8 @@ static cvar_t *gl_ext_palettedtexture;
 static cvar_t *gl_finish;
 static cvar_t *vk_finish;
 static cvar_t *vk_msaa;
+static cvar_t *vk_aniso;
+static cvar_t *vk_texturemode;
 static cvar_t *vk_picmip;
 
 static cvar_t *sw_mode;
@@ -78,7 +80,9 @@ static menulist_s  		s_fs_box[3];
 static menulist_s  		s_stipple_box;
 static menulist_s  		s_paletted_texture_box;
 static menulist_s		s_msaa_mode;
-static menulist_s  		s_finish_box;
+static menulist_s		s_aniso_filter;
+static menulist_s		s_texture_filter;
+static menulist_s		s_finish_box;
 static menulist_s		s_vkfinish_box;
 static menuaction_s		s_apply_action[3];
 static menuaction_s		s_cancel_action[3];
@@ -166,10 +170,26 @@ static void ApplyChanges( void *unused )
 	Cvar_SetValue( "gl_finish", s_finish_box.curvalue );
 	Cvar_SetValue( "vk_finish", s_vkfinish_box.curvalue );
 	Cvar_SetValue( "sw_mode", s_mode_list[SOFTWARE_MENU].curvalue == 0 ? -1 : s_mode_list[SOFTWARE_MENU].curvalue - 1 );
-	Cvar_SetValue( "gl_mode", s_mode_list[OPENGL_MENU].curvalue == 0 ? -1 : s_mode_list[OPENGL_MENU].curvalue - 1);
-	Cvar_SetValue( "vk_mode", s_mode_list[VULKAN_MENU].curvalue == 0 ? -1 : s_mode_list[VULKAN_MENU].curvalue - 1);
-	Cvar_SetValue( "vk_msaa", s_msaa_mode.curvalue);
+	Cvar_SetValue( "gl_mode", s_mode_list[OPENGL_MENU].curvalue == 0 ? -1 : s_mode_list[OPENGL_MENU].curvalue - 1 );
+	Cvar_SetValue( "vk_mode", s_mode_list[VULKAN_MENU].curvalue == 0 ? -1 : s_mode_list[VULKAN_MENU].curvalue - 1 );
+	Cvar_SetValue( "vk_msaa", s_msaa_mode.curvalue );
+	Cvar_SetValue( "vk_aniso", s_aniso_filter.curvalue );
 	Cvar_SetValue( "vk_picmip", 3 - s_tqvk_slider.curvalue );
+
+	switch (s_texture_filter.curvalue)
+	{
+	case 0:
+		Cvar_Set("vk_texturemode", "VK_NEAREST");
+		break;
+	case 1:
+		Cvar_Set("vk_texturemode", "VK_LINEAR");
+		break;
+	case 2:
+		Cvar_Set("vk_texturemode", "VK_MIPMAP_NEAREST");
+		break;
+	default:
+		Cvar_Set("vk_texturemode", "VK_MIPMAP_LINEAR");
+	}
 
 	switch ( s_ref_list[s_current_menu_index].curvalue )
 	{
@@ -290,6 +310,21 @@ void VID_MenuInit( void )
 		"x2",
 		"x4",
 		"x8",
+		"x16",
+		0
+	};
+	static const char *filter_modes[] =
+	{
+		"nearest",
+		"linear",
+		"mipmap nearest",
+		"mipmap linear",
+		0
+	};
+	static const char *on_off[] =
+	{
+		"off",
+		"on",
 		0
 	};
 	int i;
@@ -310,6 +345,10 @@ void VID_MenuInit( void )
 		vk_finish = Cvar_Get( "vk_finish", "0", CVAR_ARCHIVE );
 	if ( !vk_msaa )
 		vk_msaa = Cvar_Get( "vk_msaa", "0", CVAR_ARCHIVE );
+	if ( !vk_aniso )
+		vk_aniso = Cvar_Get( "vk_aniso", "1", CVAR_ARCHIVE );
+	if ( !vk_texturemode )
+		vk_texturemode = Cvar_Get( "vk_texturemode", "VK_MIPMAP_LINEAR", CVAR_ARCHIVE );
 	if ( !vk_picmip )
 		vk_picmip = Cvar_Get( "vk_picmip", "0", CVAR_ARCHIVE );
 	if ( !sw_stipplealpha )
@@ -403,19 +442,19 @@ void VID_MenuInit( void )
 		s_apply_action[i].generic.type = MTYPE_ACTION;
 		s_apply_action[i].generic.name = "apply changes";
 		s_apply_action[i].generic.x = 0;
-		s_apply_action[i].generic.y = 100 * vid_hudscale->value;
+		s_apply_action[i].generic.y = 120 * vid_hudscale->value;
 		s_apply_action[i].generic.callback = ApplyChanges;
 
 		s_defaults_action[i].generic.type = MTYPE_ACTION;
 		s_defaults_action[i].generic.name = "reset to defaults";
 		s_defaults_action[i].generic.x    = 0;
-		s_defaults_action[i].generic.y    = 110 * vid_hudscale->value;
+		s_defaults_action[i].generic.y    = 130 * vid_hudscale->value;
 		s_defaults_action[i].generic.callback = ResetDefaults;
 
 		s_cancel_action[i].generic.type = MTYPE_ACTION;
 		s_cancel_action[i].generic.name = "cancel";
 		s_cancel_action[i].generic.x    = 0;
-		s_cancel_action[i].generic.y    = 120 * vid_hudscale->value;
+		s_cancel_action[i].generic.y    = 140 * vid_hudscale->value;
 		s_cancel_action[i].generic.callback = CancelChanges;
 	}
 
@@ -470,6 +509,26 @@ void VID_MenuInit( void )
 	s_vkfinish_box.curvalue = vk_finish->value;
 	s_vkfinish_box.itemnames = yesno_names;
 
+	s_aniso_filter.generic.type = MTYPE_SPINCONTROL;
+	s_aniso_filter.generic.name = "anisotropic filtering";
+	s_aniso_filter.generic.x = 0;
+	s_aniso_filter.generic.y = 90 * vid_hudscale->value;
+	s_aniso_filter.itemnames = on_off;
+	s_aniso_filter.curvalue = vk_aniso->value > 0 ? 1 : 0;
+
+	s_texture_filter.generic.type = MTYPE_SPINCONTROL;
+	s_texture_filter.generic.name = "texture filtering";
+	s_texture_filter.generic.x = 0;
+	s_texture_filter.generic.y = 100 * vid_hudscale->value;
+	s_texture_filter.itemnames = filter_modes;
+	s_texture_filter.curvalue = 0;
+	if (!Q_stricmp(vk_texturemode->string, "VK_LINEAR"))
+		s_texture_filter.curvalue = 1;
+	if (!Q_stricmp(vk_texturemode->string, "VK_MIPMAP_NEAREST"))
+		s_texture_filter.curvalue = 2;
+	if (!Q_stricmp(vk_texturemode->string, "VK_MIPMAP_LINEAR"))
+		s_texture_filter.curvalue = 3;
+
 	Menu_AddItem( &s_software_menu, ( void * ) &s_ref_list[SOFTWARE_MENU] );
 	Menu_AddItem( &s_software_menu, ( void * ) &s_mode_list[SOFTWARE_MENU] );
 	Menu_AddItem( &s_software_menu, ( void * ) &s_screensize_slider[SOFTWARE_MENU] );
@@ -486,14 +545,16 @@ void VID_MenuInit( void )
 	Menu_AddItem( &s_opengl_menu, ( void * ) &s_paletted_texture_box );
 	Menu_AddItem( &s_opengl_menu, ( void * ) &s_finish_box );
 
-	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_ref_list[VULKAN_MENU]);
-	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_mode_list[VULKAN_MENU]);
-	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_screensize_slider[VULKAN_MENU]);
-	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_brightness_slider[VULKAN_MENU]);
-	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_fs_box[VULKAN_MENU]);
-	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_tqvk_slider);
-	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_msaa_mode);
-	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_vkfinish_box);
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_ref_list[VULKAN_MENU] );
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_mode_list[VULKAN_MENU] );
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_screensize_slider[VULKAN_MENU] );
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_brightness_slider[VULKAN_MENU] );
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_fs_box[VULKAN_MENU] );
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_tqvk_slider );
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_msaa_mode );
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_vkfinish_box );
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_aniso_filter );
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_texture_filter );
 
 	Menu_AddItem( &s_software_menu, ( void * ) &s_apply_action[SOFTWARE_MENU] );
 	Menu_AddItem( &s_software_menu, ( void * ) &s_defaults_action[SOFTWARE_MENU] );
