@@ -152,7 +152,6 @@ typedef struct
 {
 	VkPipelineLayout layout;
 	VkPipeline pl;
-	VkPipeline basePipelineHandle;
 	VkPipelineCreateFlags flags;
 	VkPolygonMode mode;
 	VkCullModeFlags cullMode;
@@ -160,7 +159,6 @@ typedef struct
 	VkPipelineColorBlendAttachmentState blendOpts;
 	VkBool32 depthTestEnable;
 	VkBool32 depthWriteEnable;
-	float minSampleShading; // sample shading minimum fraction - >= 0 to enable
 } qvkpipeline_t;
 
 // Vulkan shader
@@ -173,7 +171,6 @@ typedef struct
 #define QVKPIPELINE_INIT { \
 	.layout = VK_NULL_HANDLE, \
 	.pl = VK_NULL_HANDLE, \
-	.basePipelineHandle = VK_NULL_HANDLE, \
 	.flags = 0, \
 	.mode = VK_POLYGON_MODE_FILL, \
 	.cullMode = VK_CULL_MODE_BACK_BIT, \
@@ -189,8 +186,7 @@ typedef struct
 		.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT \
 	}, \
 	.depthTestEnable = VK_TRUE, \
-	.depthWriteEnable = VK_TRUE, \
-	.minSampleShading = -1.f \
+	.depthWriteEnable = VK_TRUE \
 }
 
 // type of renderpass (non-MSAA/MSAA)

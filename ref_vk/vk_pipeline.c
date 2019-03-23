@@ -111,8 +111,8 @@ void QVk_CreatePipeline(const VkDescriptorSetLayout *descriptorLayout, const uin
 		.pNext = NULL,
 		.flags = 0,
 		.rasterizationSamples = vk_activeRenderpass.sampleCount,
-		.sampleShadingEnable = pipeline->minSampleShading < 0.f ? VK_FALSE : VK_TRUE,
-		.minSampleShading = pipeline->minSampleShading < 0.f ? 1.f : pipeline->minSampleShading,
+		.sampleShadingEnable = (vk_sampleshading->value > 0 && vk_device.features.sampleRateShading) ? VK_TRUE : VK_FALSE,
+		.minSampleShading = (vk_sampleshading->value > 0 && vk_device.features.sampleRateShading) ? 1.f : 0.f,
 		.pSampleMask = NULL,
 		.alphaToCoverageEnable = VK_FALSE,
 		.alphaToOneEnable = VK_FALSE
@@ -187,7 +187,7 @@ void QVk_CreatePipeline(const VkDescriptorSetLayout *descriptorLayout, const uin
 		.layout = pipeline->layout,
 		.renderPass = vk_activeRenderpass.rp,
 		.subpass = 0,
-		.basePipelineHandle = pipeline->basePipelineHandle,
+		.basePipelineHandle = VK_NULL_HANDLE,
 		.basePipelineIndex = -1
 	};
 

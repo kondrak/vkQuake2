@@ -42,6 +42,7 @@ static cvar_t *gl_finish;
 static cvar_t *vk_finish;
 static cvar_t *vk_msaa;
 static cvar_t *vk_aniso;
+static cvar_t *vk_sampleshading;
 static cvar_t *vk_texturemode;
 static cvar_t *vk_picmip;
 
@@ -80,6 +81,7 @@ static menulist_s  		s_fs_box[3];
 static menulist_s  		s_stipple_box;
 static menulist_s  		s_paletted_texture_box;
 static menulist_s		s_msaa_mode;
+static menulist_s		s_sampleshading;
 static menulist_s		s_aniso_filter;
 static menulist_s		s_texture_filter;
 static menulist_s		s_finish_box;
@@ -174,6 +176,7 @@ static void ApplyChanges( void *unused )
 	Cvar_SetValue( "vk_mode", s_mode_list[VULKAN_MENU].curvalue == 0 ? -1 : s_mode_list[VULKAN_MENU].curvalue - 1 );
 	Cvar_SetValue( "vk_msaa", s_msaa_mode.curvalue );
 	Cvar_SetValue( "vk_aniso", s_aniso_filter.curvalue );
+	Cvar_SetValue( "vk_sampleshading", s_sampleshading.curvalue );
 	Cvar_SetValue( "vk_picmip", 3 - s_tqvk_slider.curvalue );
 
 	switch (s_texture_filter.curvalue)
@@ -347,6 +350,8 @@ void VID_MenuInit( void )
 		vk_msaa = Cvar_Get( "vk_msaa", "0", CVAR_ARCHIVE );
 	if ( !vk_aniso )
 		vk_aniso = Cvar_Get( "vk_aniso", "1", CVAR_ARCHIVE );
+	if ( !vk_sampleshading )
+		vk_sampleshading = Cvar_Get( "vk_sampleshading", "1", CVAR_ARCHIVE );
 	if ( !vk_texturemode )
 		vk_texturemode = Cvar_Get( "vk_texturemode", "VK_MIPMAP_LINEAR", CVAR_ARCHIVE );
 	if ( !vk_picmip )
@@ -442,19 +447,19 @@ void VID_MenuInit( void )
 		s_apply_action[i].generic.type = MTYPE_ACTION;
 		s_apply_action[i].generic.name = "apply changes";
 		s_apply_action[i].generic.x = 0;
-		s_apply_action[i].generic.y = 120 * vid_hudscale->value;
+		s_apply_action[i].generic.y = 130 * vid_hudscale->value;
 		s_apply_action[i].generic.callback = ApplyChanges;
 
 		s_defaults_action[i].generic.type = MTYPE_ACTION;
 		s_defaults_action[i].generic.name = "reset to defaults";
 		s_defaults_action[i].generic.x    = 0;
-		s_defaults_action[i].generic.y    = 130 * vid_hudscale->value;
+		s_defaults_action[i].generic.y    = 140 * vid_hudscale->value;
 		s_defaults_action[i].generic.callback = ResetDefaults;
 
 		s_cancel_action[i].generic.type = MTYPE_ACTION;
 		s_cancel_action[i].generic.name = "cancel";
 		s_cancel_action[i].generic.x    = 0;
-		s_cancel_action[i].generic.y    = 140 * vid_hudscale->value;
+		s_cancel_action[i].generic.y    = 150 * vid_hudscale->value;
 		s_cancel_action[i].generic.callback = CancelChanges;
 	}
 
@@ -509,17 +514,24 @@ void VID_MenuInit( void )
 	s_vkfinish_box.curvalue = vk_finish->value;
 	s_vkfinish_box.itemnames = yesno_names;
 
+	s_sampleshading.generic.type = MTYPE_SPINCONTROL;
+	s_sampleshading.generic.name = "sample shading";
+	s_sampleshading.generic.x = 0;
+	s_sampleshading.generic.y = 90 * vid_hudscale->value;
+	s_sampleshading.itemnames = on_off;
+	s_sampleshading.curvalue = vk_sampleshading->value > 0 ? 1 : 0;
+
 	s_aniso_filter.generic.type = MTYPE_SPINCONTROL;
 	s_aniso_filter.generic.name = "anisotropic filtering";
 	s_aniso_filter.generic.x = 0;
-	s_aniso_filter.generic.y = 90 * vid_hudscale->value;
+	s_aniso_filter.generic.y = 100 * vid_hudscale->value;
 	s_aniso_filter.itemnames = on_off;
 	s_aniso_filter.curvalue = vk_aniso->value > 0 ? 1 : 0;
 
 	s_texture_filter.generic.type = MTYPE_SPINCONTROL;
 	s_texture_filter.generic.name = "texture filtering";
 	s_texture_filter.generic.x = 0;
-	s_texture_filter.generic.y = 100 * vid_hudscale->value;
+	s_texture_filter.generic.y = 110 * vid_hudscale->value;
 	s_texture_filter.itemnames = filter_modes;
 	s_texture_filter.curvalue = 0;
 	if ( !Q_stricmp( vk_texturemode->string, "VK_LINEAR" ) )
@@ -553,6 +565,7 @@ void VID_MenuInit( void )
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_tqvk_slider );
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_msaa_mode );
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_vkfinish_box );
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_sampleshading );
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_aniso_filter );
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_texture_filter );
 
@@ -572,9 +585,9 @@ void VID_MenuInit( void )
 	s_opengl_menu.x -= 8 * vid_hudscale->value;
 	s_software_menu.x -= 8 * vid_hudscale->value;
 	s_vulkan_menu.x -= 8 * vid_hudscale->value;
-	s_opengl_menu.y += 8;
-	s_software_menu.y += 8;
-	s_vulkan_menu.y += 8;
+	s_opengl_menu.y += 16;
+	s_software_menu.y += 16;
+	s_vulkan_menu.y += 16;
 }
 
 /*

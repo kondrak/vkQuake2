@@ -200,6 +200,7 @@ extern	cvar_t	*vk_showtris;
 extern	cvar_t	*vk_lightmap;
 extern	cvar_t	*vk_texturemode;
 extern	cvar_t	*vk_aniso;
+extern	cvar_t	*vk_sampleshading;
 extern	cvar_t	*vk_device_idx;
 
 extern	cvar_t	*vid_fullscreen;
