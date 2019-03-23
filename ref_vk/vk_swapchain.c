@@ -80,7 +80,8 @@ static VkPresentModeKHR getSwapPresentMode(const VkPresentModeKHR *presentModes,
 		}
 	}
 
-	VkPresentModeKHR usedPresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+	// PRESENT_MODE_FIFO_KHR is guaranteed to exist due to spec requirements
+	VkPresentModeKHR usedPresentMode = VK_PRESENT_MODE_FIFO_KHR;
 	// preferred present mode not found - choose the next best thing
 	for (uint32_t i = 0; i < presentModesCount; ++i)
 	{
