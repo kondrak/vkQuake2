@@ -572,6 +572,9 @@ void VID_MenuInit( void )
 	s_opengl_menu.x -= 8 * vid_hudscale->value;
 	s_software_menu.x -= 8 * vid_hudscale->value;
 	s_vulkan_menu.x -= 8 * vid_hudscale->value;
+	s_opengl_menu.y += 8;
+	s_software_menu.y += 8;
+	s_vulkan_menu.y += 8;
 }
 
 /*
