@@ -33,11 +33,8 @@ Draw_InitLocal
 void Draw_InitLocal (void)
 {
 	// load console characters (don't bilerp characters)
-	qvktextureopts_t texOpts = {
-		.minFilter = VK_FILTER_NEAREST,
-		.magFilter = VK_FILTER_NEAREST
-	};
-	draw_chars = Vk_FindImage("pics/conchars.pcx", it_pic, &texOpts);
+	qvksampler_t samplerType = S_NEAREST;
+	draw_chars = Vk_FindImage("pics/conchars.pcx", it_pic, &samplerType);
 }
 
 
@@ -287,12 +284,12 @@ void Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data
 
 	if (vk_rawTexture.image != VK_NULL_HANDLE)
 	{
-		QVk_UpdateTexture(&vk_rawTexture, (unsigned char*)&image32, 0, 0, 256, 256);
+		QVk_UpdateTextureData(&vk_rawTexture, (unsigned char*)&image32, 0, 0, 256, 256);
 	}
 	else
 	{
 		QVVKTEXTURE_CLEAR(vk_rawTexture);
-		QVk_CreateTexture(&vk_rawTexture, (unsigned char*)&image32, 256, 256, &vk_global_tex_opts);
+		QVk_CreateTexture(&vk_rawTexture, (unsigned char*)&image32, 256, 256, vk_current_sampler);
 	}
 
 	float imgTransform[] = { (float)x / vid.width, (float)y / vid.height,

@@ -59,14 +59,19 @@ typedef struct
 	int imageCount;
 } qvkswapchain_t;
 
-// texture options
-typedef struct
+// available sampler types
+typedef enum
 {
-	VkFilter  minFilter;
-	VkFilter  magFilter;
-	VkFilter  mipmapFilter;
-	VkSamplerMipmapMode mipmapMode;
-} qvktextureopts_t;
+	S_NEAREST = 0,
+	S_LINEAR = 1,
+	S_MIPMAP_NEAREST = 2,
+	S_MIPMAP_LINEAR = 3,
+	S_ANISO_NEAREST = 4,
+	S_ANISO_LINEAR = 5,
+	S_ANISO_MIPMAP_NEAREST = 6,
+	S_ANISO_MIPMAP_LINEAR = 7,
+	S_SAMPLER_CNT = 8
+} qvksampler_t;
 
 // texture object
 typedef struct 
@@ -75,17 +80,12 @@ typedef struct
 	VmaAllocation allocation;
 	VmaAllocationCreateFlags vmaFlags;
 	VkImageView   imageView;
-	VkSampler sampler;
 	VkSharingMode sharingMode;
 	VkSampleCountFlagBits sampleCount;
 	VkFormat  format;
 	VkDescriptorSet descriptorSet;
 	// mipmap settings
 	uint32_t mipLevels;
-	float mipLodBias;
-	float mipMinLod;
-	VkSamplerMipmapMode mipmapMode;
-	VkFilter mipmapFilter;
 } qvktexture_t;
 
 #define QVVKTEXTURE_INIT     { \
@@ -93,16 +93,11 @@ typedef struct
 	.allocation = VK_NULL_HANDLE, \
 	.vmaFlags = 0, \
 	.imageView = VK_NULL_HANDLE, \
-	.sampler = VK_NULL_HANDLE, \
 	.sharingMode = VK_SHARING_MODE_MAX_ENUM, \
 	.sampleCount = VK_SAMPLE_COUNT_1_BIT, \
 	.format = VK_FORMAT_R8G8B8A8_UNORM, \
 	.descriptorSet = VK_NULL_HANDLE, \
 	.mipLevels = 1, \
-	.mipLodBias = 0.f, \
-	.mipMinLod = 0.f, \
-	.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR, \
-	.mipmapFilter = VK_FILTER_LINEAR \
 }
 
 #define QVVKTEXTURE_CLEAR(i)     { \
@@ -110,15 +105,10 @@ typedef struct
 	(i).allocation = VK_NULL_HANDLE; \
 	(i).vmaFlags = 0; \
 	(i).imageView = VK_NULL_HANDLE; \
-	(i).sampler = VK_NULL_HANDLE; \
 	(i).sharingMode = VK_SHARING_MODE_MAX_ENUM; \
 	(i).sampleCount = VK_SAMPLE_COUNT_1_BIT; \
 	(i).format = VK_FORMAT_R8G8B8A8_UNORM; \
 	(i).mipLevels = 1; \
-	(i).mipLodBias = 0.f; \
-	(i).mipMinLod = 0.f; \
-	(i).mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR; \
-	(i).mipmapFilter = VK_FILTER_LINEAR; \
 }
 
 // Vulkan renderpass
@@ -279,8 +269,9 @@ VkResult	QVk_CreateImageView(const VkImage *image, VkImageAspectFlags aspectFlag
 VkResult	QVk_CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VmaMemoryUsage memUsage, qvktexture_t *texture);
 void		QVk_CreateDepthBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *depthBuffer);
 void		QVk_CreateColorBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *colorBuffer);
-void		QVk_CreateTexture(qvktexture_t *texture, const unsigned char *data, uint32_t width, uint32_t height, qvktextureopts_t *texOpts);
-void		QVk_UpdateTexture(qvktexture_t *texture, const unsigned char *data, uint32_t offset_x, uint32_t offset_y, uint32_t width, uint32_t height);
+void		QVk_CreateTexture(qvktexture_t *texture, const unsigned char *data, uint32_t width, uint32_t height, qvksampler_t samplerType);
+void		QVk_UpdateTextureData(qvktexture_t *texture, const unsigned char *data, uint32_t offset_x, uint32_t offset_y, uint32_t width, uint32_t height);
+VkSampler	QVk_UpdateTextureSampler(qvktexture_t *texture, qvksampler_t samplerType);
 void		QVk_ReleaseTexture(qvktexture_t *texture);
 void		QVk_ReadPixels(uint8_t *dstBuffer, uint32_t width, uint32_t height);
 VkResult	QVk_BeginCommand(const VkCommandBuffer *commandBuffer);

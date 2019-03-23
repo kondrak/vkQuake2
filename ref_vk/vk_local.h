@@ -199,6 +199,7 @@ extern	cvar_t	*vk_dynamic;
 extern	cvar_t	*vk_showtris;
 extern	cvar_t	*vk_lightmap;
 extern	cvar_t	*vk_texturemode;
+extern	cvar_t	*vk_aniso;
 extern	cvar_t	*vk_device_idx;
 
 extern	cvar_t	*vid_fullscreen;
@@ -221,7 +222,7 @@ extern	model_t	*r_worldmodel;
 extern	unsigned	d_8to24table[256];
 
 extern	int		registration_sequence;
-extern	qvktextureopts_t vk_global_tex_opts;
+extern	qvksampler_t vk_current_sampler;
 
 qboolean R_Init( void *hinstance, void *hWnd );
 void	 R_Shutdown( void );
@@ -271,9 +272,9 @@ void Vk_ResampleTexture (unsigned *in, int inwidth, int inheight, unsigned *out,
 struct image_s *R_RegisterSkin (char *name);
 
 void LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *height);
-image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type, int bits, qvktextureopts_t *texOpts);
-image_t	*Vk_FindImage (char *name, imagetype_t type, qvktextureopts_t *texOpts);
-qboolean Vk_TextureMode( char *string );
+image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type, int bits, qvksampler_t *samplerType);
+image_t	*Vk_FindImage (char *name, imagetype_t type, qvksampler_t *samplerType);
+void	Vk_TextureMode( char *string );
 void	Vk_ImageList_f (void);
 
 void	Vk_InitImages (void);

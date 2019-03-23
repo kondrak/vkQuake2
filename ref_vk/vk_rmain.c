@@ -112,6 +112,8 @@ cvar_t	*vk_msaa;
 cvar_t	*vk_showtris;
 cvar_t	*vk_lightmap;
 cvar_t	*vk_texturemode;
+cvar_t	*vk_aniso;
+cvar_t	*vk_mip_nearfilter;
 cvar_t	*vk_device_idx;
 
 cvar_t	*vid_fullscreen;
@@ -1027,11 +1029,14 @@ void R_Register( void )
 	vk_showtris = ri.Cvar_Get("vk_showtris", "0", 0);
 	vk_lightmap = ri.Cvar_Get("vk_lightmap", "0", 0);
 	vk_texturemode = ri.Cvar_Get("vk_texturemode", "VK_MIPMAP_LINEAR", CVAR_ARCHIVE);
+	vk_aniso = ri.Cvar_Get("vk_aniso", "1", CVAR_ARCHIVE);
+	vk_mip_nearfilter = ri.Cvar_Get("vk_mip_nearfilter", "0", CVAR_ARCHIVE);
 	vk_device_idx = ri.Cvar_Get("vk_device", "-1", CVAR_ARCHIVE);
+	// clamp vk_msaa to accepted range so that video menu doesn't crash on us
 	if (vk_msaa->value < 0)
 		ri.Cvar_Set("vk_msaa", "0");
-	else if (vk_msaa->value > 3)
-		ri.Cvar_Set("vk_msaa", "3");
+	else if (vk_msaa->value > 4)
+		ri.Cvar_Set("vk_msaa", "4");
 
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
@@ -1059,13 +1064,10 @@ qboolean R_SetMode (void)
 	vk_msaa->modified = false;
 	vk_clear->modified = false;
 	vk_validation->modified = false;
+	vk_mip_nearfilter->modified = false;
 	vk_device_idx->modified = false;
-
-	if (vk_texturemode->modified)
-	{
-		Vk_TextureMode(vk_texturemode->string);
-		vk_texturemode->modified = false;
-	}
+	// refresh texture samplers
+	vk_texturemode->modified = true;
 
 	if ((err = Vkimp_SetMode((int*)&vid.width, (int*)&vid.height, vk_mode->value, fullscreen)) == rserr_ok)
 	{
@@ -1181,16 +1183,13 @@ void R_BeginFrame( float camera_separation )
 	** change modes if necessary
 	*/
 	if (vk_mode->modified || vid_fullscreen->modified || vk_msaa->modified || vk_clear->modified || 
-		vk_validation->modified || vk_texturemode->modified || vk_device_idx->modified)
+		vk_validation->modified || vk_texturemode->modified || vk_aniso->modified || vk_mip_nearfilter->modified || vk_device_idx->modified)
 	{
-		if (vk_texturemode->modified)
+		if (vk_texturemode->modified || vk_aniso->modified)
 		{
-			if (Vk_TextureMode(vk_texturemode->string))
-			{
-				cvar_t	*ref = ri.Cvar_Get("vid_ref", "vk", 0);
-				ref->modified = true;
-			}
-
+			Vk_TextureMode(vk_texturemode->string);
+			vk_texturemode->modified = false;
+			vk_aniso->modified = false;
 		}
 		else
 		{
