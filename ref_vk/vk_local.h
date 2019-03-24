@@ -298,6 +298,7 @@ typedef struct
 	const char *vendor_name;
 	const char *device_type;
 	const char *present_mode;
+	const char *supported_present_modes[256];
 	const char *extensions[256];
 	const char *layers[256];
 } vkconfig_t;

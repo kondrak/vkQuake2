@@ -141,6 +141,14 @@ VkResult QVk_CreateSwapchain()
 	{
 		presentModes = (VkPresentModeKHR *)malloc(presentModesCount * sizeof(VkPresentModeKHR));
 		VK_VERIFY(vkGetPhysicalDeviceSurfacePresentModesKHR(vk_device.physical, vk_surface, &presentModesCount, presentModes));
+
+		ri.Con_Printf(PRINT_ALL, "Supported present modes: ");
+		for (int i = 0; i < presentModesCount; i++)
+		{
+			ri.Con_Printf(PRINT_ALL, "%s ", presentModeString(presentModes[i]));
+			vk_config.supported_present_modes[i] = presentModeString(presentModes[i]);
+		}
+		ri.Con_Printf(PRINT_ALL, "\n");
 	}
 
 	VkSurfaceFormatKHR swapSurfaceFormat = getSwapSurfaceFormat(surfaceFormats, formatCount);

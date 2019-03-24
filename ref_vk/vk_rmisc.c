@@ -240,7 +240,14 @@ void Vk_Strings_f(void)
 																	vk_device.gfxFamilyIndex, vk_device.presentFamilyIndex, vk_device.transferFamilyIndex);
 	ri.Con_Printf(PRINT_ALL, "Present mode: %s\n", vk_config.present_mode);
 	ri.Con_Printf(PRINT_ALL, "Swapchain image format: %d\n", vk_swapchain.format);
-	ri.Con_Printf(PRINT_ALL, "Enabled extensions: ");
+	ri.Con_Printf(PRINT_ALL, "Supported present modes: ");
+	i = 0;
+	while(vk_config.supported_present_modes[i])
+	{
+		ri.Con_Printf(PRINT_ALL, "%s ", vk_config.supported_present_modes[i++]);
+	}
+	ri.Con_Printf(PRINT_ALL, "\nEnabled extensions: ");
+
 	i = 0;
 	while(vk_config.extensions[i])
 	{
