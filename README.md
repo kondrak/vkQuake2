@@ -115,7 +115,7 @@ The Vulkan renderer comes with a set of its own additional console commands:
 | vk_mip_nearfilter     | Use nearest neighbour filtering for mipmaps. (default: 0) |
 | vk_texturemode        | Change current texture filtering.<br>VK_NEAREST - nearest filter, no mipmaps<br>VK_LINEAR - linear filter, no mipmaps<br>VK_MIPMAP_NEAREST - nearest filter with mipmaps<br>VK_MIPMAP_LINEAR - linear filter with mipmaps (default) |
 
-Acknowledgments
+Acknowledgements
 ===
 - Sascha Willems for his [Vulkan Samples](https://github.com/SaschaWillems/Vulkan) which provided excellent examples of some more complex Vulkan features
 - Axel Gneiting for [vkQuake](https://github.com/Novum/vkQuake) which was a great inspiration and a rich source of knowledge
