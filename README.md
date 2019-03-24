@@ -87,7 +87,7 @@ The Vulkan renderer comes with a set of its own additional console commands:
 | vk_strings            | Print some basic Vulkan/GPU information.                                    |
 | vk_device             | Specifiy preferred Vulkan device index on systems with multiple GPUs.<br>-1 - prefer first DISCRETE_GPU (default)<br>0..n - use device #n (full list of devices is returned by vk_strings command) |
 | vk_msaa               | Toggle MSAA.<br>0 - off (default)<br>1 - MSAAx2<br>2 - MSAAx4<br>3 - MSAAx8<br>4 - MSAAx16 |
-| vk_sampleshading      | Toggle sample shading for MSAA (default: 1) |
+| vk_sampleshading      | Toggle sample shading for MSAA. (default: 1) |
 | vk_mode               | Vulkan video mode (default: 11). Setting this to `-1` uses a custom screen resolution defined by `r_customwidth` (default: 1024) and `r_customheight` (default: 768) console variables. |
 | vk_flashblend         | Toggle the blending of lights onto the environment. (default: 0)            |
 | vk_polyblend          | Blend fullscreen effects: blood, powerups etc. (default: 1)                 |
@@ -110,9 +110,9 @@ The Vulkan renderer comes with a set of its own additional console commands:
 | vk_dynamic            | Use dynamic lighting. (default: 1)                       |
 | vk_showtris           | Display mesh triangles. (default: 0)                     |
 | vk_lightmap           | Display lightmaps. (default: 0)                          |
-| vk_aniso              | Toggle anisotropic filtering (default: 1)                |
-| vk_vsync              | Toggle vertical sync (default: 0)                        |
-| vk_mip_nearfilter     | Use nearest neighbour filtering for mipmaps (default: 0) |
+| vk_aniso              | Toggle anisotropic filtering. (default: 1)               |
+| vk_vsync              | Toggle vertical sync. (default: 0)                       |
+| vk_mip_nearfilter     | Use nearest neighbour filtering for mipmaps. (default: 0) |
 | vk_texturemode        | Change current texture filtering.<br>VK_NEAREST - nearest filter, no mipmaps<br>VK_LINEAR - linear filter, no mipmaps<br>VK_MIPMAP_NEAREST - nearest filter with mipmaps<br>VK_MIPMAP_LINEAR - linear filter with mipmaps (default) |
 
 Acknowledgments
