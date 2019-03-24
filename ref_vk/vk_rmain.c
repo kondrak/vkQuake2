@@ -115,6 +115,7 @@ cvar_t	*vk_texturemode;
 cvar_t	*vk_aniso;
 cvar_t	*vk_mip_nearfilter;
 cvar_t	*vk_sampleshading;
+cvar_t	*vk_vsync;
 cvar_t	*vk_device_idx;
 
 cvar_t	*vid_fullscreen;
@@ -1033,6 +1034,7 @@ void R_Register( void )
 	vk_aniso = ri.Cvar_Get("vk_aniso", "1", CVAR_ARCHIVE);
 	vk_mip_nearfilter = ri.Cvar_Get("vk_mip_nearfilter", "0", CVAR_ARCHIVE);
 	vk_sampleshading = ri.Cvar_Get("vk_sampleshading", "1", CVAR_ARCHIVE);
+	vk_vsync = ri.Cvar_Get("vk_vsync", "0", CVAR_ARCHIVE);
 	vk_device_idx = ri.Cvar_Get("vk_device", "-1", CVAR_ARCHIVE);
 	// clamp vk_msaa to accepted range so that video menu doesn't crash on us
 	if (vk_msaa->value < 0)
@@ -1068,6 +1070,7 @@ qboolean R_SetMode (void)
 	vk_validation->modified = false;
 	vk_mip_nearfilter->modified = false;
 	vk_sampleshading->modified = false;
+	vk_vsync->modified = false;
 	vk_device_idx->modified = false;
 	// refresh texture samplers
 	vk_texturemode->modified = true;
@@ -1187,7 +1190,7 @@ void R_BeginFrame( float camera_separation )
 	*/
 	if (vk_mode->modified || vid_fullscreen->modified || vk_msaa->modified || vk_clear->modified || 
 		vk_validation->modified || vk_texturemode->modified || vk_aniso->modified || 
-		vk_mip_nearfilter->modified || vk_sampleshading->modified || vk_device_idx->modified)
+		vk_mip_nearfilter->modified || vk_sampleshading->modified || vk_vsync->modified || vk_device_idx->modified)
 	{
 		if (vk_texturemode->modified || vk_aniso->modified)
 		{

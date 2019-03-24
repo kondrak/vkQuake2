@@ -144,7 +144,7 @@ VkResult QVk_CreateSwapchain()
 	}
 
 	VkSurfaceFormatKHR swapSurfaceFormat = getSwapSurfaceFormat(surfaceFormats, formatCount);
-	VkPresentModeKHR swapPresentMode = getSwapPresentMode(presentModes, presentModesCount, VK_PRESENT_MODE_MAILBOX_KHR);
+	VkPresentModeKHR swapPresentMode = getSwapPresentMode(presentModes, presentModesCount, vk_vsync->value > 0 ? VK_PRESENT_MODE_FIFO_KHR : VK_PRESENT_MODE_MAILBOX_KHR);
 	free(surfaceFormats);
 	free(presentModes);
 

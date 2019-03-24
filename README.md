@@ -13,7 +13,7 @@ This is the official Quake 2 code v3.21 with additional Vulkan renderer. The goa
 - 64 bit support has been added
 - `M_DrawTextBox` function is being called slightly differently without resorting to ending the frame prematurely
 - debug build comes with additional cmd console for debugging purposes when no visuals are available
-- 1920x1080, 2560x1440, and 3840x2160 screen resolutions have been added and the game is now DPI aware
+- 1366x768, 1920x1080, 2560x1440, and 3840x2160 screen resolutions have been added and the game is now DPI aware
 - mouse acceleration has been disabled
 - console contents can be scrolled with mouse wheel
 - behavior of video menu has been altered so that pressing escape does not restart the rendering system
@@ -111,6 +111,7 @@ The Vulkan renderer comes with a set of its own additional console commands:
 | vk_showtris           | Display mesh triangles. (default: 0)                     |
 | vk_lightmap           | Display lightmaps. (default: 0)                          |
 | vk_aniso              | Toggle anisotropic filtering (default: 1)                |
+| vk_vsync              | Toggle vertical sync (default: 0)                        |
 | vk_mip_nearfilter     | Use nearest neighbour filtering for mipmaps (default: 0) |
 | vk_texturemode        | Change current texture filtering.<br>VK_NEAREST - nearest filter, no mipmaps<br>VK_LINEAR - linear filter, no mipmaps<br>VK_MIPMAP_NEAREST - nearest filter with mipmaps<br>VK_MIPMAP_LINEAR - linear filter with mipmaps (default) |
 
