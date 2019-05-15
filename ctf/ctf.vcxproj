@@ -68,7 +68,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)Quake2\baseq2\</OutDir>
+    <OutDir>$(SolutionDir)Quake2\ctf\</OutDir>
     <IntDir>$(Configuration)\</IntDir>
     <TargetName>gamex86</TargetName>
     <LinkIncremental>false</LinkIncremental>
@@ -76,11 +76,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>gamex64</TargetName>
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)Quake2\baseq2\</OutDir>
+    <OutDir>$(SolutionDir)Quake2\ctf\</OutDir>
     <IntDir>$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)Quake2\baseq2\</OutDir>
+    <OutDir>$(SolutionDir)Quake2\ctf\</OutDir>
     <IntDir>$(Configuration)\</IntDir>
     <TargetName>gamex86</TargetName>
     <LinkIncremental>true</LinkIncremental>
@@ -88,7 +88,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetName>gamex64</TargetName>
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)Quake2\baseq2\</OutDir>
+    <OutDir>$(SolutionDir)Quake2\ctf\</OutDir>
     <IntDir>$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
