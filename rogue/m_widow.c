@@ -197,6 +197,7 @@ int WidowTorso (edict_t *self)
 	else if (enemy_yaw <= -33.75)
 		return FRAME_fired07;
 */
+	return 0;
 }
 
 #define	VARIANCE 15.0

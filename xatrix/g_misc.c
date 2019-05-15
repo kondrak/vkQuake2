@@ -1573,7 +1573,6 @@ void misc_viper_missile_use (edict_t *self, edict_t *other, edict_t *activator)
 	self->enemy = G_Find (NULL, FOFS(targetname), self->target);
 	
 	VectorCopy (self->enemy->s.origin, vec);
-	vec[2] + 16;
 	
 	VectorCopy (self->s.origin, start);
 	VectorSubtract (vec, start, dir);
@@ -1833,7 +1832,7 @@ void target_string_use (edict_t *self, edict_t *other, edict_t *activator)
 	int		n, l;
 	char	c;
 
-	l = strlen(self->message);
+	l = (int)strlen(self->message);
 	for (e = self->teammaster; e; e = e->teamchain)
 	{
 		if (!e->count)

@@ -401,7 +401,7 @@ char *ED_NewString (char *string)
 	char	*newb, *new_p;
 	int		i,l;
 	
-	l = strlen(string) + 1;
+	l = (int)strlen(string) + 1;
 
 	newb = gi.TagMalloc (l, TAG_LEVEL);
 

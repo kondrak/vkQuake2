@@ -513,6 +513,8 @@ qboolean parasite_blocked (edict_t *self, float dist)
 
 	if(blocked_checkplat (self, dist))
 		return true;
+
+	return false;
 }
 //ROGUE
 //================
@@ -557,6 +559,8 @@ qboolean parasite_checkattack (edict_t *self)
 		self->monsterinfo.aiflags &= ~AI_BLOCKED;
 		return true;
 	}
+
+	return false;
 }
 
 
