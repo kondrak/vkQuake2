@@ -13,4 +13,10 @@
    <FileRef
       location = "group:../ref_vk/macos/ref_vk.xcodeproj">
    </FileRef>
+   <FileRef
+      location = "group:../rogue/macos/rogue.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:../xatrix/macos/xatrix.xcodeproj">
+   </FileRef>
 </Workspace>
