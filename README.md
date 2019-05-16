@@ -7,7 +7,7 @@
 
 Overview
 ===
-This is the official Quake 2 code v3.21 with additional Vulkan renderer. The goal is to maintain as much compatibility as possible with the original game, so there are no fancy visual upgrades here - just pure, vanilla Quake 2 experience as we knew it back in 1997. There are, however, a few notable differences that made the cut for various reasons:
+This is the official Quake 2 code v3.21 with additional Vulkan renderer and mission packs included. The goal is to maintain as much compatibility as possible with the original game, so there are no fancy visual upgrades here - just pure, vanilla Quake 2 experience as we knew it back in 1997. There are, however, a few notable differences that made the cut for various reasons:
 
 - original compiler warnings have been fixed
 - 64 bit support has been added
@@ -74,7 +74,7 @@ Running
 The Visual Studio 2017 C++ Redistributable is required to run the application: [32 bit](https://go.microsoft.com/fwlink/?LinkId=746571) or [64 bit](https://go.microsoft.com/fwlink/?LinkId=746572) depending on the chosen flavor. These are provided automatically if you have Visual Studio 2017 installed.
 
 ## All platforms
-You'll need proper data files to run the game - the [release packages](https://github.com/kondrak/vkQuake2/releases) come with game data used in the demo version. For full experience, copy retail Quake 2 data paks (`pak0.pak`, `pak1.pak`, `pak2.pak`) into the `baseq2` folder and run the executable. The mission packs have not been tested but should work just as well.
+You'll need proper data files to run the game - the [release packages](https://github.com/kondrak/vkQuake2/releases) come with game data used in the demo version. For full experience, copy retail Quake 2 data paks (`pak0.pak`, `pak1.pak`, `pak2.pak`) into the `baseq2` directory and run the executable. For mission packs, copy necessary data to `rogue` ("Ground Zero") and `xatrix` ("The Reckoning") directories respectively. You can then start the game with `./quake2 +set game rogue` or `./quake2 +set game xatrix`.
 
 Console commands
 ===
