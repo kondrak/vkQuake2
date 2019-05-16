@@ -8,6 +8,8 @@
 #define	GAME_INCLUDE
 #include "game.h"
 
+#include <inttypes.h>
+
 // the "gameversion" client command will print this plus compile date
 #define	GAMEVERSION	"baseq2"
 

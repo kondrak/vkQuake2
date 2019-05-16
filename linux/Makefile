@@ -103,19 +103,19 @@ ifeq ($(ARCH),axp)
 TARGETS=$(BUILDDIR)/q2ded \
 	$(BUILDDIR)/baseq2/game$(ARCH).$(SHLIBEXT) \
 	$(BUILDDIR)/ctf/game$(ARCH).$(SHLIBEXT) \
-#	$(BUILDDIR)/xatrix/game$(ARCH).$(SHLIBEXT) \
-#	$(BUILDDIR)/rogue/game$(ARCH).$(SHLIBEXT)
+	$(BUILDDIR)/xatrix/game$(ARCH).$(SHLIBEXT) \
+	$(BUILDDIR)/rogue/game$(ARCH).$(SHLIBEXT)
 else
 TARGETS=$(BUILDDIR)/quake2 \
 	$(BUILDDIR)/baseq2/game$(ARCH).$(SHLIBEXT) \
 	$(BUILDDIR)/ctf/game$(ARCH).$(SHLIBEXT) \
 	$(BUILDDIR)/ref_vk.$(SHLIBEXT) \
 	$(BUILDDIR)/ref_glx.$(SHLIBEXT) \
+	$(BUILDDIR)/xatrix/game$(ARCH).$(SHLIBEXT) \
+	$(BUILDDIR)/rogue/game$(ARCH).$(SHLIBEXT) \
 #	$(BUILDDIR)/ref_soft.$(SHLIBEXT) \
 #	$(BUILDDIR)/ref_softx.$(SHLIBEXT) \
-#	$(BUILDDIR)/ref_gl.$(SHLIBEXT) \
-#	$(BUILDDIR)/xatrix/game$(ARCH).$(SHLIBEXT) \
-#	$(BUILDDIR)/rogue/game$(ARCH).$(SHLIBEXT)
+#	$(BUILDDIR)/ref_gl.$(SHLIBEXT)
 endif
 
 build_debug:
@@ -128,8 +128,8 @@ build_debug:
 		$(BUILD_DEBUG_DIR)/ref_vk \
 		$(BUILD_DEBUG_DIR)/game \
 		$(BUILD_DEBUG_DIR)/ctf \
-#		$(BUILD_DEBUG_DIR)/xatrix \
-#		$(BUILD_DEBUG_DIR)/rogue
+		$(BUILD_DEBUG_DIR)/xatrix \
+		$(BUILD_DEBUG_DIR)/rogue
 	$(MAKE) targets BUILDDIR=$(BUILD_DEBUG_DIR) CFLAGS="$(DEBUG_CFLAGS)"
 
 build_release:
@@ -142,8 +142,8 @@ build_release:
 		$(BUILD_RELEASE_DIR)/ref_vk \
 		$(BUILD_RELEASE_DIR)/game \
 		$(BUILD_RELEASE_DIR)/ctf \
-#		$(BUILD_RELEASE_DIR)/xatrix \
-#		$(BUILD_RELEASE_DIR)/rogue
+		$(BUILD_RELEASE_DIR)/xatrix \
+		$(BUILD_RELEASE_DIR)/rogue
 	$(MAKE) targets BUILDDIR=$(BUILD_RELEASE_DIR) CFLAGS="$(RELEASE_CFLAGS)"
 
 all: build_debug build_release
