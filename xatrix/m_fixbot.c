@@ -266,9 +266,6 @@ void use_scanner (edict_t *self)
 	vec3_t	vec;
 	
 	int len;
-	int oldlen = 0x10000;
-	edict_t *tempent = NULL; 
-
 
 	while ((ent = findradius(ent, self->s.origin, radius)) != NULL)
 	{
@@ -1119,7 +1116,6 @@ void fixbot_fire_welder (edict_t *self)
 	vec3_t	forward, right, up;
 	vec3_t	end;
 	vec3_t	dir;
-	int		count = 2;
 	vec3_t  vec;
 	float	r;
 	

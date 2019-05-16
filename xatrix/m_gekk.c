@@ -349,7 +349,7 @@ mmove_t gekk_move_swim_start = {FRAME_swim_01, FRAME_swim_32, gekk_frames_swim_s
 void gekk_swim (edict_t *self)
 {
 	
-	if (gekk_checkattack)
+	if (&gekk_checkattack)
 		if (!self->enemy->waterlevel && random() > 0.7)
 			water_to_land (self);
 	else
@@ -1090,7 +1090,7 @@ void gekk_pain (edict_t *self, edict_t *other, float kick, int damage)
 		
 	if (self->waterlevel)
 	{
-		if (!self->flags & FL_SWIM)
+		if (!(self->flags & FL_SWIM))
 			self->flags |= FL_SWIM;
 		
 		self->monsterinfo.currentmove = &gekk_move_pain;

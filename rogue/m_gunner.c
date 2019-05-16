@@ -487,10 +487,10 @@ void GunnerGrenade (edict_t *self)
 	vec3_t	aim;
 	int		flash_number;
 	float	spread;
-	float	pitch;
+	float	pitch = 0.f;
 	// PMM
 	vec3_t	target;	
-	qboolean blindfire;
+	qboolean blindfire = false;
 
 	if(!self->enemy || !self->enemy->inuse)		//PGM
 		return;									//PGM

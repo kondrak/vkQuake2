@@ -560,7 +560,7 @@ void SP_monster_flyer (edict_t *self)
 	}
 
 	// fix a map bug in jail5.bsp
-	if (!stricmp(level.mapname, "jail5") && (self->s.origin[2] == -104))
+	if (!Q_stricmp(level.mapname, "jail5") && (self->s.origin[2] == -104))
 	{
 		self->targetname = self->target;
 		self->target = NULL;

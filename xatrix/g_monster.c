@@ -80,8 +80,6 @@ void dabeam_hit (edict_t *self)
 	vec3_t	end;
 	trace_t	tr;
 	int		count;
-	static	vec3_t	lmins = {-4, -4, -4};
-	static	vec3_t	lmaxs = {4, 4, 4};
 
 	if (self->spawnflags & 0x80000000)
 		count = 8;

@@ -476,6 +476,8 @@ void ED_ParseField (char *key, char *value, edict_t *ent)
 				break;
 			case F_IGNORE:
 				break;
+			default:
+				break;
 			}
 			return;
 		}
@@ -779,16 +781,6 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 	}	
 
 	gi.dprintf ("%i entities inhibited\n", inhibit);
-
-#ifdef DEBUG
-	i = 1;
-	ent = EDICT_NUM(i);
-	while (i < globals.num_edicts) {
-		if (ent->inuse != 0 || ent->inuse != 1)
-			Com_DPrintf("Invalid entity %d\n", i);
-		i++, ent++;
-	}
-#endif
 
 	G_FindTeams ();
 
@@ -1392,7 +1384,6 @@ qboolean CheckGroundSpawnPoint (vec3_t origin, vec3_t entMins, vec3_t entMaxs, f
 {
 	trace_t		tr;
 	vec3_t		start, stop;
-	int			failure = 0;
 	vec3_t		mins, maxs;
 	int			x, y;	
 	float		mid, bottom;

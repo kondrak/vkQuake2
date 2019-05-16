@@ -20,7 +20,6 @@ static int	sound_pain2;
 static int	sound_pain3;
 static int	sound_death;
 static int	sound_search1;
-static int	sound_disrupt;
 static int	sound_tentacles_retract;
 
 // sqrt(64*64*2) + sqrt(28*28*2) => 130.1
@@ -1004,7 +1003,7 @@ qboolean Widow2_CheckAttack (edict_t *self)
 {
 	vec3_t		spot1, spot2;
 	vec3_t		temp;
-	float		chance;
+	float		chance = 0.f;
 	trace_t		tr;
 	qboolean	enemy_infront;
 	int			enemy_range;
@@ -1380,12 +1379,12 @@ void ThrowWidowGibReal (edict_t *self, char *gibname, int damage, int type, vec3
 
 void BloodFountain (edict_t *self, int number, vec3_t startpos, int damage)
 {
+#if 0
 	int n;
 	vec3_t	vd;
 	vec3_t	origin, size, velocity;
 
 	return;
-
 	for (n= 0; n < number; n++)
 	{
 		if (startpos)
@@ -1411,6 +1410,7 @@ void BloodFountain (edict_t *self, int number, vec3_t startpos, int damage)
 //		gi.WriteShort (50);
 //		gi.multicast (self->s.origin, MULTICAST_ALL);
 	}
+#endif
 }
 
 void ThrowSmallStuff (edict_t *self, vec3_t point)

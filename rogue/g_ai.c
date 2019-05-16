@@ -960,7 +960,7 @@ void ai_run_slide(edict_t *self, float distance)
 	}
 	*/
 	// PMM - clamp maximum sideways move for non flyers to make them look less jerky
-	if (!self->flags & FL_FLY)
+	if (!(self->flags & FL_FLY))
 		distance = min (distance, MAX_SIDESTEP);
 	if (M_walkmove (self, self->ideal_yaw + ofs, distance))
 		return;

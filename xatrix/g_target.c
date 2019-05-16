@@ -157,7 +157,7 @@ void SP_target_secret (edict_t *ent)
 	ent->svflags = SVF_NOCLIENT;
 	level.total_secrets++;
 	// map bug hack
-	if (!stricmp(level.mapname, "mine3") && ent->s.origin[0] == 280 && ent->s.origin[1] == -2048 && ent->s.origin[2] == -624)
+	if (!Q_stricmp(level.mapname, "mine3") && ent->s.origin[0] == 280 && ent->s.origin[1] == -2048 && ent->s.origin[2] == -624)
 		ent->message = "You have found a secret area.";
 }
 
@@ -290,7 +290,7 @@ void SP_target_changelevel (edict_t *ent)
 	}
 
 	// ugly hack because *SOMEBODY* screwed up their map
-   if((stricmp(level.mapname, "fact1") == 0) && (stricmp(ent->map, "fact3") == 0))
+   if((Q_stricmp(level.mapname, "fact1") == 0) && (Q_stricmp(ent->map, "fact3") == 0))
 	   ent->map = "fact3$secret1";
 
 	ent->use = use_target_changelevel;

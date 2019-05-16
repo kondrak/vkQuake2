@@ -59,14 +59,14 @@ static int	commander_sound_hook_retract;
 static int	commander_sound_spawn;
 
 char * reinforcements[] = {
-	{"monster_soldier_light"},	// 0
-	{"monster_soldier"},		// 1
-	{"monster_soldier_ss"},		// 2
-	{"monster_infantry"},		// 3
-	{"monster_gunner"},			// 4
-//	{"monster_chick"},			// 4
-	{"monster_medic"},			// 5
-	{"monster_gladiator"}		// 6
+	"monster_soldier_light",	// 0
+	"monster_soldier",		// 1
+	"monster_soldier_ss",		// 2
+	"monster_infantry",		// 3
+	"monster_gunner",			// 4
+//	"monster_chick"},			// 4
+	"monster_medic",			// 5
+	"monster_gladiator"		// 6
 };
 
 vec3_t reinforcement_mins[] = {
@@ -1156,7 +1156,6 @@ void medic_spawngrows (edict_t *self)
 	int		num_summoned; // should be 1, 3, or 5
 	int		num_success = 0;
 	float	current_yaw;
-	qboolean	behind = false;
 
 	// if we've been directed to turn around
 	if (self->monsterinfo.aiflags & AI_MANUAL_STEERING)

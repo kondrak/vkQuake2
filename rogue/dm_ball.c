@@ -179,7 +179,7 @@ void DBall_PostInitSetup (void)
 
 	e=NULL;
 	// turn teleporter destinations nonsolid.
-	while(e = G_Find (e, FOFS(classname), "misc_teleporter_dest"))
+	while((e = G_Find (e, FOFS(classname), "misc_teleporter_dest")))
 	{
 		e->solid = SOLID_NOT;
 		gi.linkentity (e);
@@ -188,7 +188,7 @@ void DBall_PostInitSetup (void)
 	// count the ball start points
 	dball_ball_startpt_count = 0;
 	e=NULL;
-	while(e = G_Find (e, FOFS(classname), "dm_dball_ball_start"))
+	while((e = G_Find (e, FOFS(classname), "dm_dball_ball_start")))
 	{
 		dball_ball_startpt_count++;
 	}
@@ -365,7 +365,7 @@ edict_t *PickBallStart (edict_t *ent)
 	e = NULL;
 	current = 0;
 
-	while(e = G_Find (e, FOFS(classname), "dm_dball_ball_start"))
+	while((e = G_Find (e, FOFS(classname), "dm_dball_ball_start")))
 	{
 		current++;
 		if(current == which)

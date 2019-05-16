@@ -318,7 +318,6 @@ void prox_land (edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf)
 	edict_t	*field;
 	vec3_t	dir;
 	vec3_t	forward, right, up;
-	int		makeslave = 0;
 	int		movetype = MOVETYPE_NONE;
 	int		stick_ok = 0;
 	vec3_t	land_point;

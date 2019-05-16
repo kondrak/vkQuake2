@@ -1062,7 +1062,7 @@ void heat_think (edict_t *self)
 		
 		if (self->owner == target)
 			continue;
-		if (!target->svflags & SVF_MONSTER)
+		if (!(target->svflags & SVF_MONSTER))
 			continue;
 		if (!target->client)
 			continue;

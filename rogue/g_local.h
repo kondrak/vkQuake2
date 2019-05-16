@@ -22,7 +22,7 @@
 //==================================================================
 
 #ifndef _WIN32
-#include <nan.h>
+//#include <nan.h>
 #define min(a,b) ((a) < (b) ? (a) : (b))
 #define max(a,b) ((a) > (b) ? (a) : (b))
 #ifdef __sun__

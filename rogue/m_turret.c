@@ -331,7 +331,7 @@ void TurretFire (edict_t *self)
 	vec3_t	start, end, dir;
 	float	time, dist, chance;
 	trace_t	trace;
-	int		rocketSpeed;
+	int		rocketSpeed = 0;
 
 	TurretAim(self);
 
@@ -431,7 +431,7 @@ void TurretFireBlind (edict_t *self)
 	vec3_t	forward;
 	vec3_t	start, end, dir;
 	float	dist, chance;
-	int		rocketSpeed;
+	int		rocketSpeed = 0;
 
 	TurretAim(self);
 

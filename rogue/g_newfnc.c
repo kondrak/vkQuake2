@@ -172,7 +172,7 @@ dmg  = damage to inflict when blocked (2 default)
 void SP_func_door_secret2 (edict_t *ent)
 {
 	vec3_t	forward,right,up;
-	float	lrSize, fbSize;
+	float	lrSize = 0.f, fbSize = 0.f;
 
 	ent->moveinfo.sound_start = gi.soundindex  ("doors/dr1_strt.wav");
 	ent->moveinfo.sound_middle = gi.soundindex  ("doors/dr1_mid.wav");

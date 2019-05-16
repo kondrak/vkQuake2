@@ -302,7 +302,7 @@ void body_think (edict_t *self)
 {
 	float r;
 
-	if(abs(self->ideal_yaw - anglemod(self->s.angles[YAW])) < 2)
+	if(fabs(self->ideal_yaw - anglemod(self->s.angles[YAW])) < 2)
 	{
 		if(self->timestamp < level.time)
 		{

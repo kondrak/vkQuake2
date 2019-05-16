@@ -1697,7 +1697,6 @@ void soldierh_fire (edict_t *self, int flash_number)
 	vec3_t	end;
 	float	r, u;
 	int		flash_index;
-	qboolean tone = true;
 
 	if (self->s.skinnum < 2)
 		flash_index = blaster_flash[flash_number]; // ripper
@@ -1891,7 +1890,7 @@ void soldierh_attack2_refire2 (edict_t *self)
 	if (self->enemy->health <= 0)
 		return;
 
-	if ( ((skill->value == 3) && (random() < 0.5)) || (range(self, self->enemy) == RANGE_MELEE) && self->s.skinnum < 4)
+	if ( ((skill->value == 3) && (random() < 0.5)) || ((range(self, self->enemy) == RANGE_MELEE) && self->s.skinnum < 4))
 		self->monsterinfo.nextframe = FRAME_attak204;
 }
 

@@ -62,6 +62,34 @@
                ReferencedContainer = "container:../ref_vk/macos/ref_vk.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "E295520021F618E100336DD3"
+               BuildableName = "rogue.dylib"
+               BlueprintName = "rogue"
+               ReferencedContainer = "container:../rogue/macos/rogue.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "E295520021F618E100336DD3"
+               BuildableName = "xatrix.dylib"
+               BlueprintName = "xatrix"
+               ReferencedContainer = "container:../xatrix/macos/xatrix.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction

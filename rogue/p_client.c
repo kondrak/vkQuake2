@@ -1045,7 +1045,7 @@ edict_t *SelectLavaCoopSpawnPoint (edict_t *ent)
 	// find all the lava spawn points and store them in spawnPoints[]
 	spot = NULL;
 	numPoints = 0;
-	while(spot = G_Find (spot, FOFS(classname), "info_player_coop_lava"))
+	while((spot = G_Find (spot, FOFS(classname), "info_player_coop_lava")))
 	{
 		if(numPoints == 64)
 			break;

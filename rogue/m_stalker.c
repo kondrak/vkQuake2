@@ -98,7 +98,7 @@ qboolean stalker_ok_to_transition (edict_t *self)
 //		gi.dprintf("stalker_check_pt: absmin/absmin failed\n");
 		return false;
 	}
-	if(abs(end_height + margin - trace.endpos[2]) > 8)
+	if(fabs(end_height + margin - trace.endpos[2]) > 8)
 		return false;
 
 	pt[0] = self->absmax[0];
@@ -111,7 +111,7 @@ qboolean stalker_ok_to_transition (edict_t *self)
 //		gi.dprintf("stalker_check_pt: absmax/absmin failed\n");
 		return false;
 	}
-	if(abs(end_height + margin - trace.endpos[2]) > 8)
+	if(fabs(end_height + margin - trace.endpos[2]) > 8)
 		return false;
 
 	pt[0] = self->absmax[0];
@@ -124,7 +124,7 @@ qboolean stalker_ok_to_transition (edict_t *self)
 //		gi.dprintf("stalker_check_pt: absmax/absmax failed\n");
 		return false;
 	}
-	if(abs(end_height + margin - trace.endpos[2]) > 8)
+	if(fabs(end_height + margin - trace.endpos[2]) > 8)
 		return false;
 
 	pt[0] = self->absmin[0];
@@ -137,7 +137,7 @@ qboolean stalker_ok_to_transition (edict_t *self)
 //		gi.dprintf("stalker_check_pt: absmin/absmax failed\n");
 		return false;
 	}
-	if(abs(end_height + margin - trace.endpos[2]) > 8)
+	if(fabs(end_height + margin - trace.endpos[2]) > 8)
 		return false;
 
 	return true;
@@ -752,7 +752,7 @@ int stalker_do_pounce(edict_t *self, vec3_t dest)
 	
 	// make sure we're pointing in that direction 15deg margin of error.
 	vectoangles2 (dist, jumpAngles);
-	if(abs(jumpAngles[YAW] - self->s.angles[YAW]) > 45)
+	if(fabs(jumpAngles[YAW] - self->s.angles[YAW]) > 45)
 		return false;			// not facing the player...
 
 	self->ideal_yaw = jumpAngles[YAW];
