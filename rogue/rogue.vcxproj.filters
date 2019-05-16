@@ -230,9 +230,6 @@
     <ClInclude Include="m_chick.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="m_fixbot.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="m_flipper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -240,9 +237,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="m_flyer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="m_gekk.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="m_gladiator.h">
@@ -276,9 +270,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="m_soldier.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="m_soldierh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="m_supertank.h">

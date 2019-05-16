@@ -354,11 +354,9 @@
     <ClInclude Include="m_boss32.h" />
     <ClInclude Include="m_brain.h" />
     <ClInclude Include="m_chick.h" />
-    <ClInclude Include="m_fixbot.h" />
     <ClInclude Include="m_flipper.h" />
     <ClInclude Include="m_float.h" />
     <ClInclude Include="m_flyer.h" />
-    <ClInclude Include="m_gekk.h" />
     <ClInclude Include="m_gladiator.h" />
     <ClInclude Include="m_gunner.h" />
     <ClInclude Include="m_hover.h" />
@@ -370,7 +368,6 @@
     <ClInclude Include="m_player.h" />
     <ClInclude Include="m_rider.h" />
     <ClInclude Include="m_soldier.h" />
-    <ClInclude Include="m_soldierh.h" />
     <ClInclude Include="m_supertank.h" />
     <ClInclude Include="m_tank.h" />
     <ClInclude Include="q_shared.h" />
