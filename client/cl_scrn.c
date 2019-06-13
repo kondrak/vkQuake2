@@ -912,7 +912,7 @@ void SCR_ExecuteLayoutString (char *s)
 		if (!strcmp(token, "xl"))
 		{
 			token = COM_Parse (&s);
-			x = atoi(token);
+			x = atoi(token) * vid_hudscale->value;
 			continue;
 		}
 		if (!strcmp(token, "xr"))
@@ -931,7 +931,7 @@ void SCR_ExecuteLayoutString (char *s)
 		if (!strcmp(token, "yt"))
 		{
 			token = COM_Parse (&s);
-			y = atoi(token);
+			y = atoi(token) * vid_hudscale->value;
 			continue;
 		}
 		if (!strcmp(token, "yb"))

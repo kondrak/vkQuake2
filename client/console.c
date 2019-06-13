@@ -635,7 +635,7 @@ void Con_DrawConsole (float frac)
 			text = cls.downloadname;
 
 		x = con.linewidth - ((con.linewidth * 7) / 40);
-		y = x - (int)strlen(text) - 8;
+		y = (x - (int)strlen(text) - 8) / vid_hudscale->value;
 		i = con.linewidth/3;
 		if (strlen(text) > i) {
 			y = x - i - 11;
@@ -664,9 +664,9 @@ void Con_DrawConsole (float frac)
 		sprintf(dlbar + strlen(dlbar), " %02d%%", cls.downloadpercent);
 
 		// draw it
-		y = con.vislines-12;
+		y = con.vislines-12*vid_hudscale->value;
 		for (i = 0; i < strlen(dlbar); i++)
-			re.DrawChar ( ((i+1)<<3)*vid_hudscale->value, y*vid_hudscale->value, dlbar[i]);
+			re.DrawChar ( ((i+1)<<3)*vid_hudscale->value, y, dlbar[i]);
 	}
 //ZOID
 
