@@ -201,7 +201,12 @@ static VkDescriptorSet vk_uboDescriptorSets[NUM_DYNBUFFERS];
 static qvkstagingbuffer_t vk_stagingBuffers[NUM_DYNBUFFERS];
 static int vk_activeDynBufferIdx = 0;
 
-#define VERTEX_BUFFER_MAXSIZE 2048
+// swap buffers used if primary dynamic buffers get full
+static qvkbuffer_t vk_swapVertexBuffers[NUM_DYNBUFFERS];
+
+// by how much will the dynamic buffers be resized if we run out of space?
+#define BUFFER_RESIZE_FACTOR 2.f
+static VkDeviceSize vk_dynVertexBufferSize = 512 * 1024;
 #define INDEX_BUFFER_MAXSIZE 2048
 #define UNIFORM_BUFFER_MAXSIZE 4096
 #define STAGING_BUFFER_MAXSIZE 16384
@@ -459,7 +464,6 @@ static void CreateSamplers()
 	VK_VERIFY(vkCreateSampler(vk_device.logical, &samplerInfo, NULL, &vk_samplers[S_ANISO_LINEAR]));
 }
 
-
 // internal helper
 static void DestroySamplers()
 {
@@ -506,7 +510,7 @@ static void CreateDynamicBuffers()
 {
 	for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 	{
-		QVk_CreateVertexBuffer(NULL, VERTEX_BUFFER_MAXSIZE * 1024, &vk_dynVertexBuffers[i], NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
+		QVk_CreateVertexBuffer(NULL, vk_dynVertexBufferSize, &vk_dynVertexBuffers[i], NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
 		QVk_CreateIndexBuffer(NULL, INDEX_BUFFER_MAXSIZE * 1024, &vk_dynIndexBuffers[i], NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
 		QVk_CreateUniformBuffer(UNIFORM_BUFFER_MAXSIZE * 1024, &vk_dynUniformBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
 		// keep dynamic buffers persistently mapped
@@ -544,6 +548,22 @@ static void CreateDynamicBuffers()
 		};
 
 		vkUpdateDescriptorSets(vk_device.logical, 1, &descriptorWrite, 0, NULL);
+	}
+}
+
+// internal helper
+static void SwapFullBuffers()
+{
+	if (vk_dynVertexBuffers[vk_activeBufferIdx].full)
+	{
+		vkDeviceWaitIdle(vk_device.logical);
+		for (int i = 0; i < NUM_DYNBUFFERS; i++)
+		{
+			vmaUnmapMemory(vk_malloc, vk_dynVertexBuffers[i].allocation);
+			QVk_FreeBuffer(&vk_dynVertexBuffers[i]);
+
+			vk_dynVertexBuffers[i] = vk_swapVertexBuffers[i];
+		}
 	}
 }
 
@@ -1338,6 +1358,9 @@ VkResult QVk_EndFrame()
 
 	vk_activeBufferIdx = (vk_activeBufferIdx + 1) % NUM_CMDBUFFERS;
 
+	// release full dynamic buffers and start using resized ones, if applicable
+	SwapFullBuffers();
+
 	vk_frameStarted = false;
 	return renderResult;
 }
@@ -1360,14 +1383,30 @@ void QVk_RecreateSwapchain()
 
 uint8_t *QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, VkDeviceSize *dstOffset)
 {
-	*dstOffset = vk_dynVertexBuffers[vk_activeDynBufferIdx].currentOffset;
-	vk_dynVertexBuffers[vk_activeDynBufferIdx].currentOffset += size;
+	qvkbuffer_t *currentBuffer = &vk_dynVertexBuffers[vk_activeDynBufferIdx];
 
-	if (vk_dynVertexBuffers[vk_activeDynBufferIdx].currentOffset > VERTEX_BUFFER_MAXSIZE * 1024)
-		Sys_Error("Out of vertex buffer memory!");
+	if (currentBuffer->full)
+		currentBuffer = &vk_swapVertexBuffers[vk_activeDynBufferIdx];
 
-	*dstBuffer = vk_dynVertexBuffers[vk_activeDynBufferIdx].buffer;
-	return (uint8_t *)vk_dynVertexBuffers[vk_activeDynBufferIdx].allocInfo.pMappedData + (*dstOffset);
+	if (currentBuffer->currentOffset + size > vk_dynVertexBufferSize)
+	{
+		currentBuffer->full = true;
+		vk_dynVertexBufferSize *= BUFFER_RESIZE_FACTOR;
+
+		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
+		{
+ 			QVk_CreateVertexBuffer(NULL, vk_dynVertexBufferSize, &vk_swapVertexBuffers[i], NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);		
+			vmaMapMemory(vk_malloc, vk_swapVertexBuffers[i].allocation, &vk_swapVertexBuffers[i].allocInfo.pMappedData);
+		}
+
+		currentBuffer = &vk_swapVertexBuffers[vk_activeDynBufferIdx];
+	}
+
+	*dstOffset = currentBuffer->currentOffset;
+	*dstBuffer = currentBuffer->buffer;
+	currentBuffer->currentOffset += size;
+	
+	return (uint8_t *)currentBuffer->allocInfo.pMappedData + (*dstOffset);
 }
 
 uint8_t *QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset)
