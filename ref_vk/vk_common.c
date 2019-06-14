@@ -556,6 +556,8 @@ static void SwapFullBuffers()
 {
 	if (vk_dynVertexBuffers[vk_activeBufferIdx].full)
 	{
+		ri.Con_Printf(PRINT_ALL, "Resizing dynamic vertex buffers to %dkB\n", vk_dynVertexBufferSize/1024);
+
 		vkDeviceWaitIdle(vk_device.logical);
 		for (int i = 0; i < NUM_DYNBUFFERS; i++)
 		{
