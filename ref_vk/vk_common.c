@@ -195,7 +195,7 @@ qvkbuffer_t vk_triangleFanIbo;
 // global dynamic buffers (double buffered)
 #define NUM_DYNBUFFERS 2
 static qvkbuffer_t vk_dynVertexBuffers[NUM_DYNBUFFERS];
-static qvkbuffer_t vk_dynIndexBuffers[NUM_DYNBUFFERS];
+static qvkbuffer_t vk_dynIndexBuffers[NUM_DYNBUFFERS]; // index buffers are unused right now
 static qvkbuffer_t vk_dynUniformBuffers[NUM_DYNBUFFERS];
 static VkDescriptorSet vk_uboDescriptorSets[NUM_DYNBUFFERS];
 static qvkstagingbuffer_t vk_stagingBuffers[NUM_DYNBUFFERS];
@@ -203,11 +203,12 @@ static int vk_activeDynBufferIdx = 0;
 
 // swap buffers used if primary dynamic buffers get full
 static qvkbuffer_t vk_swapVertexBuffers[NUM_DYNBUFFERS];
+static qvkbuffer_t vk_swapIndexBuffers[NUM_DYNBUFFERS]; // index buffers are unused right now
 
 // by how much will the dynamic buffers be resized if we run out of space?
 #define BUFFER_RESIZE_FACTOR 2.f
 static VkDeviceSize vk_dynVertexBufferSize = 512 * 1024;
-#define INDEX_BUFFER_MAXSIZE 2048
+static VkDeviceSize vk_dynIndexBufferSize = 8 * 1024;
 #define UNIFORM_BUFFER_MAXSIZE 4096
 #define STAGING_BUFFER_MAXSIZE 16384
 #define TRIANGLE_FAN_IBO_MAXSIZE 252 // index count in triangle fan buffer (assuming max 84 triangles per object)
@@ -511,7 +512,7 @@ static void CreateDynamicBuffers()
 	for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 	{
 		QVk_CreateVertexBuffer(NULL, vk_dynVertexBufferSize, &vk_dynVertexBuffers[i], NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
-		QVk_CreateIndexBuffer(NULL, INDEX_BUFFER_MAXSIZE * 1024, &vk_dynIndexBuffers[i], NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
+		QVk_CreateIndexBuffer(NULL, vk_dynIndexBufferSize, &vk_dynIndexBuffers[i], NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
 		QVk_CreateUniformBuffer(UNIFORM_BUFFER_MAXSIZE * 1024, &vk_dynUniformBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
 		// keep dynamic buffers persistently mapped
 		vmaMapMemory(vk_malloc, vk_dynVertexBuffers[i].allocation, &vk_dynVertexBuffers[i].allocInfo.pMappedData);
@@ -554,7 +555,7 @@ static void CreateDynamicBuffers()
 // internal helper
 static void SwapFullBuffers()
 {
-	if (vk_dynVertexBuffers[vk_activeBufferIdx].full)
+	if (vk_dynVertexBuffers[vk_activeDynBufferIdx].full)
 	{
 		ri.Con_Printf(PRINT_ALL, "Resizing dynamic vertex buffers to %dkB\n", vk_dynVertexBufferSize/1024);
 
@@ -565,6 +566,20 @@ static void SwapFullBuffers()
 			QVk_FreeBuffer(&vk_dynVertexBuffers[i]);
 
 			vk_dynVertexBuffers[i] = vk_swapVertexBuffers[i];
+		}
+	}
+
+	if (vk_dynIndexBuffers[vk_activeDynBufferIdx].full)
+	{
+		ri.Con_Printf(PRINT_ALL, "Resizing dynamic index buffers to %dkB\n", vk_dynIndexBufferSize / 1024);
+
+		vkDeviceWaitIdle(vk_device.logical);
+		for (int i = 0; i < NUM_DYNBUFFERS; i++)
+		{
+			vmaUnmapMemory(vk_malloc, vk_dynIndexBuffers[i].allocation);
+			QVk_FreeBuffer(&vk_dynIndexBuffers[i]);
+
+			vk_dynIndexBuffers[i] = vk_swapIndexBuffers[i];
 		}
 	}
 }
@@ -1416,13 +1431,30 @@ uint8_t *QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset)
 	// align to 4 bytes, so that we can reuse the buffer for both VK_INDEX_TYPE_UINT16 and VK_INDEX_TYPE_UINT32
 	const int align_mod = size % 4;
 	const uint32_t aligned_size = ((size % 4) == 0) ? size : (size + 4 - align_mod);
-	*dstOffset = vk_dynIndexBuffers[vk_activeDynBufferIdx].currentOffset;
-	vk_dynIndexBuffers[vk_activeDynBufferIdx].currentOffset += aligned_size;
+	qvkbuffer_t *currentBuffer = &vk_dynIndexBuffers[vk_activeDynBufferIdx];
 
-	if (vk_dynIndexBuffers[vk_activeDynBufferIdx].currentOffset > INDEX_BUFFER_MAXSIZE * 1024)
-		Sys_Error("Out of index buffer memory!");
+	if (currentBuffer->full)
+		currentBuffer = &vk_swapIndexBuffers[vk_activeDynBufferIdx];
 
-	return (uint8_t *)vk_dynIndexBuffers[vk_activeDynBufferIdx].allocInfo.pMappedData + (*dstOffset);
+	if (currentBuffer->currentOffset + aligned_size > vk_dynIndexBufferSize)
+	{
+		currentBuffer->full = true;
+		vk_dynIndexBufferSize *= BUFFER_RESIZE_FACTOR;
+
+		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
+		{
+			QVk_CreateIndexBuffer(NULL, vk_dynIndexBufferSize, &vk_swapIndexBuffers[i], NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
+			vmaMapMemory(vk_malloc, vk_swapIndexBuffers[i].allocation, &vk_swapIndexBuffers[i].allocInfo.pMappedData);
+		}
+
+		currentBuffer = &vk_swapIndexBuffers[vk_activeDynBufferIdx];
+	}
+
+	*dstOffset = currentBuffer->currentOffset;
+	currentBuffer->currentOffset += aligned_size;
+
+
+	return (uint8_t *)currentBuffer->allocInfo.pMappedData + (*dstOffset);
 }
 
 uint8_t *QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescriptorSet *dstUboDescriptorSet)
