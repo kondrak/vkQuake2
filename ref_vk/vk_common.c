@@ -513,6 +513,41 @@ static void CreateDescriptorPool()
 }
 
 // internal helper
+static void CreateUboDescriptorSet(VkDescriptorSet *descSet, VkBuffer buffer)
+{
+	VkDescriptorSetAllocateInfo dsAllocInfo = {
+		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+		.pNext = NULL,
+		.descriptorPool = vk_descriptorPool,
+		.descriptorSetCount = 1,
+		.pSetLayouts = &vk_uboDescSetLayout
+	};
+
+	VK_VERIFY(vkAllocateDescriptorSets(vk_device.logical, &dsAllocInfo, descSet));
+
+	VkDescriptorBufferInfo bufferInfo = {
+		.buffer = buffer,
+		.offset = 0,
+		.range = UNIFORM_ALLOC_SIZE
+	};
+
+	VkWriteDescriptorSet descriptorWrite = {
+		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+		.pNext = NULL,
+		.dstSet = *descSet,
+		.dstBinding = 0,
+		.dstArrayElement = 0,
+		.descriptorCount = 1,
+		.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
+		.pImageInfo = NULL,
+		.pBufferInfo = &bufferInfo,
+		.pTexelBufferView = NULL,
+	};
+
+	vkUpdateDescriptorSets(vk_device.logical, 1, &descriptorWrite, 0, NULL);
+}
+
+// internal helper
 static void CreateDynamicBuffers()
 {
 	for (int i = 0; i < NUM_DYNBUFFERS; ++i)
@@ -524,37 +559,8 @@ static void CreateDynamicBuffers()
 		vmaMapMemory(vk_malloc, vk_dynVertexBuffers[i].allocation, &vk_dynVertexBuffers[i].allocInfo.pMappedData);
 		vmaMapMemory(vk_malloc, vk_dynIndexBuffers[i].allocation, &vk_dynIndexBuffers[i].allocInfo.pMappedData);
 		vmaMapMemory(vk_malloc, vk_dynUniformBuffers[i].allocation, &vk_dynUniformBuffers[i].allocInfo.pMappedData);
-		// create descriptor set
-		VkDescriptorSetAllocateInfo dsAllocInfo = {
-			.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-			.pNext = NULL,
-			.descriptorPool = vk_descriptorPool,
-			.descriptorSetCount = 1,
-			.pSetLayouts = &vk_uboDescSetLayout
-		};
 
-		VK_VERIFY(vkAllocateDescriptorSets(vk_device.logical, &dsAllocInfo, &vk_uboDescriptorSets[i]));
-
-		VkDescriptorBufferInfo bufferInfo = {
-			.buffer = vk_dynUniformBuffers[i].buffer,
-			.offset = 0,
-			.range = UNIFORM_ALLOC_SIZE
-		};
-
-		VkWriteDescriptorSet descriptorWrite = {
-			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-			.pNext = NULL,
-			.dstSet = vk_uboDescriptorSets[i],
-			.dstBinding = 0,
-			.dstArrayElement = 0,
-			.descriptorCount = 1,
-			.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
-			.pImageInfo = NULL,
-			.pBufferInfo = &bufferInfo,
-			.pTexelBufferView = NULL,
-		};
-
-		vkUpdateDescriptorSets(vk_device.logical, 1, &descriptorWrite, 0, NULL);
+		CreateUboDescriptorSet(&vk_uboDescriptorSets[i], vk_dynUniformBuffers[i].buffer);
 	}
 }
 
@@ -1521,37 +1527,7 @@ uint8_t *QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescript
 			QVk_CreateUniformBuffer(vk_config.uniform_buffer_size, &vk_swapUniformBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
 			vmaMapMemory(vk_malloc, vk_swapUniformBuffers[i].allocation, &vk_swapUniformBuffers[i].allocInfo.pMappedData);
 
-			// create descriptor set
-			VkDescriptorSetAllocateInfo dsAllocInfo = {
-				.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-				.pNext = NULL,
-				.descriptorPool = vk_descriptorPool,
-				.descriptorSetCount = 1,
-				.pSetLayouts = &vk_uboDescSetLayout
-			};
-
-			VK_VERIFY(vkAllocateDescriptorSets(vk_device.logical, &dsAllocInfo, &vk_swapDescriptorSets[i]));
-
-			VkDescriptorBufferInfo bufferInfo = {
-				.buffer = vk_swapUniformBuffers[i].buffer,
-				.offset = 0,
-				.range = UNIFORM_ALLOC_SIZE
-			};
-
-			VkWriteDescriptorSet descriptorWrite = {
-				.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-				.pNext = NULL,
-				.dstSet = vk_swapDescriptorSets[i],
-				.dstBinding = 0,
-				.dstArrayElement = 0,
-				.descriptorCount = 1,
-				.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
-				.pImageInfo = NULL,
-				.pBufferInfo = &bufferInfo,
-				.pTexelBufferView = NULL,
-			};
-
-			vkUpdateDescriptorSets(vk_device.logical, 1, &descriptorWrite, 0, NULL);
+			CreateUboDescriptorSet(&vk_swapDescriptorSets[i], vk_swapUniformBuffers[i].buffer);
 		}
 
 		currentBuffer = &vk_swapUniformBuffers[vk_activeDynBufferIdx];
