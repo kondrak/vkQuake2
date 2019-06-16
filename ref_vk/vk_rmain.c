@@ -46,6 +46,7 @@ int			c_brush_polys, c_alias_polys;
 float		v_blend[4];			// final blending color
 
 void Vk_Strings_f(void);
+void Vk_Mem_f(void);
 
 //
 // view origin
@@ -1047,6 +1048,7 @@ void R_Register( void )
 	vid_ref = ri.Cvar_Get("vid_ref", "soft", CVAR_ARCHIVE);
 
 	ri.Cmd_AddCommand("vk_strings", Vk_Strings_f);
+	ri.Cmd_AddCommand("vk_mem", Vk_Mem_f);
 	ri.Cmd_AddCommand("imagelist", Vk_ImageList_f);
 	ri.Cmd_AddCommand("screenshot", Vk_ScreenShot_f);
 }
@@ -1160,6 +1162,7 @@ R_Shutdown
 void R_Shutdown (void)
 {
 	ri.Cmd_RemoveCommand("vk_strings");
+	ri.Cmd_RemoveCommand("vk_mem");
 	ri.Cmd_RemoveCommand("imagelist");
 	ri.Cmd_RemoveCommand("screenshot");
 

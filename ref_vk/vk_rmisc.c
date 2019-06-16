@@ -262,3 +262,14 @@ void Vk_Strings_f(void)
 	}
 	ri.Con_Printf(PRINT_ALL, "\n");
 }
+
+/*
+** Vk_Mem_f
+*/
+void Vk_Mem_f(void)
+{
+	ri.Con_Printf(PRINT_ALL, "\nDynamic buffer stats: \n");
+	ri.Con_Printf(PRINT_ALL, "Vertex : %u/%ukB (%.1f%% max: %ukB)\n", vk_config.vertex_buffer_usage / 1024, vk_config.vertex_buffer_size / 1024, 100.f * vk_config.vertex_buffer_usage / vk_config.vertex_buffer_size, vk_config.vertex_buffer_max_usage / 1024);
+	ri.Con_Printf(PRINT_ALL, "Index  : %u/%ukB (%.1f%% max: %ukB)\n", vk_config.index_buffer_usage / 1024, vk_config.index_buffer_size / 1024, 100.f * vk_config.index_buffer_usage / vk_config.index_buffer_size, vk_config.index_buffer_max_usage / 1024);
+	ri.Con_Printf(PRINT_ALL, "Uniform: %u/%ukB (%.1f%% max: %ukB)\n", vk_config.uniform_buffer_usage / 1024, vk_config.uniform_buffer_size / 1024, 100.f * vk_config.uniform_buffer_usage / vk_config.uniform_buffer_size, vk_config.uniform_buffer_max_usage / 1024);
+}
