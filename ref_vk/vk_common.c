@@ -607,6 +607,19 @@ static void SwapFullBuffers()
 }
 
 // internal helper
+static int NextPow2(int v)
+{
+	v--;
+	v |= v >> 1;
+	v |= v >> 2;
+	v |= v >> 4;
+	v |= v >> 8;
+	v |= v >> 16;
+	v++;
+	return v;
+}
+
+// internal helper
 static void CreateTriangleFanIndexBuffer()
 {
 	VkDeviceSize bufferSize = TRIANGLE_FAN_IBO_MAXSIZE * sizeof(uint16_t);
@@ -1442,7 +1455,7 @@ uint8_t *QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, VkDeviceSiz
 	if (currentBuffer->currentOffset + size > vk_config.vertex_buffer_size)
 	{
 		currentBuffer->full = true;
-		vk_config.vertex_buffer_size *= BUFFER_RESIZE_FACTOR;
+		vk_config.vertex_buffer_size = max(vk_config.vertex_buffer_size * BUFFER_RESIZE_FACTOR, NextPow2(size));
 
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 		{
@@ -1477,7 +1490,7 @@ uint8_t *QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset)
 	if (currentBuffer->currentOffset + aligned_size > vk_config.index_buffer_size)
 	{
 		currentBuffer->full = true;
-		vk_config.index_buffer_size *= BUFFER_RESIZE_FACTOR;
+		vk_config.index_buffer_size = max(vk_config.index_buffer_size * BUFFER_RESIZE_FACTOR, NextPow2(size));
 
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 		{
@@ -1516,7 +1529,7 @@ uint8_t *QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescript
 	if (currentBuffer->currentOffset + UNIFORM_ALLOC_SIZE > vk_config.uniform_buffer_size)
 	{
 		currentBuffer->full = true;
-		vk_config.uniform_buffer_size *= BUFFER_RESIZE_FACTOR;
+		vk_config.uniform_buffer_size = max(vk_config.uniform_buffer_size * BUFFER_RESIZE_FACTOR, NextPow2(size));
 
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 		{
