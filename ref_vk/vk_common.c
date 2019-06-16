@@ -567,7 +567,7 @@ static void SwapFullBuffers()
 	{
 		vkDeviceWaitIdle(vk_device.logical);
 
-#define SWAPBUF(dynBuffer, swapBuffer, buffName, buffSize) \
+#define SWAPBUF(dynBuffer, swapBuffer, buffName, buffSize, freeDescSet) \
 		if (dynBuffer[vk_activeDynBufferIdx].full) \
 		{ \
 			ri.Con_Printf(PRINT_ALL, "Resizing dynamic "buffName" buffer to %ukB\n", buffSize / 1024); \
@@ -576,22 +576,18 @@ static void SwapFullBuffers()
 				vmaUnmapMemory(vk_malloc, dynBuffer[i].allocation); \
 				QVk_FreeBuffer(&dynBuffer[i]); \
 				dynBuffer[i] = swapBuffer[i]; \
+				/* free descriptor sets associated with the (uniform) buffer */\
+				if (freeDescSet) \
+				{ \
+					vkFreeDescriptorSets(vk_device.logical, vk_descriptorPool, 1, &vk_uboDescriptorSets[i]); \
+					vk_uboDescriptorSets[i] = vk_swapDescriptorSets[i]; \
+				} \
 			} \
 		}
 
-		SWAPBUF(vk_dynVertexBuffers, vk_swapVertexBuffers, "vertex", vk_config.vertex_buffer_size);
-		SWAPBUF(vk_dynIndexBuffers, vk_swapIndexBuffers, "index", vk_config.index_buffer_size);
-		SWAPBUF(vk_dynUniformBuffers, vk_swapUniformBuffers, "uniform", vk_config.uniform_buffer_size);
-
-		// free descriptor sets associated with uniform buffers
-		if (vk_dynUniformBuffers[vk_activeDynBufferIdx].full)
-		{
-			for (int i = 0; i < NUM_DYNBUFFERS; i++)
-			{
-				vkFreeDescriptorSets(vk_device.logical, vk_descriptorPool, 1, &vk_uboDescriptorSets[i]);
-				vk_uboDescriptorSets[i] = vk_swapDescriptorSets[i];
-			}
-		}
+		SWAPBUF(vk_dynVertexBuffers, vk_swapVertexBuffers, "vertex", vk_config.vertex_buffer_size, 0);
+		SWAPBUF(vk_dynIndexBuffers, vk_swapIndexBuffers, "index", vk_config.index_buffer_size, 0);
+		SWAPBUF(vk_dynUniformBuffers, vk_swapUniformBuffers, "uniform", vk_config.uniform_buffer_size, 1);
 	}
 }
 
