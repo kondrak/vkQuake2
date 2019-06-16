@@ -561,47 +561,36 @@ static void CreateDynamicBuffers()
 // internal helper
 static void SwapFullBuffers()
 {
-	if (vk_dynVertexBuffers[vk_activeDynBufferIdx].full)
+	if (vk_dynVertexBuffers[vk_activeDynBufferIdx].full ||
+		vk_dynUniformBuffers[vk_activeDynBufferIdx].full ||
+		vk_dynIndexBuffers[vk_activeDynBufferIdx].full)
 	{
-		ri.Con_Printf(PRINT_ALL, "Resizing dynamic vertex buffers to %ukB\n", vk_config.vertex_buffer_size / 1024);
-
 		vkDeviceWaitIdle(vk_device.logical);
-		for (int i = 0; i < NUM_DYNBUFFERS; i++)
-		{
-			vmaUnmapMemory(vk_malloc, vk_dynVertexBuffers[i].allocation);
-			QVk_FreeBuffer(&vk_dynVertexBuffers[i]);
 
-			vk_dynVertexBuffers[i] = vk_swapVertexBuffers[i];
+#define SWAPBUF(dynBuffer, swapBuffer, buffName, buffSize) \
+		if (dynBuffer[vk_activeDynBufferIdx].full) \
+		{ \
+			ri.Con_Printf(PRINT_ALL, "Resizing dynamic "buffName" buffer to %ukB\n", buffSize / 1024); \
+			for (int i = 0; i < NUM_DYNBUFFERS; i++) \
+			{ \
+				vmaUnmapMemory(vk_malloc, dynBuffer[i].allocation); \
+				QVk_FreeBuffer(&dynBuffer[i]); \
+				dynBuffer[i] = swapBuffer[i]; \
+			} \
 		}
-	}
 
-	if (vk_dynIndexBuffers[vk_activeDynBufferIdx].full)
-	{
-		ri.Con_Printf(PRINT_ALL, "Resizing dynamic index buffers to %ukB\n", vk_config.index_buffer_size / 1024);
+		SWAPBUF(vk_dynVertexBuffers, vk_swapVertexBuffers, "vertex", vk_config.vertex_buffer_size);
+		SWAPBUF(vk_dynIndexBuffers, vk_swapIndexBuffers, "index", vk_config.index_buffer_size);
+		SWAPBUF(vk_dynUniformBuffers, vk_swapUniformBuffers, "uniform", vk_config.uniform_buffer_size);
 
-		vkDeviceWaitIdle(vk_device.logical);
-		for (int i = 0; i < NUM_DYNBUFFERS; i++)
+		// free descriptor sets associated with uniform buffers
+		if (vk_dynUniformBuffers[vk_activeDynBufferIdx].full)
 		{
-			vmaUnmapMemory(vk_malloc, vk_dynIndexBuffers[i].allocation);
-			QVk_FreeBuffer(&vk_dynIndexBuffers[i]);
-
-			vk_dynIndexBuffers[i] = vk_swapIndexBuffers[i];
-		}
-	}
-
-	if (vk_dynUniformBuffers[vk_activeDynBufferIdx].full)
-	{
-		ri.Con_Printf(PRINT_ALL, "Resizing dynamic uniform buffers to %ukB\n", vk_config.uniform_buffer_size / 1024);
-
-		vkDeviceWaitIdle(vk_device.logical);
-		for (int i = 0; i < NUM_DYNBUFFERS; i++)
-		{
-			vmaUnmapMemory(vk_malloc, vk_dynUniformBuffers[i].allocation);
-			QVk_FreeBuffer(&vk_dynUniformBuffers[i]);
-
-			vk_dynUniformBuffers[i] = vk_swapUniformBuffers[i];
-			vkFreeDescriptorSets(vk_device.logical, vk_descriptorPool, 1, &vk_uboDescriptorSets[i]);
-			vk_uboDescriptorSets[i] = vk_swapDescriptorSets[i];
+			for (int i = 0; i < NUM_DYNBUFFERS; i++)
+			{
+				vkFreeDescriptorSets(vk_device.logical, vk_descriptorPool, 1, &vk_uboDescriptorSets[i]);
+				vk_uboDescriptorSets[i] = vk_swapDescriptorSets[i];
+			}
 		}
 	}
 }
