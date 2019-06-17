@@ -120,6 +120,7 @@ int vk_activeBufferIdx = 0;
 uint32_t vk_imageIndex = 0;
 // index of currently used staging buffer
 int vk_activeStagingBuffer = 0;
+
 // started rendering frame?
 static qboolean vk_frameStarted = false;
 
@@ -200,12 +201,14 @@ static qvkbuffer_t vk_dynUniformBuffers[NUM_DYNBUFFERS];
 static VkDescriptorSet vk_uboDescriptorSets[NUM_DYNBUFFERS];
 static qvkstagingbuffer_t vk_stagingBuffers[NUM_DYNBUFFERS];
 static int vk_activeDynBufferIdx = 0;
+static int vk_activeSwapBufferIdx = 0;
 
 // swap buffers used if primary dynamic buffers get full
-static qvkbuffer_t vk_swapVertexBuffers[NUM_DYNBUFFERS];
-static qvkbuffer_t vk_swapIndexBuffers[NUM_DYNBUFFERS]; // index buffers are unused right now
-static qvkbuffer_t vk_swapUniformBuffers[NUM_DYNBUFFERS];
-static VkDescriptorSet vk_swapDescriptorSets[NUM_DYNBUFFERS];
+#define NUM_SWAPBUFFERS 4
+static qvkbuffer_t vk_swapVertexBuffers[NUM_SWAPBUFFERS];
+static qvkbuffer_t vk_swapIndexBuffers[NUM_SWAPBUFFERS]; // index buffers are unused right now
+static qvkbuffer_t vk_swapUniformBuffers[NUM_SWAPBUFFERS];
+static VkDescriptorSet vk_swapDescriptorSets[NUM_SWAPBUFFERS];
 
 // by how much will the dynamic buffers be resized if we run out of space?
 #define BUFFER_RESIZE_FACTOR 2.f
@@ -565,35 +568,28 @@ static void CreateDynamicBuffers()
 }
 
 // internal helper
-static void SwapFullBuffers()
+static void ReleaseSwapBuffers()
 {
-	if (vk_dynVertexBuffers[vk_activeDynBufferIdx].full ||
-		vk_dynUniformBuffers[vk_activeDynBufferIdx].full ||
-		vk_dynIndexBuffers[vk_activeDynBufferIdx].full)
+	vk_activeSwapBufferIdx = (vk_activeSwapBufferIdx + 1) % NUM_SWAPBUFFERS;
+	int releaseBufferIdx = (vk_activeSwapBufferIdx + 1) % NUM_SWAPBUFFERS;
+
+	if (vk_swapVertexBuffers[releaseBufferIdx].buffer != VK_NULL_HANDLE)
 	{
-		vkDeviceWaitIdle(vk_device.logical);
+		vmaUnmapMemory(vk_malloc, vk_swapVertexBuffers[releaseBufferIdx].allocation);
+		QVk_FreeBuffer(&vk_swapVertexBuffers[releaseBufferIdx]);
+	}
 
-#define SWAPBUF(dynBuffer, swapBuffer, buffName, buffSize, freeDescSet) \
-		if (dynBuffer[vk_activeDynBufferIdx].full) \
-		{ \
-			ri.Con_Printf(PRINT_ALL, "Resizing dynamic "buffName" buffer to %ukB\n", buffSize / 1024); \
-			for (int i = 0; i < NUM_DYNBUFFERS; i++) \
-			{ \
-				vmaUnmapMemory(vk_malloc, dynBuffer[i].allocation); \
-				QVk_FreeBuffer(&dynBuffer[i]); \
-				dynBuffer[i] = swapBuffer[i]; \
-				/* free descriptor sets associated with the (uniform) buffer */\
-				if (freeDescSet) \
-				{ \
-					vkFreeDescriptorSets(vk_device.logical, vk_descriptorPool, 1, &vk_uboDescriptorSets[i]); \
-					vk_uboDescriptorSets[i] = vk_swapDescriptorSets[i]; \
-				} \
-			} \
-		}
+	if (vk_swapIndexBuffers[releaseBufferIdx].buffer != VK_NULL_HANDLE)
+	{
+		vmaUnmapMemory(vk_malloc, vk_swapIndexBuffers[releaseBufferIdx].allocation);
+		QVk_FreeBuffer(&vk_swapIndexBuffers[releaseBufferIdx]);
+	}
 
-		SWAPBUF(vk_dynVertexBuffers, vk_swapVertexBuffers, "vertex", vk_config.vertex_buffer_size, 0);
-		SWAPBUF(vk_dynIndexBuffers, vk_swapIndexBuffers, "index", vk_config.index_buffer_size, 0);
-		SWAPBUF(vk_dynUniformBuffers, vk_swapUniformBuffers, "uniform", vk_config.uniform_buffer_size, 1);
+	if (vk_swapUniformBuffers[releaseBufferIdx].buffer != VK_NULL_HANDLE)
+	{
+		vmaUnmapMemory(vk_malloc, vk_swapUniformBuffers[releaseBufferIdx].allocation);
+		QVk_FreeBuffer(&vk_swapUniformBuffers[releaseBufferIdx]);
+		vkFreeDescriptorSets(vk_device.logical, vk_descriptorPool, 1, &vk_swapDescriptorSets[releaseBufferIdx]);
 	}
 }
 
@@ -1304,6 +1300,8 @@ VkResult QVk_BeginFrame()
 	vk_config.index_buffer_usage   = 0;
 	vk_config.uniform_buffer_usage = 0;
 
+	ReleaseSwapBuffers();
+
 	VkResult result = vkAcquireNextImageKHR(vk_device.logical, vk_swapchain.sc, UINT32_MAX, vk_imageAvailableSemaphores[vk_activeBufferIdx], VK_NULL_HANDLE, &vk_imageIndex);
 	vk_activeCmdbuffer = vk_commandbuffers[vk_activeBufferIdx];
 	vk_activeFramebuffer = (vk_activeRenderpass.sampleCount == VK_SAMPLE_COUNT_1_BIT) ? vk_framebuffers[RT_STANDARD][vk_imageIndex] : vk_framebuffers[RT_MSAA][vk_imageIndex];
@@ -1413,9 +1411,6 @@ VkResult QVk_EndFrame()
 
 	vk_activeBufferIdx = (vk_activeBufferIdx + 1) % NUM_CMDBUFFERS;
 
-	// release full dynamic buffers and start using resized ones, if applicable
-	SwapFullBuffers();
-
 	vk_frameStarted = false;
 	return renderResult;
 }
@@ -1438,34 +1433,29 @@ void QVk_RecreateSwapchain()
 
 uint8_t *QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, VkDeviceSize *dstOffset)
 {
-	qvkbuffer_t *currentBuffer = &vk_dynVertexBuffers[vk_activeDynBufferIdx];
-
-	if (currentBuffer->full)
-		currentBuffer = &vk_swapVertexBuffers[vk_activeDynBufferIdx];
-
-	if (currentBuffer->currentOffset + size > vk_config.vertex_buffer_size)
+	if (vk_dynVertexBuffers[vk_activeDynBufferIdx].currentOffset + size > vk_config.vertex_buffer_size)
 	{
-		currentBuffer->full = true;
 		vk_config.vertex_buffer_size = max(vk_config.vertex_buffer_size * BUFFER_RESIZE_FACTOR, NextPow2(size));
 
+		ri.Con_Printf(PRINT_ALL, "Resizing dynamic vertex buffer to %ukB\n", vk_config.vertex_buffer_size / 1024);
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 		{
-			QVk_CreateVertexBuffer(NULL, vk_config.vertex_buffer_size, &vk_swapVertexBuffers[i], NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
-			vmaMapMemory(vk_malloc, vk_swapVertexBuffers[i].allocation, &vk_swapVertexBuffers[i].allocInfo.pMappedData);
-		}
+			vk_swapVertexBuffers[(vk_activeSwapBufferIdx + i) % NUM_SWAPBUFFERS] = vk_dynVertexBuffers[i];
 
-		currentBuffer = &vk_swapVertexBuffers[vk_activeDynBufferIdx];
+			QVk_CreateVertexBuffer(NULL, vk_config.vertex_buffer_size, &vk_dynVertexBuffers[i], NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
+			vmaMapMemory(vk_malloc, vk_dynVertexBuffers[i].allocation, &vk_dynVertexBuffers[i].allocInfo.pMappedData);
+		}
 	}
 
-	*dstOffset = currentBuffer->currentOffset;
-	*dstBuffer = currentBuffer->buffer;
-	currentBuffer->currentOffset += size;
+	*dstOffset = vk_dynVertexBuffers[vk_activeDynBufferIdx].currentOffset;
+	*dstBuffer = vk_dynVertexBuffers[vk_activeDynBufferIdx].buffer;
+	vk_dynVertexBuffers[vk_activeDynBufferIdx].currentOffset += size;
 
 	vk_config.vertex_buffer_usage += size;
 	if (vk_config.vertex_buffer_max_usage < vk_config.vertex_buffer_usage)
 		vk_config.vertex_buffer_max_usage = vk_config.vertex_buffer_usage;
 	
-	return (uint8_t *)currentBuffer->allocInfo.pMappedData + (*dstOffset);
+	return (uint8_t *)vk_dynVertexBuffers[vk_activeDynBufferIdx].allocInfo.pMappedData + (*dstOffset);
 }
 
 uint8_t *QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset)
@@ -1473,34 +1463,29 @@ uint8_t *QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset)
 	// align to 4 bytes, so that we can reuse the buffer for both VK_INDEX_TYPE_UINT16 and VK_INDEX_TYPE_UINT32
 	const int align_mod = size % 4;
 	const uint32_t aligned_size = ((size % 4) == 0) ? size : (size + 4 - align_mod);
-	qvkbuffer_t *currentBuffer = &vk_dynIndexBuffers[vk_activeDynBufferIdx];
 
-	if (currentBuffer->full)
-		currentBuffer = &vk_swapIndexBuffers[vk_activeDynBufferIdx];
-
-	if (currentBuffer->currentOffset + aligned_size > vk_config.index_buffer_size)
+	if (vk_dynIndexBuffers[vk_activeDynBufferIdx].currentOffset + aligned_size > vk_config.index_buffer_size)
 	{
-		currentBuffer->full = true;
 		vk_config.index_buffer_size = max(vk_config.index_buffer_size * BUFFER_RESIZE_FACTOR, NextPow2(size));
 
+		ri.Con_Printf(PRINT_ALL, "Resizing dynamic index buffer to %ukB\n", vk_config.index_buffer_size / 1024);
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 		{
-			QVk_CreateIndexBuffer(NULL, vk_config.index_buffer_size, &vk_swapIndexBuffers[i], NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
-			vmaMapMemory(vk_malloc, vk_swapIndexBuffers[i].allocation, &vk_swapIndexBuffers[i].allocInfo.pMappedData);
-		}
+			vk_swapIndexBuffers[(vk_activeSwapBufferIdx + i) % NUM_SWAPBUFFERS] = vk_dynIndexBuffers[i];
 
-		currentBuffer = &vk_swapIndexBuffers[vk_activeDynBufferIdx];
+			QVk_CreateIndexBuffer(NULL, vk_config.index_buffer_size, &vk_dynIndexBuffers[i], NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
+			vmaMapMemory(vk_malloc, vk_dynIndexBuffers[i].allocation, &vk_dynIndexBuffers[i].allocInfo.pMappedData);
+		}
 	}
 
-	*dstOffset = currentBuffer->currentOffset;
-	currentBuffer->currentOffset += aligned_size;
+	*dstOffset = vk_dynIndexBuffers[vk_activeDynBufferIdx].currentOffset;
+	vk_dynIndexBuffers[vk_activeDynBufferIdx].currentOffset += aligned_size;
 
 	vk_config.index_buffer_usage += aligned_size;
 	if (vk_config.index_buffer_max_usage < vk_config.index_buffer_usage)
 		vk_config.index_buffer_max_usage = vk_config.index_buffer_usage;
 
-
-	return (uint8_t *)currentBuffer->allocInfo.pMappedData + (*dstOffset);
+	return (uint8_t *)vk_dynIndexBuffers[vk_activeDynBufferIdx].allocInfo.pMappedData + (*dstOffset);
 }
 
 uint8_t *QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescriptorSet *dstUboDescriptorSet)
@@ -1508,40 +1493,32 @@ uint8_t *QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescript
 	// 0x100 alignment is required by Vulkan spec
 	const int align_mod = size % 256;
 	const uint32_t aligned_size = ((size % 256) == 0) ? size : (size + 256 - align_mod);
-	qvkbuffer_t *currentBuffer = &vk_dynUniformBuffers[vk_activeDynBufferIdx];
-	VkDescriptorSet *currentDescSet = &vk_uboDescriptorSets[vk_activeDynBufferIdx];
 
-	if (currentBuffer->full)
+	if (vk_dynUniformBuffers[vk_activeDynBufferIdx].currentOffset + UNIFORM_ALLOC_SIZE > vk_config.uniform_buffer_size)
 	{
-		currentBuffer = &vk_swapUniformBuffers[vk_activeDynBufferIdx];
-		currentDescSet = &vk_swapDescriptorSets[vk_activeDynBufferIdx];
-	}
-
-	if (currentBuffer->currentOffset + UNIFORM_ALLOC_SIZE > vk_config.uniform_buffer_size)
-	{
-		currentBuffer->full = true;
 		vk_config.uniform_buffer_size = max(vk_config.uniform_buffer_size * BUFFER_RESIZE_FACTOR, NextPow2(size));
 
+		ri.Con_Printf(PRINT_ALL, "Resizing dynamic uniform buffer to %ukB\n", vk_config.uniform_buffer_size / 1024);
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 		{
-			QVk_CreateUniformBuffer(vk_config.uniform_buffer_size, &vk_swapUniformBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
-			vmaMapMemory(vk_malloc, vk_swapUniformBuffers[i].allocation, &vk_swapUniformBuffers[i].allocInfo.pMappedData);
+			vk_swapUniformBuffers[(vk_activeSwapBufferIdx + i) % NUM_SWAPBUFFERS] = vk_dynUniformBuffers[i];
+			vk_swapDescriptorSets[(vk_activeSwapBufferIdx + i) % NUM_SWAPBUFFERS] = vk_uboDescriptorSets[i];
 
-			CreateUboDescriptorSet(&vk_swapDescriptorSets[i], vk_swapUniformBuffers[i].buffer);
+			QVk_CreateUniformBuffer(vk_config.uniform_buffer_size, &vk_dynUniformBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
+			vmaMapMemory(vk_malloc, vk_dynUniformBuffers[i].allocation, &vk_dynUniformBuffers[i].allocInfo.pMappedData);
+			CreateUboDescriptorSet(&vk_uboDescriptorSets[i], vk_dynUniformBuffers[i].buffer);
 		}
-
-		currentBuffer = &vk_swapUniformBuffers[vk_activeDynBufferIdx];
 	}
 
-	*dstOffset = currentBuffer->currentOffset;
-	*dstUboDescriptorSet = *currentDescSet;
-	currentBuffer->currentOffset += aligned_size;
+	*dstOffset = vk_dynUniformBuffers[vk_activeDynBufferIdx].currentOffset;
+	*dstUboDescriptorSet = vk_uboDescriptorSets[vk_activeDynBufferIdx];
+	vk_dynUniformBuffers[vk_activeDynBufferIdx].currentOffset += aligned_size;
 
 	vk_config.uniform_buffer_usage += aligned_size;
 	if (vk_config.uniform_buffer_max_usage < vk_config.uniform_buffer_usage)
 		vk_config.uniform_buffer_max_usage = vk_config.uniform_buffer_usage;
 
-	return (uint8_t *)currentBuffer->allocInfo.pMappedData + (*dstOffset);
+	return (uint8_t *)vk_dynUniformBuffers[vk_activeDynBufferIdx].allocInfo.pMappedData + (*dstOffset);
 }
 
 uint8_t *QVk_GetStagingBuffer(VkDeviceSize size, int alignment, VkCommandBuffer *cmdBuffer, VkBuffer *buffer, uint32_t *dstOffset)

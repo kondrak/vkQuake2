@@ -126,7 +126,6 @@ typedef struct
 	VmaAllocation allocation;
 	VmaAllocationInfo allocInfo;
 	VkDeviceSize currentOffset;
-	qboolean full;
 } qvkbuffer_t;
 
 // Vulkan staging buffer

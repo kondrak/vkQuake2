@@ -100,7 +100,6 @@ VkResult QVk_CreateBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, const qvkbu
 	};
 
 	dstBuffer->currentOffset = 0;
-	dstBuffer->full = false;
 	return vmaCreateBuffer(vk_malloc, &bcInfo, &vmallocInfo, &dstBuffer->buffer, &dstBuffer->allocation, &dstBuffer->allocInfo);
 }
 
@@ -110,7 +109,6 @@ void QVk_FreeBuffer(qvkbuffer_t *buffer)
 	buffer->buffer = VK_NULL_HANDLE;
 	buffer->allocation = VK_NULL_HANDLE;
 	buffer->currentOffset = 0;
-	buffer->full = false;
 }
 
 VkResult QVk_CreateStagingBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, VkMemoryPropertyFlags reqMemFlags, VkMemoryPropertyFlags prefMemFlags)
