@@ -44,7 +44,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "qvk.h"
 
 #define	REF_VERSION	"Vulkan (vkQuake2 v"VKQUAKE2_VERSION")"
-#define VKQUAKE2_VERSION "1.1.1"
+#define VKQUAKE2_VERSION "1.2"
 
 // verify if VkResult is VK_SUCCESS
 #ifdef _DEBUG
@@ -68,6 +68,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // fall over
 #define	ROLL	2
 
+#ifndef min
+#define min(a, b) (((a) < (b)) ? (a) : (b))
+#endif
+#ifndef max
+#define max(a, b) (((a) > (b)) ? (a) : (b))
+#endif
 
 typedef struct
 {
@@ -301,6 +307,15 @@ typedef struct
 	const char *supported_present_modes[256];
 	const char *extensions[256];
 	const char *layers[256];
+	uint32_t    vertex_buffer_usage;
+	uint32_t    vertex_buffer_max_usage;
+	uint32_t    vertex_buffer_size;
+	uint32_t    index_buffer_usage;
+	uint32_t    index_buffer_max_usage;
+	uint32_t    index_buffer_size;
+	uint32_t    uniform_buffer_usage;
+	uint32_t    uniform_buffer_max_usage;
+	uint32_t    uniform_buffer_size;
 } vkconfig_t;
 
 #define MAX_LIGHTMAPS 128
