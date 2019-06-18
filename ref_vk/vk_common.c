@@ -214,9 +214,9 @@ static VkDescriptorSet *vk_swapDescriptorSets[NUM_SWAPBUFFER_SLOTS];
 // size in bytes used for uniform descriptor update
 #define UNIFORM_ALLOC_SIZE 1024
 // start values for dynamic buffer sizes - bound to change if the application runs out of space (size in kB)
-#define VERTEX_BUFFER_SIZE (512 * 1024)
+#define VERTEX_BUFFER_SIZE (1024 * 1024)
 #define INDEX_BUFFER_SIZE (8 * 1024)
-#define UNIFORM_BUFFER_SIZE (1024 * 1024)
+#define UNIFORM_BUFFER_SIZE (2048 * 1024)
 // staging buffer is constant in size but has a max limit beyond which it will be submitted
 #define STAGING_BUFFER_MAXSIZE (8192 * 1024)
 // index count in triangle fan buffer (assuming max 84 triangles per object)
