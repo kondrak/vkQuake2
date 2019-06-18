@@ -307,15 +307,15 @@ typedef struct
 	const char *supported_present_modes[256];
 	const char *extensions[256];
 	const char *layers[256];
-	VkDeviceSize vertex_buffer_usage;
-	VkDeviceSize vertex_buffer_max_usage;
-	VkDeviceSize vertex_buffer_size;
-	VkDeviceSize index_buffer_usage;
-	VkDeviceSize index_buffer_max_usage;
-	VkDeviceSize index_buffer_size;
-	VkDeviceSize uniform_buffer_usage;
-	VkDeviceSize uniform_buffer_max_usage;
-	VkDeviceSize uniform_buffer_size;
+	uint32_t    vertex_buffer_usage;
+	uint32_t    vertex_buffer_max_usage;
+	uint32_t    vertex_buffer_size;
+	uint32_t    index_buffer_usage;
+	uint32_t    index_buffer_max_usage;
+	uint32_t    index_buffer_size;
+	uint32_t    uniform_buffer_usage;
+	uint32_t    uniform_buffer_max_usage;
+	uint32_t    uniform_buffer_size;
 } vkconfig_t;
 
 #define MAX_LIGHTMAPS 128
