@@ -211,6 +211,7 @@ static VkDescriptorSet *vk_swapDescriptorSets[NUM_SWAPBUFFER_SLOTS];
 
 // by how much will the dynamic buffers be resized if we run out of space?
 #define BUFFER_RESIZE_FACTOR 2.f
+// size in bytes used for uniform descriptor update
 #define UNIFORM_ALLOC_SIZE 1024
 // start values for dynamic buffer sizes - bound to change if the application runs out of space (size in kB)
 #define VERTEX_BUFFER_SIZE (512 * 1024)
