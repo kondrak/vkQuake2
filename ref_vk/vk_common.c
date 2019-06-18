@@ -120,7 +120,6 @@ int vk_activeBufferIdx = 0;
 uint32_t vk_imageIndex = 0;
 // index of currently used staging buffer
 int vk_activeStagingBuffer = 0;
-
 // started rendering frame?
 static qboolean vk_frameStarted = false;
 
@@ -562,7 +561,7 @@ static void CreateDynamicBuffers()
 		vmaMapMemory(vk_malloc, vk_dynVertexBuffers[i].allocation, &vk_dynVertexBuffers[i].allocInfo.pMappedData);
 		vmaMapMemory(vk_malloc, vk_dynIndexBuffers[i].allocation, &vk_dynIndexBuffers[i].allocInfo.pMappedData);
 		vmaMapMemory(vk_malloc, vk_dynUniformBuffers[i].allocation, &vk_dynUniformBuffers[i].allocInfo.pMappedData);
-
+		// create descriptor set for the uniform buffer
 		CreateUboDescriptorSet(&vk_uboDescriptorSets[i], vk_dynUniformBuffers[i].buffer);
 	}
 }
