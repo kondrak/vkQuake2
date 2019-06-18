@@ -203,11 +203,11 @@ static int vk_activeDynBufferIdx = 0;
 static int vk_activeSwapBufferIdx = 0;
 
 // swap buffers used if primary dynamic buffers get full
-#define NUM_SWAPBUFFERS 4
-static qvkbuffer_t vk_swapVertexBuffers[NUM_SWAPBUFFERS];
-static qvkbuffer_t vk_swapIndexBuffers[NUM_SWAPBUFFERS]; // index buffers are unused right now
-static qvkbuffer_t vk_swapUniformBuffers[NUM_SWAPBUFFERS];
-static VkDescriptorSet vk_swapDescriptorSets[NUM_SWAPBUFFERS];
+#define NUM_SWAPBUFFER_SLOTS 4
+static int vk_swapBuffersCnt[NUM_SWAPBUFFER_SLOTS];
+static int vk_swapDescSetsCnt[NUM_SWAPBUFFER_SLOTS];
+static qvkbuffer_t *vk_swapBuffers[NUM_SWAPBUFFER_SLOTS];
+static VkDescriptorSet *vk_swapDescriptorSets[NUM_SWAPBUFFER_SLOTS];
 
 // by how much will the dynamic buffers be resized if we run out of space?
 #define BUFFER_RESIZE_FACTOR 2.f
@@ -569,26 +569,26 @@ static void CreateDynamicBuffers()
 // internal helper
 static void ReleaseSwapBuffers()
 {
-	vk_activeSwapBufferIdx = (vk_activeSwapBufferIdx + 1) % NUM_SWAPBUFFERS;
-	int releaseBufferIdx = (vk_activeSwapBufferIdx + 1) % NUM_SWAPBUFFERS;
+	vk_activeSwapBufferIdx = (vk_activeSwapBufferIdx + 1) % NUM_SWAPBUFFER_SLOTS;
+	int releaseBufferIdx   = (vk_activeSwapBufferIdx + 1) % NUM_SWAPBUFFER_SLOTS;
 
-	if (vk_swapVertexBuffers[releaseBufferIdx].buffer != VK_NULL_HANDLE)
+	if (vk_swapBuffersCnt[releaseBufferIdx] > 0)
 	{
-		vmaUnmapMemory(vk_malloc, vk_swapVertexBuffers[releaseBufferIdx].allocation);
-		QVk_FreeBuffer(&vk_swapVertexBuffers[releaseBufferIdx]);
+		for (int i = 0; i < vk_swapBuffersCnt[releaseBufferIdx]; i++)
+			QVk_FreeBuffer(&vk_swapBuffers[releaseBufferIdx][i]);
+
+		free(vk_swapBuffers[releaseBufferIdx]);
+		vk_swapBuffers[releaseBufferIdx] = NULL;
+		vk_swapBuffersCnt[releaseBufferIdx] = 0;
 	}
 
-	if (vk_swapIndexBuffers[releaseBufferIdx].buffer != VK_NULL_HANDLE)
+	if (vk_swapDescSetsCnt[releaseBufferIdx] > 0)
 	{
-		vmaUnmapMemory(vk_malloc, vk_swapIndexBuffers[releaseBufferIdx].allocation);
-		QVk_FreeBuffer(&vk_swapIndexBuffers[releaseBufferIdx]);
-	}
+		vkFreeDescriptorSets(vk_device.logical, vk_descriptorPool, vk_swapDescSetsCnt[releaseBufferIdx], vk_swapDescriptorSets[releaseBufferIdx]);
 
-	if (vk_swapUniformBuffers[releaseBufferIdx].buffer != VK_NULL_HANDLE)
-	{
-		vmaUnmapMemory(vk_malloc, vk_swapUniformBuffers[releaseBufferIdx].allocation);
-		QVk_FreeBuffer(&vk_swapUniformBuffers[releaseBufferIdx]);
-		vkFreeDescriptorSets(vk_device.logical, vk_descriptorPool, 1, &vk_swapDescriptorSets[releaseBufferIdx]);
+		free(vk_swapDescriptorSets[releaseBufferIdx]);
+		vk_swapDescriptorSets[releaseBufferIdx] = NULL;
+		vk_swapDescSetsCnt[releaseBufferIdx] = 0;
 	}
 }
 
@@ -1437,9 +1437,18 @@ uint8_t *QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, VkDeviceSiz
 		vk_config.vertex_buffer_size = max(vk_config.vertex_buffer_size * BUFFER_RESIZE_FACTOR, NextPow2(size));
 
 		ri.Con_Printf(PRINT_ALL, "Resizing dynamic vertex buffer to %ukB\n", vk_config.vertex_buffer_size / 1024);
+		int swapBufferOffset = vk_swapBuffersCnt[vk_activeSwapBufferIdx];
+		vk_swapBuffersCnt[vk_activeSwapBufferIdx] += NUM_DYNBUFFERS;
+
+		if (vk_swapBuffers[vk_activeSwapBufferIdx] == NULL)
+			vk_swapBuffers[vk_activeSwapBufferIdx] = malloc(sizeof(qvkbuffer_t) * vk_swapBuffersCnt[vk_activeSwapBufferIdx]);
+		else
+			vk_swapBuffers[vk_activeSwapBufferIdx] = realloc(vk_swapBuffers[vk_activeSwapBufferIdx], sizeof(qvkbuffer_t) * vk_swapBuffersCnt[vk_activeSwapBufferIdx]);
+
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 		{
-			vk_swapVertexBuffers[(vk_activeSwapBufferIdx + i) % NUM_SWAPBUFFERS] = vk_dynVertexBuffers[i];
+			vk_swapBuffers[vk_activeSwapBufferIdx][swapBufferOffset + i] = vk_dynVertexBuffers[i];
+			vmaUnmapMemory(vk_malloc, vk_dynVertexBuffers[i].allocation);
 
 			QVk_CreateVertexBuffer(NULL, vk_config.vertex_buffer_size, &vk_dynVertexBuffers[i], NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
 			vmaMapMemory(vk_malloc, vk_dynVertexBuffers[i].allocation, &vk_dynVertexBuffers[i].allocInfo.pMappedData);
@@ -1468,9 +1477,18 @@ uint8_t *QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset)
 		vk_config.index_buffer_size = max(vk_config.index_buffer_size * BUFFER_RESIZE_FACTOR, NextPow2(size));
 
 		ri.Con_Printf(PRINT_ALL, "Resizing dynamic index buffer to %ukB\n", vk_config.index_buffer_size / 1024);
+		int swapBufferOffset = vk_swapBuffersCnt[vk_activeSwapBufferIdx];
+		vk_swapBuffersCnt[vk_activeSwapBufferIdx] += NUM_DYNBUFFERS;
+
+		if (vk_swapBuffers[vk_activeSwapBufferIdx] == NULL)
+			vk_swapBuffers[vk_activeSwapBufferIdx] = malloc(sizeof(qvkbuffer_t) * vk_swapBuffersCnt[vk_activeSwapBufferIdx]);
+		else
+			vk_swapBuffers[vk_activeSwapBufferIdx] = realloc(vk_swapBuffers[vk_activeSwapBufferIdx], sizeof(qvkbuffer_t) * vk_swapBuffersCnt[vk_activeSwapBufferIdx]);
+
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 		{
-			vk_swapIndexBuffers[(vk_activeSwapBufferIdx + i) % NUM_SWAPBUFFERS] = vk_dynIndexBuffers[i];
+			vk_swapBuffers[vk_activeSwapBufferIdx][swapBufferOffset + i] = vk_dynIndexBuffers[i];
+			vmaUnmapMemory(vk_malloc, vk_dynIndexBuffers[i].allocation);
 
 			QVk_CreateIndexBuffer(NULL, vk_config.index_buffer_size, &vk_dynIndexBuffers[i], NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
 			vmaMapMemory(vk_malloc, vk_dynIndexBuffers[i].allocation, &vk_dynIndexBuffers[i].allocInfo.pMappedData);
@@ -1498,10 +1516,26 @@ uint8_t *QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescript
 		vk_config.uniform_buffer_size = max(vk_config.uniform_buffer_size * BUFFER_RESIZE_FACTOR, NextPow2(size));
 
 		ri.Con_Printf(PRINT_ALL, "Resizing dynamic uniform buffer to %ukB\n", vk_config.uniform_buffer_size / 1024);
+		int swapBufferOffset   = vk_swapBuffersCnt[vk_activeSwapBufferIdx];
+		int swapDescSetsOffset = vk_swapDescSetsCnt[vk_activeSwapBufferIdx];
+		vk_swapBuffersCnt[vk_activeSwapBufferIdx]  += NUM_DYNBUFFERS;
+		vk_swapDescSetsCnt[vk_activeSwapBufferIdx] += NUM_DYNBUFFERS;
+
+		if (vk_swapBuffers[vk_activeSwapBufferIdx] == NULL)
+			vk_swapBuffers[vk_activeSwapBufferIdx] = malloc(sizeof(qvkbuffer_t) * vk_swapBuffersCnt[vk_activeSwapBufferIdx]);
+		else
+			vk_swapBuffers[vk_activeSwapBufferIdx] = realloc(vk_swapBuffers[vk_activeSwapBufferIdx], sizeof(qvkbuffer_t) * vk_swapBuffersCnt[vk_activeSwapBufferIdx]);
+
+		if(vk_swapDescriptorSets[vk_activeSwapBufferIdx] == NULL)
+			vk_swapDescriptorSets[vk_activeSwapBufferIdx] = malloc(sizeof(VkDescriptorSet) * vk_swapDescSetsCnt[vk_activeSwapBufferIdx]);
+		else
+			vk_swapDescriptorSets[vk_activeSwapBufferIdx] = realloc(vk_swapBuffers[vk_activeSwapBufferIdx], sizeof(VkDescriptorSet) * vk_swapDescSetsCnt[vk_activeSwapBufferIdx]);
+
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 		{
-			vk_swapUniformBuffers[(vk_activeSwapBufferIdx + i) % NUM_SWAPBUFFERS] = vk_dynUniformBuffers[i];
-			vk_swapDescriptorSets[(vk_activeSwapBufferIdx + i) % NUM_SWAPBUFFERS] = vk_uboDescriptorSets[i];
+			vk_swapBuffers[vk_activeSwapBufferIdx][swapBufferOffset + i] = vk_dynUniformBuffers[i];
+			vk_swapDescriptorSets[vk_activeSwapBufferIdx][swapDescSetsOffset + i] = vk_uboDescriptorSets[i];;
+			vmaUnmapMemory(vk_malloc, vk_dynUniformBuffers[i].allocation);
 
 			QVk_CreateUniformBuffer(vk_config.uniform_buffer_size, &vk_dynUniformBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
 			vmaMapMemory(vk_malloc, vk_dynUniformBuffers[i].allocation, &vk_dynUniformBuffers[i].allocInfo.pMappedData);
