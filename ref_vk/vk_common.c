@@ -1530,7 +1530,7 @@ uint8_t *QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescript
 		if(vk_swapDescriptorSets[vk_activeSwapBufferIdx] == NULL)
 			vk_swapDescriptorSets[vk_activeSwapBufferIdx] = malloc(sizeof(VkDescriptorSet) * vk_swapDescSetsCnt[vk_activeSwapBufferIdx]);
 		else
-			vk_swapDescriptorSets[vk_activeSwapBufferIdx] = realloc(vk_swapBuffers[vk_activeSwapBufferIdx], sizeof(VkDescriptorSet) * vk_swapDescSetsCnt[vk_activeSwapBufferIdx]);
+			vk_swapDescriptorSets[vk_activeSwapBufferIdx] = realloc(vk_swapDescriptorSets[vk_activeSwapBufferIdx], sizeof(VkDescriptorSet) * vk_swapDescSetsCnt[vk_activeSwapBufferIdx]);
 
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 		{
