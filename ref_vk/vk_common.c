@@ -653,22 +653,28 @@ static void CreateStagingBuffers()
 // internal helper
 static void SubmitStagingBuffer(int index)
 {
-	VkMemoryBarrier memory_barrier;
-	memset(&memory_barrier, 0, sizeof(memory_barrier));
-	memory_barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
-	memory_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-	memory_barrier.dstAccessMask = VK_ACCESS_INDEX_READ_BIT | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
-	vkCmdPipelineBarrier(vk_stagingBuffers[index].cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 1, &memory_barrier, 0, NULL, 0, NULL);
+	VkMemoryBarrier memBarrier = {
+		.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+		.pNext = NULL,
+		.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+		.dstAccessMask = VK_ACCESS_INDEX_READ_BIT | VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT
+	};
 
+	vkCmdPipelineBarrier(vk_stagingBuffers[index].cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 1, &memBarrier, 0, NULL, 0, NULL);
 	vkEndCommandBuffer(vk_stagingBuffers[index].cmdBuffer);
 
-	VkSubmitInfo submit_info;
-	memset(&submit_info, 0, sizeof(submit_info));
-	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submit_info.commandBufferCount = 1;
-	submit_info.pCommandBuffers = &vk_stagingBuffers[index].cmdBuffer;
+	VkSubmitInfo submitInfo = {
+		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+		.waitSemaphoreCount = 0,
+		.pWaitSemaphores = NULL,
+		.signalSemaphoreCount = 0,
+		.pSignalSemaphores = NULL,
+		.pWaitDstStageMask = NULL,
+		.commandBufferCount = 1,
+		.pCommandBuffers = &vk_stagingBuffers[index].cmdBuffer
+	};
 
-	vkQueueSubmit(vk_device.gfxQueue, 1, &submit_info, vk_stagingBuffers[index].fence);
+	vkQueueSubmit(vk_device.gfxQueue, 1, &submitInfo, vk_stagingBuffers[index].fence);
 
 	vk_stagingBuffers[index].submitted = true;
 	vk_activeStagingBuffer = (vk_activeStagingBuffer + 1) % NUM_DYNBUFFERS;
