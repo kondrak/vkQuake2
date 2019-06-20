@@ -356,6 +356,7 @@ void QVk_CreateDepthBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *dept
 	// "Mapping an image with layout VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL can result in undefined behavior if this memory is used by the device. Only GENERAL or PREINITIALIZED should be used."
 	// Minor annoyance but we don't want any validation warning either, so we crate dedicated allocation for depth buffer.
 	// more details: https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/issues/34
+	// Note that this is a false positive which in other cases could be ignored: https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/general_considerations.html#general_considerations_validation_layer_warnings
 	depthBuffer->vmaFlags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
 
 	VK_VERIFY(QVk_CreateImage(vk_swapchain.extent.width, vk_swapchain.extent.height, depthBuffer->format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VMA_MEMORY_USAGE_GPU_ONLY, depthBuffer));
@@ -376,6 +377,7 @@ void QVk_CreateColorBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *colo
 	// "Mapping an image with layout VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL can result in undefined behavior if this memory is used by the device. Only GENERAL or PREINITIALIZED should be used."
 	// Minor annoyance but we don't want any validation warning either, so we crate dedicated allocation for color buffer.
 	// more details: https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/issues/34
+	// Note that this is a false positive which in other cases could be ignored: https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/general_considerations.html#general_considerations_validation_layer_warnings
 	colorBuffer->vmaFlags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
 
 	VK_VERIFY(QVk_CreateImage(vk_swapchain.extent.width, vk_swapchain.extent.height, colorBuffer->format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VMA_MEMORY_USAGE_GPU_ONLY, colorBuffer));

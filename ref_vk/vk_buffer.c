@@ -131,7 +131,12 @@ VkResult QVk_CreateUniformBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, VkMe
 		.reqMemFlags = reqMemFlags,
 		.prefMemFlags = prefMemFlags,
 		.vmaUsage = VMA_MEMORY_USAGE_CPU_TO_GPU,
-		.vmaFlags = 0
+		// When resizing dynamic uniform buffers on Intel, the Linux driver may throw a warning:
+		// "Mapping an image with layout VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL can result in undefined behavior if this memory is used by the device. Only GENERAL or PREINITIALIZED should be used."
+		// Minor annoyance but we don't want any validation warning either, so we crate dedicated allocation for uniform buffer.
+		// more details: https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/issues/34
+		// Note that this is a false positive which in other cases could be ignored: https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/general_considerations.html#general_considerations_validation_layer_warnings
+		.vmaFlags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT
 	};
 
 	return QVk_CreateBuffer(size, dstBuffer, dstOpts);
