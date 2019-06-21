@@ -1337,6 +1337,7 @@ VkResult QVk_BeginFrame()
 	// setup command buffers and render pass for drawing
 	VkCommandBufferBeginInfo beginInfo = {
 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+		.pNext = NULL,
 		.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
 		.pInheritanceInfo = NULL
 	};
@@ -1563,43 +1564,45 @@ uint8_t *QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescript
 
 uint8_t *QVk_GetStagingBuffer(VkDeviceSize size, int alignment, VkCommandBuffer *cmdBuffer, VkBuffer *buffer, uint32_t *dstOffset)
 {
-	qvkstagingbuffer_t * staging_buffer = &vk_stagingBuffers[vk_activeStagingBuffer];
-	const int align_mod = staging_buffer->buffer.currentOffset % alignment;
-	staging_buffer->buffer.currentOffset = ((staging_buffer->buffer.currentOffset % alignment) == 0)
-		? staging_buffer->buffer.currentOffset : (staging_buffer->buffer.currentOffset + alignment - align_mod);
+	qvkstagingbuffer_t * stagingBuffer = &vk_stagingBuffers[vk_activeStagingBuffer];
+	const int align_mod = stagingBuffer->buffer.currentOffset % alignment;
+	stagingBuffer->buffer.currentOffset = ((stagingBuffer->buffer.currentOffset % alignment) == 0)
+		? stagingBuffer->buffer.currentOffset : (stagingBuffer->buffer.currentOffset + alignment - align_mod);
 
 	if (size > STAGING_BUFFER_MAXSIZE)
 		Sys_Error("Cannot allocate staging buffer space");
 
-	if ((staging_buffer->buffer.currentOffset + size) >= STAGING_BUFFER_MAXSIZE && !staging_buffer->submitted)
+	if ((stagingBuffer->buffer.currentOffset + size) >= STAGING_BUFFER_MAXSIZE && !stagingBuffer->submitted)
 		SubmitStagingBuffer(vk_activeStagingBuffer);
 
-	staging_buffer = &vk_stagingBuffers[vk_activeStagingBuffer];
-	if (staging_buffer->submitted)
+	stagingBuffer = &vk_stagingBuffers[vk_activeStagingBuffer];
+	if (stagingBuffer->submitted)
 	{
-		VK_VERIFY(vkWaitForFences(vk_device.logical, 1, &staging_buffer->fence, VK_TRUE, UINT64_MAX));
-		VK_VERIFY(vkResetFences(vk_device.logical, 1, &staging_buffer->fence));
+		VK_VERIFY(vkWaitForFences(vk_device.logical, 1, &stagingBuffer->fence, VK_TRUE, UINT64_MAX));
+		VK_VERIFY(vkResetFences(vk_device.logical, 1, &stagingBuffer->fence));
 
-		staging_buffer->buffer.currentOffset = 0;
-		staging_buffer->submitted = false;
+		stagingBuffer->buffer.currentOffset = 0;
+		stagingBuffer->submitted = false;
 
-		VkCommandBufferBeginInfo command_buffer_begin_info;
-		memset(&command_buffer_begin_info, 0, sizeof(command_buffer_begin_info));
-		command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		command_buffer_begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+		VkCommandBufferBeginInfo beginInfo = {
+			.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+			.pNext = NULL,
+			.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+			.pInheritanceInfo = NULL
+		};
 
-		VK_VERIFY(vkBeginCommandBuffer(staging_buffer->cmdBuffer, &command_buffer_begin_info));
+		VK_VERIFY(vkBeginCommandBuffer(stagingBuffer->cmdBuffer, &beginInfo));
 	}
 
 	if (cmdBuffer)
-		*cmdBuffer = staging_buffer->cmdBuffer;
+		*cmdBuffer = stagingBuffer->cmdBuffer;
 	if (buffer)
-		*buffer = staging_buffer->buffer.buffer;
+		*buffer = stagingBuffer->buffer.buffer;
 	if (dstOffset)
-		*dstOffset = staging_buffer->buffer.currentOffset;
+		*dstOffset = stagingBuffer->buffer.currentOffset;
 
-	unsigned char *data = (uint8_t *)staging_buffer->buffer.allocInfo.pMappedData + staging_buffer->buffer.currentOffset;
-	staging_buffer->buffer.currentOffset += size;
+	unsigned char *data = (uint8_t *)stagingBuffer->buffer.allocInfo.pMappedData + stagingBuffer->buffer.currentOffset;
+	stagingBuffer->buffer.currentOffset += size;
 
 	return data;
 }
