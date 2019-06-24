@@ -613,7 +613,9 @@ static int NextPow2(int v)
 static void RebuildTriangleFanIndexBuffer()
 {
 	int idx = 0;
+	VkDeviceSize dstOffset = 0;
 	VkDeviceSize bufferSize = 3 * vk_config.triangle_fan_index_count * sizeof(uint16_t);
+	uint16_t *iboData = NULL;
 	uint16_t *fanData = malloc(bufferSize);
 
 	// fill the index buffer so that we can emulate triangle fans via triangle lists
@@ -624,14 +626,20 @@ static void RebuildTriangleFanIndexBuffer()
 		fanData[idx++] = i + 2;
 	}
 
-	VkDeviceSize dstOffset;
-	uint16_t *iboData = (uint16_t *)QVk_GetIndexBuffer(bufferSize, &dstOffset);
-	memcpy(iboData, fanData, bufferSize);
-	free(fanData);
+	for (int i = 0; i < NUM_DYNBUFFERS; ++i)
+	{
+		vk_activeDynBufferIdx = (vk_activeDynBufferIdx + 1) % NUM_DYNBUFFERS;
+		vmaInvalidateAllocation(vk_malloc, vk_dynIndexBuffers[i].allocation, 0, VK_WHOLE_SIZE);
+
+		iboData = (uint16_t *)QVk_GetIndexBuffer(bufferSize, &dstOffset);
+		memcpy(iboData, fanData, bufferSize);
+
+		vmaFlushAllocation(vk_malloc, vk_dynIndexBuffers[i].allocation, 0, VK_WHOLE_SIZE);
+	}
 
 	vk_triangleFanIbo = &vk_dynIndexBuffers[vk_activeDynBufferIdx].buffer;
 	vk_triangleFanIboUsage = bufferSize;
-	vmaFlushAllocation(vk_malloc, vk_dynIndexBuffers[vk_activeDynBufferIdx].allocation, 0, VK_WHOLE_SIZE);
+	free(fanData);
 }
 
 // internal helper
