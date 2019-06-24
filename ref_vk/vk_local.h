@@ -316,6 +316,7 @@ typedef struct
 	uint32_t    uniform_buffer_usage;
 	uint32_t    uniform_buffer_max_usage;
 	uint32_t    uniform_buffer_size;
+	uint32_t    triangle_fan_index_count;
 } vkconfig_t;
 
 #define MAX_LIGHTMAPS 128

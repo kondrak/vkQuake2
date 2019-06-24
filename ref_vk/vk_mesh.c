@@ -169,6 +169,7 @@ void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *skin, fl
 	int vertCounts[2] = { 0, 0 };
 	static modelvert vertList[2][MAX_VERTS];
 	int pipeCounters[2] = { 0, 0 };
+	VkDeviceSize maxTriangleFanIdxCnt = 0;
 
 	static struct {
 		int vertexCount;
@@ -200,6 +201,8 @@ void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *skin, fl
 		}
 
 		drawInfo[pipelineIdx][pipeCounters[pipelineIdx]].vertexCount = count;
+		maxTriangleFanIdxCnt = max(maxTriangleFanIdxCnt, ((count - 2) * 3));
+
 		if (currententity->flags & (RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE))
 		{
 			meshUbo.textured = 0;
@@ -285,7 +288,7 @@ void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *skin, fl
 		}
 		else
 		{
-			vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_triangleFanIbo.buffer, 0, VK_INDEX_TYPE_UINT16);
+			vkCmdBindIndexBuffer(vk_activeCmdbuffer, QVk_GetTriangleFanIbo(maxTriangleFanIdxCnt), 0, VK_INDEX_TYPE_UINT16);
 
 			for (i = 0; i < pipeCounters[p]; i++)
 			{
@@ -389,7 +392,7 @@ void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatrix)
 			}
 			else
 			{
-				vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_triangleFanIbo.buffer, 0, VK_INDEX_TYPE_UINT16);
+				vkCmdBindIndexBuffer(vk_activeCmdbuffer, QVk_GetTriangleFanIbo((i - 2) * 3), 0, VK_INDEX_TYPE_UINT16);
 				vkCmdDrawIndexed(vk_activeCmdbuffer, (i - 2) * 3, 1, 0, 0, 0);
 			}
 		}

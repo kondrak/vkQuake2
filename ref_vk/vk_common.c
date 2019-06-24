@@ -190,17 +190,20 @@ PFN_vkDestroyDebugUtilsMessengerEXT qvkDestroyDebugUtilsMessengerEXT;
 qvkbuffer_t vk_texRectVbo;
 qvkbuffer_t vk_colorRectVbo;
 qvkbuffer_t vk_rectIbo;
-qvkbuffer_t vk_triangleFanIbo;
 
 // global dynamic buffers (double buffered)
 #define NUM_DYNBUFFERS 2
 static qvkbuffer_t vk_dynVertexBuffers[NUM_DYNBUFFERS];
-static qvkbuffer_t vk_dynIndexBuffers[NUM_DYNBUFFERS]; // index buffers are unused right now
+static qvkbuffer_t vk_dynIndexBuffers[NUM_DYNBUFFERS];
 static qvkbuffer_t vk_dynUniformBuffers[NUM_DYNBUFFERS];
 static VkDescriptorSet vk_uboDescriptorSets[NUM_DYNBUFFERS];
 static qvkstagingbuffer_t vk_stagingBuffers[NUM_DYNBUFFERS];
 static int vk_activeDynBufferIdx = 0;
 static int vk_activeSwapBufferIdx = 0;
+
+// index buffer for triangle fan emulation - all because Metal/MoltenVK don't support them
+static VkBuffer *vk_triangleFanIbo = NULL;
+static uint32_t  vk_triangleFanIboUsage = 0;
 
 // swap buffers used if primary dynamic buffers get full
 #define NUM_SWAPBUFFER_SLOTS 4
@@ -213,14 +216,14 @@ static VkDescriptorSet *vk_swapDescriptorSets[NUM_SWAPBUFFER_SLOTS];
 #define BUFFER_RESIZE_FACTOR 2.f
 // size in bytes used for uniform descriptor update
 #define UNIFORM_ALLOC_SIZE 1024
-// start values for dynamic buffer sizes - bound to change if the application runs out of space (size in kB)
+// start values for dynamic buffer sizes - bound to change if the application runs out of space (sizes in kB)
 #define VERTEX_BUFFER_SIZE (1024 * 1024)
-#define INDEX_BUFFER_SIZE (8 * 1024)
+#define INDEX_BUFFER_SIZE (1 * 1024)
 #define UNIFORM_BUFFER_SIZE (2048 * 1024)
 // staging buffer is constant in size but has a max limit beyond which it will be submitted
 #define STAGING_BUFFER_MAXSIZE (8192 * 1024)
-// index count in triangle fan buffer (assuming max 84 triangles per object)
-#define TRIANGLE_FAN_IBO_MAXSIZE 252
+// index count in triangle fan buffer - assuming 84 triangles per object
+#define TRIANGLE_FAN_INDEX_CNT 84
 
 // Vulkan common descriptor sets for UBO, primary texture sampler and optional lightmap texture
 VkDescriptorSetLayout vk_uboDescSetLayout;
@@ -607,24 +610,27 @@ static int NextPow2(int v)
 }
 
 // internal helper
-static void CreateTriangleFanIndexBuffer()
+static void RebuildTriangleFanIndexBuffer()
 {
-	VkDeviceSize bufferSize = TRIANGLE_FAN_IBO_MAXSIZE * sizeof(uint16_t);
-	VkBuffer stagingBuffer;
-	VkCommandBuffer cmdBuffer;
-	uint32_t stagingOffset;
 	int idx = 0;
-	uint16_t *stagingMemory = (uint16_t *)QVk_GetStagingBuffer(bufferSize, 1, &cmdBuffer, &stagingBuffer, &stagingOffset);
+	VkDeviceSize bufferSize = 3 * vk_config.triangle_fan_index_count * sizeof(uint16_t);
+	uint16_t *fanData = malloc(bufferSize);
 
 	// fill the index buffer so that we can emulate triangle fans via triangle lists
-	for (int i = 0; i < TRIANGLE_FAN_IBO_MAXSIZE / 3; ++i)
+	for (int i = 0; i < vk_config.triangle_fan_index_count; ++i)
 	{
-		stagingMemory[idx++] = 0;
-		stagingMemory[idx++] = i + 1;
-		stagingMemory[idx++] = i + 2;
+		fanData[idx++] = 0;
+		fanData[idx++] = i + 1;
+		fanData[idx++] = i + 2;
 	}
 
-	QVk_CreateIndexBuffer(stagingMemory, bufferSize, &vk_triangleFanIbo, NULL, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0);
+	VkDeviceSize dstOffset;
+	uint16_t *iboData = (uint16_t *)QVk_GetIndexBuffer(bufferSize, &dstOffset);
+	memcpy(iboData, fanData, bufferSize);
+	free(fanData);
+
+	vk_triangleFanIbo = &vk_dynIndexBuffers[vk_activeDynBufferIdx].buffer;
+	vk_triangleFanIboUsage = bufferSize;
 }
 
 // internal helper
@@ -906,7 +912,6 @@ void QVk_Shutdown( void )
 		QVk_FreeBuffer(&vk_texRectVbo);
 		QVk_FreeBuffer(&vk_colorRectVbo);
 		QVk_FreeBuffer(&vk_rectIbo);
-		QVk_FreeBuffer(&vk_triangleFanIbo);
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 		{
 			if(vk_dynUniformBuffers[i].buffer != VK_NULL_HANDLE)
@@ -1042,6 +1047,7 @@ qboolean QVk_Init()
 	vk_config.uniform_buffer_usage = 0;
 	vk_config.uniform_buffer_max_usage = 0;
 	vk_config.uniform_buffer_size  = UNIFORM_BUFFER_SIZE;
+	vk_config.triangle_fan_index_count = TRIANGLE_FAN_INDEX_CNT;
 
 	Vkimp_GetSurfaceExtensions(NULL, &extCount);
 
@@ -1290,8 +1296,8 @@ qboolean QVk_Init()
 	CreateDynamicBuffers();
 	// create staging buffers
 	CreateStagingBuffers();
-	// create index buffer for triangle fan emulation
-	CreateTriangleFanIndexBuffer();
+	// assign a dynamic index buffer for triangle fan emulation
+	RebuildTriangleFanIndexBuffer();
 	CreatePipelines();
 	CreateSamplers();
 
@@ -1303,7 +1309,8 @@ VkResult QVk_BeginFrame()
 	// reset tracking variables
 	vk_state.current_pipeline = VK_NULL_HANDLE;
 	vk_config.vertex_buffer_usage  = 0;
-	vk_config.index_buffer_usage   = 0;
+	// triangle fan index data will not be cleared between frames unless the buffer itself is too small
+	vk_config.index_buffer_usage   = vk_triangleFanIboUsage;
 	vk_config.uniform_buffer_usage = 0;
 
 	ReleaseSwapBuffers();
@@ -1316,7 +1323,8 @@ VkResult QVk_BeginFrame()
 	vk_activeDynBufferIdx = (vk_activeDynBufferIdx + 1) % NUM_DYNBUFFERS;
 	vk_dynUniformBuffers[vk_activeDynBufferIdx].currentOffset = 0;
 	vk_dynVertexBuffers[vk_activeDynBufferIdx].currentOffset = 0;
-	vk_dynIndexBuffers[vk_activeDynBufferIdx].currentOffset = 0;
+	// triangle fan index data is placed in the beginning of the buffer
+	vk_dynIndexBuffers[vk_activeDynBufferIdx].currentOffset = vk_triangleFanIboUsage;
 	vmaInvalidateAllocation(vk_malloc, vk_dynUniformBuffers[vk_activeDynBufferIdx].allocation, 0, VK_WHOLE_SIZE);
 	vmaInvalidateAllocation(vk_malloc, vk_dynVertexBuffers[vk_activeDynBufferIdx].allocation, 0, VK_WHOLE_SIZE);
 	vmaInvalidateAllocation(vk_malloc, vk_dynIndexBuffers[vk_activeDynBufferIdx].allocation, 0, VK_WHOLE_SIZE);
@@ -1396,13 +1404,12 @@ VkResult QVk_EndFrame()
 	VK_VERIFY(vkQueueSubmit(vk_device.gfxQueue, 1, &submitInfo, vk_fences[vk_activeBufferIdx]));
 
 	// present
-	VkSwapchainKHR swapChains[] = { vk_swapchain.sc };
 	VkPresentInfoKHR presentInfo = {
 		.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
 		.waitSemaphoreCount = 1,
 		.pWaitSemaphores = &vk_renderFinishedSemaphores[vk_activeBufferIdx],
 		.swapchainCount = 1,
-		.pSwapchains = swapChains,
+		.pSwapchains = &vk_swapchain.sc,
 		.pImageIndices = &vk_imageIndex,
 		.pResults = NULL
 	};
@@ -1605,6 +1612,18 @@ uint8_t *QVk_GetStagingBuffer(VkDeviceSize size, int alignment, VkCommandBuffer 
 	stagingBuffer->buffer.currentOffset += size;
 
 	return data;
+}
+
+VkBuffer QVk_GetTriangleFanIbo(VkDeviceSize indexCount)
+{
+	if (indexCount > vk_config.triangle_fan_index_count)
+	{
+		vk_config.triangle_fan_index_count *= BUFFER_RESIZE_FACTOR;
+		ri.Con_Printf(PRINT_ALL, "Resizing triangle fan index buffer to %u indices.\n", vk_config.triangle_fan_index_count);
+		RebuildTriangleFanIndexBuffer();
+	}
+
+	return *vk_triangleFanIbo;
 }
 
 void QVk_SubmitStagingBuffers()
