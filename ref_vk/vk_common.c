@@ -631,6 +631,7 @@ static void RebuildTriangleFanIndexBuffer()
 
 	vk_triangleFanIbo = &vk_dynIndexBuffers[vk_activeDynBufferIdx].buffer;
 	vk_triangleFanIboUsage = bufferSize;
+	vmaFlushAllocation(vk_malloc, vk_dynIndexBuffers[vk_activeDynBufferIdx].allocation, 0, VK_WHOLE_SIZE);
 }
 
 // internal helper
