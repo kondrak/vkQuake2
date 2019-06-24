@@ -222,7 +222,7 @@ static VkDescriptorSet *vk_swapDescriptorSets[NUM_SWAPBUFFER_SLOTS];
 #define UNIFORM_BUFFER_SIZE (2048 * 1024)
 // staging buffer is constant in size but has a max limit beyond which it will be submitted
 #define STAGING_BUFFER_MAXSIZE (8192 * 1024)
-// index count in triangle fan buffer - assuming 84 triangles per object
+// index count in triangle fan buffer - assuming 84 indices (84*3 = 252 triangles) per object
 #define TRIANGLE_FAN_INDEX_CNT 84
 
 // Vulkan common descriptor sets for UBO, primary texture sampler and optional lightmap texture
