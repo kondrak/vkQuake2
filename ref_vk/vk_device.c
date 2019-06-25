@@ -223,7 +223,12 @@ static VkResult createLogicalDevice()
 		.pQueueCreateInfos = queueCreateInfo
 	};
 
+#if VK_HEADER_VERSION > 101
+	const char *validationLayers[] = { "VK_LAYER_KHRONOS_validation" };
+#else
 	const char *validationLayers[] = { "VK_LAYER_LUNARG_standard_validation" };
+#endif
+
 	if (vk_validation->value)
 	{
 		deviceCreateInfo.enabledLayerCount = sizeof(validationLayers)/sizeof(validationLayers[0]);
