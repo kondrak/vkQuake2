@@ -1342,10 +1342,6 @@ void CL_AddViewWeapon (player_state_t *ps, player_state_t *ops)
 	if (!cl_gun->value)
 		return;
 
-	// don't draw gun if in wide angle view
-	if (ps->fov > 90)
-		return;
-
 	memset (&gun, 0, sizeof(gun));
 
 	if (gun_model)

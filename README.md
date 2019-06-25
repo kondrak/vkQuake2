@@ -18,6 +18,7 @@ This is the official Quake 2 code v3.21 with additional Vulkan renderer and miss
 - console contents can be scrolled with mouse wheel
 - behavior of video menu has been altered so that pressing escape does not restart the rendering system
 - HUD elements, menus and console text are now scaled accordingly on higher screen resolutions (can be overridden with `hudscale` console command)
+- viewmodel weapons are no longer hidden when FOV > 90
 - warped texture effect (lava, water, slime) is now properly drawn (though only with Vulkan and software renderer!)
 - player vision is warped when underwater in a similar fashion to GLQuake
 - software renderer has been completely replaced with [KolorSoft 1.1](https://github.com/qbism/Quake2-colored-refsoft) - this adds colored lighting and fixes severe instabilities of the original renderer
