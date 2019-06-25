@@ -216,14 +216,14 @@ static VkDescriptorSet *vk_swapDescriptorSets[NUM_SWAPBUFFER_SLOTS];
 #define BUFFER_RESIZE_FACTOR 2.f
 // size in bytes used for uniform descriptor update
 #define UNIFORM_ALLOC_SIZE 1024
-// start values for dynamic buffer sizes - bound to change if the application runs out of space (sizes in kB)
+// start values for dynamic buffer sizes - bound to change if the application runs out of space (sizes in bytes)
 #define VERTEX_BUFFER_SIZE (1024 * 1024)
-#define INDEX_BUFFER_SIZE (1 * 1024)
+#define INDEX_BUFFER_SIZE (2 * 1024)
 #define UNIFORM_BUFFER_SIZE (2048 * 1024)
 // staging buffer is constant in size but has a max limit beyond which it will be submitted
 #define STAGING_BUFFER_MAXSIZE (8192 * 1024)
-// index count in triangle fan buffer - assuming 84 indices (84*3 = 252 triangles) per object
-#define TRIANGLE_FAN_INDEX_CNT 84
+// initial index count in triangle fan buffer - assuming 120 indices (120*3 = 360 triangles) per object
+#define TRIANGLE_FAN_INDEX_CNT 120
 
 // Vulkan common descriptor sets for UBO, primary texture sampler and optional lightmap texture
 VkDescriptorSetLayout vk_uboDescSetLayout;
@@ -638,7 +638,7 @@ static void RebuildTriangleFanIndexBuffer()
 	}
 
 	vk_triangleFanIbo = &vk_dynIndexBuffers[vk_activeDynBufferIdx].buffer;
-	vk_triangleFanIboUsage = bufferSize;
+	vk_triangleFanIboUsage = ((bufferSize % 4) == 0) ? bufferSize : (bufferSize + 4 - (bufferSize % 4));
 	free(fanData);
 }
 
@@ -1483,7 +1483,7 @@ uint8_t *QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, VkDeviceSiz
 	*dstBuffer = vk_dynVertexBuffers[vk_activeDynBufferIdx].buffer;
 	vk_dynVertexBuffers[vk_activeDynBufferIdx].currentOffset += size;
 
-	vk_config.vertex_buffer_usage += size;
+	vk_config.vertex_buffer_usage = vk_dynVertexBuffers[vk_activeDynBufferIdx].currentOffset;
 	if (vk_config.vertex_buffer_max_usage < vk_config.vertex_buffer_usage)
 		vk_config.vertex_buffer_max_usage = vk_config.vertex_buffer_usage;
 	
@@ -1522,7 +1522,7 @@ uint8_t *QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset)
 	*dstOffset = vk_dynIndexBuffers[vk_activeDynBufferIdx].currentOffset;
 	vk_dynIndexBuffers[vk_activeDynBufferIdx].currentOffset += aligned_size;
 
-	vk_config.index_buffer_usage += aligned_size;
+	vk_config.index_buffer_usage = vk_dynIndexBuffers[vk_activeDynBufferIdx].currentOffset;
 	if (vk_config.index_buffer_max_usage < vk_config.index_buffer_usage)
 		vk_config.index_buffer_max_usage = vk_config.index_buffer_usage;
 
@@ -1550,7 +1550,7 @@ uint8_t *QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescript
 		else
 			vk_swapBuffers[vk_activeSwapBufferIdx] = realloc(vk_swapBuffers[vk_activeSwapBufferIdx], sizeof(qvkbuffer_t) * vk_swapBuffersCnt[vk_activeSwapBufferIdx]);
 
-		if(vk_swapDescriptorSets[vk_activeSwapBufferIdx] == NULL)
+		if (vk_swapDescriptorSets[vk_activeSwapBufferIdx] == NULL)
 			vk_swapDescriptorSets[vk_activeSwapBufferIdx] = malloc(sizeof(VkDescriptorSet) * vk_swapDescSetsCnt[vk_activeSwapBufferIdx]);
 		else
 			vk_swapDescriptorSets[vk_activeSwapBufferIdx] = realloc(vk_swapDescriptorSets[vk_activeSwapBufferIdx], sizeof(VkDescriptorSet) * vk_swapDescSetsCnt[vk_activeSwapBufferIdx]);
@@ -1571,7 +1571,7 @@ uint8_t *QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescript
 	*dstUboDescriptorSet = vk_uboDescriptorSets[vk_activeDynBufferIdx];
 	vk_dynUniformBuffers[vk_activeDynBufferIdx].currentOffset += aligned_size;
 
-	vk_config.uniform_buffer_usage += aligned_size;
+	vk_config.uniform_buffer_usage = vk_dynUniformBuffers[vk_activeDynBufferIdx].currentOffset;
 	if (vk_config.uniform_buffer_max_usage < vk_config.uniform_buffer_usage)
 		vk_config.uniform_buffer_max_usage = vk_config.uniform_buffer_usage;
 
