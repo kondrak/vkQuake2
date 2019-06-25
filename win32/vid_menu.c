@@ -312,7 +312,7 @@ void VID_MenuInit( void )
 	};
 	static const char *msaa_modes[] =
 	{
-		"off",
+		"no",
 		"x2",
 		"x4",
 		"x8",
@@ -325,12 +325,6 @@ void VID_MenuInit( void )
 		"linear",
 		"mipmap nearest",
 		"mipmap linear",
-		0
-	};
-	static const char *on_off[] =
-	{
-		"off",
-		"on",
 		0
 	};
 	int i;
@@ -523,14 +517,14 @@ void VID_MenuInit( void )
 	s_sampleshading.generic.name = "sample shading";
 	s_sampleshading.generic.x = 0;
 	s_sampleshading.generic.y = 90 * vid_hudscale->value;
-	s_sampleshading.itemnames = on_off;
+	s_sampleshading.itemnames = yesno_names;
 	s_sampleshading.curvalue = vk_sampleshading->value > 0 ? 1 : 0;
 
 	s_aniso_filter.generic.type = MTYPE_SPINCONTROL;
 	s_aniso_filter.generic.name = "anisotropic filtering";
 	s_aniso_filter.generic.x = 0;
 	s_aniso_filter.generic.y = 100 * vid_hudscale->value;
-	s_aniso_filter.itemnames = on_off;
+	s_aniso_filter.itemnames = yesno_names;
 	s_aniso_filter.curvalue = vk_aniso->value > 0 ? 1 : 0;
 
 	s_texture_filter.generic.type = MTYPE_SPINCONTROL;
@@ -550,7 +544,7 @@ void VID_MenuInit( void )
 	s_vsync.generic.name = "vertical sync";
 	s_vsync.generic.x = 0;
 	s_vsync.generic.y = 120 * vid_hudscale->value;
-	s_vsync.itemnames = on_off;
+	s_vsync.itemnames = yesno_names;
 	s_vsync.curvalue = vk_vsync->value > 0 ? 1 : 0;
 
 	Menu_AddItem( &s_software_menu, ( void * ) &s_ref_list[SOFTWARE_MENU] );
