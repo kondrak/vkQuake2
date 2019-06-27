@@ -222,8 +222,8 @@ static VkDescriptorSet *vk_swapDescriptorSets[NUM_SWAPBUFFER_SLOTS];
 #define UNIFORM_BUFFER_SIZE (2048 * 1024)
 // staging buffer is constant in size but has a max limit beyond which it will be submitted
 #define STAGING_BUFFER_MAXSIZE (8192 * 1024)
-// initial index count in triangle fan buffer - assuming 120 indices (120*3 = 360 triangles) per object
-#define TRIANGLE_FAN_INDEX_CNT 120
+// initial index count in triangle fan buffer - assuming 200 indices (200*3 = 600 triangles) per object
+#define TRIANGLE_FAN_INDEX_CNT 200
 
 // Vulkan common descriptor sets for UBO, primary texture sampler and optional lightmap texture
 VkDescriptorSetLayout vk_uboDescSetLayout;
@@ -1056,6 +1056,8 @@ qboolean QVk_Init()
 	vk_config.uniform_buffer_usage = 0;
 	vk_config.uniform_buffer_max_usage = 0;
 	vk_config.uniform_buffer_size  = UNIFORM_BUFFER_SIZE;
+	vk_config.triangle_fan_index_usage = 0;
+	vk_config.triangle_fan_index_max_usage = 0;
 	vk_config.triangle_fan_index_count = TRIANGLE_FAN_INDEX_CNT;
 
 	Vkimp_GetSurfaceExtensions(NULL, &extCount);
@@ -1323,9 +1325,10 @@ VkResult QVk_BeginFrame()
 	// reset tracking variables
 	vk_state.current_pipeline = VK_NULL_HANDLE;
 	vk_config.vertex_buffer_usage  = 0;
-	// triangle fan index data will not be cleared between frames unless the buffer itself is too small
+	// triangle fan index buffer data will not be cleared between frames unless the buffer itself is too small
 	vk_config.index_buffer_usage   = vk_triangleFanIboUsage;
 	vk_config.uniform_buffer_usage = 0;
+	vk_config.triangle_fan_index_usage = 0;
 
 	ReleaseSwapBuffers();
 
@@ -1630,6 +1633,12 @@ uint8_t *QVk_GetStagingBuffer(VkDeviceSize size, int alignment, VkCommandBuffer 
 
 VkBuffer QVk_GetTriangleFanIbo(VkDeviceSize indexCount)
 {
+	if (indexCount > vk_config.triangle_fan_index_usage)
+		vk_config.triangle_fan_index_usage = indexCount;
+
+	if (vk_config.triangle_fan_index_usage > vk_config.triangle_fan_index_max_usage)
+		vk_config.triangle_fan_index_max_usage = vk_config.triangle_fan_index_usage;
+
 	if (indexCount > vk_config.triangle_fan_index_count)
 	{
 		vk_config.triangle_fan_index_count *= BUFFER_RESIZE_FACTOR;

@@ -281,5 +281,8 @@ void Vk_Mem_f(void)
 																		vk_config.uniform_buffer_size / 1024,
 																		100.f * vk_config.uniform_buffer_usage / vk_config.uniform_buffer_size,
 																		vk_config.uniform_buffer_max_usage / 1024);
-	ri.Con_Printf(PRINT_ALL, "Triangle fan index count: %u\n",			vk_config.triangle_fan_index_count);
+	ri.Con_Printf(PRINT_ALL, "Tri fan: %u/%u (%.1f%% max: %u)\n",	vk_config.triangle_fan_index_usage,
+																	vk_config.triangle_fan_index_count,
+																	100.f * vk_config.triangle_fan_index_usage / vk_config.triangle_fan_index_count,
+																	vk_config.triangle_fan_index_max_usage);
 }
