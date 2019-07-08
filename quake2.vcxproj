@@ -37,6 +37,7 @@
     <ClCompile Include="client\qmenu.c" />
     <ClCompile Include="client\snd_dma.c" />
     <ClCompile Include="client\snd_mem.c" />
+    <ClCompile Include="client\snd_miniaudio.c" />
     <ClCompile Include="client\snd_mix.c" />
     <ClCompile Include="client\x86.c" />
     <ClCompile Include="game\m_flash.c" />
@@ -81,6 +82,7 @@
     <ClInclude Include="client\console.h" />
     <ClInclude Include="client\input.h" />
     <ClInclude Include="client\keys.h" />
+    <ClInclude Include="client\miniaudio.h" />
     <ClInclude Include="client\qmenu.h" />
     <ClInclude Include="client\ref.h" />
     <ClInclude Include="client\screen.h" />

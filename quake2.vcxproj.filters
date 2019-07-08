@@ -159,6 +159,9 @@
     <ClCompile Include="win32\vid_dll.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="client\snd_miniaudio.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="win32\q2.ico">
@@ -226,6 +229,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="win32\conproc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client\miniaudio.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
