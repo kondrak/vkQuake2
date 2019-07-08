@@ -127,3 +127,4 @@ Acknowledgements
 Known Issues
 ===
 - some Intel UHD GPUs (most notably the 6XX series) may encounter crashes on startup due to faulty drivers - this has been confirmed by Intel to affect dual-GPU setups
+- some Intel GPUs ignore texture filtering settings in video menu if anisotropic filtering is enabled
