@@ -1067,6 +1067,7 @@ qboolean R_SetMode (void)
 
 	fullscreen = vid_fullscreen->value;
 
+	vid_gamma->modified = false;
 	vid_fullscreen->modified = false;
 	vk_mode->modified = false;
 	vk_msaa->modified = false;
@@ -1076,6 +1077,7 @@ qboolean R_SetMode (void)
 	vk_sampleshading->modified = false;
 	vk_vsync->modified = false;
 	vk_device_idx->modified = false;
+	vk_picmip->modified = false;
 	// refresh texture samplers
 	vk_texturemode->modified = true;
 	vk_lmaptexturemode->modified = true;
@@ -1194,8 +1196,8 @@ void R_BeginFrame( float camera_separation )
 	/*
 	** change modes if necessary
 	*/
-	if (vk_mode->modified || vid_fullscreen->modified || vk_msaa->modified || vk_clear->modified || 
-		vk_validation->modified || vk_texturemode->modified || vk_lmaptexturemode->modified || vk_aniso->modified || 
+	if (vk_mode->modified || vid_fullscreen->modified || vk_msaa->modified || vk_clear->modified || vk_picmip->modified ||
+		vk_validation->modified || vk_texturemode->modified || vk_lmaptexturemode->modified || vk_aniso->modified || vid_gamma->modified ||
 		vk_mip_nearfilter->modified || vk_sampleshading->modified || vk_vsync->modified || vk_device_idx->modified)
 	{
 		if (vk_texturemode->modified || vk_lmaptexturemode->modified || vk_aniso->modified)

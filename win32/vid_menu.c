@@ -270,11 +270,6 @@ static void ApplyChanges( void *unused )
 		if ( gl_driver->modified )
 			vid_ref->modified = true;
 	}
-	else if ( stricmp( vid_ref->string, "vk" ) == 0 )
-	{
-		if ( vk_driver->modified )
-			vid_ref->modified = true;
-	}
 
 	M_ForceMenuOff();
 }
