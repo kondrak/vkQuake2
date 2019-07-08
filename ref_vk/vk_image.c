@@ -38,8 +38,9 @@ unsigned	d_8to24table[256];
 uint32_t Vk_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboolean is_sky );
 uint32_t Vk_Upload32 (unsigned *data, int width, int height,  qboolean mipmap);
 
-// default global texture sampler
-qvksampler_t vk_current_sampler = S_LINEAR;
+// default global texture and lightmap samplers
+qvksampler_t vk_current_sampler = S_MIPMAP_LINEAR;
+qvksampler_t vk_current_lmap_sampler = S_MIPMAP_LINEAR;
 
 // internal helper
 static VkImageAspectFlags getDepthStencilAspect(VkFormat depthFormat)
@@ -699,14 +700,45 @@ void Vk_TextureMode( char *string )
 			QVk_UpdateTextureSampler(&vk_scrapTextures[j], i);
 	}
 
+	if (vk_rawTexture.image != VK_NULL_HANDLE)
+		QVk_UpdateTextureSampler(&vk_rawTexture, i);
+}
+
+/*
+ ===============
+ Vk_LmapTextureMode
+ ===============
+ */
+void Vk_LmapTextureMode( char *string )
+{
+	int		i,j;
+	static char prev_mode[32] = { "VK_MIPMAP_LINEAR" };
+
+	for (i = 0; i < NUM_VK_MODES; i++)
+	{
+		if (!Q_stricmp(modes[i].name, string))
+			break;
+	}
+
+	if (i == NUM_VK_MODES)
+	{
+		ri.Con_Printf(PRINT_ALL, "bad filter name (valid values: VK_NEAREST, VK_LINEAR, VK_MIPMAP_NEAREST, VK_MIPMAP_LINEAR)\n");
+		ri.Cvar_Set("vk_lmaptexturemode", prev_mode);
+		return;
+	}
+
+	memcpy(prev_mode, string, strlen(string));
+	prev_mode[strlen(string)] = '\0';
+
+	i += vk_aniso->value > 0 ? NUM_VK_MODES : 0;
+	vk_current_lmap_sampler = i;
+
+	vkDeviceWaitIdle(vk_device.logical);
 	for (j = 0; j < MAX_LIGHTMAPS*2; j++)
 	{
 		if (vk_state.lightmap_textures[j].image != VK_NULL_HANDLE)
 			QVk_UpdateTextureSampler(&vk_state.lightmap_textures[j], i);
 	}
-
-	if (vk_rawTexture.image != VK_NULL_HANDLE)
-		QVk_UpdateTextureSampler(&vk_rawTexture, i);
 }
 
 /*

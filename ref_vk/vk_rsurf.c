@@ -1082,7 +1082,7 @@ static void LM_UploadBlock( qboolean dynamic )
 		else
 		{
 			QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[texture]);
-			QVk_CreateTexture(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer, BLOCK_WIDTH, BLOCK_HEIGHT, vk_current_sampler);
+			QVk_CreateTexture(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer, BLOCK_WIDTH, BLOCK_HEIGHT, vk_current_lmap_sampler);
 		}
 		if ( ++vk_lms.current_lightmap_texture == MAX_LIGHTMAPS )
 			ri.Sys_Error( ERR_DROP, "LM_UploadBlock() - MAX_LIGHTMAPS exceeded\n" );
@@ -1275,7 +1275,7 @@ void Vk_BeginBuildingLightmaps (model_t *m)
 		for (i = DYNLIGHTMAP_OFFSET; i < MAX_LIGHTMAPS*2; i++)
 		{
 			QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[i]);
-			QVk_CreateTexture(&vk_state.lightmap_textures[i], (unsigned char*)dummy, BLOCK_WIDTH, BLOCK_HEIGHT, vk_current_sampler);
+			QVk_CreateTexture(&vk_state.lightmap_textures[i], (unsigned char*)dummy, BLOCK_WIDTH, BLOCK_HEIGHT, vk_current_lmap_sampler);
 		}
 	}
 }

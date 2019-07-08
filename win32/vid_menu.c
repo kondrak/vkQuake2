@@ -44,6 +44,7 @@ static cvar_t *vk_msaa;
 static cvar_t *vk_aniso;
 static cvar_t *vk_sampleshading;
 static cvar_t *vk_texturemode;
+static cvar_t *vk_lmaptexturemode;
 static cvar_t *vk_vsync;
 static cvar_t *vk_picmip;
 
@@ -85,6 +86,7 @@ static menulist_s		s_msaa_mode;
 static menulist_s		s_sampleshading;
 static menulist_s		s_aniso_filter;
 static menulist_s		s_texture_filter;
+static menulist_s		s_lmap_texture_filter;
 static menulist_s		s_vsync;
 static menulist_s		s_finish_box;
 static menulist_s		s_vkfinish_box;
@@ -182,19 +184,34 @@ static void ApplyChanges( void *unused )
 	Cvar_SetValue( "vk_vsync", s_vsync.curvalue );
 	Cvar_SetValue( "vk_picmip", 3 - s_tqvk_slider.curvalue );
 
-	switch (s_texture_filter.curvalue)
+	switch ( s_texture_filter.curvalue )
 	{
 	case 0:
-		Cvar_Set("vk_texturemode", "VK_NEAREST");
+		Cvar_Set( "vk_texturemode", "VK_NEAREST" );
 		break;
 	case 1:
-		Cvar_Set("vk_texturemode", "VK_LINEAR");
+		Cvar_Set( "vk_texturemode", "VK_LINEAR" );
 		break;
 	case 2:
-		Cvar_Set("vk_texturemode", "VK_MIPMAP_NEAREST");
+		Cvar_Set( "vk_texturemode", "VK_MIPMAP_NEAREST" );
 		break;
 	default:
-		Cvar_Set("vk_texturemode", "VK_MIPMAP_LINEAR");
+		Cvar_Set( "vk_texturemode", "VK_MIPMAP_LINEAR" );
+	}
+
+	switch ( s_lmap_texture_filter.curvalue )
+	{
+	case 0:
+		Cvar_Set( "vk_lmaptexturemode", "VK_NEAREST" );
+		break;
+	case 1:
+		Cvar_Set( "vk_lmaptexturemode", "VK_LINEAR" );
+		break;
+	case 2:
+		Cvar_Set( "vk_lmaptexturemode", "VK_MIPMAP_NEAREST" );
+		break;
+	default:
+		Cvar_Set( "vk_lmaptexturemode", "VK_MIPMAP_LINEAR" );
 	}
 
 	switch ( s_ref_list[s_current_menu_index].curvalue )
@@ -353,6 +370,8 @@ void VID_MenuInit( void )
 		vk_vsync = Cvar_Get( "vk_vsync", "0", CVAR_ARCHIVE );
 	if ( !vk_texturemode )
 		vk_texturemode = Cvar_Get( "vk_texturemode", "VK_MIPMAP_LINEAR", CVAR_ARCHIVE );
+	if ( !vk_lmaptexturemode )
+		vk_lmaptexturemode = Cvar_Get( "vk_lmaptexturemode", "VK_MIPMAP_LINEAR", CVAR_ARCHIVE );
 	if ( !vk_picmip )
 		vk_picmip = Cvar_Get( "vk_picmip", "0", CVAR_ARCHIVE );
 	if ( !sw_stipplealpha )
@@ -446,19 +465,19 @@ void VID_MenuInit( void )
 		s_apply_action[i].generic.type = MTYPE_ACTION;
 		s_apply_action[i].generic.name = "apply changes";
 		s_apply_action[i].generic.x = 0;
-		s_apply_action[i].generic.y = 140 * vid_hudscale->value;
+		s_apply_action[i].generic.y = 150 * vid_hudscale->value;
 		s_apply_action[i].generic.callback = ApplyChanges;
 
 		s_defaults_action[i].generic.type = MTYPE_ACTION;
 		s_defaults_action[i].generic.name = "reset to defaults";
 		s_defaults_action[i].generic.x    = 0;
-		s_defaults_action[i].generic.y    = 150 * vid_hudscale->value;
+		s_defaults_action[i].generic.y    = 160 * vid_hudscale->value;
 		s_defaults_action[i].generic.callback = ResetDefaults;
 
 		s_cancel_action[i].generic.type = MTYPE_ACTION;
 		s_cancel_action[i].generic.name = "cancel";
 		s_cancel_action[i].generic.x    = 0;
-		s_cancel_action[i].generic.y    = 160 * vid_hudscale->value;
+		s_cancel_action[i].generic.y    = 170 * vid_hudscale->value;
 		s_cancel_action[i].generic.callback = CancelChanges;
 	}
 
@@ -540,10 +559,23 @@ void VID_MenuInit( void )
 	if ( !Q_stricmp( vk_texturemode->string, "VK_MIPMAP_LINEAR" ) )
 		s_texture_filter.curvalue = 3;
 
+	s_lmap_texture_filter.generic.type = MTYPE_SPINCONTROL;
+	s_lmap_texture_filter.generic.name = "lightmap filtering";
+	s_lmap_texture_filter.generic.x = 0;
+	s_lmap_texture_filter.generic.y = 120 * vid_hudscale->value;
+	s_lmap_texture_filter.itemnames = filter_modes;
+	s_lmap_texture_filter.curvalue = 0;
+	if ( !Q_stricmp(vk_lmaptexturemode->string, "VK_LINEAR") )
+		s_lmap_texture_filter.curvalue = 1;
+	if ( !Q_stricmp(vk_lmaptexturemode->string, "VK_MIPMAP_NEAREST") )
+		s_lmap_texture_filter.curvalue = 2;
+	if ( !Q_stricmp(vk_lmaptexturemode->string, "VK_MIPMAP_LINEAR") )
+		s_lmap_texture_filter.curvalue = 3;
+
 	s_vsync.generic.type = MTYPE_SPINCONTROL;
 	s_vsync.generic.name = "vertical sync";
 	s_vsync.generic.x = 0;
-	s_vsync.generic.y = 120 * vid_hudscale->value;
+	s_vsync.generic.y = 130 * vid_hudscale->value;
 	s_vsync.itemnames = yesno_names;
 	s_vsync.curvalue = vk_vsync->value > 0 ? 1 : 0;
 
@@ -574,6 +606,7 @@ void VID_MenuInit( void )
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_sampleshading );
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_aniso_filter );
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_texture_filter );
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_lmap_texture_filter );
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_vsync );
 
 	Menu_AddItem( &s_software_menu, ( void * ) &s_apply_action[SOFTWARE_MENU] );
@@ -582,9 +615,9 @@ void VID_MenuInit( void )
 	Menu_AddItem( &s_opengl_menu, ( void * ) &s_apply_action[OPENGL_MENU] );
 	Menu_AddItem( &s_opengl_menu, ( void * ) &s_defaults_action[OPENGL_MENU] );
 	Menu_AddItem( &s_opengl_menu, ( void * ) &s_cancel_action[OPENGL_MENU] );
-	Menu_AddItem( &s_vulkan_menu, (void * ) &s_apply_action[VULKAN_MENU]);
-	Menu_AddItem( &s_vulkan_menu, (void * ) &s_defaults_action[VULKAN_MENU]);
-	Menu_AddItem( &s_vulkan_menu, (void * ) &s_cancel_action[VULKAN_MENU]);
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_apply_action[VULKAN_MENU] );
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_defaults_action[VULKAN_MENU] );
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_cancel_action[VULKAN_MENU] );
 
 	Menu_Center( &s_software_menu );
 	Menu_Center( &s_opengl_menu );
@@ -592,9 +625,9 @@ void VID_MenuInit( void )
 	s_opengl_menu.x -= 8 * vid_hudscale->value;
 	s_software_menu.x -= 8 * vid_hudscale->value;
 	s_vulkan_menu.x -= 8 * vid_hudscale->value;
-	s_opengl_menu.y += 24;
-	s_software_menu.y += 24;
-	s_vulkan_menu.y += 24;
+	s_opengl_menu.y += 20 * vid_hudscale->value;
+	s_software_menu.y += 20 * vid_hudscale->value;
+	s_vulkan_menu.y += 20 * vid_hudscale->value;
 }
 
 /*

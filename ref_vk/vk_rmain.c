@@ -113,6 +113,7 @@ cvar_t	*vk_msaa;
 cvar_t	*vk_showtris;
 cvar_t	*vk_lightmap;
 cvar_t	*vk_texturemode;
+cvar_t	*vk_lmaptexturemode;
 cvar_t	*vk_aniso;
 cvar_t	*vk_mip_nearfilter;
 cvar_t	*vk_sampleshading;
@@ -1032,6 +1033,7 @@ void R_Register( void )
 	vk_showtris = ri.Cvar_Get("vk_showtris", "0", 0);
 	vk_lightmap = ri.Cvar_Get("vk_lightmap", "0", 0);
 	vk_texturemode = ri.Cvar_Get("vk_texturemode", "VK_MIPMAP_LINEAR", CVAR_ARCHIVE);
+	vk_lmaptexturemode = ri.Cvar_Get("vk_lmaptexturemode", "VK_MIPMAP_LINEAR", CVAR_ARCHIVE);
 	vk_aniso = ri.Cvar_Get("vk_aniso", "1", CVAR_ARCHIVE);
 	vk_mip_nearfilter = ri.Cvar_Get("vk_mip_nearfilter", "0", CVAR_ARCHIVE);
 	vk_sampleshading = ri.Cvar_Get("vk_sampleshading", "1", CVAR_ARCHIVE);
@@ -1076,6 +1078,7 @@ qboolean R_SetMode (void)
 	vk_device_idx->modified = false;
 	// refresh texture samplers
 	vk_texturemode->modified = true;
+	vk_lmaptexturemode->modified = true;
 
 	if ((err = Vkimp_SetMode((int*)&vid.width, (int*)&vid.height, vk_mode->value, fullscreen)) == rserr_ok)
 	{
@@ -1192,13 +1195,22 @@ void R_BeginFrame( float camera_separation )
 	** change modes if necessary
 	*/
 	if (vk_mode->modified || vid_fullscreen->modified || vk_msaa->modified || vk_clear->modified || 
-		vk_validation->modified || vk_texturemode->modified || vk_aniso->modified || 
+		vk_validation->modified || vk_texturemode->modified || vk_lmaptexturemode->modified || vk_aniso->modified || 
 		vk_mip_nearfilter->modified || vk_sampleshading->modified || vk_vsync->modified || vk_device_idx->modified)
 	{
-		if (vk_texturemode->modified || vk_aniso->modified)
+		if (vk_texturemode->modified || vk_lmaptexturemode->modified || vk_aniso->modified)
 		{
-			Vk_TextureMode(vk_texturemode->string);
-			vk_texturemode->modified = false;
+			if (vk_texturemode->modified || vk_aniso->modified)
+			{
+				Vk_TextureMode(vk_texturemode->string);
+				vk_texturemode->modified = false;
+			}
+			if (vk_lmaptexturemode->modified || vk_aniso->modified)
+			{
+				Vk_LmapTextureMode(vk_lmaptexturemode->string);
+				vk_lmaptexturemode->modified = false;
+			}
+
 			vk_aniso->modified = false;
 		}
 		else

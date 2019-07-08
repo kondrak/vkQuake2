@@ -205,6 +205,7 @@ extern	cvar_t	*vk_dynamic;
 extern	cvar_t	*vk_showtris;
 extern	cvar_t	*vk_lightmap;
 extern	cvar_t	*vk_texturemode;
+extern	cvar_t	*vk_lmaptexturemode;
 extern	cvar_t	*vk_aniso;
 extern	cvar_t	*vk_sampleshading;
 extern	cvar_t	*vk_vsync;
@@ -231,6 +232,7 @@ extern	unsigned	d_8to24table[256];
 
 extern	int		registration_sequence;
 extern	qvksampler_t vk_current_sampler;
+extern	qvksampler_t vk_current_lmap_sampler;
 
 qboolean R_Init( void *hinstance, void *hWnd );
 void	 R_Shutdown( void );
@@ -283,6 +285,7 @@ void LoadPCX (char *filename, byte **pic, byte **palette, int *width, int *heigh
 image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t type, int bits, qvksampler_t *samplerType);
 image_t	*Vk_FindImage (char *name, imagetype_t type, qvksampler_t *samplerType);
 void	Vk_TextureMode( char *string );
+void	Vk_LmapTextureMode( char *string );
 void	Vk_ImageList_f (void);
 
 void	Vk_InitImages (void);
