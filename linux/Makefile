@@ -62,7 +62,7 @@ RELEASE_CFLAGS=$(BASE_CFLAGS) -DNDEBUG -O6 -ffast-math -funroll-loops \
 endif
 
 DEBUG_CFLAGS=$(BASE_CFLAGS) -g -D_DEBUG
-LDFLAGS=-ldl -lm -lasound
+LDFLAGS=-ldl -lm -lasound -lpthread
 SVGALDFLAGS=-lvga -lm
 XLDFLAGS=-L/usr/X11R6/lib -lX11 -lXext -lXxf86dga
 XCFLAGS=
@@ -174,6 +174,7 @@ QUAKE2_OBJS = \
 	$(BUILDDIR)/client/menu.o \
 	$(BUILDDIR)/client/snd_dma.o \
 	$(BUILDDIR)/client/snd_mem.o \
+	$(BUILDDIR)/client/snd_miniaudio.o \
 	$(BUILDDIR)/client/snd_mix.o \
 	$(BUILDDIR)/client/qmenu.o \
 	$(BUILDDIR)/client/m_flash.o \
@@ -267,6 +268,9 @@ $(BUILDDIR)/client/snd_dma.o :    $(CLIENT_DIR)/snd_dma.c
 	$(DO_CC)
 
 $(BUILDDIR)/client/snd_mem.o :    $(CLIENT_DIR)/snd_mem.c
+	$(DO_CC)
+
+$(BUILDDIR)/client/snd_miniaudio.o : $(CLIENT_DIR)/snd_miniaudio.c
 	$(DO_CC)
 
 $(BUILDDIR)/client/snd_mix.o :    $(CLIENT_DIR)/snd_mix.c
