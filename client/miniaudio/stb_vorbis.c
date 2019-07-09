@@ -4587,7 +4587,7 @@ static int seek_to_sample_coarse(stb_vorbis *f, uint32 sample_number)
    ProbedPage left, right, mid;
    int i, start_seg_with_known_loc, end_pos, page_start;
    uint32 delta, stream_length, padding;
-   double offset, bytes_per_sample;
+   double offset = 0, bytes_per_sample = 0;
    int probe = 0;
 
    // find the last page and validate the target sample
