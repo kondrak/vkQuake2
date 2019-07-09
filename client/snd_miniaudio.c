@@ -45,6 +45,7 @@ static qboolean paused = false;
 static qboolean playLooping = false;
 static qboolean trackFinished = false;
 
+static cvar_t *cd_nocd;
 static cvar_t *cd_loopcount;
 static cvar_t *cd_looptrack;
 
@@ -149,6 +150,7 @@ static void Miniaudio_f(void)
 
 void Miniaudio_Init(void)
 {
+	cd_nocd = Cvar_Get("cd_nocd", "0", CVAR_ARCHIVE);
 	cd_loopcount = Cvar_Get("cd_loopcount", "4", 0);
 	cd_looptrack = Cvar_Get("cd_looptrack", "11", 0);
 	enabled = true;
@@ -206,6 +208,9 @@ void Miniaudio_Play(int track, qboolean looping)
 	playTrack = track;
 	playLooping = looping;
 	trackFinished = false;
+
+	if (Cvar_VariableValue("cd_nocd"))
+		Miniaudio_Pause();
 }
 
 void Miniaudio_Stop(void)
@@ -222,6 +227,20 @@ void Miniaudio_Stop(void)
 
 void Miniaudio_Update(void)
 {
+	if (cd_nocd->value != !enabled)
+	{
+		if (cd_nocd->value)
+		{
+			Miniaudio_Pause();
+			enabled = false;
+		}
+		else
+		{
+			enabled = true;
+			Miniaudio_Resume();
+		}
+	}
+
 	if (enabled && ma_device_is_started(&device) && trackFinished)
 	{
 		trackFinished = false;
@@ -248,4 +267,10 @@ void Miniaudio_Update(void)
 			}
 		}
 	}
+}
+
+void Miniaudio_Shutdown(void)
+{
+	Miniaudio_Stop();
+	Cmd_RemoveCommand("miniaudio");
 }

@@ -353,7 +353,8 @@ void CL_PrepRefresh (void)
 	cl.force_refdef = true;	// make sure we have a valid refdef
 
 	// start the cd track
-	CDAudio_Play (atoi(cl.configstrings[CS_CDTRACK]), true);
+	if (!CDAudio_Play(atoi(cl.configstrings[CS_CDTRACK]), true))
+		Miniaudio_Play(atoi(cl.configstrings[CS_CDTRACK]), true);
 }
 
 /*

@@ -19,8 +19,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 #include "../client/client.h"
 
-void CDAudio_Play(int track, qboolean looping)
+qboolean CDAudio_Play(int track, qboolean looping)
 {
+	return false;
 }
 
 

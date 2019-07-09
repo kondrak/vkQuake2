@@ -87,6 +87,7 @@
     <ClInclude Include="client\ref.h" />
     <ClInclude Include="client\screen.h" />
     <ClInclude Include="client\snd_loc.h" />
+    <ClInclude Include="client\snd_miniaudio.h" />
     <ClInclude Include="client\sound.h" />
     <ClInclude Include="client\vid.h" />
     <ClInclude Include="game\game.h" />
