@@ -7,10 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E229676822D5234D007492C8 /* cd_null.c in Sources */ = {isa = PBXBuildFile; fileRef = E229676722D5234D007492C8 /* cd_null.c */; };
+		E229676A22D5237D007492C8 /* snd_miniaudio.c in Sources */ = {isa = PBXBuildFile; fileRef = E229676922D5237D007492C8 /* snd_miniaudio.c */; };
 		E291112321F70CC900AE0164 /* q_shmacos.c in Sources */ = {isa = PBXBuildFile; fileRef = E291111D21F70CC800AE0164 /* q_shmacos.c */; };
 		E291112521F70CC900AE0164 /* vid_menu.c in Sources */ = {isa = PBXBuildFile; fileRef = E291111F21F70CC900AE0164 /* vid_menu.c */; };
 		E291112621F70CC900AE0164 /* sys_macos.c in Sources */ = {isa = PBXBuildFile; fileRef = E291112021F70CC900AE0164 /* sys_macos.c */; };
-		E291112721F70CC900AE0164 /* cd_macos.c in Sources */ = {isa = PBXBuildFile; fileRef = E291112121F70CC900AE0164 /* cd_macos.c */; };
 		E291112821F70CC900AE0164 /* vid_dsym.c in Sources */ = {isa = PBXBuildFile; fileRef = E291112221F70CC900AE0164 /* vid_dsym.c */; };
 		E291112A21F7103600AE0164 /* m_flash.c in Sources */ = {isa = PBXBuildFile; fileRef = E291112921F7103600AE0164 /* m_flash.c */; };
 		E291112C21F7108F00AE0164 /* net_udp.c in Sources */ = {isa = PBXBuildFile; fileRef = E291112B21F7108F00AE0164 /* net_udp.c */; };
@@ -68,10 +69,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		E229676722D5234D007492C8 /* cd_null.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = cd_null.c; path = ../null/cd_null.c; sourceTree = "<group>"; };
+		E229676922D5237D007492C8 /* snd_miniaudio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = snd_miniaudio.c; path = ../client/snd_miniaudio.c; sourceTree = "<group>"; };
+		E229676B22D523A7007492C8 /* snd_miniaudio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = snd_miniaudio.h; path = ../client/snd_miniaudio.h; sourceTree = "<group>"; };
 		E291111D21F70CC800AE0164 /* q_shmacos.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = q_shmacos.c; sourceTree = "<group>"; };
 		E291111F21F70CC900AE0164 /* vid_menu.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vid_menu.c; path = ../linux/vid_menu.c; sourceTree = "<group>"; };
 		E291112021F70CC900AE0164 /* sys_macos.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = sys_macos.c; sourceTree = "<group>"; };
-		E291112121F70CC900AE0164 /* cd_macos.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cd_macos.c; sourceTree = "<group>"; };
 		E291112221F70CC900AE0164 /* vid_dsym.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = vid_dsym.c; sourceTree = "<group>"; };
 		E291112921F7103600AE0164 /* m_flash.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = m_flash.c; path = ../game/m_flash.c; sourceTree = "<group>"; };
 		E291112B21F7108F00AE0164 /* net_udp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = net_udp.c; path = ../linux/net_udp.c; sourceTree = "<group>"; };
@@ -167,7 +170,7 @@
 		E295530721F6217000336DD3 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				E291112121F70CC900AE0164 /* cd_macos.c */,
+				E229676722D5234D007492C8 /* cd_null.c */,
 				E295531D21F623B500336DD3 /* cl_cin.c */,
 				E295532221F623B500336DD3 /* cl_ents.c */,
 				E295532B21F623B600336DD3 /* cl_fx.c */,
@@ -200,6 +203,7 @@
 				E295532721F623B500336DD3 /* qmenu.c */,
 				E295532821F623B500336DD3 /* snd_dma.c */,
 				E291112D21F71AE300AE0164 /* snd_macos.m */,
+				E229676922D5237D007492C8 /* snd_miniaudio.c */,
 				E295531F21F623B500336DD3 /* snd_mem.c */,
 				E295532121F623B500336DD3 /* snd_mix.c */,
 				E295535921F624D600336DD3 /* sv_ccmds.c */,
@@ -236,6 +240,7 @@
 				E295530D21F6226100336DD3 /* screen.h */,
 				E295531921F6232300336DD3 /* server.h */,
 				E295531421F6226100336DD3 /* snd_loc.h */,
+				E229676B22D523A7007492C8 /* snd_miniaudio.h */,
 				E295531221F6226100336DD3 /* sound.h */,
 				E295530921F6226100336DD3 /* vid.h */,
 			);
@@ -344,6 +349,7 @@
 				E295534C21F6242C00336DD3 /* net_chan.c in Sources */,
 				E295533D21F623B600336DD3 /* console.c in Sources */,
 				E295533921F623B600336DD3 /* cl_scrn.c in Sources */,
+				E229676A22D5237D007492C8 /* snd_miniaudio.c in Sources */,
 				E295533B21F623B600336DD3 /* snd_dma.c in Sources */,
 				E295533E21F623B600336DD3 /* cl_fx.c in Sources */,
 				E295535021F6242C00336DD3 /* md4.c in Sources */,
@@ -351,12 +357,12 @@
 				E295533F21F623B600336DD3 /* cl_input.c in Sources */,
 				E295533421F623B600336DD3 /* snd_mix.c in Sources */,
 				E295532E21F623B600336DD3 /* cl_tent.c in Sources */,
+				E229676822D5234D007492C8 /* cd_null.c in Sources */,
 				E295534D21F6242C00336DD3 /* cvar.c in Sources */,
 				E295536321F624D600336DD3 /* sv_ents.c in Sources */,
 				E295536221F624D600336DD3 /* sv_game.c in Sources */,
 				E295533C21F623B600336DD3 /* cl_main.c in Sources */,
 				E291112C21F7108F00AE0164 /* net_udp.c in Sources */,
-				E291112721F70CC900AE0164 /* cd_macos.c in Sources */,
 				E295534A21F6242C00336DD3 /* cmd.c in Sources */,
 				E295535F21F624D600336DD3 /* sv_user.c in Sources */,
 				E295533321F623B600336DD3 /* menu.c in Sources */,

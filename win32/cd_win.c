@@ -106,20 +106,20 @@ static int CDAudio_GetAudioDiskInfo(void)
 
 
 
-void CDAudio_Play2(int track, qboolean looping)
+qboolean CDAudio_Play2(int track, qboolean looping)
 {
 	DWORD				dwReturn;
     MCI_PLAY_PARMS		mciPlayParms;
 	MCI_STATUS_PARMS	mciStatusParms;
 
 	if (!enabled)
-		return;
+		return false;
 	
 	if (!cdValid)
 	{
 		CDAudio_GetAudioDiskInfo();
 		if (!cdValid)
-			return;
+			return false;
 	}
 
 	track = remap[track];
@@ -127,7 +127,7 @@ void CDAudio_Play2(int track, qboolean looping)
 	if (track < 1 || track > maxTrack)
 	{
 		CDAudio_Stop();
-		return;
+		return false;
 	}
 
 	// don't try to play a non-audio track
@@ -137,12 +137,12 @@ void CDAudio_Play2(int track, qboolean looping)
 	if (dwReturn)
 	{
 		Com_DPrintf("MCI_STATUS failed (%i)\n", dwReturn);
-		return;
+		return false;
 	}
 	if (mciStatusParms.dwReturn != MCI_CDA_TRACK_AUDIO)
 	{
 		Com_Printf("CDAudio: track %i is not audio\n", track);
-		return;
+		return false;
 	}
 
 	// get the length of the track to be played
@@ -152,13 +152,13 @@ void CDAudio_Play2(int track, qboolean looping)
 	if (dwReturn)
 	{
 		Com_DPrintf("MCI_STATUS failed (%i)\n", dwReturn);
-		return;
+		return false;
 	}
 
 	if (playing)
 	{
 		if (playTrack == track)
-			return;
+			return true;
 		CDAudio_Stop();
 	}
 
@@ -169,7 +169,7 @@ void CDAudio_Play2(int track, qboolean looping)
 	if (dwReturn)
 	{
 		Com_DPrintf("CDAudio: MCI_PLAY failed (%i)\n", dwReturn);
-		return;
+		return false;
 	}
 
 	playLooping = looping;
@@ -177,16 +177,18 @@ void CDAudio_Play2(int track, qboolean looping)
 	playing = true;
 
 	if ( Cvar_VariableValue( "cd_nocd" ) )
-		CDAudio_Pause ();
+		CDAudio_Stop ();
+
+	return true;
 }
 
 
-void CDAudio_Play(int track, qboolean looping)
+qboolean CDAudio_Play(int track, qboolean looping)
 {
 	// set a loop counter so that this track will change to the
 	// looptrack later
 	loopcounter = 0;
-	CDAudio_Play2(track, looping);
+	return CDAudio_Play2(track, looping);
 }
 
 void CDAudio_Stop(void)
@@ -420,13 +422,13 @@ void CDAudio_Update(void)
 	{
 		if ( cd_nocd->value )
 		{
-			CDAudio_Stop();
+			CDAudio_Stop ();
 			enabled = false;
 		}
 		else
 		{
 			enabled = true;
-			CDAudio_Resume ();
+			CDAudio_Play (playTrack, playLooping);
 		}
 	}
 }
