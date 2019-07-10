@@ -222,6 +222,10 @@ void Miniaudio_Play(int track, qboolean looping)
 
 	Miniaudio_Stop();
 
+	// ignore invalid tracks
+	if (track < 1)
+		return;
+
 	result = LoadTrack(FS_Gamedir(), track);
 
 	// try the baseq2 folder if loading the track from a custom gamedir failed
