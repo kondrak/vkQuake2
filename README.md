@@ -79,7 +79,7 @@ The Visual Studio 2017 C++ Redistributable is required to run the application: [
 You'll need proper data files to run the game - the [release packages](https://github.com/kondrak/vkQuake2/releases) come with game data used in the demo version. For full experience, copy retail Quake 2 data paks (`pak0.pak`, `pak1.pak`, `pak2.pak`) into the `baseq2` directory and run the executable. For mission packs, copy necessary data to `rogue` ("Ground Zero") and `xatrix` ("The Reckoning") directories respectively. You can then start the game with `./quake2 +set game rogue` or `./quake2 +set game xatrix`.
 
 ## Music
-This project uses [Miniaudio](https://github.com/dr-soft/miniaudio) for music playback if the original game CD is not available. For standard Quake 2, copy all tracks to `baseq2/music` folder following the `trackXX.[ogg,flac,mp3,wav]` naming scheme, where `XX` corresponds to two digit track number on the original CD (so track02.ogg, track03.ogg... for OGG files etc.). For "Ground Zero" and "The Reckoning" copy the files to `rogue/music` and `xatrix/music` folders respectively.
+This project uses [Miniaudio](https://github.com/dr-soft/miniaudio) for music playback if the original game CD is not available. For standard Quake 2, copy all tracks to `baseq2/music` folder following the `trackXX.[ogg,flac,mp3,wav]` naming scheme, where `XX` corresponds to two digit track number on the original CD (so track02.ogg, track03.ogg... for OGG files etc.). For "Ground Zero" and "The Reckoning" copy the tracks to `rogue/music` and `xatrix/music` folders respectively.
 
 Console commands
 ===
