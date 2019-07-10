@@ -194,24 +194,39 @@ void Miniaudio_Init(void)
 	Cmd_AddCommand("miniaudio", Miniaudio_f);
 }
 
+static ma_result LoadTrack(const char *gamedir, int track)
+{
+	ma_result result;
+	int trackExtIdx = 0;
+	static char *trackExts[] = { "ogg", "flac", "mp3", "wav" };
+
+	do
+	{
+		char trackPath[64];
+		Com_sprintf(trackPath, sizeof(trackPath), "%s/music/track%s%i.%s", gamedir, track < 10 ? "0" : "", track, trackExts[trackExtIdx]);
+		result = ma_decoder_init_file(trackPath, NULL, &decoder);
+	} while (result != MA_SUCCESS && ++trackExtIdx < 4);
+
+	return result;
+}
+
 void Miniaudio_Play(int track, qboolean looping)
 {
 	ma_result result;
 	ma_device_config deviceConfig;
-	int trackExtIdx = 0;
-	static char *trackExts[] = { "ogg", "flac", "mp3", "wav" };
 
 	if (!enabled || playTrack == track)
 		return;
 
 	Miniaudio_Stop();
 
-	do
+	result = LoadTrack(FS_Gamedir(), track);
+
+	// try the baseq2 folder if loading the track from a custom gamedir failed
+	if (result != MA_SUCCESS && Q_stricmp(FS_Gamedir(), "./"BASEDIRNAME) != 0)
 	{
-		char trackPath[64];
-		Com_sprintf(trackPath, sizeof(trackPath), "%s/music/track%s%i.%s", FS_Gamedir(), track < 10 ? "0" : "", track, trackExts[trackExtIdx]);
-		result = ma_decoder_init_file(trackPath, NULL, &decoder);
-	} while (result != MA_SUCCESS && ++trackExtIdx < 4);
+		result = LoadTrack(BASEDIRNAME, track);
+	}
 
 	if (result != MA_SUCCESS)
 	{
