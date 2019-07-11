@@ -23,6 +23,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifdef _WIN32
 #  include <windows.h>
 #endif
+// force ALSA on Linux to avoid playback issues when using mixed backends
+#ifdef __linux__
+#  define MA_NO_PULSEAUDIO
+#  define MA_NO_JACK
+#endif
 
 #define DR_FLAC_IMPLEMENTATION
 #include "miniaudio/dr_flac.h"  /* Enables FLAC decoding. */
