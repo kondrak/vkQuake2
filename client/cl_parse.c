@@ -540,8 +540,9 @@ void CL_ParseConfigString (void)
 	{
 		if (cl.refresh_prepped)
 		{
-			if (!CDAudio_Play(atoi(cl.configstrings[CS_CDTRACK]), true))
-				Miniaudio_Play(atoi(cl.configstrings[CS_CDTRACK]), true);
+			int track = atoi(cl.configstrings[CS_CDTRACK]);
+			if (!CDAudio_Play(track, true))
+				Miniaudio_Play(track, true);
 		}
 	}
 	else if (i >= CS_MODELS && i < CS_MODELS+MAX_MODELS)
