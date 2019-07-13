@@ -20,12 +20,13 @@ This is the official Quake 2 code v3.21 with additional Vulkan renderer and miss
 - HUD elements, menus and console text are now scaled accordingly on higher screen resolutions (can be overridden with `hudscale` console command)
 - viewmodel weapons are no longer hidden when FOV > 90
 - warped texture effect (lava, water, slime) is now properly drawn (though only with Vulkan and software renderer!)
-- player vision is warped when underwater in a similar fashion to GLQuake
+- when underwater, player vision is warped in a similar fashion to GLQuake
 - software renderer has been completely replaced with [KolorSoft 1.1](https://github.com/qbism/Quake2-colored-refsoft) - this adds colored lighting and fixes severe instabilities of the original renderer
 - on first launch, the game attempts to use Vulkan at 1920x1080 resolution by default
 - triangle fans have been replaced with indexed triangle lists due to Metal/MoltenVK limitations
 - on Linux, sound is now handled by ALSA instead of OSS
 - support for OGG/FLAC/MP3/WAV music has been added in addition to standard CD audio
+- game menus have been slightly improved
 
 Building
 ===
@@ -79,7 +80,7 @@ The Visual Studio 2017 C++ Redistributable is required to run the application: [
 You'll need proper data files to run the game - the [release packages](https://github.com/kondrak/vkQuake2/releases) come with game data used in the demo version. For full experience, copy retail Quake 2 data paks (`pak0.pak`, `pak1.pak`, `pak2.pak`) into the `baseq2` directory and run the executable. For mission packs, copy necessary data to `rogue` ("Ground Zero") and `xatrix` ("The Reckoning") directories respectively. You can then start the game with `./quake2 +set game rogue` or `./quake2 +set game xatrix`.
 
 ## Music
-This project uses [Miniaudio](https://github.com/dr-soft/miniaudio) for music playback if the original game CD is not available. For standard Quake 2, copy all tracks to `baseq2/music` folder following the `trackXX.[ogg,flac,mp3,wav]` naming scheme, where `XX` corresponds to two digit track number on the original CD (so track02.ogg, track03.ogg... for OGG files etc.). For "Ground Zero" and "The Reckoning" copy the tracks to `rogue/music` and `xatrix/music` folders respectively. For additional control, a `miniaudio [on,off,play [X],loop [X],stop,pause,resume,info]` console command has been introduced - it works in a similar fashion to the corresponding `cd` command for audio CD.
+This project uses [Miniaudio](https://github.com/dr-soft/miniaudio) for music playback if the original game CD is not available. For standard Quake 2, copy all tracks to `baseq2/music` folder following the `trackXX.[ogg,flac,mp3,wav]` naming scheme, where `XX` corresponds to two digit track number on the original CD (so track02.ogg, track03.ogg... for OGG files etc.). For "Ground Zero" and "The Reckoning", copy the tracks to `rogue/music` and `xatrix/music` folders respectively. For additional control, a `miniaudio [on,off,play [X],loop [X],stop,pause,resume,info]` console command has been introduced - it works in a similar fashion to the corresponding `cd` command for audio CD.
 
 Console commands
 ===
