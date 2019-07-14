@@ -277,6 +277,7 @@ void Miniaudio_Play(int track, qboolean looping)
 	loopcounter = 0;
 	playTrack = track;
 	playLooping = looping;
+	paused = false;
 	trackFinished = false;
 
 	if (Cvar_VariableValue("cd_nocd"))
@@ -307,7 +308,16 @@ void Miniaudio_Update(void)
 		else
 		{
 			enabled = true;
-			Miniaudio_Resume();
+			int track = atoi(cl.configstrings[CS_CDTRACK]);
+			if (!paused || playTrack != track)
+			{
+				if ((playTrack == 0 && !playLooping) || (playTrack > 0 && playTrack != track))
+					Miniaudio_Play(track, true);
+				else
+					Miniaudio_Play(playTrack, playLooping);
+			}
+			else
+				Miniaudio_Resume();
 		}
 	}
 
