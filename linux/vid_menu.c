@@ -431,8 +431,8 @@ void VID_MenuInit( void )
 		s_screensize_slider[i].generic.x		= 0;
 		s_screensize_slider[i].generic.y		= 20 * vid_hudscale->value;
 		s_screensize_slider[i].generic.name	= "screen size";
-		s_screensize_slider[i].minvalue = 3;
-		s_screensize_slider[i].maxvalue = 12;
+		s_screensize_slider[i].minvalue = 4;
+		s_screensize_slider[i].maxvalue = 10;
 		s_screensize_slider[i].generic.callback = ScreenSizeCallback;
 
 		s_brightness_slider[i].generic.type	= MTYPE_SLIDER;
