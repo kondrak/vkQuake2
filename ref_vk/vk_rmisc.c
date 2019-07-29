@@ -222,15 +222,19 @@ void Vk_Strings_f(void)
 		ri.Con_Printf(PRINT_ALL, "%s#%d: %s\n", isPreferred && numDevices > 1 ? "*  " : "   ", i, deviceProperties.deviceName);
 	}
 	ri.Con_Printf(PRINT_ALL, "Using device #%d:\n", usedDevice);
-	ri.Con_Printf(PRINT_ALL, "   deviceName: %s\n"
-							 "   driverVersion: %d.%d.%d (0x%X)\n"
-							 "   apiVersion: %d.%d.%d\n"
+	ri.Con_Printf(PRINT_ALL, "   deviceName: %s\n", vk_device.properties.deviceName);
+#ifndef __linux__
+	// Intel on Windows and MacOS (Linux uses semver for Mesa drivers)
+	if (vk_device.properties.vendorID == 0x8086)
+		ri.Con_Printf(PRINT_ALL, "   driverVersion: %d (0x%X)\n", vk_device.properties.driverVersion, vk_device.properties.driverVersion);
+	else
+#endif
+		ri.Con_Printf(PRINT_ALL, "   driverVersion: %d.%d.%d (0x%X)\n", driverMajor, driverMinor, driverPatch, vk_device.properties.driverVersion);
+	ri.Con_Printf(PRINT_ALL, "   apiVersion: %d.%d.%d\n"
 							 "   deviceID: %d\n"
 							 "   vendorID: 0x%X (%s)\n"
 							 "   deviceType: %s\n"
-							 "   gfx/present/transfer: %d/%d/%d\n",	vk_device.properties.deviceName,
-																	driverMajor, driverMinor, driverPatch, vk_device.properties.driverVersion,
-																	VK_VERSION_MAJOR(vk_device.properties.apiVersion),
+							 "   gfx/present/transfer: %d/%d/%d\n",	VK_VERSION_MAJOR(vk_device.properties.apiVersion),
 																	VK_VERSION_MINOR(vk_device.properties.apiVersion),
 																	VK_VERSION_PATCH(vk_device.properties.apiVersion),
 																	vk_device.properties.deviceID,
