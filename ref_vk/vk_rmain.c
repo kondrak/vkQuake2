@@ -502,7 +502,7 @@ void R_DrawParticles (void)
 		} particleUbo;
 
 		particleUbo.particleSize = vk_particle_size->value;
-		particleUbo.particleScale = vid.width / 1024.f;
+		particleUbo.particleScale = vid.width * ri.Cvar_Get("viewsize", "100", CVAR_ARCHIVE)->value / 102400;
 		particleUbo.minPointSize = vk_particle_min_size->value;
 		particleUbo.maxPointSize = vk_particle_max_size->value;
 		particleUbo.att_a = vk_particle_att_a->value;
