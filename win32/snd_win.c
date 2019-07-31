@@ -72,7 +72,7 @@ LPDIRECTSOUNDBUFFER pDSBuf, pDSPBuf;
 
 HINSTANCE hInstDS;
 
-qboolean SNDDMA_InitDirect (void);
+sndinitstat SNDDMA_InitDirect (void);
 qboolean SNDDMA_InitWav (void);
 
 void FreeSound( void );
