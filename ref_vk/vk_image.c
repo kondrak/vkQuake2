@@ -1327,7 +1327,7 @@ Returns number of mip levels
 
 uint32_t Vk_Upload8 (byte *data, int width, int height,  qboolean mipmap, qboolean is_sky )
 {
-	unsigned	trans[512 * 256];
+	static unsigned	trans[512 * 256];
 	int			i, s;
 	int			p;
 
