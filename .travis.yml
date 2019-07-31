@@ -5,7 +5,7 @@ branches:
     - master
 
 before_install:
-  - export VK_VERSION=1.1.108.0
+  - export VK_VERSION=1.1.114.0
 
 matrix:
   include:
