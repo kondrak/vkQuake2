@@ -177,7 +177,7 @@ static void Miniaudio_f(void)
 	if (Q_strcasecmp(command, "info") == 0)
 	{
 		if (device.pContext)
-			Com_Printf("Using %s audio backend. ", ma_get_backend_name(device.pContext->backend));
+			Com_Printf("Using %s backend. ", ma_get_backend_name(device.pContext->backend));
 		else
 			Com_Printf("No audio backend enabled. ");
 
