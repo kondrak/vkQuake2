@@ -25,47 +25,45 @@ VkResult QVk_CreateRenderpass(qvkrenderpass_t *renderpass)
 {
 	qboolean msaaEnabled = renderpass->sampleCount != VK_SAMPLE_COUNT_1_BIT;
 
-	VkAttachmentDescription colorAttachmentDesc = {
-		.flags = 0,
-		.format = vk_swapchain.format,
-		.samples = renderpass->sampleCount,
-		.loadOp = renderpass->colorLoadOp,
-		// if MSAA is enabled, we don't need to preserve rendered texture data since it's kept by MSAA resolve attachment
-		.storeOp = msaaEnabled ? VK_ATTACHMENT_STORE_OP_DONT_CARE : VK_ATTACHMENT_STORE_OP_STORE,
-		.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-		.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-		.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
-	};
-
-	// treat this attachment as an interim color stage if MSAA is enabled
-	if (msaaEnabled)
-		colorAttachmentDesc.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	else
-		colorAttachmentDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-	VkAttachmentDescription depthAttachmentDesc = {
-		.flags = 0,
-		.format = QVk_FindDepthFormat(),
-		.samples = renderpass->sampleCount,
-		.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-		.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-		.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-		.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-		.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-		.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-	};
-
-	// resolve color target used if MSAA is enabled
-	VkAttachmentDescription colorAttachmentResolveMSAA = {
-		.flags = 0,
-		.format = vk_swapchain.format,
-		.samples = VK_SAMPLE_COUNT_1_BIT,
-		.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-		.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
-		.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-		.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
-		.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-		.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+	VkAttachmentDescription attachments[] = {
+		// color attachment
+		{
+			.flags = 0,
+			.format = vk_swapchain.format,
+			.samples = renderpass->sampleCount,
+			.loadOp = renderpass->colorLoadOp,
+			// if MSAA is enabled, we don't need to preserve rendered texture data since it's kept by MSAA resolve attachment
+			.storeOp = msaaEnabled ? VK_ATTACHMENT_STORE_OP_DONT_CARE : VK_ATTACHMENT_STORE_OP_STORE,
+			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+			// treat this attachment as an interim color stage if MSAA is enabled
+			.finalLayout = msaaEnabled ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+		},
+		// depth attachment
+		{
+			.flags = 0,
+			.format = QVk_FindDepthFormat(),
+			.samples = renderpass->sampleCount,
+			.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+			.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+			.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+		},
+		// MSAA resolve attachment
+		{
+			.flags = 0,
+			.format = vk_swapchain.format,
+			.samples = VK_SAMPLE_COUNT_1_BIT,
+			.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+			.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+		}
 	};
 
 	VkAttachmentReference colorAttachmentRef = {
@@ -90,22 +88,18 @@ VkResult QVk_CreateRenderpass(qvkrenderpass_t *renderpass)
 		.pInputAttachments = NULL,
 		.colorAttachmentCount = 1,
 		.pColorAttachments = &colorAttachmentRef,
-		.pResolveAttachments = NULL,
+		.pResolveAttachments = msaaEnabled ? &colorAttachmentResolveMSAARef : NULL,
 		.pDepthStencilAttachment = &depthAttachmentRef,
 		.preserveAttachmentCount = 0,
 		.pPreserveAttachments = NULL
 	};
-	if (msaaEnabled)
-		subpassDesc.pResolveAttachments = &colorAttachmentResolveMSAARef;
 
-	VkAttachmentDescription attachments[] = { colorAttachmentDesc, depthAttachmentDesc };
-	VkAttachmentDescription attachmentsMSAA[] = { colorAttachmentDesc, depthAttachmentDesc, colorAttachmentResolveMSAA };
 	VkRenderPassCreateInfo rpCreateInfo = {
 		.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
 		.pNext = NULL,
 		.flags = 0,
 		.attachmentCount = msaaEnabled ? 3 : 2,
-		.pAttachments = msaaEnabled ? attachmentsMSAA : attachments,
+		.pAttachments = attachments,
 		.subpassCount = 1,
 		.pSubpasses = &subpassDesc
 	};

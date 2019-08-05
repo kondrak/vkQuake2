@@ -49,7 +49,7 @@ qvkshader_t QVk_CreateShader(const uint32_t *shaderSrc, size_t shaderCodeSize, V
 }
 
 void QVk_CreatePipeline(const VkDescriptorSetLayout *descriptorLayout, const uint32_t descLayoutCount, const VkPipelineVertexInputStateCreateInfo *vertexInputInfo,
-						qvkpipeline_t *pipeline, const qvkshader_t *shaders, uint32_t shaderCount, VkPushConstantRange *pcRange)
+						qvkpipeline_t *pipeline, const qvkrenderpass_t *renderpass, const qvkshader_t *shaders, uint32_t shaderCount, VkPushConstantRange *pcRange)
 {
 	VkPipelineShaderStageCreateInfo *ssCreateInfos = (VkPipelineShaderStageCreateInfo *)malloc(shaderCount * sizeof(VkPipelineShaderStageCreateInfo));
 	for (int i = 0; i < shaderCount; i++)
@@ -110,7 +110,7 @@ void QVk_CreatePipeline(const VkDescriptorSetLayout *descriptorLayout, const uin
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
 		.pNext = NULL,
 		.flags = 0,
-		.rasterizationSamples = vk_activeRenderpass.sampleCount,
+		.rasterizationSamples = renderpass->sampleCount,
 		.sampleShadingEnable = (vk_sampleshading->value > 0 && vk_device.features.sampleRateShading) ? VK_TRUE : VK_FALSE,
 		.minSampleShading = (vk_sampleshading->value > 0 && vk_device.features.sampleRateShading) ? 1.f : 0.f,
 		.pSampleMask = NULL,
@@ -185,7 +185,7 @@ void QVk_CreatePipeline(const VkDescriptorSetLayout *descriptorLayout, const uin
 		.pColorBlendState = &cbsCreateInfo,
 		.pDynamicState = &dsCreateInfo,
 		.layout = pipeline->layout,
-		.renderPass = vk_activeRenderpass.rp,
+		.renderPass = renderpass->rp,
 		.subpass = 0,
 		.basePipelineHandle = VK_NULL_HANDLE,
 		.basePipelineIndex = -1
