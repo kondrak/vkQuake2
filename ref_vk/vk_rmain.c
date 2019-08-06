@@ -561,7 +561,7 @@ void R_PolyBlend (void)
 		return;
 
 	float polyTransform[] = { 0.f, 0.f, vid.width, vid.height, v_blend[0], v_blend[1], v_blend[2], v_blend[3] };
-	QVk_DrawColorRect(polyTransform, sizeof(polyTransform));
+	QVk_DrawColorRect(polyTransform, sizeof(polyTransform), RP_WORLD);
 }
 
 //=======================================================================
@@ -666,7 +666,7 @@ void R_SetupFrame (void)
 		float clearArea[] = { (float)r_newrefdef.x / vid.width, (float)r_newrefdef.y / vid.height,
 							  (float)r_newrefdef.width / vid.width, (float)r_newrefdef.height / vid.height,
 							  .3f, .3f, .3f, 1.f };
-		QVk_DrawColorRect(clearArea, sizeof(clearArea));
+		QVk_DrawColorRect(clearArea, sizeof(clearArea), RP_UI);
 	}
 }
 

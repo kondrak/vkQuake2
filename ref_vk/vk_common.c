@@ -123,7 +123,7 @@ static qboolean vk_frameStarted = false;
 
 // render pipelines
 qvkpipeline_t vk_drawTexQuadPipeline = QVKPIPELINE_INIT;
-qvkpipeline_t vk_drawColorQuadPipeline = QVKPIPELINE_INIT;
+qvkpipeline_t vk_drawColorQuadPipeline[RP_COUNT] = { QVKPIPELINE_INIT, QVKPIPELINE_INIT };
 qvkpipeline_t vk_drawModelPipelineStrip = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawModelPipelineFan = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawNoDepthModelPipelineStrip = QVKPIPELINE_INIT;
@@ -1017,9 +1017,12 @@ static void CreatePipelines()
 
 	// colored quad pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, basic_color_quad, basic_color_quad);
-	vk_drawColorQuadPipeline.depthTestEnable = VK_FALSE;
-	vk_drawColorQuadPipeline.blendOpts.blendEnable = VK_TRUE;
-	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRG, &vk_drawColorQuadPipeline, &vk_renderpasses[RP_UI], shaders, 2, &pushConstantRange);
+	for (int i = 0; i < RP_COUNT; ++i)
+	{
+		vk_drawColorQuadPipeline[i].depthTestEnable = VK_FALSE;
+		vk_drawColorQuadPipeline[i].blendOpts.blendEnable = VK_TRUE;
+		QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRG, &vk_drawColorQuadPipeline[i], &vk_renderpasses[i], shaders, 2, &pushConstantRange);
+	}
 
 	// untextured null model
 	VK_LOAD_VERTFRAG_SHADERS(shaders, nullmodel, basic_color_quad);
@@ -1156,7 +1159,8 @@ void QVk_Shutdown( void )
 		ri.Con_Printf(PRINT_ALL, "Shutting down Vulkan\n");
 
 		QVk_DestroyPipeline(&vk_drawTexQuadPipeline);
-		QVk_DestroyPipeline(&vk_drawColorQuadPipeline);
+		QVk_DestroyPipeline(&vk_drawColorQuadPipeline[RP_WORLD]);
+		QVk_DestroyPipeline(&vk_drawColorQuadPipeline[RP_UI]);
 		QVk_DestroyPipeline(&vk_drawNullModel);
 		QVk_DestroyPipeline(&vk_drawModelPipelineStrip);
 		QVk_DestroyPipeline(&vk_drawModelPipelineFan);
@@ -1942,16 +1946,16 @@ VkSampler QVk_UpdateTextureSampler(qvktexture_t *texture, qvksampler_t samplerTy
 	return vk_samplers[samplerType];
 }
 
-void QVk_DrawColorRect(float *ubo, VkDeviceSize uboSize)
+void QVk_DrawColorRect(float *ubo, VkDeviceSize uboSize, qvkrenderpasstype_t rpType)
 {
 	uint32_t uboOffset;
 	VkDescriptorSet uboDescriptorSet;
 	uint8_t *vertData = QVk_GetUniformBuffer(uboSize, &uboOffset, &uboDescriptorSet);
 	memcpy(vertData, ubo, uboSize);
 
-	QVk_BindPipeline(&vk_drawColorQuadPipeline);
+	QVk_BindPipeline(&vk_drawColorQuadPipeline[rpType]);
 	VkDeviceSize offsets = 0;
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawColorQuadPipeline.layout, 0, 1, &uboDescriptorSet, 1, &uboOffset);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawColorQuadPipeline[rpType].layout, 0, 1, &uboDescriptorSet, 1, &uboOffset);
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vk_colorRectVbo.buffer, &offsets);
 	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_rectIbo.buffer, 0, VK_INDEX_TYPE_UINT32);
 	vkCmdDrawIndexed(vk_activeCmdbuffer, 6, 1, 0, 0, 0);

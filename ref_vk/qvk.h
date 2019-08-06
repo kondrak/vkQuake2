@@ -223,7 +223,7 @@ extern VkDescriptorSetLayout vk_samplerDescSetLayout;
 
 // *** pipelines ***
 extern qvkpipeline_t vk_drawTexQuadPipeline;
-extern qvkpipeline_t vk_drawColorQuadPipeline;
+extern qvkpipeline_t vk_drawColorQuadPipeline[RP_COUNT];
 extern qvkpipeline_t vk_drawModelPipelineStrip;
 extern qvkpipeline_t vk_drawModelPipelineFan;
 extern qvkpipeline_t vk_drawNoDepthModelPipelineStrip;
@@ -288,7 +288,7 @@ uint8_t*	QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset);
 uint8_t*	QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescriptorSet *dstUboDescriptorSet);
 uint8_t*	QVk_GetStagingBuffer(VkDeviceSize size, int alignment, VkCommandBuffer *cmdBuffer, VkBuffer *buffer, uint32_t *dstOffset);
 VkBuffer	QVk_GetTriangleFanIbo(VkDeviceSize indexCount);
-void		QVk_DrawColorRect(float *ubo, VkDeviceSize uboSize);
+void		QVk_DrawColorRect(float *ubo, VkDeviceSize uboSize, qvkrenderpasstype_t rpType);
 void		QVk_DrawTexRect(float *ubo, VkDeviceSize uboSize, qvktexture_t *texture);
 void		QVk_BindPipeline(qvkpipeline_t *pipeline);
 void		QVk_SubmitStagingBuffers(void);
