@@ -1631,14 +1631,14 @@ VkResult QVk_EndFrame()
 	vkCmdEndRenderPass(vk_commandbuffers[vk_activeBufferIdx]);
 	VK_VERIFY(vkEndCommandBuffer(vk_commandbuffers[vk_activeBufferIdx]));
 
-	VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+	VkPipelineStageFlags waitStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 	VkSubmitInfo submitInfo = {
 		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
 		.waitSemaphoreCount = 1,
 		.pWaitSemaphores = &vk_imageAvailableSemaphores[vk_activeBufferIdx],
 		.signalSemaphoreCount = 1,
 		.pSignalSemaphores = &vk_renderFinishedSemaphores[vk_activeBufferIdx],
-		.pWaitDstStageMask = waitStages,
+		.pWaitDstStageMask = &waitStages,
 		.commandBufferCount = 1,
 		.pCommandBuffers = &vk_commandbuffers[vk_activeBufferIdx]
 	};
