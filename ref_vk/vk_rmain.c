@@ -877,6 +877,8 @@ r_newrefdef must be set before the first call
 */
 void R_RenderView (refdef_t *fd)
 {
+	QVk_BeginRenderpass(RP_WORLD);
+
 	if (r_norefresh->value)
 		return;
 

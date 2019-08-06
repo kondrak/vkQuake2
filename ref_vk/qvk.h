@@ -271,6 +271,7 @@ VkCommandBuffer QVk_CreateCommandBuffer(const VkCommandPool *commandPool, VkComm
 const char*	QVk_GetError(VkResult errorCode);
 VkResult	QVk_BeginFrame(void);
 VkResult	QVk_EndFrame(void);
+void		QVk_BeginRenderpass(qvkrenderpasstype_t rpType);
 void		QVk_RecreateSwapchain(void);
 VkResult	QVk_CreateBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, const qvkbufferopts_t options);
 void		QVk_FreeBuffer(qvkbuffer_t *buffer);

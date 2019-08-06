@@ -78,7 +78,7 @@ qvkrenderpass_t vk_renderpasses[RP_COUNT] = {
 	},
 	{
 		.rp = VK_NULL_HANDLE,
-		.colorLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+		.colorLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
 		.sampleCount = VK_SAMPLE_COUNT_1_BIT
 	}
 };
@@ -110,7 +110,6 @@ VkSemaphore vk_imageAvailableSemaphores[NUM_CMDBUFFERS];
 // semaphore: signal when rendering to current command buffer is complete
 VkSemaphore vk_renderFinishedSemaphores[NUM_CMDBUFFERS];
 // tracker variables
-VkFramebuffer   vk_activeFramebuffer = VK_NULL_HANDLE;
 VkCommandBuffer vk_activeCmdbuffer = VK_NULL_HANDLE;
 // index of active command buffer
 int vk_activeBufferIdx = 0;
@@ -319,20 +318,22 @@ static void DestroyFramebuffers()
 }
 
 // internal helper
-static VkResult CreateFramebuffers(const qvkrenderpass_t *renderpass, qvkrenderpasstype_t framebufferType)
+static VkResult CreateFramebuffers()
 {
 	VkResult res = VK_SUCCESS;
-	vk_framebuffers[framebufferType] = (VkFramebuffer *)malloc(vk_swapchain.imageCount * sizeof(VkFramebuffer));
+	vk_framebuffers[RP_WORLD] = (VkFramebuffer *)malloc(vk_swapchain.imageCount * sizeof(VkFramebuffer));
 
-	VkFramebufferCreateInfo fbCreateInfo = {
-		.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-		.pNext = NULL,
-		.flags = 0,
-		.renderPass = renderpass->rp,
-		.attachmentCount = (renderpass->sampleCount != VK_SAMPLE_COUNT_1_BIT) ? 3 : 2,
-		.width = vk_swapchain.extent.width,
-		.height = vk_swapchain.extent.height,
-		.layers = 1
+	VkFramebufferCreateInfo fbCreateInfos[] = {
+		{
+			.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+			.pNext = NULL,
+			.flags = 0,
+			.renderPass = vk_renderpasses[RP_WORLD].rp,
+			.attachmentCount = (vk_renderpasses[RP_WORLD].sampleCount != VK_SAMPLE_COUNT_1_BIT) ? 3 : 2,
+			.width = vk_swapchain.extent.width,
+			.height = vk_swapchain.extent.height,
+			.layers = 1
+		},
 	};
 
 	for (size_t i = 0; i < vk_swapchain.imageCount; ++i)
@@ -340,8 +341,8 @@ static VkResult CreateFramebuffers(const qvkrenderpass_t *renderpass, qvkrenderp
 		VkImageView attachments[] = { vk_imageviews[i], vk_depthbuffer.imageView };
 		VkImageView attachmentsMSAA[] = { vk_msaaColorbuffer.imageView, vk_depthbuffer.imageView, vk_imageviews[i] };
 
-		fbCreateInfo.pAttachments = (renderpass->sampleCount != VK_SAMPLE_COUNT_1_BIT) ? attachmentsMSAA : attachments;
-		VkResult result = vkCreateFramebuffer(vk_device.logical, &fbCreateInfo, NULL, &vk_framebuffers[framebufferType][i]);
+		fbCreateInfos[RP_WORLD].pAttachments = (vk_renderpasses[RP_WORLD].sampleCount != VK_SAMPLE_COUNT_1_BIT) ? attachmentsMSAA : attachments;
+		VkResult result = vkCreateFramebuffer(vk_device.logical, &fbCreateInfos[RP_WORLD], NULL, &vk_framebuffers[RP_WORLD][i]);
 
 		if (result != VK_SUCCESS)
 		{
@@ -351,6 +352,107 @@ static VkResult CreateFramebuffers(const qvkrenderpass_t *renderpass, qvkrenderp
 	}
 
 	return res;
+}
+
+// internal helper
+static VkResult CreateRenderpasses()
+{
+	qboolean msaaEnabled = vk_renderpasses[RP_WORLD].sampleCount != VK_SAMPLE_COUNT_1_BIT;
+
+	VkAttachmentDescription attachments[] = {
+		// color attachment
+		{
+			.flags = 0,
+			.format = vk_swapchain.format,
+			.samples = vk_renderpasses[RP_WORLD].sampleCount,
+			.loadOp = vk_renderpasses[RP_WORLD].colorLoadOp,
+			// if MSAA is enabled, we don't need to preserve rendered texture data since it's kept by MSAA resolve attachment
+			.storeOp = msaaEnabled ? VK_ATTACHMENT_STORE_OP_DONT_CARE : VK_ATTACHMENT_STORE_OP_STORE,
+			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+			// treat this attachment as an interim color stage if MSAA is enabled
+			.finalLayout = msaaEnabled ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+		},
+		// depth attachment
+		{
+			.flags = 0,
+			.format = QVk_FindDepthFormat(),
+			.samples = vk_renderpasses[RP_WORLD].sampleCount,
+			.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+			.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+			.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+		},
+		// MSAA resolve attachment
+		{
+			.flags = 0,
+			.format = vk_swapchain.format,
+			.samples = VK_SAMPLE_COUNT_1_BIT,
+			.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+			.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+		}
+	};
+
+	VkAttachmentReference colorAttachmentRef = {
+		.attachment = 0,
+		.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+	};
+
+	VkAttachmentReference depthAttachmentRef = {
+		.attachment = 1,
+		.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+	};
+
+	VkAttachmentReference colorAttachmentResolveMSAARef = {
+		.attachment = 2,
+		.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+	};
+
+	VkSubpassDescription subpassDesc = {
+		.flags = 0,
+		.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+		.inputAttachmentCount = 0,
+		.pInputAttachments = NULL,
+		.colorAttachmentCount = 1,
+		.pColorAttachments = &colorAttachmentRef,
+		.pResolveAttachments = msaaEnabled ? &colorAttachmentResolveMSAARef : NULL,
+		.pDepthStencilAttachment = &depthAttachmentRef,
+		.preserveAttachmentCount = 0,
+		.pPreserveAttachments = NULL
+	};
+
+	VkRenderPassCreateInfo rpCreateInfo = {
+		.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+		.pNext = NULL,
+		.flags = 0,
+		.attachmentCount = msaaEnabled ? 3 : 2,
+		.pAttachments = attachments,
+		.subpassCount = 1,
+		.pSubpasses = &subpassDesc
+	};
+
+	// subpass depencency: wait for color stage
+	VkSubpassDependency spDep = {
+		.srcSubpass = VK_SUBPASS_EXTERNAL,
+		.dstSubpass = 0,
+		.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+		.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+		.srcAccessMask = 0,
+		.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+		.dependencyFlags = 0
+	};
+
+	rpCreateInfo.dependencyCount = 1;
+	rpCreateInfo.pDependencies = &spDep;
+
+	return vkCreateRenderPass(vk_device.logical, &rpCreateInfo, NULL, &vk_renderpasses[RP_WORLD].rp);
 }
 
 // internal helper
@@ -994,7 +1096,6 @@ void QVk_Shutdown( void )
 
 		vkDestroyInstance(vk_instance, NULL);
 		vk_instance = VK_NULL_HANDLE;
-		vk_activeFramebuffer = VK_NULL_HANDLE;
 		vk_activeCmdbuffer = VK_NULL_HANDLE;
 		vk_descriptorPool = VK_NULL_HANDLE;
 		vk_uboDescSetLayout = VK_NULL_HANDLE;
@@ -1207,21 +1308,13 @@ qboolean QVk_Init()
 
 	vk_renderpasses[RP_WORLD].sampleCount = msaaMode;
 
-	res = QVk_CreateRenderpass(&vk_renderpasses[RP_WORLD]);
+	// setup render passes
+	res = CreateRenderpasses();
 	if (res != VK_SUCCESS)
 	{
-		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create primary Vulkan renderpass: %s\n", QVk_GetError(res));
+		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan render passes: %s\n", QVk_GetError(res));
 		return false;
 	}
-	ri.Con_Printf(PRINT_ALL, "...created primary Vulkan renderpass\n");
-
-	res = QVk_CreateRenderpass(&vk_renderpasses[RP_UI]);
-	if (res != VK_SUCCESS)
-	{
-		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan renderpass for the UI: %s\n", QVk_GetError(res));
-		return false;
-	}
-	ri.Con_Printf(PRINT_ALL, "...created Vulkan renderpass for UI\n");
 
 	// setup command pools
 	res = QVk_CreateCommandPool(&vk_commandPool, vk_device.gfxFamilyIndex);
@@ -1251,7 +1344,7 @@ qboolean QVk_Init()
 	ri.Con_Printf(PRINT_ALL, "...created %d Vulkan image view(s)\n", vk_swapchain.imageCount);
 
 	// setup framebuffers
-	res = CreateFramebuffers(&vk_renderpasses[RP_WORLD], RP_WORLD);
+	res = CreateFramebuffers();
 	if (res != VK_SUCCESS)
 	{
 		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan framebuffers: %s\n", QVk_GetError(res));
@@ -1281,7 +1374,6 @@ qboolean QVk_Init()
 	ri.Con_Printf(PRINT_ALL, "...created %d Vulkan commandbuffers\n", NUM_CMDBUFFERS);
 
 	// initialize tracker variables
-	vk_activeFramebuffer = *vk_framebuffers[RP_WORLD];
 	vk_activeCmdbuffer   = vk_commandbuffers[vk_activeBufferIdx];
 
 	CreateDescriptorSetLayouts();
@@ -1314,7 +1406,6 @@ VkResult QVk_BeginFrame()
 
 	VkResult result = vkAcquireNextImageKHR(vk_device.logical, vk_swapchain.sc, UINT32_MAX, vk_imageAvailableSemaphores[vk_activeBufferIdx], VK_NULL_HANDLE, &vk_imageIndex);
 	vk_activeCmdbuffer = vk_commandbuffers[vk_activeBufferIdx];
-	vk_activeFramebuffer = vk_framebuffers[RP_WORLD][vk_imageIndex];
 
 	// swap dynamic buffers
 	vk_activeDynBufferIdx = (vk_activeDynBufferIdx + 1) % NUM_DYNBUFFERS;
@@ -1349,21 +1440,6 @@ VkResult QVk_BeginFrame()
 
 	VK_VERIFY(vkBeginCommandBuffer(vk_commandbuffers[vk_activeBufferIdx], &beginInfo));
 
-	VkClearValue clearColors[2] = {
-		{ .color = { 1.f, .0f, .5f, 1.f } },
-		{ .depthStencil = { 1.f, 0 } }
-	};
-	VkRenderPassBeginInfo renderBeginInfo = {
-		.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-		.renderPass = vk_renderpasses[RP_WORLD].rp,
-		.framebuffer = vk_activeFramebuffer,
-		.renderArea.offset = { 0, 0 },
-		.renderArea.extent = vk_swapchain.extent,
-		.clearValueCount = 2,
-		.pClearValues = clearColors
-	};
-
-	vkCmdBeginRenderPass(vk_commandbuffers[vk_activeBufferIdx], &renderBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 	vkCmdSetViewport(vk_commandbuffers[vk_activeBufferIdx], 0, 1, &vk_viewport);
 	vkCmdSetScissor(vk_commandbuffers[vk_activeBufferIdx], 0, 1, &vk_scissor);
 
@@ -1424,6 +1500,28 @@ VkResult QVk_EndFrame()
 
 	vk_frameStarted = false;
 	return renderResult;
+}
+
+void QVk_BeginRenderpass(qvkrenderpasstype_t rpType)
+{
+	VkClearValue clearColors[2] = {
+		{.color = { 1.f, .0f, .5f, 1.f } },
+		{.depthStencil = { 1.f, 0 } }
+	};
+
+	VkRenderPassBeginInfo renderBeginInfo[] = {
+		{
+			.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+			.renderPass = vk_renderpasses[RP_WORLD].rp,
+			.framebuffer = vk_framebuffers[RP_WORLD][vk_imageIndex],
+			.renderArea.offset = { 0, 0 },
+			.renderArea.extent = vk_swapchain.extent,
+			.clearValueCount = 2,
+			.pClearValues = clearColors
+		}
+	};
+
+	vkCmdBeginRenderPass(vk_commandbuffers[vk_activeBufferIdx], &renderBeginInfo[rpType], VK_SUBPASS_CONTENTS_INLINE);
 }
 
 void QVk_RecreateSwapchain()
