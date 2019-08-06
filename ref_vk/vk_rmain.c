@@ -937,6 +937,9 @@ void R_RenderView (refdef_t *fd)
 
 void R_SetVulkan2D (void)
 {
+	vkCmdEndRenderPass(vk_activeCmdbuffer);
+
+	QVk_BeginRenderpass(RP_UI);
 	extern VkViewport vk_viewport;
 	extern VkRect2D vk_scissor;
 	vkCmdSetViewport(vk_activeCmdbuffer, 0, 1, &vk_viewport);

@@ -93,6 +93,7 @@ VkImageView *vk_imageviews = NULL;
 // Vulkan framebuffers
 VkFramebuffer *vk_framebuffers[RP_COUNT];
 // depth buffer
+qvktexture_t vk_colorbuffer = QVVKTEXTURE_INIT;
 qvktexture_t vk_depthbuffer = QVVKTEXTURE_INIT;
 // render targets for MSAA
 qvktexture_t vk_msaaColorbuffer = QVVKTEXTURE_INIT;
@@ -142,6 +143,7 @@ qvkpipeline_t vk_drawDLightPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_showTrisPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_shadowsPipelineStrip = QVKPIPELINE_INIT;
 qvkpipeline_t vk_shadowsPipelineFan = QVKPIPELINE_INIT;
+qvkpipeline_t vk_postprocessPipeline = QVKPIPELINE_INIT;
 
 // samplers
 static VkSampler vk_samplers[S_SAMPLER_CNT];
@@ -208,6 +210,7 @@ static int vk_swapBuffersCnt[NUM_SWAPBUFFER_SLOTS];
 static int vk_swapDescSetsCnt[NUM_SWAPBUFFER_SLOTS];
 static qvkbuffer_t *vk_swapBuffers[NUM_SWAPBUFFER_SLOTS];
 static VkDescriptorSet *vk_swapDescriptorSets[NUM_SWAPBUFFER_SLOTS];
+static VkDescriptorSet vk_iaDescriptorSet;
 
 // by how much will the dynamic buffers be resized if we run out of space?
 #define BUFFER_RESIZE_FACTOR 2.f
@@ -226,6 +229,8 @@ static VkDescriptorSet *vk_swapDescriptorSets[NUM_SWAPBUFFER_SLOTS];
 VkDescriptorSetLayout vk_uboDescSetLayout;
 VkDescriptorSetLayout vk_samplerDescSetLayout;
 VkDescriptorSetLayout vk_samplerLightmapDescSetLayout;
+// descriptor set layout for postprocessing input attachment
+VkDescriptorSetLayout vk_iaDescSetLayout;
 
 extern cvar_t *vk_msaa;
 
@@ -322,6 +327,7 @@ static VkResult CreateFramebuffers()
 {
 	VkResult res = VK_SUCCESS;
 	vk_framebuffers[RP_WORLD] = (VkFramebuffer *)malloc(vk_swapchain.imageCount * sizeof(VkFramebuffer));
+	vk_framebuffers[RP_UI] = (VkFramebuffer *)malloc(vk_swapchain.imageCount * sizeof(VkFramebuffer));
 
 	VkFramebufferCreateInfo fbCreateInfos[] = {
 		{
@@ -334,15 +340,29 @@ static VkResult CreateFramebuffers()
 			.height = vk_swapchain.extent.height,
 			.layers = 1
 		},
+		{
+			.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+			.pNext = NULL,
+			.flags = 0,
+			.renderPass = vk_renderpasses[RP_UI].rp,
+			.attachmentCount = 2,
+			.width = vk_swapchain.extent.width,
+			.height = vk_swapchain.extent.height,
+			.layers = 1
+		}
 	};
+
+	VkImageView attachments[] = { vk_colorbuffer.imageView, vk_depthbuffer.imageView, vk_msaaColorbuffer.imageView };
+
+	fbCreateInfos[RP_WORLD].pAttachments = attachments;
 
 	for (size_t i = 0; i < vk_swapchain.imageCount; ++i)
 	{
-		VkImageView attachments[] = { vk_imageviews[i], vk_depthbuffer.imageView };
-		VkImageView attachmentsMSAA[] = { vk_msaaColorbuffer.imageView, vk_depthbuffer.imageView, vk_imageviews[i] };
+		VkImageView attachments[] = { vk_colorbuffer.imageView, vk_imageviews[i] };
 
-		fbCreateInfos[RP_WORLD].pAttachments = (vk_renderpasses[RP_WORLD].sampleCount != VK_SAMPLE_COUNT_1_BIT) ? attachmentsMSAA : attachments;
-		VkResult result = vkCreateFramebuffer(vk_device.logical, &fbCreateInfos[RP_WORLD], NULL, &vk_framebuffers[RP_WORLD][i]);
+		fbCreateInfos[RP_UI].pAttachments = attachments;
+		VkResult result = vkCreateFramebuffer(vk_device.logical, &fbCreateInfos[RP_UI], NULL, &vk_framebuffers[RP_UI][i]);
+		result = vkCreateFramebuffer(vk_device.logical, &fbCreateInfos[RP_WORLD], NULL, &vk_framebuffers[RP_WORLD][i]);
 
 		if (result != VK_SUCCESS)
 		{
@@ -364,15 +384,15 @@ static VkResult CreateRenderpasses()
 		{
 			.flags = 0,
 			.format = vk_swapchain.format,
-			.samples = vk_renderpasses[RP_WORLD].sampleCount,
-			.loadOp = vk_renderpasses[RP_WORLD].colorLoadOp,
+			.samples = VK_SAMPLE_COUNT_1_BIT,
+			.loadOp = msaaEnabled ? VK_ATTACHMENT_LOAD_OP_DONT_CARE : VK_ATTACHMENT_LOAD_OP_CLEAR,
 			// if MSAA is enabled, we don't need to preserve rendered texture data since it's kept by MSAA resolve attachment
-			.storeOp = msaaEnabled ? VK_ATTACHMENT_STORE_OP_DONT_CARE : VK_ATTACHMENT_STORE_OP_STORE,
+			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
 			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
 			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
 			// treat this attachment as an interim color stage if MSAA is enabled
-			.finalLayout = msaaEnabled ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+			.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
 		},
 		// depth attachment
 		{
@@ -390,18 +410,18 @@ static VkResult CreateRenderpasses()
 		{
 			.flags = 0,
 			.format = vk_swapchain.format,
-			.samples = VK_SAMPLE_COUNT_1_BIT,
-			.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+			.samples = vk_renderpasses[RP_WORLD].sampleCount,
+			.loadOp = msaaEnabled ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
 			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
 			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-			.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+			.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
 		}
 	};
 
 	VkAttachmentReference colorAttachmentRef = {
-		.attachment = 0,
+		.attachment = msaaEnabled ? 2 : 0,
 		.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
 	};
 
@@ -411,7 +431,7 @@ static VkResult CreateRenderpasses()
 	};
 
 	VkAttachmentReference colorAttachmentResolveMSAARef = {
-		.attachment = 2,
+		.attachment = 0,
 		.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
 	};
 
@@ -438,21 +458,102 @@ static VkResult CreateRenderpasses()
 		.pSubpasses = &subpassDesc
 	};
 
-	// subpass depencency: wait for color stage
-	VkSubpassDependency spDep = {
-		.srcSubpass = VK_SUBPASS_EXTERNAL,
-		.dstSubpass = 0,
-		.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-		.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-		.srcAccessMask = 0,
-		.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-		.dependencyFlags = 0
+	vkCreateRenderPass(vk_device.logical, &rpCreateInfo, NULL, &vk_renderpasses[RP_WORLD].rp);
+
+	// UI
+	VkAttachmentDescription uiAttachments[] = {
+		// color attachment
+		{
+			.flags = 0,
+			.format = vk_swapchain.format,
+			.samples = VK_SAMPLE_COUNT_1_BIT,
+			.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+			// if MSAA is enabled, we don't need to preserve rendered texture data since it's kept by MSAA resolve attachment
+			.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+			// treat this attachment as an interim color stage if MSAA is enabled
+			.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+		},
+		// MSAA resolve attachment
+		{
+			.flags = 0,
+			.format = vk_swapchain.format,
+			.samples = VK_SAMPLE_COUNT_1_BIT,
+			.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+			.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+		}
 	};
 
-	rpCreateInfo.dependencyCount = 1;
-	rpCreateInfo.pDependencies = &spDep;
+	VkAttachmentReference color_input_attachment_reference;
+	color_input_attachment_reference.attachment = 0;
+	color_input_attachment_reference.layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-	return vkCreateRenderPass(vk_device.logical, &rpCreateInfo, NULL, &vk_renderpasses[RP_WORLD].rp);
+	VkAttachmentReference ui_color_attachment_reference;
+	ui_color_attachment_reference.attachment = 0;
+	ui_color_attachment_reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	VkAttachmentReference swap_chain_attachment_reference;
+	swap_chain_attachment_reference.attachment = 1;
+	swap_chain_attachment_reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	VkSubpassDescription uiSubpassDescs[] = {
+		{
+			.flags = 0,
+			.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+			.inputAttachmentCount = 0,
+			.pInputAttachments = NULL,
+			.colorAttachmentCount = 1,
+			.pColorAttachments = &ui_color_attachment_reference,
+			.pResolveAttachments = NULL,
+			.pDepthStencilAttachment = NULL,
+			.preserveAttachmentCount = 0,
+			.pPreserveAttachments = NULL
+		},
+		{
+			.flags = 0,
+			.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+			.inputAttachmentCount = 1,
+			.pInputAttachments = &color_input_attachment_reference,
+			.colorAttachmentCount = 1,
+			.pColorAttachments = &swap_chain_attachment_reference,
+			.pResolveAttachments = NULL,
+			.pDepthStencilAttachment = NULL,
+			.preserveAttachmentCount = 0,
+			.pPreserveAttachments = NULL
+		}
+	};
+
+	// subpass depencency: wait for color stage
+	VkSubpassDependency spDep = {
+		.srcSubpass = 0,
+		.dstSubpass = 1,
+		.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+		.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+		.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+		.dstAccessMask = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT,
+		.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
+	};
+
+	VkRenderPassCreateInfo uiRpCreateInfo = {
+		.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+		.pNext = NULL,
+		.flags = 0,
+		.attachmentCount = 2,
+		.pAttachments = uiAttachments,
+		.subpassCount = 2,
+		.pSubpasses = uiSubpassDescs
+	};
+
+	uiRpCreateInfo.dependencyCount = 1;
+	uiRpCreateInfo.pDependencies = &spDep;
+
+	return vkCreateRenderPass(vk_device.logical, &uiRpCreateInfo, NULL, &vk_renderpasses[RP_UI].rp);
 }
 
 // internal helper
@@ -460,6 +561,7 @@ static void CreateDrawBuffers()
 {
 	QVk_CreateDepthBuffer(vk_renderpasses[RP_WORLD].sampleCount, &vk_depthbuffer);
 	ri.Con_Printf(PRINT_ALL, "...created depth buffer\n");
+	QVk_CreateColorBuffer(VK_SAMPLE_COUNT_1_BIT, &vk_colorbuffer);
 	QVk_CreateColorBuffer(vk_renderpasses[RP_WORLD].sampleCount, &vk_msaaColorbuffer);
 	ri.Con_Printf(PRINT_ALL, "...created MSAAx%d color buffer\n", vk_renderpasses[RP_WORLD].sampleCount);
 }
@@ -511,6 +613,9 @@ static void CreateDescriptorSetLayouts()
 	VK_VERIFY(vkCreateDescriptorSetLayout(vk_device.logical, &layoutInfo, NULL, &vk_samplerDescSetLayout));
 	// secondary sampler: lightmaps
 	VK_VERIFY(vkCreateDescriptorSetLayout(vk_device.logical, &layoutInfo, NULL, &vk_samplerLightmapDescSetLayout));
+	// postprocessing input attachment
+	layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+	VK_VERIFY(vkCreateDescriptorSetLayout(vk_device.logical, &layoutInfo, NULL, &vk_iaDescSetLayout));
 }
 
 // internal helper
@@ -644,6 +749,42 @@ static void CreateUboDescriptorSet(VkDescriptorSet *descSet, VkBuffer buffer)
 		.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
 		.pImageInfo = NULL,
 		.pBufferInfo = &bufferInfo,
+		.pTexelBufferView = NULL,
+	};
+
+	vkUpdateDescriptorSets(vk_device.logical, 1, &descriptorWrite, 0, NULL);
+}
+
+// internal helper
+static void CreateInputAttachmentDescriptorSet(VkDescriptorSet *descSet)
+{
+
+	VkDescriptorSetAllocateInfo dsAllocInfo = {
+		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+		.pNext = NULL,
+		.descriptorPool = vk_descriptorPool,
+		.descriptorSetCount = 1,
+		.pSetLayouts = &vk_iaDescSetLayout
+	};
+
+	VK_VERIFY(vkAllocateDescriptorSets(vk_device.logical, &dsAllocInfo, descSet));
+
+	VkDescriptorImageInfo imgInfo = {
+		.sampler = VK_NULL_HANDLE,
+		.imageView = vk_colorbuffer.imageView,
+		.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+	};
+
+	VkWriteDescriptorSet descriptorWrite = {
+		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+		.pNext = NULL,
+		.dstSet = *descSet,
+		.dstBinding = 0,
+		.dstArrayElement = 0,
+		.descriptorCount = 1,
+		.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
+		.pImageInfo = &imgInfo,
+		.pBufferInfo = NULL,
 		.pTexelBufferView = NULL,
 	};
 
@@ -858,7 +999,7 @@ static void CreatePipelines()
 	// textured quad pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, basic, basic);
 	vk_drawTexQuadPipeline.depthTestEnable = VK_FALSE;
-	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRG_RG, &vk_drawTexQuadPipeline, &vk_renderpasses[RP_WORLD], shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRG_RG, &vk_drawTexQuadPipeline, &vk_renderpasses[RP_UI], shaders, 2, &pushConstantRange);
 
 	// draw particles pipeline (using a texture)
 	VK_LOAD_VERTFRAG_SHADERS(shaders, particle, basic);
@@ -877,7 +1018,7 @@ static void CreatePipelines()
 	VK_LOAD_VERTFRAG_SHADERS(shaders, basic_color_quad, basic_color_quad);
 	vk_drawColorQuadPipeline.depthTestEnable = VK_FALSE;
 	vk_drawColorQuadPipeline.blendOpts.blendEnable = VK_TRUE;
-	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRG, &vk_drawColorQuadPipeline, &vk_renderpasses[RP_WORLD], shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRG, &vk_drawColorQuadPipeline, &vk_renderpasses[RP_UI], shaders, 2, &pushConstantRange);
 
 	// untextured null model
 	VK_LOAD_VERTFRAG_SHADERS(shaders, nullmodel, basic_color_quad);
@@ -977,6 +1118,25 @@ static void CreatePipelines()
 	vk_shadowsPipelineFan.blendOpts.blendEnable = VK_TRUE;
 	vk_shadowsPipelineFan.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRGB, &vk_shadowsPipelineFan, &vk_renderpasses[RP_WORLD], shaders, 2, &pushConstantRange);
+
+	// postprocessing pipeline
+	VK_LOAD_VERTFRAG_SHADERS(shaders, postprocess, postprocess);
+
+	VkPipelineVertexInputStateCreateInfo postprocessVisc = {
+		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+		.pNext = NULL,
+		.flags = 0,
+		.vertexBindingDescriptionCount = 0,
+		.pVertexBindingDescriptions = NULL,
+		.vertexAttributeDescriptionCount = 0,
+		.pVertexAttributeDescriptions = NULL,
+	};
+
+	vk_postprocessPipeline.depthTestEnable = VK_FALSE;
+	vk_postprocessPipeline.depthWriteEnable = VK_FALSE;
+	vk_postprocessPipeline.cullMode = VK_CULL_MODE_NONE;
+	vk_postprocessPipeline.subpass = 1;
+	QVk_CreatePipeline(&vk_iaDescSetLayout, 1, &postprocessVisc, &vk_postprocessPipeline, &vk_renderpasses[RP_UI], shaders, 2, NULL);
 
 	// final shader cleanup
 	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
@@ -1386,6 +1546,7 @@ qboolean QVk_Init()
 	CreateStagingBuffers();
 	// assign a dynamic index buffer for triangle fan emulation
 	RebuildTriangleFanIndexBuffer();
+	CreateInputAttachmentDescriptorSet(&vk_iaDescriptorSet);
 	CreatePipelines();
 	CreateSamplers();
 
@@ -1459,6 +1620,10 @@ VkResult QVk_EndFrame()
 	vmaFlushAllocation(vk_malloc, vk_dynVertexBuffers[vk_activeDynBufferIdx].allocation, 0, VK_WHOLE_SIZE);
 	vmaFlushAllocation(vk_malloc, vk_dynIndexBuffers[vk_activeDynBufferIdx].allocation, 0, VK_WHOLE_SIZE);
 
+	vkCmdNextSubpass(vk_commandbuffers[vk_activeBufferIdx], VK_SUBPASS_CONTENTS_INLINE);
+	vkCmdBindDescriptorSets(vk_commandbuffers[vk_activeBufferIdx], VK_PIPELINE_BIND_POINT_GRAPHICS, vk_postprocessPipeline.layout, 0, 1, &vk_iaDescriptorSet, 0, NULL);
+	QVk_BindPipeline(&vk_postprocessPipeline);
+	vkCmdDraw(vk_commandbuffers[vk_activeBufferIdx], 3, 1, 0, 0);
 	vkCmdEndRenderPass(vk_commandbuffers[vk_activeBufferIdx]);
 	VK_VERIFY(vkEndCommandBuffer(vk_commandbuffers[vk_activeBufferIdx]));
 
@@ -1504,9 +1669,10 @@ VkResult QVk_EndFrame()
 
 void QVk_BeginRenderpass(qvkrenderpasstype_t rpType)
 {
-	VkClearValue clearColors[2] = {
+	VkClearValue clearColors[3] = {
 		{.color = { 1.f, .0f, .5f, 1.f } },
-		{.depthStencil = { 1.f, 0 } }
+		{.depthStencil = { 1.f, 0 } },
+		{.color = { 1.f, .0f, .5f, 1.f } },
 	};
 
 	VkRenderPassBeginInfo renderBeginInfo[] = {
@@ -1516,8 +1682,17 @@ void QVk_BeginRenderpass(qvkrenderpasstype_t rpType)
 			.framebuffer = vk_framebuffers[RP_WORLD][vk_imageIndex],
 			.renderArea.offset = { 0, 0 },
 			.renderArea.extent = vk_swapchain.extent,
-			.clearValueCount = 2,
+			.clearValueCount = vk_renderpasses[RP_WORLD].sampleCount != VK_SAMPLE_COUNT_1_BIT ? 3 : 2,
 			.pClearValues = clearColors
+		},
+		{
+			.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+			.renderPass = vk_renderpasses[RP_UI].rp,
+			.framebuffer = vk_framebuffers[RP_UI][vk_imageIndex],
+			.renderArea.offset = { 0, 0 },
+			.renderArea.extent = vk_swapchain.extent,
+			.clearValueCount = 0,
+			.pClearValues = NULL
 		}
 	};
 
@@ -1536,7 +1711,7 @@ void QVk_RecreateSwapchain()
 	DestroyDrawBuffers();
 	CreateDrawBuffers();
 	VK_VERIFY( CreateImageViews() );
-	VK_VERIFY( CreateFramebuffers( &vk_renderpasses[RP_WORLD], RP_WORLD ) );
+	VK_VERIFY( CreateFramebuffers() );
 }
 
 uint8_t *QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, VkDeviceSize *dstOffset)
