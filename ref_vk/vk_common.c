@@ -582,6 +582,7 @@ static void DestroyDrawBuffer(qvktexture_t *drawBuffer)
 static void DestroyDrawBuffers()
 {
 	DestroyDrawBuffer(&vk_depthbuffer);
+	DestroyDrawBuffer(&vk_colorbuffer);
 	DestroyDrawBuffer(&vk_msaaColorbuffer);
 }
 
@@ -1175,41 +1176,44 @@ void QVk_Shutdown( void )
 		QVk_DestroyPipeline(&vk_showTrisPipeline);
 		QVk_DestroyPipeline(&vk_shadowsPipelineStrip);
 		QVk_DestroyPipeline(&vk_shadowsPipelineFan);
+		QVk_DestroyPipeline(&vk_postprocessPipeline);
 		QVk_FreeBuffer(&vk_texRectVbo);
 		QVk_FreeBuffer(&vk_colorRectVbo);
 		QVk_FreeBuffer(&vk_rectIbo);
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 		{
-			if(vk_dynUniformBuffers[i].buffer != VK_NULL_HANDLE)
+			if (vk_dynUniformBuffers[i].buffer != VK_NULL_HANDLE)
 			{
 				vmaUnmapMemory(vk_malloc, vk_dynUniformBuffers[i].allocation);
 				QVk_FreeBuffer(&vk_dynUniformBuffers[i]);
 			}
-			if(vk_dynIndexBuffers[i].buffer != VK_NULL_HANDLE)
+			if (vk_dynIndexBuffers[i].buffer != VK_NULL_HANDLE)
 			{
 				vmaUnmapMemory(vk_malloc, vk_dynIndexBuffers[i].allocation);
 				QVk_FreeBuffer(&vk_dynIndexBuffers[i]);
 			}
-			if(vk_dynVertexBuffers[i].buffer != VK_NULL_HANDLE)
+			if (vk_dynVertexBuffers[i].buffer != VK_NULL_HANDLE)
 			{
 				vmaUnmapMemory(vk_malloc, vk_dynVertexBuffers[i].allocation);
 				QVk_FreeBuffer(&vk_dynVertexBuffers[i]);
 			}
-			if(vk_stagingBuffers[i].buffer.buffer != VK_NULL_HANDLE)
+			if (vk_stagingBuffers[i].buffer.buffer != VK_NULL_HANDLE)
 			{
 				vmaUnmapMemory(vk_malloc, vk_stagingBuffers[i].buffer.allocation);
 				QVk_FreeBuffer(&vk_stagingBuffers[i].buffer);
 				vkDestroyFence(vk_device.logical, vk_stagingBuffers[i].fence, NULL);
 			}
 		}
-		if(vk_descriptorPool != VK_NULL_HANDLE)
+		if (vk_descriptorPool != VK_NULL_HANDLE)
 			vkDestroyDescriptorPool(vk_device.logical, vk_descriptorPool, NULL);
-		if(vk_uboDescSetLayout != VK_NULL_HANDLE)
+		if (vk_uboDescSetLayout != VK_NULL_HANDLE)
 			vkDestroyDescriptorSetLayout(vk_device.logical, vk_uboDescSetLayout, NULL);
-		if(vk_samplerDescSetLayout != VK_NULL_HANDLE)
+		if (vk_samplerDescSetLayout != VK_NULL_HANDLE)
 			vkDestroyDescriptorSetLayout(vk_device.logical, vk_samplerDescSetLayout, NULL);
-		if(vk_samplerLightmapDescSetLayout != VK_NULL_HANDLE)
+		if (vk_samplerLightmapDescSetLayout != VK_NULL_HANDLE)
 			vkDestroyDescriptorSetLayout(vk_device.logical, vk_samplerLightmapDescSetLayout, NULL);
+		if (vk_iaDescSetLayout != VK_NULL_HANDLE)
+			vkDestroyDescriptorSetLayout(vk_device.logical, vk_iaDescSetLayout, NULL);
 		for (int i = 0; i < RP_COUNT; i++)
 		{
 			if (vk_renderpasses[i].rp != VK_NULL_HANDLE)
@@ -1226,7 +1230,7 @@ void QVk_Shutdown( void )
 			vkDestroyCommandPool(vk_device.logical, vk_commandPool, NULL);
 		if (vk_transferCommandPool != VK_NULL_HANDLE)
 			vkDestroyCommandPool(vk_device.logical, vk_transferCommandPool, NULL);
-		if(vk_stagingCommandPool != VK_NULL_HANDLE)
+		if (vk_stagingCommandPool != VK_NULL_HANDLE)
 			vkDestroyCommandPool(vk_device.logical, vk_stagingCommandPool, NULL);
 		DestroySamplers();
 		DestroyFramebuffers();
