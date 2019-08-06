@@ -255,7 +255,6 @@ void		QVk_CreateValidationLayers(void);
 void		QVk_DestroyValidationLayers(void);
 qboolean	QVk_CreateDevice(int preferredDeviceIdx);
 VkResult	QVk_CreateSwapchain(void);
-VkResult	QVk_CreateRenderpass(qvkrenderpass_t *renderpass);
 VkFormat	QVk_FindDepthFormat(void);
 VkResult	QVk_CreateCommandPool(VkCommandPool *commandPool, uint32_t queueFamilyIndex);
 VkResult	QVk_CreateImageView(const VkImage *image, VkImageAspectFlags aspectFlags, VkImageView *imageView, VkFormat format, uint32_t mipLevels);
