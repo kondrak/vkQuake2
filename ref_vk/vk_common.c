@@ -706,6 +706,11 @@ static void CreateDescriptorPool()
 		{
 			.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
 			.descriptorCount = MAX_VKTEXTURES + 1
+		},
+		// input attachment
+		{
+			.type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
+			.descriptorCount = 1
 		}
 	};
 
