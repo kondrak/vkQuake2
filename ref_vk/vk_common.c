@@ -345,7 +345,7 @@ static VkResult CreateFramebuffers()
 			.pNext = NULL,
 			.flags = 0,
 			.renderPass = vk_renderpasses[RP_UI].rp,
-			.attachmentCount = 2,
+			.attachmentCount = 3,
 			.width = vk_swapchain.extent.width,
 			.height = vk_swapchain.extent.height,
 			.layers = 1
@@ -358,7 +358,7 @@ static VkResult CreateFramebuffers()
 
 	for (size_t i = 0; i < vk_swapchain.imageCount; ++i)
 	{
-		VkImageView attachments[] = { vk_colorbuffer.imageView, vk_imageviews[i] };
+		VkImageView attachments[] = { vk_colorbuffer.imageView, vk_depthbuffer.imageView, vk_imageviews[i] };
 
 		fbCreateInfos[RP_UI].pAttachments = attachments;
 		VkResult result = vkCreateFramebuffer(vk_device.logical, &fbCreateInfos[RP_UI], NULL, &vk_framebuffers[RP_UI][i]);
@@ -476,6 +476,18 @@ static VkResult CreateRenderpasses()
 			// treat this attachment as an interim color stage if MSAA is enabled
 			.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
 		},
+		// depth attachment - because of player model preview in settings screen
+		{
+			.flags = 0,
+			.format = QVk_FindDepthFormat(),
+			.samples = vk_renderpasses[RP_WORLD].sampleCount,
+			.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+			.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+			.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+		},
 		// MSAA resolve attachment
 		{
 			.flags = 0,
@@ -498,8 +510,13 @@ static VkResult CreateRenderpasses()
 	ui_color_attachment_reference.attachment = 0;
 	ui_color_attachment_reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+	VkAttachmentReference uiDepthAttachmentRef = {
+		.attachment = 1,
+		.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+	};
+
 	VkAttachmentReference swap_chain_attachment_reference;
-	swap_chain_attachment_reference.attachment = 1;
+	swap_chain_attachment_reference.attachment = 2;
 	swap_chain_attachment_reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 	VkSubpassDescription uiSubpassDescs[] = {
@@ -511,7 +528,7 @@ static VkResult CreateRenderpasses()
 			.colorAttachmentCount = 1,
 			.pColorAttachments = &ui_color_attachment_reference,
 			.pResolveAttachments = NULL,
-			.pDepthStencilAttachment = NULL,
+			.pDepthStencilAttachment = &uiDepthAttachmentRef,
 			.preserveAttachmentCount = 0,
 			.pPreserveAttachments = NULL
 		},
@@ -544,7 +561,7 @@ static VkResult CreateRenderpasses()
 		.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
 		.pNext = NULL,
 		.flags = 0,
-		.attachmentCount = 2,
+		.attachmentCount = 3,
 		.pAttachments = uiAttachments,
 		.subpassCount = 2,
 		.pSubpasses = uiSubpassDescs
@@ -1715,8 +1732,8 @@ void QVk_BeginRenderpass(qvkrenderpasstype_t rpType)
 			.framebuffer = vk_framebuffers[RP_UI][vk_imageIndex],
 			.renderArea.offset = { 0, 0 },
 			.renderArea.extent = vk_swapchain.extent,
-			.clearValueCount = 0,
-			.pClearValues = NULL
+			.clearValueCount = 2,
+			.pClearValues = clearColors
 		}
 	};
 
