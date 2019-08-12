@@ -95,6 +95,7 @@ VkFramebuffer *vk_framebuffers[RP_COUNT];
 // depth buffer
 qvktexture_t vk_colorbuffer = QVVKTEXTURE_INIT;
 qvktexture_t vk_depthbuffer = QVVKTEXTURE_INIT;
+qvktexture_t vk_ui_depthbuffer = QVVKTEXTURE_INIT;
 // render targets for MSAA
 qvktexture_t vk_msaaColorbuffer = QVVKTEXTURE_INIT;
 // viewport and scissor
@@ -358,7 +359,7 @@ static VkResult CreateFramebuffers()
 
 	for (size_t i = 0; i < vk_swapchain.imageCount; ++i)
 	{
-		VkImageView attachments[] = { vk_colorbuffer.imageView, vk_depthbuffer.imageView, vk_imageviews[i] };
+		VkImageView attachments[] = { vk_colorbuffer.imageView, vk_ui_depthbuffer.imageView, vk_imageviews[i] };
 
 		fbCreateInfos[RP_UI].pAttachments = attachments;
 		VkResult result = vkCreateFramebuffer(vk_device.logical, &fbCreateInfos[RP_UI], NULL, &vk_framebuffers[RP_UI][i]);
@@ -480,7 +481,7 @@ static VkResult CreateRenderpasses()
 		{
 			.flags = 0,
 			.format = QVk_FindDepthFormat(),
-			.samples = vk_renderpasses[RP_WORLD].sampleCount,
+			.samples = VK_SAMPLE_COUNT_1_BIT,
 			.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
 			.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
 			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
@@ -577,6 +578,7 @@ static VkResult CreateRenderpasses()
 static void CreateDrawBuffers()
 {
 	QVk_CreateDepthBuffer(vk_renderpasses[RP_WORLD].sampleCount, &vk_depthbuffer);
+	QVk_CreateDepthBuffer(VK_SAMPLE_COUNT_1_BIT, &vk_ui_depthbuffer);
 	ri.Con_Printf(PRINT_ALL, "...created depth buffer\n");
 	QVk_CreateColorBuffer(VK_SAMPLE_COUNT_1_BIT, &vk_colorbuffer);
 	QVk_CreateColorBuffer(vk_renderpasses[RP_WORLD].sampleCount, &vk_msaaColorbuffer);
@@ -599,6 +601,7 @@ static void DestroyDrawBuffer(qvktexture_t *drawBuffer)
 static void DestroyDrawBuffers()
 {
 	DestroyDrawBuffer(&vk_depthbuffer);
+	DestroyDrawBuffer(&vk_ui_depthbuffer);
 	DestroyDrawBuffer(&vk_colorbuffer);
 	DestroyDrawBuffer(&vk_msaaColorbuffer);
 }
