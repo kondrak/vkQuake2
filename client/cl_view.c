@@ -447,10 +447,16 @@ void V_RenderView( float stereo_separation )
 	extern int entitycmpfnc( const entity_t *, const entity_t * );
 
 	if (cls.state != ca_active)
+	{
+		re.NextRenderpass();
 		return;
+	}
 
 	if (!cl.refresh_prepped)
+	{
+		re.NextRenderpass();
 		return;			// still loading
+	}
 
 	if (cl_timedemo->value)
 	{

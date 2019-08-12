@@ -385,7 +385,7 @@ static VkResult CreateRenderpasses()
 			.flags = 0,
 			.format = vk_swapchain.format,
 			.samples = VK_SAMPLE_COUNT_1_BIT,
-			.loadOp = msaaEnabled ? VK_ATTACHMENT_LOAD_OP_DONT_CARE : VK_ATTACHMENT_LOAD_OP_CLEAR,
+			.loadOp = msaaEnabled ? VK_ATTACHMENT_LOAD_OP_DONT_CARE : vk_renderpasses[RP_WORLD].colorLoadOp,
 			// if MSAA is enabled, we don't need to preserve rendered texture data since it's kept by MSAA resolve attachment
 			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
 			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
@@ -411,7 +411,7 @@ static VkResult CreateRenderpasses()
 			.flags = 0,
 			.format = vk_swapchain.format,
 			.samples = vk_renderpasses[RP_WORLD].sampleCount,
-			.loadOp = msaaEnabled ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.loadOp = msaaEnabled ? vk_renderpasses[RP_WORLD].colorLoadOp : VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 			.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
 			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
@@ -1621,11 +1621,17 @@ VkResult QVk_BeginFrame()
 	return VK_SUCCESS;
 }
 
-VkResult QVk_EndFrame()
+VkResult QVk_EndFrame(qboolean forced)
 {
 	// continue only if QVk_BeginFrame() had been previously issued
 	if (!vk_frameStarted)
 		return VK_NOT_READY;
+	// this may happen if Sys_Error is issued mid-frame, so we need to properly advance the draw pipeline
+	if (forced)
+	{
+		extern void R_NextRenderpass(void);
+		R_NextRenderpass();
+	}
 
 	// submit
 	QVk_SubmitStagingBuffers();

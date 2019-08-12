@@ -877,8 +877,6 @@ r_newrefdef must be set before the first call
 */
 void R_RenderView (refdef_t *fd)
 {
-	QVk_BeginRenderpass(RP_WORLD);
-
 	if (r_norefresh->value)
 		return;
 
@@ -934,12 +932,16 @@ void R_RenderView (refdef_t *fd)
 	}
 }
 
+void R_NextRenderpass(void)
+{
+	vkCmdEndRenderPass(vk_activeCmdbuffer);
+	QVk_BeginRenderpass(RP_UI);
+}
 
 void R_SetVulkan2D (void)
 {
-	vkCmdEndRenderPass(vk_activeCmdbuffer);
+	R_NextRenderpass();
 
-	QVk_BeginRenderpass(RP_UI);
 	extern VkViewport vk_viewport;
 	extern VkRect2D vk_scissor;
 	vkCmdSetViewport(vk_activeCmdbuffer, 0, 1, &vk_viewport);
@@ -1197,7 +1199,7 @@ R_BeginFrame
 void R_BeginFrame( float camera_separation )
 {
 	// if ri.Sys_Error() had been issued mid-frame, we might end up here without properly submitting the image, so call QVk_EndFrame to be safe
-	QVk_EndFrame();
+	QVk_EndFrame(true);
 	/*
 	** change modes if necessary
 	*/
@@ -1248,6 +1250,8 @@ void R_BeginFrame( float camera_separation )
 		vid_fullscreen->value = false;
 		ri.Cvar_SetValue("vid_fullscreen", 0);
 	}
+
+	QVk_BeginRenderpass(RP_WORLD);
 }
 
 /*
@@ -1257,7 +1261,7 @@ R_EndFrame
 */
 void R_EndFrame( void )
 {
-	QVk_EndFrame();
+	QVk_EndFrame(false);
 }
 
 /*
@@ -1443,6 +1447,7 @@ refexport_t GetRefAPI (refimport_t rimp )
 	re.CinematicSetPalette = R_SetPalette;
 	re.BeginFrame = R_BeginFrame;
 	re.EndFrame = R_EndFrame;
+	re.NextRenderpass = R_NextRenderpass;
 
 	re.AppActivate = Vkimp_AppActivate;
 
