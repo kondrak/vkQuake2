@@ -1556,6 +1556,16 @@ void R_BeginFrame( float camera_separation )
 
 /*
 =============
+R_EndWorldRenderpass
+=============
+*/
+void R_EndWorldRenderpass ( void )
+{
+	// old OpenGL renderer has only one pass
+}
+
+/*
+=============
 R_SetPalette
 =============
 */
@@ -1721,6 +1731,7 @@ refexport_t GetRefAPI (refimport_t rimp )
 	re.CinematicSetPalette = R_SetPalette;
 	re.BeginFrame = R_BeginFrame;
 	re.EndFrame = GLimp_EndFrame;
+	re.EndWorldRenderpass = R_EndWorldRenderpass;
 
 	re.AppActivate = GLimp_AppActivate;
 

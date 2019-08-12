@@ -1643,16 +1643,16 @@ VkResult QVk_BeginFrame()
 	return VK_SUCCESS;
 }
 
-VkResult QVk_EndFrame(qboolean forced)
+VkResult QVk_EndFrame(qboolean force)
 {
 	// continue only if QVk_BeginFrame() had been previously issued
 	if (!vk_frameStarted)
 		return VK_NOT_READY;
 	// this may happen if Sys_Error is issued mid-frame, so we need to properly advance the draw pipeline
-	if (forced)
+	if (force)
 	{
-		extern void R_NextRenderpass(void);
-		R_NextRenderpass();
+		extern void R_EndWorldRenderpass(void);
+		R_EndWorldRenderpass();
 	}
 
 	// submit

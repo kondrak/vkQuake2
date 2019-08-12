@@ -271,7 +271,7 @@ void		QVk_SubmitCommand(const VkCommandBuffer *commandBuffer, const VkQueue *que
 VkCommandBuffer QVk_CreateCommandBuffer(const VkCommandPool *commandPool, VkCommandBufferLevel level);
 const char*	QVk_GetError(VkResult errorCode);
 VkResult	QVk_BeginFrame(void);
-VkResult	QVk_EndFrame(qboolean forced);
+VkResult	QVk_EndFrame(qboolean force);
 void		QVk_BeginRenderpass(qvkrenderpasstype_t rpType);
 void		QVk_RecreateSwapchain(void);
 VkResult	QVk_CreateBuffer(VkDeviceSize size, qvkbuffer_t *dstBuffer, const qvkbufferopts_t options);

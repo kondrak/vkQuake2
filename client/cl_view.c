@@ -448,13 +448,13 @@ void V_RenderView( float stereo_separation )
 
 	if (cls.state != ca_active)
 	{
-		re.NextRenderpass();
+		re.EndWorldRenderpass();
 		return;
 	}
 
 	if (!cl.refresh_prepped)
 	{
-		re.NextRenderpass();
+		re.EndWorldRenderpass();
 		return;			// still loading
 	}
 

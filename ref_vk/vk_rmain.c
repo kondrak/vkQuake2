@@ -932,7 +932,7 @@ void R_RenderView (refdef_t *fd)
 	}
 }
 
-void R_NextRenderpass(void)
+void R_EndWorldRenderpass(void)
 {
 	vkCmdEndRenderPass(vk_activeCmdbuffer);
 	QVk_BeginRenderpass(RP_UI);
@@ -940,9 +940,9 @@ void R_NextRenderpass(void)
 
 void R_SetVulkan2D (void)
 {
-	// player configuration screen renders a model using the UI renderpass, so skip the toggle
+	// player configuration screen renders a model using the UI renderpass, so skip the change
 	if (!(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
-		R_NextRenderpass();
+		R_EndWorldRenderpass();
 
 	extern VkViewport vk_viewport;
 	extern VkRect2D vk_scissor;
@@ -1449,7 +1449,7 @@ refexport_t GetRefAPI (refimport_t rimp )
 	re.CinematicSetPalette = R_SetPalette;
 	re.BeginFrame = R_BeginFrame;
 	re.EndFrame = R_EndFrame;
-	re.NextRenderpass = R_NextRenderpass;
+	re.EndWorldRenderpass = R_EndWorldRenderpass;
 
 	re.AppActivate = Vkimp_AppActivate;
 

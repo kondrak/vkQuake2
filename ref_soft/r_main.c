@@ -1244,6 +1244,14 @@ void R_BeginFrame(float camera_separation)
 }
 
 /*
+** R_EndWorldRenderpass
+*/
+void R_EndWorldRenderpass(void)
+{
+	// software renderer has only one pass
+}
+
+/*
 ** R_GammaCorrectAndSetPalette
 */
 void R_GammaCorrectAndSetPalette(const unsigned char *palette)
@@ -1477,6 +1485,7 @@ refexport_t GetRefAPI(refimport_t rimp)
 	re.CinematicSetPalette = R_CinematicSetPalette;
 	re.BeginFrame = R_BeginFrame;
 	re.EndFrame = SWimp_EndFrame;
+	re.EndWorldRenderpass = R_EndWorldRenderpass;
 
 	re.AppActivate = SWimp_AppActivate;
 

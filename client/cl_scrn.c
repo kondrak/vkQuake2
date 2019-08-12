@@ -1261,7 +1261,7 @@ void SCR_UpdateScreen (void)
 		// end frame and force video restart if swapchain is out of date
 		if (vid_ref->modified)
 		{
-			re.NextRenderpass();
+			re.EndWorldRenderpass();
 			re.EndFrame();
 			return;
 		}
@@ -1270,7 +1270,7 @@ void SCR_UpdateScreen (void)
 		{	//  loading plaque over black screen
 			int		w, h;
 
-			re.NextRenderpass();
+			re.EndWorldRenderpass();
 			re.CinematicSetPalette(NULL);
 			scr_draw_loading = false;
 			re.DrawGetPicSize (&w, &h, "loading");
@@ -1289,7 +1289,7 @@ void SCR_UpdateScreen (void)
 					re.CinematicSetPalette(NULL);
 					cl.cinematicpalette_active = false;
 				}
-				re.NextRenderpass();
+				re.EndWorldRenderpass();
 				M_Draw ();
 //				re.EndFrame();
 //				return;
@@ -1301,14 +1301,14 @@ void SCR_UpdateScreen (void)
 					re.CinematicSetPalette(NULL);
 					cl.cinematicpalette_active = false;
 				}
-				re.NextRenderpass();
+				re.EndWorldRenderpass();
 				SCR_DrawConsole ();
 //				re.EndFrame();
 //				return;
 			}
 			else
 			{
-				re.NextRenderpass();
+				re.EndWorldRenderpass();
 				SCR_DrawCinematic();
 //				re.EndFrame();
 //				return;

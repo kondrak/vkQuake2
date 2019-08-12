@@ -180,7 +180,7 @@ typedef struct
 	void	(*CinematicSetPalette)( const unsigned char *palette);	// NULL = game palette
 	void	(*BeginFrame)( float camera_separation );
 	void	(*EndFrame) (void);
-	void	(*NextRenderpass) (void);
+	void	(*EndWorldRenderpass) (void); // finish world rendering and switch to UI render pass
 
 	void	(*AppActivate)( qboolean activate );
 
