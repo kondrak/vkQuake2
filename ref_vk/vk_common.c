@@ -123,9 +123,9 @@ static qboolean vk_frameStarted = false;
 
 // render pipelines
 qvkpipeline_t vk_drawTexQuadPipeline = QVKPIPELINE_INIT;
-qvkpipeline_t vk_drawColorQuadPipeline[RP_COUNT] = { QVKPIPELINE_INIT, QVKPIPELINE_INIT };
-qvkpipeline_t vk_drawModelPipelineStrip = QVKPIPELINE_INIT;
-qvkpipeline_t vk_drawModelPipelineFan = QVKPIPELINE_INIT;
+qvkpipeline_t vk_drawColorQuadPipeline[RP_COUNT]  = { QVKPIPELINE_INIT, QVKPIPELINE_INIT };
+qvkpipeline_t vk_drawModelPipelineStrip[RP_COUNT] = { QVKPIPELINE_INIT, QVKPIPELINE_INIT };
+qvkpipeline_t vk_drawModelPipelineFan[RP_COUNT]   = { QVKPIPELINE_INIT, QVKPIPELINE_INIT };
 qvkpipeline_t vk_drawNoDepthModelPipelineStrip = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawNoDepthModelPipelineFan = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawLefthandModelPipelineStrip = QVKPIPELINE_INIT;
@@ -1037,13 +1037,16 @@ static void CreatePipelines()
 
 	// textured model
 	VK_LOAD_VERTFRAG_SHADERS(shaders, model, model);
-	vk_drawModelPipelineStrip.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
-	vk_drawModelPipelineStrip.blendOpts.blendEnable = VK_TRUE;
-	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawModelPipelineStrip, &vk_renderpasses[RP_WORLD], shaders, 2, &pushConstantRange);
+	for (int i = 0; i < RP_COUNT; ++i)
+	{
+		vk_drawModelPipelineStrip[i].topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+		vk_drawModelPipelineStrip[i].blendOpts.blendEnable = VK_TRUE;
+		QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawModelPipelineStrip[i], &vk_renderpasses[i], shaders, 2, &pushConstantRange);
 
-	vk_drawModelPipelineFan.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-	vk_drawModelPipelineFan.blendOpts.blendEnable = VK_TRUE;
-	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawModelPipelineFan, &vk_renderpasses[RP_WORLD], shaders, 2, &pushConstantRange);
+		vk_drawModelPipelineFan[i].topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		vk_drawModelPipelineFan[i].blendOpts.blendEnable = VK_TRUE;
+		QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawModelPipelineFan[i], &vk_renderpasses[i], shaders, 2, &pushConstantRange);
+	}
 
 	// dedicated model pipelines for translucent objects with depth write disabled
 	vk_drawNoDepthModelPipelineStrip.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
@@ -1164,11 +1167,13 @@ void QVk_Shutdown( void )
 		ri.Con_Printf(PRINT_ALL, "Shutting down Vulkan\n");
 
 		QVk_DestroyPipeline(&vk_drawTexQuadPipeline);
-		QVk_DestroyPipeline(&vk_drawColorQuadPipeline[RP_WORLD]);
-		QVk_DestroyPipeline(&vk_drawColorQuadPipeline[RP_UI]);
 		QVk_DestroyPipeline(&vk_drawNullModel);
-		QVk_DestroyPipeline(&vk_drawModelPipelineStrip);
-		QVk_DestroyPipeline(&vk_drawModelPipelineFan);
+		QVk_DestroyPipeline(&vk_drawColorQuadPipeline[RP_WORLD]);
+		QVk_DestroyPipeline(&vk_drawModelPipelineStrip[RP_WORLD]);
+		QVk_DestroyPipeline(&vk_drawModelPipelineFan[RP_WORLD]);
+		QVk_DestroyPipeline(&vk_drawColorQuadPipeline[RP_UI]);
+		QVk_DestroyPipeline(&vk_drawModelPipelineStrip[RP_UI]);
+		QVk_DestroyPipeline(&vk_drawModelPipelineFan[RP_UI]);
 		QVk_DestroyPipeline(&vk_drawNoDepthModelPipelineStrip);
 		QVk_DestroyPipeline(&vk_drawNoDepthModelPipelineFan);
 		QVk_DestroyPipeline(&vk_drawLefthandModelPipelineStrip);

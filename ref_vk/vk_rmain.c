@@ -940,7 +940,9 @@ void R_NextRenderpass(void)
 
 void R_SetVulkan2D (void)
 {
-	R_NextRenderpass();
+	// player configuration screen renders a model using the UI renderpass, so skip the toggle
+	if (!(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
+		R_NextRenderpass();
 
 	extern VkViewport vk_viewport;
 	extern VkRect2D vk_scissor;

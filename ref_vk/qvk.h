@@ -224,8 +224,8 @@ extern VkDescriptorSetLayout vk_samplerDescSetLayout;
 // *** pipelines ***
 extern qvkpipeline_t vk_drawTexQuadPipeline;
 extern qvkpipeline_t vk_drawColorQuadPipeline[RP_COUNT];
-extern qvkpipeline_t vk_drawModelPipelineStrip;
-extern qvkpipeline_t vk_drawModelPipelineFan;
+extern qvkpipeline_t vk_drawModelPipelineStrip[RP_COUNT];
+extern qvkpipeline_t vk_drawModelPipelineFan[RP_COUNT];
 extern qvkpipeline_t vk_drawNoDepthModelPipelineStrip;
 extern qvkpipeline_t vk_drawNoDepthModelPipelineFan;
 extern qvkpipeline_t vk_drawLefthandModelPipelineStrip;
