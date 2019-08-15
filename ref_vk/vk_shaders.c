@@ -42,6 +42,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "spirv/shadows_vert.c"
 #include "spirv/postprocess_vert.c"
 #include "spirv/postprocess_frag.c"
+#include "spirv/world_warp_vert.c"
+#include "spirv/world_warp_frag.c"
 
 const size_t basic_vert_size = sizeof(basic_vert_spv);
 const size_t basic_frag_size = sizeof(basic_frag_spv);
@@ -78,3 +80,6 @@ const size_t shadows_vert_size = sizeof(shadows_vert_spv);
 
 const size_t postprocess_vert_size = sizeof(postprocess_vert_spv);
 const size_t postprocess_frag_size = sizeof(postprocess_frag_spv);
+
+const size_t world_warp_vert_size = sizeof(world_warp_vert_spv);
+const size_t world_warp_frag_size = sizeof(world_warp_frag_spv);

@@ -105,4 +105,10 @@ extern const size_t postprocess_vert_size;
 extern const uint32_t postprocess_frag_spv[];
 extern const size_t postprocess_frag_size;
 
+extern const uint32_t world_warp_vert_spv[];
+extern const size_t world_warp_vert_size;
+
+extern const uint32_t world_warp_frag_spv[];
+extern const size_t world_warp_frag_size;
+
 #endif

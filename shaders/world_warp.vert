@@ -5,7 +5,15 @@ out gl_PerVertex {
 	vec4 gl_Position;
 };
 
-layout(location = 0) out vec2 texCoord;
+layout(push_constant) uniform PushConstant
+{
+    float time;
+	float scrWidth;
+	float scrHeight;
+} pc;
+
+layout(location = 0) out float iTime;
+layout(location = 1) out vec2 screenRes;
 
 void main() 
 {
@@ -15,10 +23,7 @@ void main()
 		vec4(-1.0f, 3.0f, 0.0f, 1.0f)
 	};
 
-    vec2 uvs[3] = {
-        vec2(-2.0f, -2.0f), vec2(0.0f, -2.0f), vec2(-2.0f, 0.0f)
-    };
-
 	gl_Position = positions[gl_VertexIndex % 3];
-    texCoord = uvs[gl_VertexIndex % 3];
+    iTime = pc.time;
+	screenRes = vec2(pc.scrWidth, pc.scrHeight);
 }

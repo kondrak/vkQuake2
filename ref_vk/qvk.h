@@ -196,7 +196,8 @@ typedef enum
 {
 	RP_WORLD = 0,
 	RP_UI = 1,
-	RP_COUNT = 2
+	RP_WORLD_WARP = 2,
+	RP_COUNT = 3
 } qvkrenderpasstype_t;
 
 // Vulkan instance
@@ -223,9 +224,9 @@ extern VkDescriptorSetLayout vk_samplerDescSetLayout;
 
 // *** pipelines ***
 extern qvkpipeline_t vk_drawTexQuadPipeline;
-extern qvkpipeline_t vk_drawColorQuadPipeline[RP_COUNT];
-extern qvkpipeline_t vk_drawModelPipelineStrip[RP_COUNT];
-extern qvkpipeline_t vk_drawModelPipelineFan[RP_COUNT];
+extern qvkpipeline_t vk_drawColorQuadPipeline[2];
+extern qvkpipeline_t vk_drawModelPipelineStrip[2];
+extern qvkpipeline_t vk_drawModelPipelineFan[2];
 extern qvkpipeline_t vk_drawNoDepthModelPipelineStrip;
 extern qvkpipeline_t vk_drawNoDepthModelPipelineFan;
 extern qvkpipeline_t vk_drawLefthandModelPipelineStrip;
@@ -260,7 +261,7 @@ VkResult	QVk_CreateCommandPool(VkCommandPool *commandPool, uint32_t queueFamilyI
 VkResult	QVk_CreateImageView(const VkImage *image, VkImageAspectFlags aspectFlags, VkImageView *imageView, VkFormat format, uint32_t mipLevels);
 VkResult	QVk_CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VmaMemoryUsage memUsage, qvktexture_t *texture);
 void		QVk_CreateDepthBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *depthBuffer);
-void		QVk_CreateColorBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *colorBuffer);
+void		QVk_CreateColorBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *colorBuffer, int extraFlags);
 void		QVk_CreateTexture(qvktexture_t *texture, const unsigned char *data, uint32_t width, uint32_t height, qvksampler_t samplerType);
 void		QVk_UpdateTextureData(qvktexture_t *texture, const unsigned char *data, uint32_t offset_x, uint32_t offset_y, uint32_t width, uint32_t height);
 VkSampler	QVk_UpdateTextureSampler(qvktexture_t *texture, qvksampler_t samplerType);

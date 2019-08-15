@@ -935,6 +935,19 @@ void R_RenderView (refdef_t *fd)
 void R_EndWorldRenderpass(void)
 {
 	vkCmdEndRenderPass(vk_activeCmdbuffer);
+	// fullscreen warp
+	QVk_BeginRenderpass(RP_WORLD_WARP);
+	extern qvktexture_t vk_colorbuffer;
+	extern qvkpipeline_t vk_worldWarpPipeline;
+	extern VkDescriptorSet vk_iaDescriptorSet;
+	VkDescriptorSet sets[] = { vk_colorbuffer.descriptorSet, vk_iaDescriptorSet };
+	float pconsts[] = { (r_newrefdef.rdflags & RDF_UNDERWATER ? r_newrefdef.time : 0.f), r_newrefdef.width, r_newrefdef.height };
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_worldWarpPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(pconsts), pconsts);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_worldWarpPipeline.layout, 0, 2, sets, 0, NULL);
+	QVk_BindPipeline(&vk_worldWarpPipeline);
+	vkCmdDraw(vk_activeCmdbuffer, 3, 1, 0, 0);
+	vkCmdEndRenderPass(vk_activeCmdbuffer);
+	// warp complete, draw UI
 	QVk_BeginRenderpass(RP_UI);
 }
 

@@ -19,3 +19,5 @@
 %VULKAN_SDK%\bin32\glslangValidator.exe --variable-name shadows_vert_spv -V shaders/shadows.vert -o ref_vk/spirv/shadows_vert.c
 %VULKAN_SDK%\bin32\glslangValidator.exe --variable-name postprocess_vert_spv -V shaders/postprocess.vert -o ref_vk/spirv/postprocess_vert.c
 %VULKAN_SDK%\bin32\glslangValidator.exe --variable-name postprocess_frag_spv -V shaders/postprocess.frag -o ref_vk/spirv/postprocess_frag.c
+%VULKAN_SDK%\bin32\glslangValidator.exe --variable-name world_warp_vert_spv -V shaders/world_warp.vert -o ref_vk/spirv/world_warp_vert.c
+%VULKAN_SDK%\bin32\glslangValidator.exe --variable-name world_warp_frag_spv -V shaders/world_warp.frag -o ref_vk/spirv/world_warp_frag.c
