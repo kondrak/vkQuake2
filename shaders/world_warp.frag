@@ -2,8 +2,6 @@
 #extension GL_ARB_separate_shader_objects : enable
 
 layout(set = 0, binding = 0) uniform sampler2D sTexture;
-layout(input_attachment_index = 0, set = 1, binding = 0) uniform subpassInput color_input;
-
 
 layout(location = 0) in float iTime;
 layout(location = 1) in vec2 screenRes;
