@@ -401,6 +401,27 @@ static VkResult CreateRenderpasses()
 {
 	qboolean msaaEnabled = vk_renderpasses[RP_WORLD].sampleCount != VK_SAMPLE_COUNT_1_BIT;
 
+	VkSubpassDependency dependencies[2] = {
+		{
+		.srcSubpass = VK_SUBPASS_EXTERNAL,
+		.dstSubpass = 0,
+		.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+		.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+		.srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
+		.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+		.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
+		},
+		{
+		.srcSubpass = 0,
+		.dstSubpass = VK_SUBPASS_EXTERNAL,
+		.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+		.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+		.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+		.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+		.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
+		}
+	};
+
 	VkAttachmentDescription attachments[] = {
 		// color attachment
 		{
@@ -480,6 +501,9 @@ static VkResult CreateRenderpasses()
 		.pSubpasses = &subpassDesc
 	};
 
+	rpCreateInfo.dependencyCount = 2;
+	rpCreateInfo.pDependencies = dependencies;
+
 	vkCreateRenderPass(vk_device.logical, &rpCreateInfo, NULL, &vk_renderpasses[RP_WORLD].rp);
 
 	// World warp
@@ -549,8 +573,8 @@ static VkResult CreateRenderpasses()
 		.pSubpasses = warpSubpassDescs
 	};
 
-	warpRpCreateInfo.dependencyCount = 0;
-	warpRpCreateInfo.pDependencies = NULL;
+	warpRpCreateInfo.dependencyCount = 2;
+	warpRpCreateInfo.pDependencies = dependencies;
 
 	vkCreateRenderPass(vk_device.logical, &warpRpCreateInfo, NULL, &vk_renderpasses[RP_WORLD_WARP].rp);
 
