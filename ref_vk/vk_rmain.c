@@ -934,13 +934,13 @@ void R_RenderView (refdef_t *fd)
 
 void R_EndWorldRenderpass(void)
 {
+	// finish rendering world view to offsceen buffer
 	vkCmdEndRenderPass(vk_activeCmdbuffer);
+
 	// fullscreen warp
 	QVk_BeginRenderpass(RP_WORLD_WARP);
 	extern qvktexture_t vk_colorbuffer;
-	extern qvktexture_t vk_colorbufferWarp;
 	extern qvkpipeline_t vk_worldWarpPipeline;
-	extern qvkpipeline_t vk_postprocessPipeline;
 	float viewScale = ri.Cvar_Get("viewsize", "100", CVAR_ARCHIVE)->value / 100.f;
 	float pconsts[] = { (r_newrefdef.rdflags & RDF_UNDERWATER ? r_newrefdef.time : 0.f), r_newrefdef.width / viewScale, r_newrefdef.height / viewScale };
 	vkCmdPushConstants(vk_activeCmdbuffer, vk_worldWarpPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(pconsts), pconsts);
@@ -948,11 +948,9 @@ void R_EndWorldRenderpass(void)
 	QVk_BindPipeline(&vk_worldWarpPipeline);
 	vkCmdDraw(vk_activeCmdbuffer, 3, 1, 0, 0);
 	vkCmdEndRenderPass(vk_activeCmdbuffer);
-	// warp complete, draw UI
+
+	// warp complete, start drawing UI
 	QVk_BeginRenderpass(RP_UI);
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_postprocessPipeline.layout, 0, 1, &vk_colorbufferWarp.descriptorSet, 0, NULL);
-	QVk_BindPipeline(&vk_postprocessPipeline);
-	vkCmdDraw(vk_activeCmdbuffer, 3, 1, 0, 0);
 }
 
 void R_SetVulkan2D (void)
@@ -963,8 +961,15 @@ void R_SetVulkan2D (void)
 
 	extern VkViewport vk_viewport;
 	extern VkRect2D vk_scissor;
+	extern qvktexture_t vk_colorbufferWarp;
+	extern qvkpipeline_t vk_postprocessPipeline;
 	vkCmdSetViewport(vk_activeCmdbuffer, 0, 1, &vk_viewport);
 	vkCmdSetScissor(vk_activeCmdbuffer, 0, 1, &vk_scissor);
+
+	// first blit offscreen color buffer with (warped) world view
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_postprocessPipeline.layout, 0, 1, &vk_colorbufferWarp.descriptorSet, 0, NULL);
+	QVk_BindPipeline(&vk_postprocessPipeline);
+	vkCmdDraw(vk_activeCmdbuffer, 3, 1, 0, 0);
 }
 
 
