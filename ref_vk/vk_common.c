@@ -218,7 +218,6 @@ static int vk_swapBuffersCnt[NUM_SWAPBUFFER_SLOTS];
 static int vk_swapDescSetsCnt[NUM_SWAPBUFFER_SLOTS];
 static qvkbuffer_t *vk_swapBuffers[NUM_SWAPBUFFER_SLOTS];
 static VkDescriptorSet *vk_swapDescriptorSets[NUM_SWAPBUFFER_SLOTS];
-VkDescriptorSet vk_iaDescriptorSet;
 
 // by how much will the dynamic buffers be resized if we run out of space?
 #define BUFFER_RESIZE_FACTOR 2.f
@@ -615,14 +614,6 @@ static VkResult CreateRenderpasses()
 		}
 	};
 
-	VkAttachmentReference color_input_attachment_reference;
-	color_input_attachment_reference.attachment = 0;
-	color_input_attachment_reference.layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-	VkAttachmentReference ui_color_attachment_reference;
-	ui_color_attachment_reference.attachment = 0;
-	ui_color_attachment_reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
 	VkAttachmentReference uiDepthAttachmentRef = {
 		.attachment = 1,
 		.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
@@ -632,42 +623,17 @@ static VkResult CreateRenderpasses()
 	swap_chain_attachment_reference.attachment = 2;
 	swap_chain_attachment_reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-	VkSubpassDescription uiSubpassDescs[] = {
-		{
-			.flags = 0,
-			.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-			.inputAttachmentCount = 0,
-			.pInputAttachments = NULL,
-			.colorAttachmentCount = 1,
-			.pColorAttachments = &ui_color_attachment_reference,
-			.pResolveAttachments = NULL,
-			.pDepthStencilAttachment = &uiDepthAttachmentRef,
-			.preserveAttachmentCount = 0,
-			.pPreserveAttachments = NULL
-		},
-		{
-			.flags = 0,
-			.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-			.inputAttachmentCount = 1,
-			.pInputAttachments = &color_input_attachment_reference,
-			.colorAttachmentCount = 1,
-			.pColorAttachments = &swap_chain_attachment_reference,
-			.pResolveAttachments = NULL,
-			.pDepthStencilAttachment = NULL,
-			.preserveAttachmentCount = 0,
-			.pPreserveAttachments = NULL
-		}
-	};
-
-	// subpass depencency: wait for color stage
-	VkSubpassDependency spDep = {
-		.srcSubpass = 0,
-		.dstSubpass = 1,
-		.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-		.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-		.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-		.dstAccessMask = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT,
-		.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
+	VkSubpassDescription uiSubpassDesc = {
+		.flags = 0,
+		.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+		.inputAttachmentCount = 0,
+		.pInputAttachments = NULL,
+		.colorAttachmentCount = 1,
+		.pColorAttachments = &swap_chain_attachment_reference,
+		.pResolveAttachments = NULL,
+		.pDepthStencilAttachment = &uiDepthAttachmentRef,
+		.preserveAttachmentCount = 0,
+		.pPreserveAttachments = NULL
 	};
 
 	VkRenderPassCreateInfo uiRpCreateInfo = {
@@ -676,12 +642,12 @@ static VkResult CreateRenderpasses()
 		.flags = 0,
 		.attachmentCount = 3,
 		.pAttachments = uiAttachments,
-		.subpassCount = 2,
-		.pSubpasses = uiSubpassDescs
+		.subpassCount = 1,
+		.pSubpasses = &uiSubpassDesc
 	};
 
-	uiRpCreateInfo.dependencyCount = 1;
-	uiRpCreateInfo.pDependencies = &spDep;
+	uiRpCreateInfo.dependencyCount = 2;
+	uiRpCreateInfo.pDependencies = dependencies;
 
 	return vkCreateRenderPass(vk_device.logical, &uiRpCreateInfo, NULL, &vk_renderpasses[RP_UI].rp);
 }
@@ -896,42 +862,6 @@ static void CreateUboDescriptorSet(VkDescriptorSet *descSet, VkBuffer buffer)
 }
 
 // internal helper
-static void CreateInputAttachmentDescriptorSet(VkDescriptorSet *descSet)
-{
-
-	VkDescriptorSetAllocateInfo dsAllocInfo = {
-		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-		.pNext = NULL,
-		.descriptorPool = vk_descriptorPool,
-		.descriptorSetCount = 1,
-		.pSetLayouts = &vk_iaDescSetLayout
-	};
-
-	VK_VERIFY(vkAllocateDescriptorSets(vk_device.logical, &dsAllocInfo, descSet));
-
-	VkDescriptorImageInfo imgInfo = {
-		.sampler = VK_NULL_HANDLE,
-		.imageView = vk_colorbufferWarp.imageView,
-		.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
-	};
-
-	VkWriteDescriptorSet descriptorWrite = {
-		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-		.pNext = NULL,
-		.dstSet = *descSet,
-		.dstBinding = 0,
-		.dstArrayElement = 0,
-		.descriptorCount = 1,
-		.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
-		.pImageInfo = &imgInfo,
-		.pBufferInfo = NULL,
-		.pTexelBufferView = NULL,
-	};
-
-	vkUpdateDescriptorSets(vk_device.logical, 1, &descriptorWrite, 0, NULL);
-}
-
-// internal helper
 static void CreateDynamicBuffers()
 {
 	for (int i = 0; i < NUM_DYNBUFFERS; ++i)
@@ -1124,7 +1054,6 @@ static void CreatePipelines()
 	// shared descriptor set layouts
 	VkDescriptorSetLayout samplerUboDsLayouts[] = { vk_samplerDescSetLayout, vk_uboDescSetLayout };
 	VkDescriptorSetLayout samplerUboLmapDsLayouts[] = { vk_samplerDescSetLayout, vk_uboDescSetLayout, vk_samplerLightmapDescSetLayout };
-	VkDescriptorSetLayout foosets[] = { vk_samplerDescSetLayout, vk_iaDescSetLayout };
 	// shader array (vertex and fragment, no compute... yet)
 	qvkshader_t shaders[2] = { VK_NULL_HANDLE, VK_NULL_HANDLE };
 
@@ -1281,8 +1210,7 @@ static void CreatePipelines()
 	vk_postprocessPipeline.depthTestEnable = VK_FALSE;
 	vk_postprocessPipeline.depthWriteEnable = VK_FALSE;
 	vk_postprocessPipeline.cullMode = VK_CULL_MODE_NONE;
-	vk_postprocessPipeline.subpass = 1;
-	QVk_CreatePipeline(foosets, 2, &postprocessVisc, &vk_postprocessPipeline, &vk_renderpasses[RP_UI], shaders, 2, NULL);
+	QVk_CreatePipeline(&vk_samplerDescSetLayout, 1, &postprocessVisc, &vk_postprocessPipeline, &vk_renderpasses[RP_UI], shaders, 2, NULL);
 
 	VK_LOAD_VERTFRAG_SHADERS(shaders, world_warp, world_warp);
 	vk_worldWarpPipeline.depthTestEnable = VK_FALSE;
@@ -1705,7 +1633,6 @@ qboolean QVk_Init()
 	CreateStagingBuffers();
 	// assign a dynamic index buffer for triangle fan emulation
 	RebuildTriangleFanIndexBuffer();
-	CreateInputAttachmentDescriptorSet(&vk_iaDescriptorSet);
 	CreatePipelines();
 	CreateSamplers();
 
@@ -1799,11 +1726,6 @@ VkResult QVk_EndFrame(qboolean force)
 	vmaFlushAllocation(vk_malloc, vk_dynVertexBuffers[vk_activeDynBufferIdx].allocation, 0, VK_WHOLE_SIZE);
 	vmaFlushAllocation(vk_malloc, vk_dynIndexBuffers[vk_activeDynBufferIdx].allocation, 0, VK_WHOLE_SIZE);
 
-	vkCmdNextSubpass(vk_commandbuffers[vk_activeBufferIdx], VK_SUBPASS_CONTENTS_INLINE);
-	VkDescriptorSet sets[] = { vk_colorbufferWarp.descriptorSet, vk_iaDescriptorSet };
-	vkCmdBindDescriptorSets(vk_commandbuffers[vk_activeBufferIdx], VK_PIPELINE_BIND_POINT_GRAPHICS, vk_postprocessPipeline.layout, 0, 2, sets, 0, NULL);
-	QVk_BindPipeline(&vk_postprocessPipeline);
-	vkCmdDraw(vk_commandbuffers[vk_activeBufferIdx], 3, 1, 0, 0);
 	vkCmdEndRenderPass(vk_commandbuffers[vk_activeBufferIdx]);
 	VK_VERIFY(vkEndCommandBuffer(vk_commandbuffers[vk_activeBufferIdx]));
 
