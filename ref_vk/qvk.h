@@ -189,7 +189,7 @@ typedef struct
 	.depthWriteEnable = VK_TRUE \
 }
 
-// type of renderpass
+// renderpass type
 typedef enum
 {
 	RP_WORLD = 0,      // renders game world to offscreen buffer

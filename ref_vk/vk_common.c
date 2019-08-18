@@ -70,17 +70,20 @@ qvkswapchain_t vk_swapchain = {
 };
 
 // Vulkan renderpasses
-qvkrenderpass_t vk_renderpasses[RP_COUNT] = { 
+qvkrenderpass_t vk_renderpasses[RP_COUNT] = {
+	// RP_WORLD
 	{
 		.rp = VK_NULL_HANDLE,
 		.colorLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
 		.sampleCount = VK_SAMPLE_COUNT_1_BIT
 	},
+	// RP_UI
 	{
 		.rp = VK_NULL_HANDLE,
 		.colorLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
 		.sampleCount = VK_SAMPLE_COUNT_1_BIT
 	},
+	// RP_WORLD_WARP
 	{
 		.rp = VK_NULL_HANDLE,
 		.colorLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
@@ -382,16 +385,16 @@ static VkResult CreateFramebuffers()
 		}
 	};
 
-	VkImageView attachments[] = { vk_colorbuffer.imageView, vk_depthbuffer.imageView, vk_msaaColorbuffer.imageView };
-	VkImageView attachmentsWarp[] = { vk_colorbuffer.imageView, vk_colorbufferWarp.imageView };
+	VkImageView worldAttachments[] = { vk_colorbuffer.imageView, vk_depthbuffer.imageView, vk_msaaColorbuffer.imageView };
+	VkImageView attachmentsWarp[]  = { vk_colorbuffer.imageView, vk_colorbufferWarp.imageView };
 
-	fbCreateInfos[RP_WORLD].pAttachments = attachments;
+	fbCreateInfos[RP_WORLD].pAttachments = worldAttachments;
 	fbCreateInfos[RP_WORLD_WARP].pAttachments = attachmentsWarp;
 
 	for (size_t i = 0; i < vk_swapchain.imageCount; ++i)
 	{
-		VkImageView attachments[] = { vk_colorbufferWarp.imageView, vk_ui_depthbuffer.imageView, vk_imageviews[i] };
-		fbCreateInfos[RP_UI].pAttachments = attachments;
+		VkImageView uiAttachments[] = { vk_colorbufferWarp.imageView, vk_ui_depthbuffer.imageView, vk_imageviews[i] };
+		fbCreateInfos[RP_UI].pAttachments = uiAttachments;
 
 		for (int j = 0; j < RP_COUNT; ++j)
 		{
@@ -1800,6 +1803,7 @@ void QVk_BeginRenderpass(qvkrenderpasstype_t rpType)
 	};
 
 	VkRenderPassBeginInfo renderBeginInfo[] = {
+		// RP_WORLD
 		{
 			.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
 			.renderPass = vk_renderpasses[RP_WORLD].rp,
@@ -1809,6 +1813,7 @@ void QVk_BeginRenderpass(qvkrenderpasstype_t rpType)
 			.clearValueCount = vk_renderpasses[RP_WORLD].sampleCount != VK_SAMPLE_COUNT_1_BIT ? 3 : 2,
 			.pClearValues = clearColors
 		},
+		// RP_UI
 		{
 			.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
 			.renderPass = vk_renderpasses[RP_UI].rp,
@@ -1818,6 +1823,7 @@ void QVk_BeginRenderpass(qvkrenderpasstype_t rpType)
 			.clearValueCount = 2,
 			.pClearValues = clearColors
 		},
+		// RP_WORLD_WARP
 		{
 			.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
 			.renderPass = vk_renderpasses[RP_WORLD_WARP].rp,
