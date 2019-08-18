@@ -159,7 +159,6 @@ typedef struct
 	VkPipelineColorBlendAttachmentState blendOpts;
 	VkBool32 depthTestEnable;
 	VkBool32 depthWriteEnable;
-	uint32_t subpass;
 } qvkpipeline_t;
 
 // Vulkan shader
@@ -188,7 +187,6 @@ typedef struct
 	}, \
 	.depthTestEnable = VK_TRUE, \
 	.depthWriteEnable = VK_TRUE, \
-	.subpass = 0 \
 }
 
 // type of renderpass

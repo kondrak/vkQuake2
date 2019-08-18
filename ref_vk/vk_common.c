@@ -236,8 +236,6 @@ static VkDescriptorSet *vk_swapDescriptorSets[NUM_SWAPBUFFER_SLOTS];
 VkDescriptorSetLayout vk_uboDescSetLayout;
 VkDescriptorSetLayout vk_samplerDescSetLayout;
 VkDescriptorSetLayout vk_samplerLightmapDescSetLayout;
-// descriptor set layout for postprocessing input attachment
-VkDescriptorSetLayout vk_iaDescSetLayout;
 
 extern cvar_t *vk_msaa;
 
@@ -332,10 +330,8 @@ static void DestroyFramebuffers()
 // internal helper
 static VkResult CreateFramebuffers()
 {
-	VkResult res = VK_SUCCESS;
-	vk_framebuffers[RP_WORLD] = (VkFramebuffer *)malloc(vk_swapchain.imageCount * sizeof(VkFramebuffer));
-	vk_framebuffers[RP_WORLD_WARP] = (VkFramebuffer *)malloc(vk_swapchain.imageCount * sizeof(VkFramebuffer));
-	vk_framebuffers[RP_UI] = (VkFramebuffer *)malloc(vk_swapchain.imageCount * sizeof(VkFramebuffer));
+	for(int i = 0; i < RP_COUNT; ++i)
+		vk_framebuffers[i] = (VkFramebuffer *)malloc(vk_swapchain.imageCount * sizeof(VkFramebuffer));
 
 	VkFramebufferCreateInfo fbCreateInfos[] = {
 		{
@@ -379,20 +375,22 @@ static VkResult CreateFramebuffers()
 	for (size_t i = 0; i < vk_swapchain.imageCount; ++i)
 	{
 		VkImageView attachments[] = { vk_colorbufferWarp.imageView, vk_ui_depthbuffer.imageView, vk_imageviews[i] };
-
 		fbCreateInfos[RP_UI].pAttachments = attachments;
-		VkResult result = vkCreateFramebuffer(vk_device.logical, &fbCreateInfos[RP_UI], NULL, &vk_framebuffers[RP_UI][i]);
-		result = vkCreateFramebuffer(vk_device.logical, &fbCreateInfos[RP_WORLD], NULL, &vk_framebuffers[RP_WORLD][i]);
-		result = vkCreateFramebuffer(vk_device.logical, &fbCreateInfos[RP_WORLD_WARP], NULL, &vk_framebuffers[RP_WORLD_WARP][i]);
 
-		if (result != VK_SUCCESS)
+		for (int j = 0; j < RP_COUNT; ++j)
 		{
-			DestroyFramebuffers();
-			return res;
+			VkResult res = vkCreateFramebuffer(vk_device.logical, &fbCreateInfos[j], NULL, &vk_framebuffers[j][i]);
+
+			if (res != VK_SUCCESS)
+			{
+				ri.Con_Printf(PRINT_ALL, "CreateFramebuffers(): framebuffer #%d create error: %d\n", j, QVk_GetError(res));
+				DestroyFramebuffers();
+				return res;
+			}
 		}
 	}
 
-	return res;
+	return VK_SUCCESS;
 }
 
 // internal helper
@@ -490,21 +488,6 @@ static VkResult CreateRenderpasses()
 		.pPreserveAttachments = NULL
 	};
 
-	VkRenderPassCreateInfo rpCreateInfo = {
-		.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-		.pNext = NULL,
-		.flags = 0,
-		.attachmentCount = msaaEnabled ? 3 : 2,
-		.pAttachments = attachments,
-		.subpassCount = 1,
-		.pSubpasses = &subpassDesc
-	};
-
-	rpCreateInfo.dependencyCount = 2;
-	rpCreateInfo.pDependencies = dependencies;
-
-	vkCreateRenderPass(vk_device.logical, &rpCreateInfo, NULL, &vk_renderpasses[RP_WORLD].rp);
-
 	// World warp
 	VkAttachmentDescription warpAttachments[] = {
 		// color attachment
@@ -557,21 +540,6 @@ static VkResult CreateRenderpasses()
 		}
 	};
 
-	VkRenderPassCreateInfo warpRpCreateInfo = {
-		.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-		.pNext = NULL,
-		.flags = 0,
-		.attachmentCount = 2,
-		.pAttachments = warpAttachments,
-		.subpassCount = 1,
-		.pSubpasses = warpSubpassDescs
-	};
-
-	warpRpCreateInfo.dependencyCount = 2;
-	warpRpCreateInfo.pDependencies = dependencies;
-
-	vkCreateRenderPass(vk_device.logical, &warpRpCreateInfo, NULL, &vk_renderpasses[RP_WORLD_WARP].rp);
-
 	// UI
 	VkAttachmentDescription uiAttachments[] = {
 		// color attachment
@@ -619,9 +587,10 @@ static VkResult CreateRenderpasses()
 		.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
 	};
 
-	VkAttachmentReference swap_chain_attachment_reference;
-	swap_chain_attachment_reference.attachment = 2;
-	swap_chain_attachment_reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	VkAttachmentReference swapchainAttachmentRef = {
+		.attachment = 2,
+		.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+	};
 
 	VkSubpassDescription uiSubpassDesc = {
 		.flags = 0,
@@ -629,37 +598,77 @@ static VkResult CreateRenderpasses()
 		.inputAttachmentCount = 0,
 		.pInputAttachments = NULL,
 		.colorAttachmentCount = 1,
-		.pColorAttachments = &swap_chain_attachment_reference,
+		.pColorAttachments = &swapchainAttachmentRef,
 		.pResolveAttachments = NULL,
 		.pDepthStencilAttachment = &uiDepthAttachmentRef,
 		.preserveAttachmentCount = 0,
 		.pPreserveAttachments = NULL
 	};
 
-	VkRenderPassCreateInfo uiRpCreateInfo = {
-		.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-		.pNext = NULL,
-		.flags = 0,
-		.attachmentCount = 3,
-		.pAttachments = uiAttachments,
-		.subpassCount = 1,
-		.pSubpasses = &uiSubpassDesc
+	// create the passes
+	VkRenderPassCreateInfo rpCreateInfos[] = {
+		// offscreen world rendering to color buffer
+		{
+			.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+			.pNext = NULL,
+			.flags = 0,
+			.attachmentCount = msaaEnabled ? 3 : 2,
+			.pAttachments = attachments,
+			.subpassCount = 1,
+			.pSubpasses = &subpassDesc,
+			.dependencyCount = 2,
+			.pDependencies = dependencies
+		},
+		// UI rendering
+		{
+			.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+			.pNext = NULL,
+			.flags = 0,
+			.attachmentCount = 3,
+			.pAttachments = uiAttachments,
+			.subpassCount = 1,
+			.pSubpasses = &uiSubpassDesc,
+			.dependencyCount = 2,
+			.pDependencies = dependencies
+		},
+		// world warp/postprocessing render pass
+		{
+			.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+			.pNext = NULL,
+			.flags = 0,
+			.attachmentCount = 2,
+			.pAttachments = warpAttachments,
+			.subpassCount = 1,
+			.pSubpasses = warpSubpassDescs,
+			.dependencyCount = 2,
+			.pDependencies = dependencies
+		},
 	};
 
-	uiRpCreateInfo.dependencyCount = 2;
-	uiRpCreateInfo.pDependencies = dependencies;
+	for (int i = 0; i < RP_COUNT; ++i)
+	{
+		VkResult res = vkCreateRenderPass(vk_device.logical, &rpCreateInfos[i], NULL, &vk_renderpasses[i].rp);
+		if (res != VK_SUCCESS)
+		{
+			ri.Con_Printf(PRINT_ALL, "CreateRenderpasses(): renderpass #%d create error: %d\n", i, QVk_GetError(res));
+			return res;
+		}
+	}
 
-	return vkCreateRenderPass(vk_device.logical, &uiRpCreateInfo, NULL, &vk_renderpasses[RP_UI].rp);
+	return VK_SUCCESS;
 }
 
 // internal helper
 static void CreateDrawBuffers()
 {
 	QVk_CreateDepthBuffer(vk_renderpasses[RP_WORLD].sampleCount, &vk_depthbuffer);
+	ri.Con_Printf(PRINT_ALL, "...created world view depth buffer\n");
 	QVk_CreateDepthBuffer(VK_SAMPLE_COUNT_1_BIT, &vk_ui_depthbuffer);
-	ri.Con_Printf(PRINT_ALL, "...created depth buffer\n");
-	QVk_CreateColorBuffer(VK_SAMPLE_COUNT_1_BIT, &vk_colorbuffer, VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
-	QVk_CreateColorBuffer(VK_SAMPLE_COUNT_1_BIT, &vk_colorbufferWarp, VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+	ri.Con_Printf(PRINT_ALL, "...created UI depth buffer\n");
+	QVk_CreateColorBuffer(VK_SAMPLE_COUNT_1_BIT, &vk_colorbuffer, VK_IMAGE_USAGE_SAMPLED_BIT);
+	ri.Con_Printf(PRINT_ALL, "...created world view color buffer\n");
+	QVk_CreateColorBuffer(VK_SAMPLE_COUNT_1_BIT, &vk_colorbufferWarp, VK_IMAGE_USAGE_SAMPLED_BIT);
+	ri.Con_Printf(PRINT_ALL, "...created world postpocess color buffer\n");
 	QVk_CreateColorBuffer(vk_renderpasses[RP_WORLD].sampleCount, &vk_msaaColorbuffer, 0);
 	ri.Con_Printf(PRINT_ALL, "...created MSAAx%d color buffer\n", vk_renderpasses[RP_WORLD].sampleCount);
 }
@@ -714,9 +723,6 @@ static void CreateDescriptorSetLayouts()
 	VK_VERIFY(vkCreateDescriptorSetLayout(vk_device.logical, &layoutInfo, NULL, &vk_samplerDescSetLayout));
 	// secondary sampler: lightmaps
 	VK_VERIFY(vkCreateDescriptorSetLayout(vk_device.logical, &layoutInfo, NULL, &vk_samplerLightmapDescSetLayout));
-	// postprocessing input attachment
-	layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-	VK_VERIFY(vkCreateDescriptorSetLayout(vk_device.logical, &layoutInfo, NULL, &vk_iaDescSetLayout));
 }
 
 // internal helper
@@ -806,11 +812,6 @@ static void CreateDescriptorPool()
 		{
 			.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
 			.descriptorCount = MAX_VKTEXTURES + 1
-		},
-		// input attachment
-		{
-			.type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
-			.descriptorCount = 1
 		}
 	};
 
@@ -1054,6 +1055,7 @@ static void CreatePipelines()
 	// shared descriptor set layouts
 	VkDescriptorSetLayout samplerUboDsLayouts[] = { vk_samplerDescSetLayout, vk_uboDescSetLayout };
 	VkDescriptorSetLayout samplerUboLmapDsLayouts[] = { vk_samplerDescSetLayout, vk_uboDescSetLayout, vk_samplerLightmapDescSetLayout };
+
 	// shader array (vertex and fragment, no compute... yet)
 	qvkshader_t shaders[2] = { VK_NULL_HANDLE, VK_NULL_HANDLE };
 
@@ -1295,8 +1297,6 @@ void QVk_Shutdown( void )
 			vkDestroyDescriptorSetLayout(vk_device.logical, vk_samplerDescSetLayout, NULL);
 		if (vk_samplerLightmapDescSetLayout != VK_NULL_HANDLE)
 			vkDestroyDescriptorSetLayout(vk_device.logical, vk_samplerLightmapDescSetLayout, NULL);
-		if (vk_iaDescSetLayout != VK_NULL_HANDLE)
-			vkDestroyDescriptorSetLayout(vk_device.logical, vk_iaDescSetLayout, NULL);
 		for (int i = 0; i < RP_COUNT; i++)
 		{
 			if (vk_renderpasses[i].rp != VK_NULL_HANDLE)
@@ -1562,6 +1562,7 @@ qboolean QVk_Init()
 		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan render passes: %s\n", QVk_GetError(res));
 		return false;
 	}
+	ri.Con_Printf(PRINT_ALL, "...created %d Vulkan render passes\n", RP_COUNT);
 
 	// setup command pools
 	res = QVk_CreateCommandPool(&vk_commandPool, vk_device.gfxFamilyIndex);
@@ -1621,7 +1622,7 @@ qboolean QVk_Init()
 	ri.Con_Printf(PRINT_ALL, "...created %d Vulkan commandbuffers\n", NUM_CMDBUFFERS);
 
 	// initialize tracker variables
-	vk_activeCmdbuffer   = vk_commandbuffers[vk_activeBufferIdx];
+	vk_activeCmdbuffer = vk_commandbuffers[vk_activeBufferIdx];
 
 	CreateDescriptorSetLayouts();
 	CreateDescriptorPool();
@@ -1636,7 +1637,7 @@ qboolean QVk_Init()
 	CreatePipelines();
 	CreateSamplers();
 
-	// create descriptor set for the texture
+	// main and world warp color buffers will be sampled for postprocessing effects, so they need descriptors and samplers too
 	VkDescriptorSetAllocateInfo dsAllocInfo = {
 		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
 		.pNext = NULL,
@@ -1646,9 +1647,9 @@ qboolean QVk_Init()
 	};
 
 	VK_VERIFY(vkAllocateDescriptorSets(vk_device.logical, &dsAllocInfo, &vk_colorbuffer.descriptorSet));
-	QVk_UpdateTextureSampler(&vk_colorbuffer, 0);
+	QVk_UpdateTextureSampler(&vk_colorbuffer, S_NEAREST);
 	VK_VERIFY(vkAllocateDescriptorSets(vk_device.logical, &dsAllocInfo, &vk_colorbufferWarp.descriptorSet));
-	QVk_UpdateTextureSampler(&vk_colorbufferWarp, 0);
+	QVk_UpdateTextureSampler(&vk_colorbufferWarp, S_NEAREST);
 
 	return true;
 }

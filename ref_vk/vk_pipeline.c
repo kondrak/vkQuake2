@@ -186,7 +186,7 @@ void QVk_CreatePipeline(const VkDescriptorSetLayout *descriptorLayout, const uin
 		.pDynamicState = &dsCreateInfo,
 		.layout = pipeline->layout,
 		.renderPass = renderpass->rp,
-		.subpass = pipeline->subpass,
+		.subpass = 0,
 		.basePipelineHandle = VK_NULL_HANDLE,
 		.basePipelineIndex = -1
 	};
