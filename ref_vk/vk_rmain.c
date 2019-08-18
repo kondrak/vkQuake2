@@ -950,10 +950,14 @@ void R_SetVulkan2D (void)
 	vkCmdSetViewport(vk_activeCmdbuffer, 0, 1, &vk_viewport);
 	vkCmdSetScissor(vk_activeCmdbuffer, 0, 1, &vk_scissor);
 
-	// first blit offscreen color buffer with warped/postprocessed world view
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_postprocessPipeline.layout, 0, 1, &vk_colorbufferWarp.descriptorSet, 0, NULL);
-	QVk_BindPipeline(&vk_postprocessPipeline);
-	vkCmdDraw(vk_activeCmdbuffer, 3, 1, 0, 0);
+	// first, blit offscreen color buffer with warped/postprocessed world view
+	// skip this step if we're in player config screen since it uses RP_UI and draws directly to swapchain
+	if (!(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
+	{
+		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_postprocessPipeline.layout, 0, 1, &vk_colorbufferWarp.descriptorSet, 0, NULL);
+		QVk_BindPipeline(&vk_postprocessPipeline);
+		vkCmdDraw(vk_activeCmdbuffer, 3, 1, 0, 0);
+	}
 }
 
 
