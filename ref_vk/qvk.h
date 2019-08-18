@@ -186,15 +186,15 @@ typedef struct
 		.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT \
 	}, \
 	.depthTestEnable = VK_TRUE, \
-	.depthWriteEnable = VK_TRUE, \
+	.depthWriteEnable = VK_TRUE \
 }
 
 // type of renderpass
 typedef enum
 {
-	RP_WORLD = 0,
-	RP_UI = 1,
-	RP_WORLD_WARP = 2,
+	RP_WORLD = 0,      // renders game world to offscreen buffer
+	RP_UI = 1,         // render UI elements and game console
+	RP_WORLD_WARP = 2, // perform postprocessing on RP_WORLD (underwater screen warp)
 	RP_COUNT = 3
 } qvkrenderpasstype_t;
 

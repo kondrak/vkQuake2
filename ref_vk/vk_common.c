@@ -398,28 +398,10 @@ static VkResult CreateRenderpasses()
 {
 	qboolean msaaEnabled = vk_renderpasses[RP_WORLD].sampleCount != VK_SAMPLE_COUNT_1_BIT;
 
-	VkSubpassDependency dependencies[2] = {
-		{
-		.srcSubpass = VK_SUBPASS_EXTERNAL,
-		.dstSubpass = 0,
-		.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-		.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-		.srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
-		.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-		.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
-		},
-		{
-		.srcSubpass = 0,
-		.dstSubpass = VK_SUBPASS_EXTERNAL,
-		.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-		.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-		.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-		.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
-		.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
-		}
-	};
-
-	VkAttachmentDescription attachments[] = {
+	/*
+	 * world view setup
+	 */
+	VkAttachmentDescription worldAttachments[] = {
 		// color attachment
 		{
 			.flags = 0,
@@ -427,11 +409,10 @@ static VkResult CreateRenderpasses()
 			.samples = VK_SAMPLE_COUNT_1_BIT,
 			.loadOp = msaaEnabled ? VK_ATTACHMENT_LOAD_OP_DONT_CARE : vk_renderpasses[RP_WORLD].colorLoadOp,
 			// if MSAA is enabled, we don't need to preserve rendered texture data since it's kept by MSAA resolve attachment
-			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+			.storeOp = msaaEnabled ? VK_ATTACHMENT_STORE_OP_DONT_CARE : VK_ATTACHMENT_STORE_OP_STORE,
 			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
 			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-			// treat this attachment as an interim color stage if MSAA is enabled
 			.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
 		},
 		// depth attachment
@@ -460,67 +441,69 @@ static VkResult CreateRenderpasses()
 		}
 	};
 
-	VkAttachmentReference colorAttachmentRef = {
-		.attachment = msaaEnabled ? 2 : 0,
-		.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+	VkAttachmentReference worldAttachmentRefs[] = {
+		// color
+		{
+			.attachment = msaaEnabled ? 2 : 0,
+			.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+		},
+		// depth
+		{
+			.attachment = 1,
+			.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+		},
+		// MSAA resolve
+		{
+			.attachment = 0,
+			.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+		}
 	};
 
-	VkAttachmentReference depthAttachmentRef = {
-		.attachment = 1,
-		.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-	};
-
-	VkAttachmentReference colorAttachmentResolveMSAARef = {
-		.attachment = 0,
-		.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
-	};
-
-	VkSubpassDescription subpassDesc = {
+	VkSubpassDescription worldSubpassDesc = {
 		.flags = 0,
 		.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
 		.inputAttachmentCount = 0,
 		.pInputAttachments = NULL,
 		.colorAttachmentCount = 1,
-		.pColorAttachments = &colorAttachmentRef,
-		.pResolveAttachments = msaaEnabled ? &colorAttachmentResolveMSAARef : NULL,
-		.pDepthStencilAttachment = &depthAttachmentRef,
+		.pColorAttachments = &worldAttachmentRefs[0],
+		.pResolveAttachments = msaaEnabled ? &worldAttachmentRefs[2] : NULL,
+		.pDepthStencilAttachment = &worldAttachmentRefs[1],
 		.preserveAttachmentCount = 0,
 		.pPreserveAttachments = NULL
 	};
 
-	// World warp
+	/*
+	 * world warp setup
+	 */
 	VkAttachmentDescription warpAttachments[] = {
-		// color attachment
+		// color attachment - input from RP_WORLD renderpass
 		{
 			.flags = 0,
 			.format = vk_swapchain.format,
 			.samples = VK_SAMPLE_COUNT_1_BIT,
 			.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
-			// if MSAA is enabled, we don't need to preserve rendered texture data since it's kept by MSAA resolve attachment
 			.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
 			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
 			.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-			// treat this attachment as an interim color stage if MSAA is enabled
 			.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
 		},
-		// color attachment out
+		// color attachment output - warped/postprocessed image that ends up in RP_UI
 		{
 			.flags = 0,
 			.format = vk_swapchain.format,
 			.samples = VK_SAMPLE_COUNT_1_BIT,
-			.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE, // : vk_renderpasses[RP_WORLD].colorLoadOp,
-			// if MSAA is enabled, we don't need to preserve rendered texture data since it's kept by MSAA resolve attachment
+			.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
 			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
 			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-			// treat this attachment as an interim color stage if MSAA is enabled
 			.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
 		}
 	};
 
-	VkAttachmentReference colorAttachmentOut = {
+	VkAttachmentReference warpAttachmentRef = {
+		// output color
 		.attachment = 1,
 		.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
 	};
@@ -532,7 +515,7 @@ static VkResult CreateRenderpasses()
 			.inputAttachmentCount = 0,
 			.pInputAttachments = NULL,
 			.colorAttachmentCount = 1,
-			.pColorAttachments = &colorAttachmentOut,
+			.pColorAttachments = &warpAttachmentRef,
 			.pResolveAttachments = NULL,
 			.pDepthStencilAttachment = NULL,
 			.preserveAttachmentCount = 0,
@@ -540,7 +523,9 @@ static VkResult CreateRenderpasses()
 		}
 	};
 
-	// UI
+	/*
+	 * UI setup
+	 */
 	VkAttachmentDescription uiAttachments[] = {
 		// color attachment
 		{
@@ -548,12 +533,10 @@ static VkResult CreateRenderpasses()
 			.format = vk_swapchain.format,
 			.samples = VK_SAMPLE_COUNT_1_BIT,
 			.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
-			// if MSAA is enabled, we don't need to preserve rendered texture data since it's kept by MSAA resolve attachment
 			.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
 			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
 			.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-			// treat this attachment as an interim color stage if MSAA is enabled
 			.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
 		},
 		// depth attachment - because of player model preview in settings screen
@@ -568,7 +551,7 @@ static VkResult CreateRenderpasses()
 			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
 			.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
 		},
-		// MSAA resolve attachment
+		// swapchain presentation
 		{
 			.flags = 0,
 			.format = vk_swapchain.format,
@@ -582,14 +565,17 @@ static VkResult CreateRenderpasses()
 		}
 	};
 
-	VkAttachmentReference uiDepthAttachmentRef = {
-		.attachment = 1,
-		.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-	};
-
-	VkAttachmentReference swapchainAttachmentRef = {
-		.attachment = 2,
-		.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+	VkAttachmentReference uiAttachmentRefs[] = {
+		// depth
+		{
+			.attachment = 1,
+			.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+		},
+		// swapchain output
+		{
+			.attachment = 2,
+			.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+		}
 	};
 
 	VkSubpassDescription uiSubpassDesc = {
@@ -598,28 +584,52 @@ static VkResult CreateRenderpasses()
 		.inputAttachmentCount = 0,
 		.pInputAttachments = NULL,
 		.colorAttachmentCount = 1,
-		.pColorAttachments = &swapchainAttachmentRef,
+		.pColorAttachments = &uiAttachmentRefs[1],
 		.pResolveAttachments = NULL,
-		.pDepthStencilAttachment = &uiDepthAttachmentRef,
+		.pDepthStencilAttachment = &uiAttachmentRefs[0],
 		.preserveAttachmentCount = 0,
 		.pPreserveAttachments = NULL
 	};
 
-	// create the passes
+	/*
+	 * create the render passes
+	 */
+	// we're using 3 render passes which depend on each other (main color -> warp/postprocessing -> ui)
+	VkSubpassDependency subpassDeps[2] = {
+		{
+		.srcSubpass = VK_SUBPASS_EXTERNAL,
+		.dstSubpass = 0,
+		.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+		.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+		.srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
+		.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+		.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
+		},
+		{
+		.srcSubpass = 0,
+		.dstSubpass = VK_SUBPASS_EXTERNAL,
+		.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+		.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+		.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+		.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+		.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
+		}
+	};
+
 	VkRenderPassCreateInfo rpCreateInfos[] = {
-		// offscreen world rendering to color buffer
+		// offscreen world rendering to color buffer (RP_WORLD)
 		{
 			.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
 			.pNext = NULL,
 			.flags = 0,
 			.attachmentCount = msaaEnabled ? 3 : 2,
-			.pAttachments = attachments,
+			.pAttachments = worldAttachments,
 			.subpassCount = 1,
-			.pSubpasses = &subpassDesc,
+			.pSubpasses = &worldSubpassDesc,
 			.dependencyCount = 2,
-			.pDependencies = dependencies
+			.pDependencies = subpassDeps
 		},
-		// UI rendering
+		// UI rendering (RP_UI)
 		{
 			.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
 			.pNext = NULL,
@@ -629,9 +639,9 @@ static VkResult CreateRenderpasses()
 			.subpassCount = 1,
 			.pSubpasses = &uiSubpassDesc,
 			.dependencyCount = 2,
-			.pDependencies = dependencies
+			.pDependencies = subpassDeps
 		},
-		// world warp/postprocessing render pass
+		// world warp/postprocessing render pass (RP_WORLD_WARP)
 		{
 			.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
 			.pNext = NULL,
@@ -641,8 +651,8 @@ static VkResult CreateRenderpasses()
 			.subpassCount = 1,
 			.pSubpasses = warpSubpassDescs,
 			.dependencyCount = 2,
-			.pDependencies = dependencies
-		},
+			.pDependencies = subpassDeps
+		}
 	};
 
 	for (int i = 0; i < RP_COUNT; ++i)
