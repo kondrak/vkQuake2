@@ -242,6 +242,13 @@ extern qvkpipeline_t vk_drawDLightPipeline;
 extern qvkpipeline_t vk_showTrisPipeline;
 extern qvkpipeline_t vk_shadowsPipelineStrip;
 extern qvkpipeline_t vk_shadowsPipelineFan;
+extern qvkpipeline_t vk_worldWarpPipeline;
+extern qvkpipeline_t vk_postprocessPipeline;
+
+// color buffer containing main game/world view
+extern qvktexture_t vk_colorbuffer;
+// color buffer with postprocessed game view
+extern qvktexture_t vk_colorbufferWarp;
 
 // function pointers
 extern PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;

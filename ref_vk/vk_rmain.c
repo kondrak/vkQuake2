@@ -939,10 +939,8 @@ void R_EndWorldRenderpass(void)
 
 	// fullscreen warp
 	QVk_BeginRenderpass(RP_WORLD_WARP);
-	extern qvktexture_t vk_colorbuffer;
-	extern qvkpipeline_t vk_worldWarpPipeline;
-	float pconsts[] = { (r_newrefdef.rdflags & RDF_UNDERWATER ? r_newrefdef.time : 0.f), vid.width, vid.height };
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_worldWarpPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(pconsts), pconsts);
+	float pushConsts[] = { (r_newrefdef.rdflags & RDF_UNDERWATER ? r_newrefdef.time : 0.f), vid.width, vid.height };
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_worldWarpPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(pushConsts), pushConsts);
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_worldWarpPipeline.layout, 0, 1, &vk_colorbuffer.descriptorSet, 0, NULL);
 	QVk_BindPipeline(&vk_worldWarpPipeline);
 	vkCmdDraw(vk_activeCmdbuffer, 3, 1, 0, 0);
@@ -954,18 +952,16 @@ void R_EndWorldRenderpass(void)
 
 void R_SetVulkan2D (void)
 {
-	// player configuration screen renders a model using the UI renderpass, so skip the change
+	// player configuration screen renders a model using the UI renderpass, so skip finishing RP_WORLD twice
 	if (!(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
 		R_EndWorldRenderpass();
 
 	extern VkViewport vk_viewport;
 	extern VkRect2D vk_scissor;
-	extern qvktexture_t vk_colorbufferWarp;
-	extern qvkpipeline_t vk_postprocessPipeline;
 	vkCmdSetViewport(vk_activeCmdbuffer, 0, 1, &vk_viewport);
 	vkCmdSetScissor(vk_activeCmdbuffer, 0, 1, &vk_scissor);
 
-	// first blit offscreen color buffer with (warped) world view
+	// first blit offscreen color buffer with warped/postprocessed world view
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_postprocessPipeline.layout, 0, 1, &vk_colorbufferWarp.descriptorSet, 0, NULL);
 	QVk_BindPipeline(&vk_postprocessPipeline);
 	vkCmdDraw(vk_activeCmdbuffer, 3, 1, 0, 0);

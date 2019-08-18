@@ -97,12 +97,15 @@ static VkCommandPool vk_stagingCommandPool = VK_NULL_HANDLE;
 VkImageView *vk_imageviews = NULL;
 // Vulkan framebuffers
 VkFramebuffer *vk_framebuffers[RP_COUNT];
-// depth buffer
+// color buffer containing main game/world view
 qvktexture_t vk_colorbuffer = QVVKTEXTURE_INIT;
+// color buffer with postprocessed game view
 qvktexture_t vk_colorbufferWarp = QVVKTEXTURE_INIT;
+// depth buffer
 qvktexture_t vk_depthbuffer = QVVKTEXTURE_INIT;
+// depth buffer for UI renderpass
 qvktexture_t vk_ui_depthbuffer = QVVKTEXTURE_INIT;
-// render targets for MSAA
+// render target for MSAA resolve
 qvktexture_t vk_msaaColorbuffer = QVVKTEXTURE_INIT;
 // viewport and scissor
 VkViewport vk_viewport = { .0f, .0f, .0f, .0f, .0f, .0f };
@@ -150,8 +153,8 @@ qvkpipeline_t vk_drawDLightPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_showTrisPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_shadowsPipelineStrip = QVKPIPELINE_INIT;
 qvkpipeline_t vk_shadowsPipelineFan = QVKPIPELINE_INIT;
-qvkpipeline_t vk_postprocessPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_worldWarpPipeline = QVKPIPELINE_INIT;
+qvkpipeline_t vk_postprocessPipeline = QVKPIPELINE_INIT;
 
 // samplers
 static VkSampler vk_samplers[S_SAMPLER_CNT];
@@ -186,6 +189,16 @@ PFN_vkDestroyDebugUtilsMessengerEXT qvkDestroyDebugUtilsMessengerEXT;
 	VkVertexInputAttributeDescription attrDesc##name[] = { __VA_ARGS__ }; \
 	VkVertexInputBindingDescription name##bindingDesc = VK_INPUTBIND_DESC(bindSize); \
 	VkPipelineVertexInputStateCreateInfo vertInfo##name = VK_VERTEXINPUT_CINF(name##bindingDesc, attrDesc##name);
+
+#define VK_NULL_VERTEXINPUT_CINF { \
+	.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO, \
+	.pNext = NULL, \
+	.flags = 0, \
+	.vertexBindingDescriptionCount = 0, \
+	.pVertexBindingDescriptions = NULL, \
+	.vertexAttributeDescriptionCount = 0, \
+	.pVertexAttributeDescriptions = NULL \
+}
 
 #define VK_LOAD_VERTFRAG_SHADERS(shaders, namevert, namefrag) \
 	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL); \
@@ -334,6 +347,7 @@ static VkResult CreateFramebuffers()
 		vk_framebuffers[i] = (VkFramebuffer *)malloc(vk_swapchain.imageCount * sizeof(VkFramebuffer));
 
 	VkFramebufferCreateInfo fbCreateInfos[] = {
+		// main world view framebuffer
 		{
 			.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
 			.pNext = NULL,
@@ -344,6 +358,7 @@ static VkResult CreateFramebuffers()
 			.height = vk_swapchain.extent.height,
 			.layers = 1
 		},
+		// UI framebuffer
 		{
 			.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
 			.pNext = NULL,
@@ -354,6 +369,7 @@ static VkResult CreateFramebuffers()
 			.height = vk_swapchain.extent.height,
 			.layers = 1
 		},
+		// warped main world view (postprocessing) framebuffer
 		{
 			.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
 			.pNext = NULL,
@@ -459,6 +475,7 @@ static VkResult CreateRenderpasses()
 		}
 	};
 
+	// primary renderpass writes to color, depth and optional MSAA resolve
 	VkSubpassDescription worldSubpassDesc = {
 		.flags = 0,
 		.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -508,6 +525,7 @@ static VkResult CreateRenderpasses()
 		.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
 	};
 
+	// world view postprocess writes to a separate color buffer
 	VkSubpassDescription warpSubpassDescs[] = {
 		{
 			.flags = 0,
@@ -565,6 +583,7 @@ static VkResult CreateRenderpasses()
 		}
 	};
 
+	// UI renderpass writes to depth (for player model in setup screen) and outputs to swapchain
 	VkAttachmentReference uiAttachmentRefs[] = {
 		// depth
 		{
@@ -1061,6 +1080,8 @@ static void CreatePipelines()
 	VK_VERTINFO(RGB_RGBA_RG, sizeof(float) * 9,	VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
 												VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 3),
 												VK_INPUTATTR_DESC(2, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 7));
+	// no vertices passed to the pipeline (postprocessing)
+	VkPipelineVertexInputStateCreateInfo vertInfoNull = VK_NULL_VERTEXINPUT_CINF;
 
 	// shared descriptor set layouts
 	VkDescriptorSetLayout samplerUboDsLayouts[] = { vk_samplerDescSetLayout, vk_uboDescSetLayout };
@@ -1206,29 +1227,19 @@ static void CreatePipelines()
 	vk_shadowsPipelineFan.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRGB, &vk_shadowsPipelineFan, &vk_renderpasses[RP_WORLD], shaders, 2, &pushConstantRange);
 
-	// postprocessing pipeline
-	VK_LOAD_VERTFRAG_SHADERS(shaders, postprocess, postprocess);
-
-	VkPipelineVertexInputStateCreateInfo postprocessVisc = {
-		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-		.pNext = NULL,
-		.flags = 0,
-		.vertexBindingDescriptionCount = 0,
-		.pVertexBindingDescriptions = NULL,
-		.vertexAttributeDescriptionCount = 0,
-		.pVertexAttributeDescriptions = NULL,
-	};
-
-	vk_postprocessPipeline.depthTestEnable = VK_FALSE;
-	vk_postprocessPipeline.depthWriteEnable = VK_FALSE;
-	vk_postprocessPipeline.cullMode = VK_CULL_MODE_NONE;
-	QVk_CreatePipeline(&vk_samplerDescSetLayout, 1, &postprocessVisc, &vk_postprocessPipeline, &vk_renderpasses[RP_UI], shaders, 2, NULL);
-
+	// underwater world warp pipeline (postprocess)
 	VK_LOAD_VERTFRAG_SHADERS(shaders, world_warp, world_warp);
 	vk_worldWarpPipeline.depthTestEnable = VK_FALSE;
 	vk_worldWarpPipeline.depthWriteEnable = VK_FALSE;
 	vk_worldWarpPipeline.cullMode = VK_CULL_MODE_NONE;
-	QVk_CreatePipeline(&vk_samplerDescSetLayout, 1, &postprocessVisc, &vk_worldWarpPipeline, &vk_renderpasses[RP_WORLD_WARP], shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(&vk_samplerDescSetLayout, 1, &vertInfoNull, &vk_worldWarpPipeline, &vk_renderpasses[RP_WORLD_WARP], shaders, 2, &pushConstantRange);
+
+	// postprocessing pipeline
+	VK_LOAD_VERTFRAG_SHADERS(shaders, postprocess, postprocess);
+	vk_postprocessPipeline.depthTestEnable = VK_FALSE;
+	vk_postprocessPipeline.depthWriteEnable = VK_FALSE;
+	vk_postprocessPipeline.cullMode = VK_CULL_MODE_NONE;
+	QVk_CreatePipeline(&vk_samplerDescSetLayout, 1, &vertInfoNull, &vk_postprocessPipeline, &vk_renderpasses[RP_UI], shaders, 2, NULL);
 
 	// final shader cleanup
 	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
@@ -1270,8 +1281,8 @@ void QVk_Shutdown( void )
 		QVk_DestroyPipeline(&vk_showTrisPipeline);
 		QVk_DestroyPipeline(&vk_shadowsPipelineStrip);
 		QVk_DestroyPipeline(&vk_shadowsPipelineFan);
-		QVk_DestroyPipeline(&vk_postprocessPipeline);
 		QVk_DestroyPipeline(&vk_worldWarpPipeline);
+		QVk_DestroyPipeline(&vk_postprocessPipeline);
 		QVk_FreeBuffer(&vk_texRectVbo);
 		QVk_FreeBuffer(&vk_colorRectVbo);
 		QVk_FreeBuffer(&vk_rectIbo);
@@ -1647,7 +1658,7 @@ qboolean QVk_Init()
 	CreatePipelines();
 	CreateSamplers();
 
-	// main and world warp color buffers will be sampled for postprocessing effects, so they need descriptors and samplers too
+	// main and world warp color buffers will be sampled for postprocessing effects, so they need descriptors and samplers
 	VkDescriptorSetAllocateInfo dsAllocInfo = {
 		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
 		.pNext = NULL,
