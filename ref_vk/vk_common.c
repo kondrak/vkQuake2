@@ -69,18 +69,26 @@ qvkswapchain_t vk_swapchain = {
 	.imageCount = 0
 };
 
-// Vulkan renderpasses (standard and MSAA)
-qvkrenderpass_t vk_renderpasses[RT_COUNT] = { 
+// Vulkan renderpasses
+qvkrenderpass_t vk_renderpasses[RP_COUNT] = {
+	// RP_WORLD
 	{
 		.rp = VK_NULL_HANDLE,
 		.colorLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
 		.sampleCount = VK_SAMPLE_COUNT_1_BIT
 	},
+	// RP_UI
 	{
 		.rp = VK_NULL_HANDLE,
-		.colorLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
-		.sampleCount = VK_SAMPLE_COUNT_4_BIT
-	} 
+		.colorLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+		.sampleCount = VK_SAMPLE_COUNT_1_BIT
+	},
+	// RP_WORLD_WARP
+	{
+		.rp = VK_NULL_HANDLE,
+		.colorLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+		.sampleCount = VK_SAMPLE_COUNT_1_BIT
+	}
 };
 
 // Vulkan pools
@@ -91,12 +99,17 @@ static VkCommandPool vk_stagingCommandPool = VK_NULL_HANDLE;
 // Vulkan image views
 VkImageView *vk_imageviews = NULL;
 // Vulkan framebuffers
-VkFramebuffer *vk_framebuffers[RT_COUNT];
+VkFramebuffer *vk_framebuffers[RP_COUNT];
+// color buffer containing main game/world view
+qvktexture_t vk_colorbuffer = QVVKTEXTURE_INIT;
+// color buffer with postprocessed game view
+qvktexture_t vk_colorbufferWarp = QVVKTEXTURE_INIT;
 // depth buffer
 qvktexture_t vk_depthbuffer = QVVKTEXTURE_INIT;
-// render targets for MSAA
+// depth buffer for UI renderpass
+qvktexture_t vk_ui_depthbuffer = QVVKTEXTURE_INIT;
+// render target for MSAA resolve
 qvktexture_t vk_msaaColorbuffer = QVVKTEXTURE_INIT;
-qvktexture_t vk_msaaDepthbuffer = QVVKTEXTURE_INIT;
 // viewport and scissor
 VkViewport vk_viewport = { .0f, .0f, .0f, .0f, .0f, .0f };
 VkRect2D vk_scissor = { { 0, 0 }, { 0, 0 } };
@@ -111,8 +124,6 @@ VkSemaphore vk_imageAvailableSemaphores[NUM_CMDBUFFERS];
 // semaphore: signal when rendering to current command buffer is complete
 VkSemaphore vk_renderFinishedSemaphores[NUM_CMDBUFFERS];
 // tracker variables
-qvkrenderpass_t vk_activeRenderpass;
-VkFramebuffer   vk_activeFramebuffer = VK_NULL_HANDLE;
 VkCommandBuffer vk_activeCmdbuffer = VK_NULL_HANDLE;
 // index of active command buffer
 int vk_activeBufferIdx = 0;
@@ -125,9 +136,9 @@ static qboolean vk_frameStarted = false;
 
 // render pipelines
 qvkpipeline_t vk_drawTexQuadPipeline = QVKPIPELINE_INIT;
-qvkpipeline_t vk_drawColorQuadPipeline = QVKPIPELINE_INIT;
-qvkpipeline_t vk_drawModelPipelineStrip = QVKPIPELINE_INIT;
-qvkpipeline_t vk_drawModelPipelineFan = QVKPIPELINE_INIT;
+qvkpipeline_t vk_drawColorQuadPipeline[2]  = { QVKPIPELINE_INIT, QVKPIPELINE_INIT };
+qvkpipeline_t vk_drawModelPipelineStrip[2] = { QVKPIPELINE_INIT, QVKPIPELINE_INIT };
+qvkpipeline_t vk_drawModelPipelineFan[2]   = { QVKPIPELINE_INIT, QVKPIPELINE_INIT };
 qvkpipeline_t vk_drawNoDepthModelPipelineStrip = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawNoDepthModelPipelineFan = QVKPIPELINE_INIT;
 qvkpipeline_t vk_drawLefthandModelPipelineStrip = QVKPIPELINE_INIT;
@@ -145,6 +156,8 @@ qvkpipeline_t vk_drawDLightPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_showTrisPipeline = QVKPIPELINE_INIT;
 qvkpipeline_t vk_shadowsPipelineStrip = QVKPIPELINE_INIT;
 qvkpipeline_t vk_shadowsPipelineFan = QVKPIPELINE_INIT;
+qvkpipeline_t vk_worldWarpPipeline = QVKPIPELINE_INIT;
+qvkpipeline_t vk_postprocessPipeline = QVKPIPELINE_INIT;
 
 // samplers
 static VkSampler vk_samplers[S_SAMPLER_CNT];
@@ -179,6 +192,16 @@ PFN_vkDestroyDebugUtilsMessengerEXT qvkDestroyDebugUtilsMessengerEXT;
 	VkVertexInputAttributeDescription attrDesc##name[] = { __VA_ARGS__ }; \
 	VkVertexInputBindingDescription name##bindingDesc = VK_INPUTBIND_DESC(bindSize); \
 	VkPipelineVertexInputStateCreateInfo vertInfo##name = VK_VERTEXINPUT_CINF(name##bindingDesc, attrDesc##name);
+
+#define VK_NULL_VERTEXINPUT_CINF { \
+	.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO, \
+	.pNext = NULL, \
+	.flags = 0, \
+	.vertexBindingDescriptionCount = 0, \
+	.pVertexBindingDescriptions = NULL, \
+	.vertexAttributeDescriptionCount = 0, \
+	.pVertexAttributeDescriptions = NULL \
+}
 
 #define VK_LOAD_VERTFRAG_SHADERS(shaders, namevert, namefrag) \
 	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL); \
@@ -305,7 +328,7 @@ static VkResult CreateImageViews()
 // internal helper
 static void DestroyFramebuffers()
 {
-	for (int f = 0; f < RT_COUNT; f++)
+	for (int f = 0; f < RP_COUNT; f++)
 	{
 		if (vk_framebuffers[f])
 		{
@@ -321,49 +344,365 @@ static void DestroyFramebuffers()
 }
 
 // internal helper
-static VkResult CreateFramebuffers(const qvkrenderpass_t *renderpass, qvkrendertype_t framebufferType)
+static VkResult CreateFramebuffers()
 {
-	VkResult res = VK_SUCCESS;
-	vk_framebuffers[framebufferType] = (VkFramebuffer *)malloc(vk_swapchain.imageCount * sizeof(VkFramebuffer));
+	for(int i = 0; i < RP_COUNT; ++i)
+		vk_framebuffers[i] = (VkFramebuffer *)malloc(vk_swapchain.imageCount * sizeof(VkFramebuffer));
 
-	VkFramebufferCreateInfo fbCreateInfo = {
-		.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-		.pNext = NULL,
-		.flags = 0,
-		.renderPass = renderpass->rp,
-		.attachmentCount = (renderpass->sampleCount != VK_SAMPLE_COUNT_1_BIT) ? 3 : 2,
-		.width = vk_swapchain.extent.width,
-		.height = vk_swapchain.extent.height,
-		.layers = 1
+	VkFramebufferCreateInfo fbCreateInfos[] = {
+		// main world view framebuffer
+		{
+			.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+			.pNext = NULL,
+			.flags = 0,
+			.renderPass = vk_renderpasses[RP_WORLD].rp,
+			.attachmentCount = (vk_renderpasses[RP_WORLD].sampleCount != VK_SAMPLE_COUNT_1_BIT) ? 3 : 2,
+			.width = vk_swapchain.extent.width,
+			.height = vk_swapchain.extent.height,
+			.layers = 1
+		},
+		// UI framebuffer
+		{
+			.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+			.pNext = NULL,
+			.flags = 0,
+			.renderPass = vk_renderpasses[RP_UI].rp,
+			.attachmentCount = 3,
+			.width = vk_swapchain.extent.width,
+			.height = vk_swapchain.extent.height,
+			.layers = 1
+		},
+		// warped main world view (postprocessing) framebuffer
+		{
+			.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+			.pNext = NULL,
+			.flags = 0,
+			.renderPass = vk_renderpasses[RP_WORLD_WARP].rp,
+			.attachmentCount = 2,
+			.width = vk_swapchain.extent.width,
+			.height = vk_swapchain.extent.height,
+			.layers = 1
+		}
 	};
+
+	VkImageView worldAttachments[] = { vk_colorbuffer.imageView, vk_depthbuffer.imageView, vk_msaaColorbuffer.imageView };
+	VkImageView attachmentsWarp[]  = { vk_colorbuffer.imageView, vk_colorbufferWarp.imageView };
+
+	fbCreateInfos[RP_WORLD].pAttachments = worldAttachments;
+	fbCreateInfos[RP_WORLD_WARP].pAttachments = attachmentsWarp;
 
 	for (size_t i = 0; i < vk_swapchain.imageCount; ++i)
 	{
-		VkImageView attachments[] = { vk_imageviews[i], vk_depthbuffer.imageView };
-		VkImageView attachmentsMSAA[] = { vk_msaaColorbuffer.imageView, vk_msaaDepthbuffer.imageView, vk_imageviews[i] };
+		VkImageView uiAttachments[] = { vk_colorbufferWarp.imageView, vk_ui_depthbuffer.imageView, vk_imageviews[i] };
+		fbCreateInfos[RP_UI].pAttachments = uiAttachments;
 
-		fbCreateInfo.pAttachments = (renderpass->sampleCount != VK_SAMPLE_COUNT_1_BIT) ? attachmentsMSAA : attachments;
-		VkResult result = vkCreateFramebuffer(vk_device.logical, &fbCreateInfo, NULL, &vk_framebuffers[framebufferType][i]);
-
-		if (result != VK_SUCCESS)
+		for (int j = 0; j < RP_COUNT; ++j)
 		{
-			DestroyFramebuffers();
+			VkResult res = vkCreateFramebuffer(vk_device.logical, &fbCreateInfos[j], NULL, &vk_framebuffers[j][i]);
+
+			if (res != VK_SUCCESS)
+			{
+				ri.Con_Printf(PRINT_ALL, "CreateFramebuffers(): framebuffer #%d create error: %d\n", j, QVk_GetError(res));
+				DestroyFramebuffers();
+				return res;
+			}
+		}
+	}
+
+	return VK_SUCCESS;
+}
+
+// internal helper
+static VkResult CreateRenderpasses()
+{
+	qboolean msaaEnabled = vk_renderpasses[RP_WORLD].sampleCount != VK_SAMPLE_COUNT_1_BIT;
+
+	/*
+	 * world view setup
+	 */
+	VkAttachmentDescription worldAttachments[] = {
+		// color attachment
+		{
+			.flags = 0,
+			.format = vk_swapchain.format,
+			.samples = VK_SAMPLE_COUNT_1_BIT,
+			.loadOp = msaaEnabled ? VK_ATTACHMENT_LOAD_OP_DONT_CARE : vk_renderpasses[RP_WORLD].colorLoadOp,
+			// if MSAA is enabled, we don't need to preserve rendered texture data since it's kept by MSAA resolve attachment
+			.storeOp = msaaEnabled ? VK_ATTACHMENT_STORE_OP_DONT_CARE : VK_ATTACHMENT_STORE_OP_STORE,
+			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+			.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+		},
+		// depth attachment
+		{
+			.flags = 0,
+			.format = QVk_FindDepthFormat(),
+			.samples = vk_renderpasses[RP_WORLD].sampleCount,
+			.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+			.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+			.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+		},
+		// MSAA resolve attachment
+		{
+			.flags = 0,
+			.format = vk_swapchain.format,
+			.samples = vk_renderpasses[RP_WORLD].sampleCount,
+			.loadOp = msaaEnabled ? vk_renderpasses[RP_WORLD].colorLoadOp : VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+			.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+		}
+	};
+
+	VkAttachmentReference worldAttachmentRefs[] = {
+		// color
+		{
+			.attachment = msaaEnabled ? 2 : 0,
+			.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+		},
+		// depth
+		{
+			.attachment = 1,
+			.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+		},
+		// MSAA resolve
+		{
+			.attachment = 0,
+			.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+		}
+	};
+
+	// primary renderpass writes to color, depth and optional MSAA resolve
+	VkSubpassDescription worldSubpassDesc = {
+		.flags = 0,
+		.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+		.inputAttachmentCount = 0,
+		.pInputAttachments = NULL,
+		.colorAttachmentCount = 1,
+		.pColorAttachments = &worldAttachmentRefs[0],
+		.pResolveAttachments = msaaEnabled ? &worldAttachmentRefs[2] : NULL,
+		.pDepthStencilAttachment = &worldAttachmentRefs[1],
+		.preserveAttachmentCount = 0,
+		.pPreserveAttachments = NULL
+	};
+
+	/*
+	 * world warp setup
+	 */
+	VkAttachmentDescription warpAttachments[] = {
+		// color attachment - input from RP_WORLD renderpass
+		{
+			.flags = 0,
+			.format = vk_swapchain.format,
+			.samples = VK_SAMPLE_COUNT_1_BIT,
+			.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+			.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+			.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+		},
+		// color attachment output - warped/postprocessed image that ends up in RP_UI
+		{
+			.flags = 0,
+			.format = vk_swapchain.format,
+			.samples = VK_SAMPLE_COUNT_1_BIT,
+			.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+			.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+		}
+	};
+
+	VkAttachmentReference warpAttachmentRef = {
+		// output color
+		.attachment = 1,
+		.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+	};
+
+	// world view postprocess writes to a separate color buffer
+	VkSubpassDescription warpSubpassDescs[] = {
+		{
+			.flags = 0,
+			.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+			.inputAttachmentCount = 0,
+			.pInputAttachments = NULL,
+			.colorAttachmentCount = 1,
+			.pColorAttachments = &warpAttachmentRef,
+			.pResolveAttachments = NULL,
+			.pDepthStencilAttachment = NULL,
+			.preserveAttachmentCount = 0,
+			.pPreserveAttachments = NULL
+		}
+	};
+
+	/*
+	 * UI setup
+	 */
+	VkAttachmentDescription uiAttachments[] = {
+		// color attachment
+		{
+			.flags = 0,
+			.format = vk_swapchain.format,
+			.samples = VK_SAMPLE_COUNT_1_BIT,
+			.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+			.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+			.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+		},
+		// depth attachment - because of player model preview in settings screen
+		{
+			.flags = 0,
+			.format = QVk_FindDepthFormat(),
+			.samples = VK_SAMPLE_COUNT_1_BIT,
+			.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+			.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+			.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+		},
+		// swapchain presentation
+		{
+			.flags = 0,
+			.format = vk_swapchain.format,
+			.samples = VK_SAMPLE_COUNT_1_BIT,
+			.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+			.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+			.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+			.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+		}
+	};
+
+	// UI renderpass writes to depth (for player model in setup screen) and outputs to swapchain
+	VkAttachmentReference uiAttachmentRefs[] = {
+		// depth
+		{
+			.attachment = 1,
+			.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+		},
+		// swapchain output
+		{
+			.attachment = 2,
+			.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+		}
+	};
+
+	VkSubpassDescription uiSubpassDesc = {
+		.flags = 0,
+		.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+		.inputAttachmentCount = 0,
+		.pInputAttachments = NULL,
+		.colorAttachmentCount = 1,
+		.pColorAttachments = &uiAttachmentRefs[1],
+		.pResolveAttachments = NULL,
+		.pDepthStencilAttachment = &uiAttachmentRefs[0],
+		.preserveAttachmentCount = 0,
+		.pPreserveAttachments = NULL
+	};
+
+	/*
+	 * create the render passes
+	 */
+	// we're using 3 render passes which depend on each other (main color -> warp/postprocessing -> ui)
+	VkSubpassDependency subpassDeps[2] = {
+		{
+		.srcSubpass = VK_SUBPASS_EXTERNAL,
+		.dstSubpass = 0,
+		.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+		.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+		.srcAccessMask = VK_ACCESS_SHADER_READ_BIT,
+		.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+		.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
+		},
+		{
+		.srcSubpass = 0,
+		.dstSubpass = VK_SUBPASS_EXTERNAL,
+		.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+		.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+		.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+		.dstAccessMask = VK_ACCESS_SHADER_READ_BIT,
+		.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
+		}
+	};
+
+	VkRenderPassCreateInfo rpCreateInfos[] = {
+		// offscreen world rendering to color buffer (RP_WORLD)
+		{
+			.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+			.pNext = NULL,
+			.flags = 0,
+			.attachmentCount = msaaEnabled ? 3 : 2,
+			.pAttachments = worldAttachments,
+			.subpassCount = 1,
+			.pSubpasses = &worldSubpassDesc,
+			.dependencyCount = 2,
+			.pDependencies = subpassDeps
+		},
+		// UI rendering (RP_UI)
+		{
+			.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+			.pNext = NULL,
+			.flags = 0,
+			.attachmentCount = 3,
+			.pAttachments = uiAttachments,
+			.subpassCount = 1,
+			.pSubpasses = &uiSubpassDesc,
+			.dependencyCount = 2,
+			.pDependencies = subpassDeps
+		},
+		// world warp/postprocessing render pass (RP_WORLD_WARP)
+		{
+			.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+			.pNext = NULL,
+			.flags = 0,
+			.attachmentCount = 2,
+			.pAttachments = warpAttachments,
+			.subpassCount = 1,
+			.pSubpasses = warpSubpassDescs,
+			.dependencyCount = 2,
+			.pDependencies = subpassDeps
+		}
+	};
+
+	for (int i = 0; i < RP_COUNT; ++i)
+	{
+		VkResult res = vkCreateRenderPass(vk_device.logical, &rpCreateInfos[i], NULL, &vk_renderpasses[i].rp);
+		if (res != VK_SUCCESS)
+		{
+			ri.Con_Printf(PRINT_ALL, "CreateRenderpasses(): renderpass #%d create error: %d\n", i, QVk_GetError(res));
 			return res;
 		}
 	}
 
-	return res;
+	return VK_SUCCESS;
 }
 
 // internal helper
 static void CreateDrawBuffers()
 {
-	QVk_CreateDepthBuffer(vk_renderpasses[RT_STANDARD].sampleCount, &vk_depthbuffer);
-	ri.Con_Printf(PRINT_ALL, "...created depth buffer\n");
-	QVk_CreateDepthBuffer(vk_renderpasses[RT_MSAA].sampleCount, &vk_msaaDepthbuffer);
-	ri.Con_Printf(PRINT_ALL, "...created MSAAx%d depth buffer\n", vk_renderpasses[1].sampleCount);
-	QVk_CreateColorBuffer(vk_renderpasses[RT_MSAA].sampleCount, &vk_msaaColorbuffer);
-	ri.Con_Printf(PRINT_ALL, "...created MSAAx%d color buffer\n", vk_renderpasses[1].sampleCount);
+	QVk_CreateDepthBuffer(vk_renderpasses[RP_WORLD].sampleCount, &vk_depthbuffer);
+	ri.Con_Printf(PRINT_ALL, "...created world view depth buffer\n");
+	QVk_CreateDepthBuffer(VK_SAMPLE_COUNT_1_BIT, &vk_ui_depthbuffer);
+	ri.Con_Printf(PRINT_ALL, "...created UI depth buffer\n");
+	QVk_CreateColorBuffer(VK_SAMPLE_COUNT_1_BIT, &vk_colorbuffer, VK_IMAGE_USAGE_SAMPLED_BIT);
+	ri.Con_Printf(PRINT_ALL, "...created world view color buffer\n");
+	QVk_CreateColorBuffer(VK_SAMPLE_COUNT_1_BIT, &vk_colorbufferWarp, VK_IMAGE_USAGE_SAMPLED_BIT);
+	ri.Con_Printf(PRINT_ALL, "...created world postpocess color buffer\n");
+	QVk_CreateColorBuffer(vk_renderpasses[RP_WORLD].sampleCount, &vk_msaaColorbuffer, 0);
+	ri.Con_Printf(PRINT_ALL, "...created MSAAx%d color buffer\n", vk_renderpasses[RP_WORLD].sampleCount);
 }
 
 // internal helper
@@ -382,7 +721,9 @@ static void DestroyDrawBuffer(qvktexture_t *drawBuffer)
 static void DestroyDrawBuffers()
 {
 	DestroyDrawBuffer(&vk_depthbuffer);
-	DestroyDrawBuffer(&vk_msaaDepthbuffer);
+	DestroyDrawBuffer(&vk_ui_depthbuffer);
+	DestroyDrawBuffer(&vk_colorbuffer);
+	DestroyDrawBuffer(&vk_colorbufferWarp);
 	DestroyDrawBuffer(&vk_msaaColorbuffer);
 }
 
@@ -742,6 +1083,8 @@ static void CreatePipelines()
 	VK_VERTINFO(RGB_RGBA_RG, sizeof(float) * 9,	VK_INPUTATTR_DESC(0, VK_FORMAT_R32G32B32_SFLOAT, 0),
 												VK_INPUTATTR_DESC(1, VK_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 3),
 												VK_INPUTATTR_DESC(2, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 7));
+	// no vertices passed to the pipeline (postprocessing)
+	VkPipelineVertexInputStateCreateInfo vertInfoNull = VK_NULL_VERTEXINPUT_CINF;
 
 	// shared descriptor set layouts
 	VkDescriptorSetLayout samplerUboDsLayouts[] = { vk_samplerDescSetLayout, vk_uboDescSetLayout };
@@ -761,95 +1104,101 @@ static void CreatePipelines()
 	// textured quad pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, basic, basic);
 	vk_drawTexQuadPipeline.depthTestEnable = VK_FALSE;
-	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRG_RG, &vk_drawTexQuadPipeline, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRG_RG, &vk_drawTexQuadPipeline, &vk_renderpasses[RP_UI], shaders, 2, &pushConstantRange);
 
 	// draw particles pipeline (using a texture)
 	VK_LOAD_VERTFRAG_SHADERS(shaders, particle, basic);
 	vk_drawParticlesPipeline.depthWriteEnable = VK_FALSE;
 	vk_drawParticlesPipeline.blendOpts.blendEnable = VK_TRUE;
-	QVk_CreatePipeline(&vk_samplerDescSetLayout, 1, &vertInfoRGB_RGBA_RG, &vk_drawParticlesPipeline, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(&vk_samplerDescSetLayout, 1, &vertInfoRGB_RGBA_RG, &vk_drawParticlesPipeline, &vk_renderpasses[RP_WORLD], shaders, 2, &pushConstantRange);
 
 	// draw particles pipeline (using point list)
 	VK_LOAD_VERTFRAG_SHADERS(shaders, point_particle, point_particle);
 	vk_drawPointParticlesPipeline.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
 	vk_drawPointParticlesPipeline.depthWriteEnable = VK_FALSE;
 	vk_drawPointParticlesPipeline.blendOpts.blendEnable = VK_TRUE;
-	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRGB_RGBA, &vk_drawPointParticlesPipeline, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRGB_RGBA, &vk_drawPointParticlesPipeline, &vk_renderpasses[RP_WORLD], shaders, 2, &pushConstantRange);
 
 	// colored quad pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, basic_color_quad, basic_color_quad);
-	vk_drawColorQuadPipeline.depthTestEnable = VK_FALSE;
-	vk_drawColorQuadPipeline.blendOpts.blendEnable = VK_TRUE;
-	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRG, &vk_drawColorQuadPipeline, shaders, 2, &pushConstantRange);
+	for (int i = 0; i < 2; ++i)
+	{
+		vk_drawColorQuadPipeline[i].depthTestEnable = VK_FALSE;
+		vk_drawColorQuadPipeline[i].blendOpts.blendEnable = VK_TRUE;
+		QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRG, &vk_drawColorQuadPipeline[i], &vk_renderpasses[i], shaders, 2, &pushConstantRange);
+	}
 
 	// untextured null model
 	VK_LOAD_VERTFRAG_SHADERS(shaders, nullmodel, basic_color_quad);
 	vk_drawNullModel.cullMode = VK_CULL_MODE_NONE;
 	vk_drawNullModel.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRGB_RGB, &vk_drawNullModel, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRGB_RGB, &vk_drawNullModel, &vk_renderpasses[RP_WORLD], shaders, 2, &pushConstantRange);
 
 	// textured model
 	VK_LOAD_VERTFRAG_SHADERS(shaders, model, model);
-	vk_drawModelPipelineStrip.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
-	vk_drawModelPipelineStrip.blendOpts.blendEnable = VK_TRUE;
-	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawModelPipelineStrip, shaders, 2, &pushConstantRange);
+	for (int i = 0; i < 2; ++i)
+	{
+		vk_drawModelPipelineStrip[i].topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+		vk_drawModelPipelineStrip[i].blendOpts.blendEnable = VK_TRUE;
+		QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawModelPipelineStrip[i], &vk_renderpasses[i], shaders, 2, &pushConstantRange);
 
-	vk_drawModelPipelineFan.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-	vk_drawModelPipelineFan.blendOpts.blendEnable = VK_TRUE;
-	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawModelPipelineFan, shaders, 2, &pushConstantRange);
+		vk_drawModelPipelineFan[i].topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		vk_drawModelPipelineFan[i].blendOpts.blendEnable = VK_TRUE;
+		QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawModelPipelineFan[i], &vk_renderpasses[i], shaders, 2, &pushConstantRange);
+	}
 
 	// dedicated model pipelines for translucent objects with depth write disabled
 	vk_drawNoDepthModelPipelineStrip.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
 	vk_drawNoDepthModelPipelineStrip.depthWriteEnable = VK_FALSE;
 	vk_drawNoDepthModelPipelineStrip.blendOpts.blendEnable = VK_TRUE;
-	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawNoDepthModelPipelineStrip, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawNoDepthModelPipelineStrip, &vk_renderpasses[RP_WORLD], shaders, 2, &pushConstantRange);
 
 	vk_drawNoDepthModelPipelineFan.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	vk_drawNoDepthModelPipelineFan.depthWriteEnable = VK_FALSE;
 	vk_drawNoDepthModelPipelineFan.blendOpts.blendEnable = VK_TRUE;
-	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawNoDepthModelPipelineFan, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawNoDepthModelPipelineFan, &vk_renderpasses[RP_WORLD], shaders, 2, &pushConstantRange);
 
 	// dedicated model pipelines for when left-handed weapon model is drawn
 	vk_drawLefthandModelPipelineStrip.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
 	vk_drawLefthandModelPipelineStrip.cullMode = VK_CULL_MODE_FRONT_BIT;
-	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawLefthandModelPipelineStrip, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawLefthandModelPipelineStrip, &vk_renderpasses[RP_WORLD], shaders, 2, &pushConstantRange);
 
 	vk_drawLefthandModelPipelineFan.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	vk_drawLefthandModelPipelineFan.cullMode = VK_CULL_MODE_FRONT_BIT;
-	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawLefthandModelPipelineFan, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RGBA_RG, &vk_drawLefthandModelPipelineFan, &vk_renderpasses[RP_WORLD], shaders, 2, &pushConstantRange);
 
 	// draw sprite pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, sprite, basic);
 	vk_drawSpritePipeline.blendOpts.blendEnable = VK_TRUE;
-	QVk_CreatePipeline(&vk_samplerDescSetLayout, 1, &vertInfoRGB_RG, &vk_drawSpritePipeline, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(&vk_samplerDescSetLayout, 1, &vertInfoRGB_RG, &vk_drawSpritePipeline, &vk_renderpasses[RP_WORLD], shaders, 2, &pushConstantRange);
 
 	// draw polygon pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, polygon, basic);
 	vk_drawPolyPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	vk_drawPolyPipeline.blendOpts.blendEnable = VK_TRUE;
-	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RG, &vk_drawPolyPipeline, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RG, &vk_drawPolyPipeline, &vk_renderpasses[RP_WORLD], shaders, 2, &pushConstantRange);
 
 	// draw lightmapped polygon
 	VK_LOAD_VERTFRAG_SHADERS(shaders, polygon_lmap, polygon_lmap);
 	vk_drawPolyLmapPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-	QVk_CreatePipeline(samplerUboLmapDsLayouts, 3, &vertInfoRGB_RG_RG, &vk_drawPolyLmapPipeline, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(samplerUboLmapDsLayouts, 3, &vertInfoRGB_RG_RG, &vk_drawPolyLmapPipeline, &vk_renderpasses[RP_WORLD], shaders, 2, &pushConstantRange);
 
 	// draw polygon with warp effect (liquid) pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, polygon_warp, basic);
 	vk_drawPolyWarpPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	vk_drawPolyWarpPipeline.blendOpts.blendEnable = VK_TRUE;
-	QVk_CreatePipeline(samplerUboLmapDsLayouts, 2, &vertInfoRGB_RG, &vk_drawPolyWarpPipeline, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(samplerUboLmapDsLayouts, 2, &vertInfoRGB_RG, &vk_drawPolyWarpPipeline, &vk_renderpasses[RP_WORLD], shaders, 2, &pushConstantRange);
 
 	// draw beam pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, beam, basic_color_quad);
 	vk_drawBeamPipeline.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
 	vk_drawBeamPipeline.depthWriteEnable = VK_FALSE;
 	vk_drawBeamPipeline.blendOpts.blendEnable = VK_TRUE;
-	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRGB, &vk_drawBeamPipeline, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRGB, &vk_drawBeamPipeline, &vk_renderpasses[RP_WORLD], shaders, 2, &pushConstantRange);
 
 	// draw skybox pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, skybox, basic);
-	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RG, &vk_drawSkyboxPipeline, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(samplerUboDsLayouts, 2, &vertInfoRGB_RG, &vk_drawSkyboxPipeline, &vk_renderpasses[RP_WORLD], shaders, 2, &pushConstantRange);
 
 	// draw dynamic light pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, d_light, basic_color_quad);
@@ -861,7 +1210,7 @@ static void CreatePipelines()
 	vk_drawDLightPipeline.blendOpts.dstColorBlendFactor = VK_BLEND_FACTOR_ONE;
 	vk_drawDLightPipeline.blendOpts.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
 	vk_drawDLightPipeline.blendOpts.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRGB_RGB, &vk_drawDLightPipeline, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRGB_RGB, &vk_drawDLightPipeline, &vk_renderpasses[RP_WORLD], shaders, 2, &pushConstantRange);
 
 	// vk_showtris render pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, d_light, basic_color_quad);
@@ -869,17 +1218,31 @@ static void CreatePipelines()
 	vk_showTrisPipeline.depthTestEnable = VK_FALSE;
 	vk_showTrisPipeline.depthWriteEnable = VK_FALSE;
 	vk_showTrisPipeline.topology = VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
-	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRGB_RGB, &vk_showTrisPipeline, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRGB_RGB, &vk_showTrisPipeline, &vk_renderpasses[RP_WORLD], shaders, 2, &pushConstantRange);
 
 	//vk_shadows render pipeline
 	VK_LOAD_VERTFRAG_SHADERS(shaders, shadows, basic_color_quad);
 	vk_shadowsPipelineStrip.blendOpts.blendEnable = VK_TRUE;
 	vk_shadowsPipelineStrip.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
-	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRGB, &vk_shadowsPipelineStrip, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRGB, &vk_shadowsPipelineStrip, &vk_renderpasses[RP_WORLD], shaders, 2, &pushConstantRange);
 
 	vk_shadowsPipelineFan.blendOpts.blendEnable = VK_TRUE;
 	vk_shadowsPipelineFan.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRGB, &vk_shadowsPipelineFan, shaders, 2, &pushConstantRange);
+	QVk_CreatePipeline(&vk_uboDescSetLayout, 1, &vertInfoRGB, &vk_shadowsPipelineFan, &vk_renderpasses[RP_WORLD], shaders, 2, &pushConstantRange);
+
+	// underwater world warp pipeline (postprocess)
+	VK_LOAD_VERTFRAG_SHADERS(shaders, world_warp, world_warp);
+	vk_worldWarpPipeline.depthTestEnable = VK_FALSE;
+	vk_worldWarpPipeline.depthWriteEnable = VK_FALSE;
+	vk_worldWarpPipeline.cullMode = VK_CULL_MODE_NONE;
+	QVk_CreatePipeline(&vk_samplerDescSetLayout, 1, &vertInfoNull, &vk_worldWarpPipeline, &vk_renderpasses[RP_WORLD_WARP], shaders, 2, &pushConstantRange);
+
+	// postprocessing pipeline
+	VK_LOAD_VERTFRAG_SHADERS(shaders, postprocess, postprocess);
+	vk_postprocessPipeline.depthTestEnable = VK_FALSE;
+	vk_postprocessPipeline.depthWriteEnable = VK_FALSE;
+	vk_postprocessPipeline.cullMode = VK_CULL_MODE_NONE;
+	QVk_CreatePipeline(&vk_samplerDescSetLayout, 1, &vertInfoNull, &vk_postprocessPipeline, &vk_renderpasses[RP_UI], shaders, 2, NULL);
 
 	// final shader cleanup
 	vkDestroyShaderModule(vk_device.logical, shaders[0].module, NULL);
@@ -898,10 +1261,13 @@ void QVk_Shutdown( void )
 		ri.Con_Printf(PRINT_ALL, "Shutting down Vulkan\n");
 
 		QVk_DestroyPipeline(&vk_drawTexQuadPipeline);
-		QVk_DestroyPipeline(&vk_drawColorQuadPipeline);
 		QVk_DestroyPipeline(&vk_drawNullModel);
-		QVk_DestroyPipeline(&vk_drawModelPipelineStrip);
-		QVk_DestroyPipeline(&vk_drawModelPipelineFan);
+		QVk_DestroyPipeline(&vk_drawColorQuadPipeline[RP_WORLD]);
+		QVk_DestroyPipeline(&vk_drawModelPipelineStrip[RP_WORLD]);
+		QVk_DestroyPipeline(&vk_drawModelPipelineFan[RP_WORLD]);
+		QVk_DestroyPipeline(&vk_drawColorQuadPipeline[RP_UI]);
+		QVk_DestroyPipeline(&vk_drawModelPipelineStrip[RP_UI]);
+		QVk_DestroyPipeline(&vk_drawModelPipelineFan[RP_UI]);
 		QVk_DestroyPipeline(&vk_drawNoDepthModelPipelineStrip);
 		QVk_DestroyPipeline(&vk_drawNoDepthModelPipelineFan);
 		QVk_DestroyPipeline(&vk_drawLefthandModelPipelineStrip);
@@ -918,42 +1284,44 @@ void QVk_Shutdown( void )
 		QVk_DestroyPipeline(&vk_showTrisPipeline);
 		QVk_DestroyPipeline(&vk_shadowsPipelineStrip);
 		QVk_DestroyPipeline(&vk_shadowsPipelineFan);
+		QVk_DestroyPipeline(&vk_worldWarpPipeline);
+		QVk_DestroyPipeline(&vk_postprocessPipeline);
 		QVk_FreeBuffer(&vk_texRectVbo);
 		QVk_FreeBuffer(&vk_colorRectVbo);
 		QVk_FreeBuffer(&vk_rectIbo);
 		for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 		{
-			if(vk_dynUniformBuffers[i].buffer != VK_NULL_HANDLE)
+			if (vk_dynUniformBuffers[i].buffer != VK_NULL_HANDLE)
 			{
 				vmaUnmapMemory(vk_malloc, vk_dynUniformBuffers[i].allocation);
 				QVk_FreeBuffer(&vk_dynUniformBuffers[i]);
 			}
-			if(vk_dynIndexBuffers[i].buffer != VK_NULL_HANDLE)
+			if (vk_dynIndexBuffers[i].buffer != VK_NULL_HANDLE)
 			{
 				vmaUnmapMemory(vk_malloc, vk_dynIndexBuffers[i].allocation);
 				QVk_FreeBuffer(&vk_dynIndexBuffers[i]);
 			}
-			if(vk_dynVertexBuffers[i].buffer != VK_NULL_HANDLE)
+			if (vk_dynVertexBuffers[i].buffer != VK_NULL_HANDLE)
 			{
 				vmaUnmapMemory(vk_malloc, vk_dynVertexBuffers[i].allocation);
 				QVk_FreeBuffer(&vk_dynVertexBuffers[i]);
 			}
-			if(vk_stagingBuffers[i].buffer.buffer != VK_NULL_HANDLE)
+			if (vk_stagingBuffers[i].buffer.buffer != VK_NULL_HANDLE)
 			{
 				vmaUnmapMemory(vk_malloc, vk_stagingBuffers[i].buffer.allocation);
 				QVk_FreeBuffer(&vk_stagingBuffers[i].buffer);
 				vkDestroyFence(vk_device.logical, vk_stagingBuffers[i].fence, NULL);
 			}
 		}
-		if(vk_descriptorPool != VK_NULL_HANDLE)
+		if (vk_descriptorPool != VK_NULL_HANDLE)
 			vkDestroyDescriptorPool(vk_device.logical, vk_descriptorPool, NULL);
-		if(vk_uboDescSetLayout != VK_NULL_HANDLE)
+		if (vk_uboDescSetLayout != VK_NULL_HANDLE)
 			vkDestroyDescriptorSetLayout(vk_device.logical, vk_uboDescSetLayout, NULL);
-		if(vk_samplerDescSetLayout != VK_NULL_HANDLE)
+		if (vk_samplerDescSetLayout != VK_NULL_HANDLE)
 			vkDestroyDescriptorSetLayout(vk_device.logical, vk_samplerDescSetLayout, NULL);
-		if(vk_samplerLightmapDescSetLayout != VK_NULL_HANDLE)
+		if (vk_samplerLightmapDescSetLayout != VK_NULL_HANDLE)
 			vkDestroyDescriptorSetLayout(vk_device.logical, vk_samplerLightmapDescSetLayout, NULL);
-		for (int i = 0; i < RT_COUNT; i++)
+		for (int i = 0; i < RP_COUNT; i++)
 		{
 			if (vk_renderpasses[i].rp != VK_NULL_HANDLE)
 				vkDestroyRenderPass(vk_device.logical, vk_renderpasses[i].rp, NULL);
@@ -969,7 +1337,7 @@ void QVk_Shutdown( void )
 			vkDestroyCommandPool(vk_device.logical, vk_commandPool, NULL);
 		if (vk_transferCommandPool != VK_NULL_HANDLE)
 			vkDestroyCommandPool(vk_device.logical, vk_transferCommandPool, NULL);
-		if(vk_stagingCommandPool != VK_NULL_HANDLE)
+		if (vk_stagingCommandPool != VK_NULL_HANDLE)
 			vkDestroyCommandPool(vk_device.logical, vk_stagingCommandPool, NULL);
 		DestroySamplers();
 		DestroyFramebuffers();
@@ -999,7 +1367,6 @@ void QVk_Shutdown( void )
 
 		vkDestroyInstance(vk_instance, NULL);
 		vk_instance = VK_NULL_HANDLE;
-		vk_activeFramebuffer = VK_NULL_HANDLE;
 		vk_activeCmdbuffer = VK_NULL_HANDLE;
 		vk_descriptorPool = VK_NULL_HANDLE;
 		vk_uboDescSetLayout = VK_NULL_HANDLE;
@@ -1194,21 +1561,14 @@ qboolean QVk_Init()
 	ri.Con_Printf(PRINT_ALL, "...created synchronization objects\n");
 
 	// setup render passes
-	for (int i = 0; i < RT_COUNT; ++i)
+	for (int i = 0; i < RP_COUNT; ++i)
 	{
 		vk_renderpasses[i].colorLoadOp = vk_clear->value ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	}
 
-	res = QVk_CreateRenderpass(&vk_renderpasses[0]);
-	if (res != VK_SUCCESS)
-	{
-		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan renderpass: %s\n", QVk_GetError(res));
-		return false;
-	}
-	ri.Con_Printf(PRINT_ALL, "...created Vulkan renderpass\n");
 	VkSampleCountFlagBits msaaMode = GetSampleCount();
 	VkSampleCountFlagBits supportedMsaa = vk_device.properties.limits.framebufferColorSampleCounts;
-	if(!(supportedMsaa & msaaMode))
+	if (!(supportedMsaa & msaaMode))
 	{
 		ri.Con_Printf(PRINT_ALL, "MSAAx%d mode not supported, aborting...\n", msaaMode);
 		ri.Cvar_Set("vk_msaa", "0");
@@ -1217,15 +1577,16 @@ qboolean QVk_Init()
 		vk_msaa->modified = false;
 	}
 
-	if (msaaMode != VK_SAMPLE_COUNT_1_BIT)
-		vk_renderpasses[1].sampleCount = msaaMode;
-	res = QVk_CreateRenderpass(&vk_renderpasses[1]);
+	vk_renderpasses[RP_WORLD].sampleCount = msaaMode;
+
+	// setup render passes
+	res = CreateRenderpasses();
 	if (res != VK_SUCCESS)
 	{
-		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan MSAAx%d renderpass: %s\n", QVk_GetError(res), vk_renderpasses[1].sampleCount);
+		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan render passes: %s\n", QVk_GetError(res));
 		return false;
 	}
-	ri.Con_Printf(PRINT_ALL, "...created Vulkan MSAAx%d renderpass\n", vk_renderpasses[1].sampleCount);
+	ri.Con_Printf(PRINT_ALL, "...created %d Vulkan render passes\n", RP_COUNT);
 
 	// setup command pools
 	res = QVk_CreateCommandPool(&vk_commandPool, vk_device.gfxFamilyIndex);
@@ -1255,20 +1616,13 @@ qboolean QVk_Init()
 	ri.Con_Printf(PRINT_ALL, "...created %d Vulkan image view(s)\n", vk_swapchain.imageCount);
 
 	// setup framebuffers
-	res = CreateFramebuffers(&vk_renderpasses[RT_STANDARD], RT_STANDARD);
+	res = CreateFramebuffers();
 	if (res != VK_SUCCESS)
 	{
 		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan framebuffers: %s\n", QVk_GetError(res));
 		return false;
 	}
 	ri.Con_Printf(PRINT_ALL, "...created %d Vulkan framebuffers\n", vk_swapchain.imageCount);
-	res = CreateFramebuffers(&vk_renderpasses[RT_MSAA], RT_MSAA);
-	if (res != VK_SUCCESS)
-	{
-		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan MSAA framebuffers: %s\n", QVk_GetError(res));
-		return false;
-	}
-	ri.Con_Printf(PRINT_ALL, "...created %d Vulkan MSAA framebuffers\n", vk_swapchain.imageCount);
 
 	// setup command buffers (double buffering)
 	vk_commandbuffers = (VkCommandBuffer *)malloc(NUM_CMDBUFFERS * sizeof(VkCommandBuffer));
@@ -1292,16 +1646,6 @@ qboolean QVk_Init()
 	ri.Con_Printf(PRINT_ALL, "...created %d Vulkan commandbuffers\n", NUM_CMDBUFFERS);
 
 	// initialize tracker variables
-	if (msaaMode != VK_SAMPLE_COUNT_1_BIT)
-	{
-		vk_activeRenderpass  = vk_renderpasses[RT_MSAA];
-		vk_activeFramebuffer = *vk_framebuffers[RT_MSAA];
-	}
-	else
-	{
-		vk_activeRenderpass  = vk_renderpasses[RT_STANDARD];
-		vk_activeFramebuffer = *vk_framebuffers[RT_STANDARD];
-	}
 	vk_activeCmdbuffer = vk_commandbuffers[vk_activeBufferIdx];
 
 	CreateDescriptorSetLayouts();
@@ -1316,6 +1660,20 @@ qboolean QVk_Init()
 	RebuildTriangleFanIndexBuffer();
 	CreatePipelines();
 	CreateSamplers();
+
+	// main and world warp color buffers will be sampled for postprocessing effects, so they need descriptors and samplers
+	VkDescriptorSetAllocateInfo dsAllocInfo = {
+		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+		.pNext = NULL,
+		.descriptorPool = vk_descriptorPool,
+		.descriptorSetCount = 1,
+		.pSetLayouts = &vk_samplerDescSetLayout
+	};
+
+	VK_VERIFY(vkAllocateDescriptorSets(vk_device.logical, &dsAllocInfo, &vk_colorbuffer.descriptorSet));
+	QVk_UpdateTextureSampler(&vk_colorbuffer, S_NEAREST);
+	VK_VERIFY(vkAllocateDescriptorSets(vk_device.logical, &dsAllocInfo, &vk_colorbufferWarp.descriptorSet));
+	QVk_UpdateTextureSampler(&vk_colorbufferWarp, S_NEAREST);
 
 	return true;
 }
@@ -1334,7 +1692,6 @@ VkResult QVk_BeginFrame()
 
 	VkResult result = vkAcquireNextImageKHR(vk_device.logical, vk_swapchain.sc, UINT32_MAX, vk_imageAvailableSemaphores[vk_activeBufferIdx], VK_NULL_HANDLE, &vk_imageIndex);
 	vk_activeCmdbuffer = vk_commandbuffers[vk_activeBufferIdx];
-	vk_activeFramebuffer = (vk_activeRenderpass.sampleCount == VK_SAMPLE_COUNT_1_BIT) ? vk_framebuffers[RT_STANDARD][vk_imageIndex] : vk_framebuffers[RT_MSAA][vk_imageIndex];
 
 	// swap dynamic buffers
 	vk_activeDynBufferIdx = (vk_activeDynBufferIdx + 1) % NUM_DYNBUFFERS;
@@ -1369,21 +1726,6 @@ VkResult QVk_BeginFrame()
 
 	VK_VERIFY(vkBeginCommandBuffer(vk_commandbuffers[vk_activeBufferIdx], &beginInfo));
 
-	VkClearValue clearColors[2] = {
-		{ .color = { 1.f, .0f, .5f, 1.f } },
-		{ .depthStencil = { 1.f, 0 } }
-	};
-	VkRenderPassBeginInfo renderBeginInfo = {
-		.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-		.renderPass = vk_activeRenderpass.rp,
-		.framebuffer = vk_activeFramebuffer,
-		.renderArea.offset = { 0, 0 },
-		.renderArea.extent = vk_swapchain.extent,
-		.clearValueCount = 2,
-		.pClearValues = clearColors
-	};
-
-	vkCmdBeginRenderPass(vk_commandbuffers[vk_activeBufferIdx], &renderBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 	vkCmdSetViewport(vk_commandbuffers[vk_activeBufferIdx], 0, 1, &vk_viewport);
 	vkCmdSetScissor(vk_commandbuffers[vk_activeBufferIdx], 0, 1, &vk_scissor);
 
@@ -1391,11 +1733,17 @@ VkResult QVk_BeginFrame()
 	return VK_SUCCESS;
 }
 
-VkResult QVk_EndFrame()
+VkResult QVk_EndFrame(qboolean force)
 {
 	// continue only if QVk_BeginFrame() had been previously issued
 	if (!vk_frameStarted)
 		return VK_NOT_READY;
+	// this may happen if Sys_Error is issued mid-frame, so we need to properly advance the draw pipeline
+	if (force)
+	{
+		extern void R_EndWorldRenderpass(void);
+		R_EndWorldRenderpass();
+	}
 
 	// submit
 	QVk_SubmitStagingBuffers();
@@ -1406,14 +1754,14 @@ VkResult QVk_EndFrame()
 	vkCmdEndRenderPass(vk_commandbuffers[vk_activeBufferIdx]);
 	VK_VERIFY(vkEndCommandBuffer(vk_commandbuffers[vk_activeBufferIdx]));
 
-	VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+	VkPipelineStageFlags waitStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 	VkSubmitInfo submitInfo = {
 		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
 		.waitSemaphoreCount = 1,
 		.pWaitSemaphores = &vk_imageAvailableSemaphores[vk_activeBufferIdx],
 		.signalSemaphoreCount = 1,
 		.pSignalSemaphores = &vk_renderFinishedSemaphores[vk_activeBufferIdx],
-		.pWaitDstStageMask = waitStages,
+		.pWaitDstStageMask = &waitStages,
 		.commandBufferCount = 1,
 		.pCommandBuffers = &vk_commandbuffers[vk_activeBufferIdx]
 	};
@@ -1446,6 +1794,50 @@ VkResult QVk_EndFrame()
 	return renderResult;
 }
 
+void QVk_BeginRenderpass(qvkrenderpasstype_t rpType)
+{
+	VkClearValue clearColors[3] = {
+		{.color = { 1.f, .0f, .5f, 1.f } },
+		{.depthStencil = { 1.f, 0 } },
+		{.color = { 1.f, .0f, .5f, 1.f } },
+	};
+
+	VkRenderPassBeginInfo renderBeginInfo[] = {
+		// RP_WORLD
+		{
+			.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+			.renderPass = vk_renderpasses[RP_WORLD].rp,
+			.framebuffer = vk_framebuffers[RP_WORLD][vk_imageIndex],
+			.renderArea.offset = { 0, 0 },
+			.renderArea.extent = vk_swapchain.extent,
+			.clearValueCount = vk_renderpasses[RP_WORLD].sampleCount != VK_SAMPLE_COUNT_1_BIT ? 3 : 2,
+			.pClearValues = clearColors
+		},
+		// RP_UI
+		{
+			.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+			.renderPass = vk_renderpasses[RP_UI].rp,
+			.framebuffer = vk_framebuffers[RP_UI][vk_imageIndex],
+			.renderArea.offset = { 0, 0 },
+			.renderArea.extent = vk_swapchain.extent,
+			.clearValueCount = 2,
+			.pClearValues = clearColors
+		},
+		// RP_WORLD_WARP
+		{
+			.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+			.renderPass = vk_renderpasses[RP_WORLD_WARP].rp,
+			.framebuffer = vk_framebuffers[RP_WORLD_WARP][vk_imageIndex],
+			.renderArea.offset = { 0, 0 },
+			.renderArea.extent = vk_swapchain.extent,
+			.clearValueCount = 1,
+			.pClearValues = clearColors
+		}
+	};
+
+	vkCmdBeginRenderPass(vk_commandbuffers[vk_activeBufferIdx], &renderBeginInfo[rpType], VK_SUBPASS_CONTENTS_INLINE);
+}
+
 void QVk_RecreateSwapchain()
 {
 	vkDeviceWaitIdle( vk_device.logical );
@@ -1458,8 +1850,7 @@ void QVk_RecreateSwapchain()
 	DestroyDrawBuffers();
 	CreateDrawBuffers();
 	VK_VERIFY( CreateImageViews() );
-	VK_VERIFY( CreateFramebuffers( &vk_renderpasses[RT_STANDARD], RT_STANDARD ) );
-	VK_VERIFY( CreateFramebuffers( &vk_renderpasses[RT_MSAA], RT_MSAA ) );
+	VK_VERIFY( CreateFramebuffers() );
 }
 
 uint8_t *QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, VkDeviceSize *dstOffset)
@@ -1686,16 +2077,16 @@ VkSampler QVk_UpdateTextureSampler(qvktexture_t *texture, qvksampler_t samplerTy
 	return vk_samplers[samplerType];
 }
 
-void QVk_DrawColorRect(float *ubo, VkDeviceSize uboSize)
+void QVk_DrawColorRect(float *ubo, VkDeviceSize uboSize, qvkrenderpasstype_t rpType)
 {
 	uint32_t uboOffset;
 	VkDescriptorSet uboDescriptorSet;
 	uint8_t *vertData = QVk_GetUniformBuffer(uboSize, &uboOffset, &uboDescriptorSet);
 	memcpy(vertData, ubo, uboSize);
 
-	QVk_BindPipeline(&vk_drawColorQuadPipeline);
+	QVk_BindPipeline(&vk_drawColorQuadPipeline[rpType]);
 	VkDeviceSize offsets = 0;
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawColorQuadPipeline.layout, 0, 1, &uboDescriptorSet, 1, &uboOffset);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawColorQuadPipeline[rpType].layout, 0, 1, &uboDescriptorSet, 1, &uboOffset);
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vk_colorRectVbo.buffer, &offsets);
 	vkCmdBindIndexBuffer(vk_activeCmdbuffer, vk_rectIbo.buffer, 0, VK_INDEX_TYPE_UINT32);
 	vkCmdDrawIndexed(vk_activeCmdbuffer, 6, 1, 0, 0, 0);

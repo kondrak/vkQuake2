@@ -123,6 +123,7 @@ cvar_t	*vk_device_idx;
 cvar_t	*vid_fullscreen;
 cvar_t	*vid_gamma;
 cvar_t	*vid_ref;
+cvar_t	*viewsize;
 
 /*
 =================
@@ -561,7 +562,7 @@ void R_PolyBlend (void)
 		return;
 
 	float polyTransform[] = { 0.f, 0.f, vid.width, vid.height, v_blend[0], v_blend[1], v_blend[2], v_blend[3] };
-	QVk_DrawColorRect(polyTransform, sizeof(polyTransform));
+	QVk_DrawColorRect(polyTransform, sizeof(polyTransform), RP_WORLD);
 }
 
 //=======================================================================
@@ -666,7 +667,7 @@ void R_SetupFrame (void)
 		float clearArea[] = { (float)r_newrefdef.x / vid.width, (float)r_newrefdef.y / vid.height,
 							  (float)r_newrefdef.width / vid.width, (float)r_newrefdef.height / vid.height,
 							  .3f, .3f, .3f, 1.f };
-		QVk_DrawColorRect(clearArea, sizeof(clearArea));
+		QVk_DrawColorRect(clearArea, sizeof(clearArea), RP_UI);
 	}
 }
 
@@ -831,18 +832,6 @@ void R_SetupVulkan (void)
 	r_proj_fovx = r_newrefdef.fov_x;
 	r_proj_fovy = r_newrefdef.fov_y;
 	r_proj_aspect = (float)r_newrefdef.width / r_newrefdef.height;
-
-	// fov based fullscreen warp when player is underwater (GLQuake version)
-	if (r_newrefdef.rdflags & RDF_UNDERWATER)
-	{
-#ifndef DEG2RAD
-#	define DEG2RAD( a ) ( a * M_PI ) / 180.0F
-#endif
-		r_proj_fovx = atan(tan(DEG2RAD(r_newrefdef.fov_x) / 2) * (0.97 + sin(r_newrefdef.time * 1.5) * 0.03)) * 2 / (M_PI / 180);
-		r_proj_fovy = atan(tan(DEG2RAD(r_newrefdef.fov_y) / 2) * (1.03 - sin(r_newrefdef.time * 1.5) * 0.03)) * 2 / (M_PI / 180);
-		r_proj_aspect = tan(DEG2RAD(r_proj_fovx) / 2) / tan(DEG2RAD(r_proj_fovy) / 2);
-#undef DEG2RAD
-	}
 	Mat_Perspective(r_projection_matrix, r_vulkan_correction, r_proj_fovy, r_proj_aspect, 4, 4096);
 
 	R_SetFrustum(r_proj_fovx, r_proj_fovy);
@@ -932,13 +921,39 @@ void R_RenderView (refdef_t *fd)
 	}
 }
 
+void R_EndWorldRenderpass(void)
+{
+	// finish rendering world view to offsceen buffer
+	vkCmdEndRenderPass(vk_activeCmdbuffer);
+
+	// apply postprocessing effects (underwater view warp if the player is submerged in liquid) to offscreen buffer
+	QVk_BeginRenderpass(RP_WORLD_WARP);
+	float pushConsts[] = { r_newrefdef.rdflags & RDF_UNDERWATER ? r_newrefdef.time : 0.f, viewsize->value / 100, vid.width, vid.height };
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_worldWarpPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(pushConsts), pushConsts);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_worldWarpPipeline.layout, 0, 1, &vk_colorbuffer.descriptorSet, 0, NULL);
+	QVk_BindPipeline(&vk_worldWarpPipeline);
+	vkCmdDraw(vk_activeCmdbuffer, 3, 1, 0, 0);
+	vkCmdEndRenderPass(vk_activeCmdbuffer);
+
+	// start drawing UI
+	QVk_BeginRenderpass(RP_UI);
+}
 
 void R_SetVulkan2D (void)
 {
+	// player configuration screen renders a model using the UI renderpass, so skip finishing RP_WORLD twice
+	if (!(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
+		R_EndWorldRenderpass();
+
 	extern VkViewport vk_viewport;
 	extern VkRect2D vk_scissor;
 	vkCmdSetViewport(vk_activeCmdbuffer, 0, 1, &vk_viewport);
 	vkCmdSetScissor(vk_activeCmdbuffer, 0, 1, &vk_scissor);
+
+	// first blit offscreen color buffer with warped/postprocessed world view
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_postprocessPipeline.layout, 0, 1, &vk_colorbufferWarp.descriptorSet, 0, NULL);
+	QVk_BindPipeline(&vk_postprocessPipeline);
+	vkCmdDraw(vk_activeCmdbuffer, 3, 1, 0, 0);
 }
 
 
@@ -1048,6 +1063,7 @@ void R_Register( void )
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
 	vid_ref = ri.Cvar_Get("vid_ref", "soft", CVAR_ARCHIVE);
+	viewsize = ri.Cvar_Get("viewsize", "100", CVAR_ARCHIVE);
 
 	ri.Cmd_AddCommand("vk_strings", Vk_Strings_f);
 	ri.Cmd_AddCommand("vk_mem", Vk_Mem_f);
@@ -1192,7 +1208,7 @@ R_BeginFrame
 void R_BeginFrame( float camera_separation )
 {
 	// if ri.Sys_Error() had been issued mid-frame, we might end up here without properly submitting the image, so call QVk_EndFrame to be safe
-	QVk_EndFrame();
+	QVk_EndFrame(true);
 	/*
 	** change modes if necessary
 	*/
@@ -1243,6 +1259,8 @@ void R_BeginFrame( float camera_separation )
 		vid_fullscreen->value = false;
 		ri.Cvar_SetValue("vid_fullscreen", 0);
 	}
+
+	QVk_BeginRenderpass(RP_WORLD);
 }
 
 /*
@@ -1252,7 +1270,7 @@ R_EndFrame
 */
 void R_EndFrame( void )
 {
-	QVk_EndFrame();
+	QVk_EndFrame(false);
 }
 
 /*
@@ -1438,6 +1456,7 @@ refexport_t GetRefAPI (refimport_t rimp )
 	re.CinematicSetPalette = R_SetPalette;
 	re.BeginFrame = R_BeginFrame;
 	re.EndFrame = R_EndFrame;
+	re.EndWorldRenderpass = R_EndWorldRenderpass;
 
 	re.AppActivate = Vkimp_AppActivate;
 

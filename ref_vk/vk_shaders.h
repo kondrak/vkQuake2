@@ -97,4 +97,18 @@ extern const size_t polygon_warp_vert_size;
 // entity shadows
 extern const uint32_t shadows_vert_spv[];
 extern const size_t shadows_vert_size;
+
+// postprocess
+extern const uint32_t postprocess_vert_spv[];
+extern const size_t postprocess_vert_size;
+
+extern const uint32_t postprocess_frag_spv[];
+extern const size_t postprocess_frag_size;
+
+extern const uint32_t world_warp_vert_spv[];
+extern const size_t world_warp_vert_size;
+
+extern const uint32_t world_warp_frag_spv[];
+extern const size_t world_warp_frag_size;
+
 #endif

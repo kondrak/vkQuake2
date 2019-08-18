@@ -263,8 +263,10 @@ void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *skin, fl
 	memcpy(meshUbo.model, modelMatrix, sizeof(float) * 16);
 	memcpy(uboData, &meshUbo, sizeof(meshUbo));
 
+	// player configuration screen model is using the UI renderpass
+	int pidx = r_newrefdef.rdflags & RDF_NOWORLDMODEL ? RP_UI : RP_WORLD;
 	// non-depth write alias models don't occur with RF_WEAPONMODEL set, so no need for additional left-handed pipelines
-	qvkpipeline_t pipelines[2][4] = { { vk_drawModelPipelineStrip, vk_drawModelPipelineFan, vk_drawLefthandModelPipelineStrip, vk_drawLefthandModelPipelineFan },
+	qvkpipeline_t pipelines[2][4] = { { vk_drawModelPipelineStrip[pidx], vk_drawModelPipelineFan[pidx], vk_drawLefthandModelPipelineStrip, vk_drawLefthandModelPipelineFan },
 									  { vk_drawNoDepthModelPipelineStrip, vk_drawNoDepthModelPipelineFan, vk_drawLefthandModelPipelineStrip, vk_drawLefthandModelPipelineFan } };
 	for (int p = 0; p < 2; p++)
 	{

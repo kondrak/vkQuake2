@@ -45,6 +45,7 @@ cvar_t		*vid_fullscreen;
 cvar_t		*vid_hudscale;
 cvar_t		*r_customwidth;
 cvar_t		*r_customheight;
+cvar_t		*viewsize;
 
 // Global variables used internally by this module
 viddef_t	viddef;				// global video state; used by other modules
@@ -416,8 +417,9 @@ void VID_Init (void)
 	vid_ypos = Cvar_Get ("vid_ypos", "22", CVAR_ARCHIVE);
 	vid_fullscreen = Cvar_Get ("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = Cvar_Get( "vid_gamma", "1", CVAR_ARCHIVE );
-	r_customwidth = Cvar_Get("r_customwidth", "1024", CVAR_ARCHIVE);
-	r_customheight = Cvar_Get("r_customheight", "768", CVAR_ARCHIVE);
+	r_customwidth = Cvar_Get( "r_customwidth", "1024", CVAR_ARCHIVE );
+	r_customheight = Cvar_Get( "r_customheight", "768", CVAR_ARCHIVE );
+	viewsize = Cvar_Get( "viewsize", "100", CVAR_ARCHIVE );
 
 	/* Add some console commands that we want to handle */
 	Cmd_AddCommand ("vid_restart", VID_Restart_f);

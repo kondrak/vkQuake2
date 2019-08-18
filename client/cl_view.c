@@ -39,6 +39,7 @@ cvar_t		*cl_testblend;
 cvar_t		*cl_stats;
 
 extern	cvar_t	*vid_hudscale;
+extern	cvar_t	*viewsize;
 
 int			r_numdlights;
 dlight_t	r_dlights[MAX_DLIGHTS];
@@ -447,10 +448,16 @@ void V_RenderView( float stereo_separation )
 	extern int entitycmpfnc( const entity_t *, const entity_t * );
 
 	if (cls.state != ca_active)
+	{
+		re.EndWorldRenderpass();
 		return;
+	}
 
 	if (!cl.refresh_prepped)
+	{
+		re.EndWorldRenderpass();
 		return;			// still loading
+	}
 
 	if (cl_timedemo->value)
 	{
@@ -461,9 +468,10 @@ void V_RenderView( float stereo_separation )
 
 	// an invalid frame will just use the exact previous refdef
 	// we can't use the old frame if the video mode has changed, though...
-	if ( cl.frame.valid && (cl.force_refdef || !cl_paused->value) )
+	if ( cl.frame.valid && (cl.force_refdef || !cl_paused->value || viewsize->modified) )
 	{
 		cl.force_refdef = false;
+		viewsize->modified = false;
 
 		V_ClearScene ();
 

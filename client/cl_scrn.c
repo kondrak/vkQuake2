@@ -1,5 +1,6 @@
 /*
 Copyright (C) 1997-2001 Id Software, Inc.
+Copyright (C) 2018-2019 Krzysztof Kondrak
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -1260,6 +1261,7 @@ void SCR_UpdateScreen (void)
 		// end frame and force video restart if swapchain is out of date
 		if (vid_ref->modified)
 		{
+			re.EndWorldRenderpass();
 			re.EndFrame();
 			return;
 		}
@@ -1268,6 +1270,7 @@ void SCR_UpdateScreen (void)
 		{	//  loading plaque over black screen
 			int		w, h;
 
+			re.EndWorldRenderpass();
 			re.CinematicSetPalette(NULL);
 			scr_draw_loading = false;
 			re.DrawGetPicSize (&w, &h, "loading");
@@ -1286,6 +1289,7 @@ void SCR_UpdateScreen (void)
 					re.CinematicSetPalette(NULL);
 					cl.cinematicpalette_active = false;
 				}
+				re.EndWorldRenderpass();
 				M_Draw ();
 //				re.EndFrame();
 //				return;
@@ -1297,12 +1301,14 @@ void SCR_UpdateScreen (void)
 					re.CinematicSetPalette(NULL);
 					cl.cinematicpalette_active = false;
 				}
+				re.EndWorldRenderpass();
 				SCR_DrawConsole ();
 //				re.EndFrame();
 //				return;
 			}
 			else
 			{
+				re.EndWorldRenderpass();
 				SCR_DrawCinematic();
 //				re.EndFrame();
 //				return;
@@ -1321,10 +1327,10 @@ void SCR_UpdateScreen (void)
 			// do 3D refresh drawing, and then update the screen
 			SCR_CalcVrect ();
 
+			V_RenderView ( separation[i] );
+
 			// clear any dirty part of the background
 			SCR_TileClear ();
-
-			V_RenderView ( separation[i] );
 
 			SCR_DrawStats ();
 			if (cl.frame.playerstate.stats[STAT_LAYOUTS] & 1)

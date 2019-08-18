@@ -39,7 +39,6 @@
 		E2ED827821F628D10009C478 /* vk_mem_alloc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2ED826521F628D10009C478 /* vk_mem_alloc.cpp */; settings = {COMPILER_FLAGS = "-Wno-conditional-uninitialized"; }; };
 		E2ED827921F628D10009C478 /* vk_image.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED826621F628D10009C478 /* vk_image.c */; };
 		E2ED827A21F628D10009C478 /* vk_rsurf.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED826721F628D10009C478 /* vk_rsurf.c */; };
-		E2ED827B21F628D10009C478 /* vk_renderpass.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED826821F628D10009C478 /* vk_renderpass.c */; };
 		E2ED827C21F628D10009C478 /* vk_draw.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED826921F628D10009C478 /* vk_draw.c */; };
 		E2ED827D21F628D10009C478 /* vk_rmain.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED826A21F628D10009C478 /* vk_rmain.c */; };
 		E2ED827E21F628D10009C478 /* vk_rmisc.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED826B21F628D10009C478 /* vk_rmisc.c */; };
@@ -83,7 +82,6 @@
 		E2ED826521F628D10009C478 /* vk_mem_alloc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = vk_mem_alloc.cpp; path = ../vk_mem_alloc.cpp; sourceTree = "<group>"; };
 		E2ED826621F628D10009C478 /* vk_image.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vk_image.c; path = ../vk_image.c; sourceTree = "<group>"; };
 		E2ED826721F628D10009C478 /* vk_rsurf.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vk_rsurf.c; path = ../vk_rsurf.c; sourceTree = "<group>"; };
-		E2ED826821F628D10009C478 /* vk_renderpass.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vk_renderpass.c; path = ../vk_renderpass.c; sourceTree = "<group>"; };
 		E2ED826921F628D10009C478 /* vk_draw.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vk_draw.c; path = ../vk_draw.c; sourceTree = "<group>"; };
 		E2ED826A21F628D10009C478 /* vk_rmain.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vk_rmain.c; path = ../vk_rmain.c; sourceTree = "<group>"; };
 		E2ED826B21F628D10009C478 /* vk_rmisc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = vk_rmisc.c; path = ../vk_rmisc.c; sourceTree = "<group>"; };
@@ -172,7 +170,6 @@
 				E2ED826321F628D10009C478 /* vk_mesh.c */,
 				E2ED825C21F628D10009C478 /* vk_model.c */,
 				E2ED825F21F628D10009C478 /* vk_pipeline.c */,
-				E2ED826821F628D10009C478 /* vk_renderpass.c */,
 				E2ED826A21F628D10009C478 /* vk_rmain.c */,
 				E2ED826B21F628D10009C478 /* vk_rmisc.c */,
 				E2ED826721F628D10009C478 /* vk_rsurf.c */,
@@ -310,7 +307,6 @@
 				E2ED827621F628D10009C478 /* vk_mesh.c in Sources */,
 				E2ED827C21F628D10009C478 /* vk_draw.c in Sources */,
 				E2D696A221F659C3009AF955 /* q_shmacos.c in Sources */,
-				E2ED827B21F628D10009C478 /* vk_renderpass.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

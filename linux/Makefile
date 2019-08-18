@@ -1526,7 +1526,6 @@ REF_VK_OBJS = \
 	$(BUILDDIR)/ref_vk/vk_mesh.o \
 	$(BUILDDIR)/ref_vk/vk_model.o \
 	$(BUILDDIR)/ref_vk/vk_pipeline.o \
-	$(BUILDDIR)/ref_vk/vk_renderpass.o \
 	$(BUILDDIR)/ref_vk/vk_rmain.o \
 	$(BUILDDIR)/ref_vk/vk_rmisc.o \
 	$(BUILDDIR)/ref_vk/vk_rsurf.o \
@@ -1573,9 +1572,6 @@ $(BUILDDIR)/ref_vk/vk_model.o :        $(REF_VK_DIR)/vk_model.c
 	$(DO_VK_SHLIB_CC)
 
 $(BUILDDIR)/ref_vk/vk_pipeline.o :        $(REF_VK_DIR)/vk_pipeline.c
-	$(DO_VK_SHLIB_CC)
-
-$(BUILDDIR)/ref_vk/vk_renderpass.o :        $(REF_VK_DIR)/vk_renderpass.c
 	$(DO_VK_SHLIB_CC)
 
 $(BUILDDIR)/ref_vk/vk_rmain.o :        $(REF_VK_DIR)/vk_rmain.c
