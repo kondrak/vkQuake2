@@ -8,5 +8,6 @@ layout(location = 0) out vec4 fragmentColor;
 
 void main() 
 {
+	// apply any additional world-only postprocessing effects here
 	fragmentColor = texture(sTexture, texCoord);
 }

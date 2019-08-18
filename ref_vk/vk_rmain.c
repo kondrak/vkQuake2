@@ -123,6 +123,7 @@ cvar_t	*vk_device_idx;
 cvar_t	*vid_fullscreen;
 cvar_t	*vid_gamma;
 cvar_t	*vid_ref;
+cvar_t	*viewsize;
 
 /*
 =================
@@ -831,18 +832,6 @@ void R_SetupVulkan (void)
 	r_proj_fovx = r_newrefdef.fov_x;
 	r_proj_fovy = r_newrefdef.fov_y;
 	r_proj_aspect = (float)r_newrefdef.width / r_newrefdef.height;
-
-	// fov based fullscreen warp when player is underwater (GLQuake version)
-	if (r_newrefdef.rdflags & RDF_UNDERWATER)
-	{
-#ifndef DEG2RAD
-#	define DEG2RAD( a ) ( a * M_PI ) / 180.0F
-#endif
-		r_proj_fovx = atan(tan(DEG2RAD(r_newrefdef.fov_x) / 2) * (0.97 + sin(r_newrefdef.time * 1.5) * 0.03)) * 2 / (M_PI / 180);
-		r_proj_fovy = atan(tan(DEG2RAD(r_newrefdef.fov_y) / 2) * (1.03 - sin(r_newrefdef.time * 1.5) * 0.03)) * 2 / (M_PI / 180);
-		r_proj_aspect = tan(DEG2RAD(r_proj_fovx) / 2) / tan(DEG2RAD(r_proj_fovy) / 2);
-#undef DEG2RAD
-	}
 	Mat_Perspective(r_projection_matrix, r_vulkan_correction, r_proj_fovy, r_proj_aspect, 4, 4096);
 
 	R_SetFrustum(r_proj_fovx, r_proj_fovy);
@@ -939,7 +928,7 @@ void R_EndWorldRenderpass(void)
 
 	// apply postprocessing effects (underwater view warp if the player is submerged in liquid) to offscreen buffer
 	QVk_BeginRenderpass(RP_WORLD_WARP);
-	float pushConsts[] = { r_newrefdef.rdflags & RDF_UNDERWATER ? r_newrefdef.time : 0.f, vid.width, vid.height };
+	float pushConsts[] = { r_newrefdef.rdflags & RDF_UNDERWATER ? r_newrefdef.time : 0.f, viewsize->value / 100, vid.width, vid.height };
 	vkCmdPushConstants(vk_activeCmdbuffer, vk_worldWarpPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(pushConsts), pushConsts);
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_worldWarpPipeline.layout, 0, 1, &vk_colorbuffer.descriptorSet, 0, NULL);
 	QVk_BindPipeline(&vk_worldWarpPipeline);
@@ -1074,6 +1063,7 @@ void R_Register( void )
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
 	vid_ref = ri.Cvar_Get("vid_ref", "soft", CVAR_ARCHIVE);
+	viewsize = ri.Cvar_Get("viewsize", "100", CVAR_ARCHIVE);
 
 	ri.Cmd_AddCommand("vk_strings", Vk_Strings_f);
 	ri.Cmd_AddCommand("vk_mem", Vk_Mem_f);

@@ -7,13 +7,14 @@ out gl_PerVertex {
 
 layout(push_constant) uniform PushConstant
 {
-    float time;
+	float time;
+	float scale;
 	float scrWidth;
 	float scrHeight;
 } pc;
 
 layout(location = 0) out float iTime;
-layout(location = 1) out vec2 screenRes;
+layout(location = 1) out vec3 screenInfo;
 
 void main() 
 {
@@ -24,6 +25,6 @@ void main()
 	};
 
 	gl_Position = positions[gl_VertexIndex % 3];
-    iTime = pc.time;
-	screenRes = vec2(pc.scrWidth, pc.scrHeight);
+	iTime = pc.time;
+	screenInfo = vec3(pc.scrWidth, pc.scrHeight, pc.scale);
 }

@@ -1,38 +1,30 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
+// Underwater screen warp effect similar to what software renderer provides
+
 layout(set = 0, binding = 0) uniform sampler2D sTexture;
 
 layout(location = 0) in float iTime;
-layout(location = 1) in vec2 screenRes;
+layout(location = 1) in vec3 screenInfo;
 
-layout (location = 0) out vec4 fragmentColor;
+layout(location = 0) out vec4 fragmentColor;
 
-#define speed 2.0
-
-// the amount of shearing (shifting of a single column or row)
-// 1.0 = entire screen height offset (to both sides, meaning it's 2.0 in total)
-#define xDistMag 0.01
-#define yDistMag 0.01
-
-// cycle multiplier for a given screen height
-// 2*PI = you see a complete sine wave from top..bottom
-#define xSineCycles 6.28
-#define ySineCycles 6.28
+#define PI 3.1415
 
 void main() 
 {
-    vec2 uv = vec2(gl_FragCoord.x / screenRes.x, gl_FragCoord.y / screenRes.y);
-    
-    float time = iTime*speed;
-	
-	if (time > 0)
+	vec2 uv = vec2(gl_FragCoord.x / screenInfo.x, gl_FragCoord.y / screenInfo.y);
+
+	if (iTime > 0)
 	{
-		float xAngle = time + uv.y * ySineCycles;
-		float yAngle = time + uv.x * xSineCycles;
-		vec2 distortOffset = vec2(sin(xAngle), sin(yAngle)) * vec2(xDistMag,yDistMag); // amount of shearing * magnitude adjustment
-    
-		uv += distortOffset;
+		float sx = screenInfo.z - abs(screenInfo.x / 2.0 - gl_FragCoord.x) * 2.0 / screenInfo.x;
+		float sy = screenInfo.z - abs(screenInfo.y / 2.0 - gl_FragCoord.y) * 2.0 / screenInfo.y;
+		float xShift = 2.0 * iTime + uv.y * PI * 10;
+		float yShift = 2.0 * iTime + uv.x * PI * 10;
+		vec2 distortion = vec2(sin(xShift) * sx, sin(yShift) * sy) * 0.00666;
+
+		uv += distortion;
 	}
 
 	fragmentColor = texture(sTexture, uv);
