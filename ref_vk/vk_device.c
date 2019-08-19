@@ -26,12 +26,12 @@ static const char *devExtensions[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 static qboolean deviceExtensionsSupported(const VkPhysicalDevice *physicalDevice, const char **requested, int count)
 {
 	uint32_t extCount;
-	vkEnumerateDeviceExtensionProperties(*physicalDevice, NULL, &extCount, NULL);
+	VK_VERIFY(vkEnumerateDeviceExtensionProperties(*physicalDevice, NULL, &extCount, NULL));
 
 	if (extCount > 0)
 	{
 		VkExtensionProperties *extensions = (VkExtensionProperties *)malloc(extCount * sizeof(VkExtensionProperties));
-		vkEnumerateDeviceExtensionProperties(*physicalDevice, NULL, &extCount, extensions);
+		VK_VERIFY(vkEnumerateDeviceExtensionProperties(*physicalDevice, NULL, &extCount, extensions));
 
 		for (size_t i = 0; i < count; ++i)
 		{
@@ -87,8 +87,8 @@ static void getBestPhysicalDevice(const VkPhysicalDevice *devices, int preferred
 				continue;
 
 			// if extensions are fine, query surface formats and present modes to see if the device can be used
-			vkGetPhysicalDeviceSurfaceFormatsKHR(devices[i], vk_surface, &formatCount, NULL);
-			vkGetPhysicalDeviceSurfacePresentModesKHR(devices[i], vk_surface, &presentModesCount, NULL);
+			VK_VERIFY(vkGetPhysicalDeviceSurfaceFormatsKHR(devices[i], vk_surface, &formatCount, NULL));
+			VK_VERIFY(vkGetPhysicalDeviceSurfacePresentModesKHR(devices[i], vk_surface, &presentModesCount, NULL));
 
 			if (formatCount == 0 || presentModesCount == 0)
 				continue;

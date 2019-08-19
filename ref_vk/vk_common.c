@@ -313,7 +313,7 @@ static VkResult CreateImageViews()
 
 	for (size_t i = 0; i < vk_swapchain.imageCount; ++i)
 	{
-		VkResult res = QVk_CreateImageView(&vk_swapchain.images[i], VK_IMAGE_ASPECT_COLOR_BIT, &vk_imageviews[i], vk_swapchain.format, 1);
+		res = QVk_CreateImageView(&vk_swapchain.images[i], VK_IMAGE_ASPECT_COLOR_BIT, &vk_imageviews[i], vk_swapchain.format, 1);
 
 		if (res != VK_SUCCESS)
 		{
@@ -386,10 +386,10 @@ static VkResult CreateFramebuffers()
 	};
 
 	VkImageView worldAttachments[] = { vk_colorbuffer.imageView, vk_depthbuffer.imageView, vk_msaaColorbuffer.imageView };
-	VkImageView attachmentsWarp[]  = { vk_colorbuffer.imageView, vk_colorbufferWarp.imageView };
+	VkImageView warpAttachments[]  = { vk_colorbuffer.imageView, vk_colorbufferWarp.imageView };
 
 	fbCreateInfos[RP_WORLD].pAttachments = worldAttachments;
-	fbCreateInfos[RP_WORLD_WARP].pAttachments = attachmentsWarp;
+	fbCreateInfos[RP_WORLD_WARP].pAttachments = warpAttachments;
 
 	for (size_t i = 0; i < vk_swapchain.imageCount; ++i)
 	{
@@ -402,7 +402,7 @@ static VkResult CreateFramebuffers()
 
 			if (res != VK_SUCCESS)
 			{
-				ri.Con_Printf(PRINT_ALL, "CreateFramebuffers(): framebuffer #%d create error: %d\n", j, QVk_GetError(res));
+				ri.Con_Printf(PRINT_ALL, "CreateFramebuffers(): framebuffer #%d create error: %s\n", j, QVk_GetError(res));
 				DestroyFramebuffers();
 				return res;
 			}
@@ -529,19 +529,17 @@ static VkResult CreateRenderpasses()
 	};
 
 	// world view postprocess writes to a separate color buffer
-	VkSubpassDescription warpSubpassDescs[] = {
-		{
-			.flags = 0,
-			.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
-			.inputAttachmentCount = 0,
-			.pInputAttachments = NULL,
-			.colorAttachmentCount = 1,
-			.pColorAttachments = &warpAttachmentRef,
-			.pResolveAttachments = NULL,
-			.pDepthStencilAttachment = NULL,
-			.preserveAttachmentCount = 0,
-			.pPreserveAttachments = NULL
-		}
+	VkSubpassDescription warpSubpassDesc = {
+		.flags = 0,
+		.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+		.inputAttachmentCount = 0,
+		.pInputAttachments = NULL,
+		.colorAttachmentCount = 1,
+		.pColorAttachments = &warpAttachmentRef,
+		.pResolveAttachments = NULL,
+		.pDepthStencilAttachment = NULL,
+		.preserveAttachmentCount = 0,
+		.pPreserveAttachments = NULL
 	};
 
 	/*
@@ -671,7 +669,7 @@ static VkResult CreateRenderpasses()
 			.attachmentCount = 2,
 			.pAttachments = warpAttachments,
 			.subpassCount = 1,
-			.pSubpasses = warpSubpassDescs,
+			.pSubpasses = &warpSubpassDesc,
 			.dependencyCount = 2,
 			.pDependencies = subpassDeps
 		}
@@ -682,7 +680,7 @@ static VkResult CreateRenderpasses()
 		VkResult res = vkCreateRenderPass(vk_device.logical, &rpCreateInfos[i], NULL, &vk_renderpasses[i].rp);
 		if (res != VK_SUCCESS)
 		{
-			ri.Con_Printf(PRINT_ALL, "CreateRenderpasses(): renderpass #%d create error: %d\n", i, QVk_GetError(res));
+			ri.Con_Printf(PRINT_ALL, "CreateRenderpasses(): renderpass #%d create error: %s\n", i, QVk_GetError(res));
 			return res;
 		}
 	}
@@ -694,11 +692,11 @@ static VkResult CreateRenderpasses()
 static void CreateDrawBuffers()
 {
 	QVk_CreateDepthBuffer(vk_renderpasses[RP_WORLD].sampleCount, &vk_depthbuffer);
-	ri.Con_Printf(PRINT_ALL, "...created world view depth buffer\n");
+	ri.Con_Printf(PRINT_ALL, "...created world depth buffer\n");
 	QVk_CreateDepthBuffer(VK_SAMPLE_COUNT_1_BIT, &vk_ui_depthbuffer);
 	ri.Con_Printf(PRINT_ALL, "...created UI depth buffer\n");
 	QVk_CreateColorBuffer(VK_SAMPLE_COUNT_1_BIT, &vk_colorbuffer, VK_IMAGE_USAGE_SAMPLED_BIT);
-	ri.Con_Printf(PRINT_ALL, "...created world view color buffer\n");
+	ri.Con_Printf(PRINT_ALL, "...created world color buffer\n");
 	QVk_CreateColorBuffer(VK_SAMPLE_COUNT_1_BIT, &vk_colorbufferWarp, VK_IMAGE_USAGE_SAMPLED_BIT);
 	ri.Con_Printf(PRINT_ALL, "...created world postpocess color buffer\n");
 	QVk_CreateColorBuffer(vk_renderpasses[RP_WORLD].sampleCount, &vk_msaaColorbuffer, 0);
@@ -748,7 +746,6 @@ static void CreateDescriptorSetLayouts()
 
 	// uniform buffer object layout
 	VK_VERIFY(vkCreateDescriptorSetLayout(vk_device.logical, &layoutInfo, NULL, &vk_uboDescSetLayout));
-
 	// sampler layout
 	layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	layoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -901,11 +898,11 @@ static void CreateDynamicBuffers()
 	{
 		QVk_CreateVertexBuffer(NULL, vk_config.vertex_buffer_size, &vk_dynVertexBuffers[i], NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
 		QVk_CreateIndexBuffer(NULL, vk_config.index_buffer_size, &vk_dynIndexBuffers[i], NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
-		QVk_CreateUniformBuffer(vk_config.uniform_buffer_size, &vk_dynUniformBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
+		VK_VERIFY(QVk_CreateUniformBuffer(vk_config.uniform_buffer_size, &vk_dynUniformBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT));
 		// keep dynamic buffers persistently mapped
-		vmaMapMemory(vk_malloc, vk_dynVertexBuffers[i].allocation, &vk_dynVertexBuffers[i].allocInfo.pMappedData);
-		vmaMapMemory(vk_malloc, vk_dynIndexBuffers[i].allocation, &vk_dynIndexBuffers[i].allocInfo.pMappedData);
-		vmaMapMemory(vk_malloc, vk_dynUniformBuffers[i].allocation, &vk_dynUniformBuffers[i].allocInfo.pMappedData);
+		VK_VERIFY(vmaMapMemory(vk_malloc, vk_dynVertexBuffers[i].allocation, &vk_dynVertexBuffers[i].allocInfo.pMappedData));
+		VK_VERIFY(vmaMapMemory(vk_malloc, vk_dynIndexBuffers[i].allocation, &vk_dynIndexBuffers[i].allocInfo.pMappedData));
+		VK_VERIFY(vmaMapMemory(vk_malloc, vk_dynUniformBuffers[i].allocation, &vk_dynUniformBuffers[i].allocInfo.pMappedData));
 		// create descriptor set for the uniform buffer
 		CreateUboDescriptorSet(&vk_uboDescriptorSets[i], vk_dynUniformBuffers[i].buffer);
 	}
@@ -986,7 +983,7 @@ static void RebuildTriangleFanIndexBuffer()
 // internal helper
 static void CreateStagingBuffers()
 {
-	QVk_CreateCommandPool(&vk_stagingCommandPool, vk_device.gfxFamilyIndex);
+	VK_VERIFY(QVk_CreateCommandPool(&vk_stagingCommandPool, vk_device.gfxFamilyIndex));
 
 	VkFenceCreateInfo fCreateInfo = {
 		.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
@@ -995,8 +992,8 @@ static void CreateStagingBuffers()
 
 	for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 	{
-		QVk_CreateStagingBuffer(STAGING_BUFFER_MAXSIZE, &vk_stagingBuffers[i].buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
-		vmaMapMemory(vk_malloc, vk_stagingBuffers[i].buffer.allocation, &vk_stagingBuffers[i].buffer.allocInfo.pMappedData);
+		VK_VERIFY(QVk_CreateStagingBuffer(STAGING_BUFFER_MAXSIZE, &vk_stagingBuffers[i].buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT));
+		VK_VERIFY(vmaMapMemory(vk_malloc, vk_stagingBuffers[i].buffer.allocation, &vk_stagingBuffers[i].buffer.allocInfo.pMappedData));
 		vk_stagingBuffers[i].submitted = false;
 
 		VK_VERIFY(vkCreateFence(vk_device.logical, &fCreateInfo, NULL, &vk_stagingBuffers[i].fence));
@@ -1017,7 +1014,7 @@ static void SubmitStagingBuffer(int index)
 	};
 
 	vkCmdPipelineBarrier(vk_stagingBuffers[index].cmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 1, &memBarrier, 0, NULL, 0, NULL);
-	vkEndCommandBuffer(vk_stagingBuffers[index].cmdBuffer);
+	VK_VERIFY(vkEndCommandBuffer(vk_stagingBuffers[index].cmdBuffer));
 
 	VkSubmitInfo submitInfo = {
 		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -1030,7 +1027,7 @@ static void SubmitStagingBuffer(int index)
 		.pCommandBuffers = &vk_stagingBuffers[index].cmdBuffer
 	};
 
-	vkQueueSubmit(vk_device.gfxQueue, 1, &submitInfo, vk_stagingBuffers[index].fence);
+	VK_VERIFY(vkQueueSubmit(vk_device.gfxQueue, 1, &submitInfo, vk_stagingBuffers[index].fence));
 
 	vk_stagingBuffers[index].submitted = true;
 	vk_activeStagingBuffer = (vk_activeStagingBuffer + 1) % NUM_DYNBUFFERS;
@@ -1260,14 +1257,14 @@ void QVk_Shutdown( void )
 	{
 		ri.Con_Printf(PRINT_ALL, "Shutting down Vulkan\n");
 
+		for (int i = 0; i < 2; ++i)
+		{
+			QVk_DestroyPipeline(&vk_drawColorQuadPipeline[i]);
+			QVk_DestroyPipeline(&vk_drawModelPipelineStrip[i]);
+			QVk_DestroyPipeline(&vk_drawModelPipelineFan[i]);
+		}
 		QVk_DestroyPipeline(&vk_drawTexQuadPipeline);
 		QVk_DestroyPipeline(&vk_drawNullModel);
-		QVk_DestroyPipeline(&vk_drawColorQuadPipeline[RP_WORLD]);
-		QVk_DestroyPipeline(&vk_drawModelPipelineStrip[RP_WORLD]);
-		QVk_DestroyPipeline(&vk_drawModelPipelineFan[RP_WORLD]);
-		QVk_DestroyPipeline(&vk_drawColorQuadPipeline[RP_UI]);
-		QVk_DestroyPipeline(&vk_drawModelPipelineStrip[RP_UI]);
-		QVk_DestroyPipeline(&vk_drawModelPipelineFan[RP_UI]);
 		QVk_DestroyPipeline(&vk_drawNoDepthModelPipelineStrip);
 		QVk_DestroyPipeline(&vk_drawNoDepthModelPipelineFan);
 		QVk_DestroyPipeline(&vk_drawLefthandModelPipelineStrip);
@@ -1577,9 +1574,9 @@ qboolean QVk_Init()
 		vk_msaa->modified = false;
 	}
 
+	// MSAA setting will be only relevant for the primary world render pass
 	vk_renderpasses[RP_WORLD].sampleCount = msaaMode;
 
-	// setup render passes
 	res = CreateRenderpasses();
 	if (res != VK_SUCCESS)
 	{
@@ -1843,14 +1840,14 @@ void QVk_RecreateSwapchain()
 	vkDeviceWaitIdle( vk_device.logical );
 	DestroyFramebuffers();
 	DestroyImageViews();
-	VK_VERIFY( QVk_CreateSwapchain() );
+	VK_VERIFY(QVk_CreateSwapchain());
 	vk_viewport.width = (float)vid.width;
 	vk_viewport.height = (float)vid.height;
 	vk_scissor.extent = vk_swapchain.extent;
 	DestroyDrawBuffers();
 	CreateDrawBuffers();
-	VK_VERIFY( CreateImageViews() );
-	VK_VERIFY( CreateFramebuffers() );
+	VK_VERIFY(CreateImageViews());
+	VK_VERIFY(CreateFramebuffers());
 }
 
 uint8_t *QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, VkDeviceSize *dstOffset)
@@ -1874,7 +1871,7 @@ uint8_t *QVk_GetVertexBuffer(VkDeviceSize size, VkBuffer *dstBuffer, VkDeviceSiz
 			vmaUnmapMemory(vk_malloc, vk_dynVertexBuffers[i].allocation);
 
 			QVk_CreateVertexBuffer(NULL, vk_config.vertex_buffer_size, &vk_dynVertexBuffers[i], NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
-			vmaMapMemory(vk_malloc, vk_dynVertexBuffers[i].allocation, &vk_dynVertexBuffers[i].allocInfo.pMappedData);
+			VK_VERIFY(vmaMapMemory(vk_malloc, vk_dynVertexBuffers[i].allocation, &vk_dynVertexBuffers[i].allocInfo.pMappedData));
 		}
 	}
 
@@ -1914,7 +1911,7 @@ uint8_t *QVk_GetIndexBuffer(VkDeviceSize size, VkDeviceSize *dstOffset)
 			vmaUnmapMemory(vk_malloc, vk_dynIndexBuffers[i].allocation);
 
 			QVk_CreateIndexBuffer(NULL, vk_config.index_buffer_size, &vk_dynIndexBuffers[i], NULL, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
-			vmaMapMemory(vk_malloc, vk_dynIndexBuffers[i].allocation, &vk_dynIndexBuffers[i].allocInfo.pMappedData);
+			VK_VERIFY(vmaMapMemory(vk_malloc, vk_dynIndexBuffers[i].allocation, &vk_dynIndexBuffers[i].allocInfo.pMappedData));
 		}
 	}
 
@@ -1960,8 +1957,8 @@ uint8_t *QVk_GetUniformBuffer(VkDeviceSize size, uint32_t *dstOffset, VkDescript
 			vk_swapDescriptorSets[vk_activeSwapBufferIdx][swapDescSetsOffset + i] = vk_uboDescriptorSets[i];;
 			vmaUnmapMemory(vk_malloc, vk_dynUniformBuffers[i].allocation);
 
-			QVk_CreateUniformBuffer(vk_config.uniform_buffer_size, &vk_dynUniformBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
-			vmaMapMemory(vk_malloc, vk_dynUniformBuffers[i].allocation, &vk_dynUniformBuffers[i].allocInfo.pMappedData);
+			VK_VERIFY(QVk_CreateUniformBuffer(vk_config.uniform_buffer_size, &vk_dynUniformBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT));
+			VK_VERIFY(vmaMapMemory(vk_malloc, vk_dynUniformBuffers[i].allocation, &vk_dynUniformBuffers[i].allocInfo.pMappedData));
 			CreateUboDescriptorSet(&vk_uboDescriptorSets[i], vk_dynUniformBuffers[i].buffer);
 		}
 	}

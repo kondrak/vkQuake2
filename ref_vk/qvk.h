@@ -84,7 +84,6 @@ typedef struct
 	VkSampleCountFlagBits sampleCount;
 	VkFormat  format;
 	VkDescriptorSet descriptorSet;
-	// mipmap settings
 	uint32_t mipLevels;
 } qvktexture_t;
 

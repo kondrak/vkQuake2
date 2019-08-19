@@ -55,11 +55,10 @@ void QVk_SubmitCommand(const VkCommandBuffer *commandBuffer, const VkQueue *queu
 	};
 
 	VkFence queueFence;
-	vkCreateFence(vk_device.logical, &fCreateInfo, NULL, &queueFence);
+	VK_VERIFY(vkCreateFence(vk_device.logical, &fCreateInfo, NULL, &queueFence));
+	VK_VERIFY(vkQueueSubmit(*queue, 1, &submitInfo, queueFence));
+	VK_VERIFY(vkWaitForFences(vk_device.logical, 1, &queueFence, VK_TRUE, UINT64_MAX));
 
-	vkQueueSubmit(*queue, 1, &submitInfo, queueFence);
-
-	vkWaitForFences(vk_device.logical, 1, &queueFence, VK_TRUE, UINT64_MAX);
 	vkDestroyFence(vk_device.logical, queueFence, NULL);
 }
 
