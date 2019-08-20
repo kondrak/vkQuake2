@@ -10,21 +10,19 @@ Overview
 This is the official Quake 2 code v3.21 with additional Vulkan renderer and mission packs included. The goal is to maintain as much compatibility as possible with the original game, so there are no fancy visual upgrades here - just pure, vanilla Quake 2 experience as we knew it back in 1997. There are, however, a few notable differences that made the cut for various reasons:
 
 - original compiler warnings have been fixed
-- on first launch, the game attempts to use Vulkan at 1920x1080 resolution by default
+- on first launch, the game attempts to use Vulkan at 1920x1080 fullscreen resolution
 - 64 bit support has been added
-- debug build comes with additional cmd console for debugging purposes when no visuals are available
 - additional screen resolutions have been added and the game is now DPI aware
-- underwater vision effect similar to software renderer has been added
+- underwater vision effect similar to software renderer has been implemented
 - antialiasing and sample shading is now natively supported
 - anisotropic filtering toggle has been added
 - players can now change texture filtering modes from within the video menu
 - mouse acceleration has been disabled
 - console contents can be scrolled with mouse wheel
-- behavior of video menu has been altered so that pressing escape does not restart the rendering system
 - HUD elements, menus and console text are now scaled accordingly on higher screen resolutions (can be overridden with `hudscale` console command)
 - viewmodel weapons are no longer hidden when FOV > 90
-- warped texture effect (lava, water, slime) is now properly drawn (though only with Vulkan and software renderer!)
-- software renderer has been completely replaced with [KolorSoft 1.1](https://github.com/qbism/Quake2-colored-refsoft) - this adds colored lighting and fixes severe instabilities of the original renderer
+- warped texture effect (lava, water, slime) is now properly drawn (though only in Vulkan and software renderers!)
+- software renderer has been completely replaced with [KolorSoft 1.1](https://github.com/qbism/Quake2-colored-refsoft) - this adds colored lighting and fixes severe instabilities of the original implementation
 - triangle fans have been replaced with indexed triangle lists due to Metal/MoltenVK limitations
 - on Linux, sound is now handled by ALSA instead of OSS
 - support for OGG/FLAC/MP3/WAV music has been added in addition to standard CD audio
@@ -32,7 +30,7 @@ This is the official Quake 2 code v3.21 with additional Vulkan renderer and miss
 
 Building
 ===
-For extra challenge I decided to base vkQuake2 on the original id Software code. Because of this, there are no dependencies on external SDL-like libraries and the entire project is mostly self-contained. This also implies that some of the original bugs could be present - those may be fixed in upcoming releases.
+For extra challenge I decided to base vkQuake2 on the original id Software code. Because of this, there are no dependencies on external SDL-like libraries and the entire project is mostly self-contained. This also implies that some of the original bugs could be present.
 
 ## Windows
 - download and install [Vulkan SDK](https://vulkan.lunarg.com/) - make sure that the `VULKAN_SDK` environment variable is set afterwards
