@@ -248,6 +248,8 @@ extern qvkpipeline_t vk_postprocessPipeline;
 extern qvktexture_t vk_colorbuffer;
 // color buffer with postprocessed game view
 extern qvktexture_t vk_colorbufferWarp;
+// indicator if the frame is currently being rendered
+extern qboolean vk_frameStarted;
 
 // function pointers
 extern PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;

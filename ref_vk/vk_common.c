@@ -132,7 +132,7 @@ uint32_t vk_imageIndex = 0;
 // index of currently used staging buffer
 int vk_activeStagingBuffer = 0;
 // started rendering frame?
-static qboolean vk_frameStarted = false;
+qboolean vk_frameStarted = false;
 
 // render pipelines
 qvkpipeline_t vk_drawTexQuadPipeline = QVKPIPELINE_INIT;
@@ -254,6 +254,7 @@ VkDescriptorSetLayout vk_samplerDescSetLayout;
 VkDescriptorSetLayout vk_samplerLightmapDescSetLayout;
 
 extern cvar_t *vk_msaa;
+extern cvar_t *vid_ref;
 
 VkFormat QVk_FindDepthFormat()
 {
@@ -1700,18 +1701,19 @@ VkResult QVk_BeginFrame()
 	vmaInvalidateAllocation(vk_malloc, vk_dynVertexBuffers[vk_activeDynBufferIdx].allocation, 0, VK_WHOLE_SIZE);
 	vmaInvalidateAllocation(vk_malloc, vk_dynIndexBuffers[vk_activeDynBufferIdx].allocation, 0, VK_WHOLE_SIZE);
 
-	// swapchain has become incompatible - need to recreate it
-	if (result == VK_ERROR_OUT_OF_DATE_KHR)
+	// for VK_OUT_OF_DATE_KHR and VK_SUBOPTIMAL_KHR it'd be fine to just rebuild the swapchain but let's take the easy way out and restart video system
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_SURFACE_LOST_KHR)
 	{
-		ri.Con_Printf(PRINT_ALL, "Vulkan swapchain incompatible after vkAcquireNextImageKHR - rebuilding!\n");
-		QVk_RecreateSwapchain();
+		ri.Con_Printf(PRINT_ALL, "QVk_BeginFrame(): received %s after vkAcquireNextImageKHR - restarting video!\n", QVk_GetError(result));
 		return result;
+	}
+	else if (result != VK_SUCCESS)
+	{
+		Sys_Error("QVk_BeginFrame(): unexpected error after vkAcquireNextImageKHR: %s", QVk_GetError(result));
 	}
 
 	VK_VERIFY(vkWaitForFences(vk_device.logical, 1, &vk_fences[vk_activeBufferIdx], VK_TRUE, UINT32_MAX));
 	VK_VERIFY(vkResetFences(vk_device.logical, 1, &vk_fences[vk_activeBufferIdx]));
-
-	assert((result == VK_SUCCESS || result == VK_SUBOPTIMAL_KHR) && "Could not acquire swapchain image!");
 
 	// setup command buffers and render pass for drawing
 	VkCommandBufferBeginInfo beginInfo = {
@@ -1778,11 +1780,15 @@ VkResult QVk_EndFrame(qboolean force)
 
 	VkResult renderResult = vkQueuePresentKHR(vk_device.presentQueue, &presentInfo);
 
-	// recreate swapchain if it's out of date
-	if (renderResult == VK_ERROR_OUT_OF_DATE_KHR || renderResult == VK_SUBOPTIMAL_KHR)
+	// for VK_OUT_OF_DATE_KHR and VK_SUBOPTIMAL_KHR it'd be fine to just rebuild the swapchain but let's take the easy way out and restart video system
+	if (renderResult == VK_ERROR_OUT_OF_DATE_KHR || renderResult == VK_SUBOPTIMAL_KHR || renderResult == VK_ERROR_SURFACE_LOST_KHR)
 	{
-		ri.Con_Printf(PRINT_ALL, "Vulkan swapchain out of date/suboptimal after vkQueuePresentKHR - rebuilding!\n");
-		QVk_RecreateSwapchain();
+		ri.Con_Printf(PRINT_ALL, "QVk_EndFrame(): received %s after vkQueuePresentKHR - restarting video!\n", QVk_GetError(renderResult));
+		vid_ref->modified = true;
+	}
+	else if (renderResult != VK_SUCCESS)
+	{
+		Sys_Error("QVk_EndFrame(): unexpected error after vkQueuePresentKHR: %s", QVk_GetError(renderResult));
 	}
 
 	vk_activeBufferIdx = (vk_activeBufferIdx + 1) % NUM_CMDBUFFERS;
@@ -1982,7 +1988,7 @@ uint8_t *QVk_GetStagingBuffer(VkDeviceSize size, int alignment, VkCommandBuffer 
 		? stagingBuffer->buffer.currentOffset : (stagingBuffer->buffer.currentOffset + alignment - align_mod);
 
 	if (size > STAGING_BUFFER_MAXSIZE)
-		Sys_Error("Cannot allocate staging buffer space");
+		Sys_Error("QVk_GetStagingBuffer(): Cannot allocate staging buffer space!");
 
 	if ((stagingBuffer->buffer.currentOffset + size) >= STAGING_BUFFER_MAXSIZE && !stagingBuffer->submitted)
 		SubmitStagingBuffer(vk_activeStagingBuffer);
@@ -2119,6 +2125,7 @@ const char *QVk_GetError(VkResult errorCode)
 #define ERRSTR(r) case VK_ ##r: return "VK_"#r
 	switch (errorCode)
 	{
+		ERRSTR(SUCCESS);
 		ERRSTR(NOT_READY);
 		ERRSTR(TIMEOUT);
 		ERRSTR(EVENT_SET);

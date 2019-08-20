@@ -923,6 +923,10 @@ void R_RenderView (refdef_t *fd)
 
 void R_EndWorldRenderpass(void)
 {
+	// this may happen if swapchain image acquisition fails
+	if (!vk_frameStarted)
+		return;
+
 	// finish rendering world view to offsceen buffer
 	vkCmdEndRenderPass(vk_activeCmdbuffer);
 
@@ -1263,8 +1267,10 @@ void R_BeginFrame( float camera_separation )
 		vid_fullscreen->value = false;
 		ri.Cvar_SetValue("vid_fullscreen", 0);
 	}
-
-	QVk_BeginRenderpass(RP_WORLD);
+	else
+	{
+		QVk_BeginRenderpass(RP_WORLD);
+	}
 }
 
 /*
