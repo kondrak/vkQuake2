@@ -327,7 +327,7 @@ void QVk_DebugSetObjectTag(uint64_t obj, VkDebugReportObjectTypeEXT objType, uin
 	}
 }
 
-void QVk_DebugMarkerBegin(const VkCommandBuffer *cmdBuffer, const char *markerName, const float *color)
+void QVk_DebugMarkerBegin(const VkCommandBuffer *cmdBuffer, const char *markerName, const float r, const float g, const float b)
 {
 	if (vk_ext_debug_marker_extension_available)
 	{
@@ -335,7 +335,7 @@ void QVk_DebugMarkerBegin(const VkCommandBuffer *cmdBuffer, const char *markerNa
 			.sType = VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT,
 			.pNext = NULL,
 			.pMarkerName = markerName,
-			.color = { color[0], color[1], color[2], color[3] }
+			.color = { r, g, b, 1.f }
 		};
 
 		qvkCmdDebugMarkerBeginEXT(*cmdBuffer, &markerInfo);
@@ -350,7 +350,7 @@ void QVk_DebugMarkerEnd(const VkCommandBuffer *cmdBuffer)
 	}
 }
 
-void QVk_DebugMarkerInsert(const VkCommandBuffer *cmdBuffer, const char *markerName, const float *color)
+void QVk_DebugMarkerInsert(const VkCommandBuffer *cmdBuffer, const char *markerName, const float r, const float g, const float b)
 {
 	if (vk_ext_debug_marker_extension_available)
 	{
@@ -358,7 +358,7 @@ void QVk_DebugMarkerInsert(const VkCommandBuffer *cmdBuffer, const char *markerN
 			.sType = VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT,
 			.pNext = NULL,
 			.pMarkerName = markerName,
-			.color = { color[0], color[1], color[2], color[3] }
+			.color = { r, g, b, 1.f }
 		};
 
 		qvkCmdDebugMarkerInsertEXT(*cmdBuffer, &markerInfo);

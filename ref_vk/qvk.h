@@ -308,14 +308,14 @@ void		QVk_SubmitStagingBuffers(void);
 #if defined(_DEBUG) || defined(ENABLE_VK_EXT_DEBUG_MARKER)
 void		QVk_DebugSetObjectName(uint64_t obj, VkDebugReportObjectTypeEXT objType, const char *objName);
 void		QVk_DebugSetObjectTag(uint64_t obj, VkDebugReportObjectTypeEXT objType, uint64_t tagName, size_t tagSize, const void *tagData);
-void		QVk_DebugMarkerBegin(const VkCommandBuffer *cmdBuffer, const char *markerName, const float *color);
+void		QVk_DebugMarkerBegin(const VkCommandBuffer *cmdBuffer, const char *markerName, const float r, const float g, const float b);
 void		QVk_DebugMarkerEnd(const VkCommandBuffer *cmdBuffer);
-void		QVk_DebugMarkerInsert(const VkCommandBuffer *cmdBuffer, const char *markerName, const float *color);
+void		QVk_DebugMarkerInsert(const VkCommandBuffer *cmdBuffer, const char *markerName, const float r, const float g, const float b);
 #else
-#define		QVk_DebugSetObjectName(a, b, c)
+#define		QVk_DebugSetObjectName(a, b, c, d, e, f)
 #define		QVk_DebugSetObjectTag(a, b, c, d, e)
 #define		QVk_DebugMarkerBegin(a, b, c)
 #define		QVk_DebugMarkerEnd(a)
-#define		QVk_DebugMarkerInsert(a, b, c)
+#define		QVk_DebugMarkerInsert(a, b, c, d, e, f)
 #endif
 #endif

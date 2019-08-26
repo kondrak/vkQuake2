@@ -1862,6 +1862,7 @@ VkResult QVk_EndFrame(qboolean force)
 	vmaFlushAllocation(vk_malloc, vk_dynIndexBuffers[vk_activeDynBufferIdx].allocation, 0, VK_WHOLE_SIZE);
 
 	vkCmdEndRenderPass(vk_commandbuffers[vk_activeBufferIdx]);
+	QVk_DebugMarkerEnd(&vk_commandbuffers[vk_activeBufferIdx]);
 	VK_VERIFY(vkEndCommandBuffer(vk_commandbuffers[vk_activeBufferIdx]));
 
 	VkPipelineStageFlags waitStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -1948,6 +1949,13 @@ void QVk_BeginRenderpass(qvkrenderpasstype_t rpType)
 			.pClearValues = clearColors
 		}
 	};
+
+#if defined(_DEBUG) || defined(ENABLE_VK_EXT_DEBUG_MARKER)
+	QVk_DebugMarkerEnd(&vk_commandbuffers[vk_activeBufferIdx]);
+	if (rpType == RP_WORLD) QVk_DebugMarkerBegin(&vk_commandbuffers[vk_activeBufferIdx], "Draw World", 0.f, 1.f, 0.f);
+	if (rpType == RP_UI) QVk_DebugMarkerBegin(&vk_commandbuffers[vk_activeBufferIdx], "Draw UI", 1.f, 1.f, 0.f);
+	if (rpType == RP_WORLD_WARP) QVk_DebugMarkerBegin(&vk_commandbuffers[vk_activeBufferIdx], "Draw View Warp", 1.f, 0.f, .5f);
+#endif
 
 	vkCmdBeginRenderPass(vk_commandbuffers[vk_activeBufferIdx], &renderBeginInfo[rpType], VK_SUBPASS_CONTENTS_INLINE);
 }
