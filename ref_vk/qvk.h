@@ -312,10 +312,10 @@ void		QVk_DebugMarkerBegin(const VkCommandBuffer *cmdBuffer, const char *markerN
 void		QVk_DebugMarkerEnd(const VkCommandBuffer *cmdBuffer);
 void		QVk_DebugMarkerInsert(const VkCommandBuffer *cmdBuffer, const char *markerName, const float r, const float g, const float b);
 #else
-#define		QVk_DebugSetObjectName(a, b, c, d, e, f)
+#define		QVk_DebugSetObjectName(a, b, c)
 #define		QVk_DebugSetObjectTag(a, b, c, d, e)
-#define		QVk_DebugMarkerBegin(a, b, c)
+#define		QVk_DebugMarkerBegin(a, b, c, d, e)
 #define		QVk_DebugMarkerEnd(a)
-#define		QVk_DebugMarkerInsert(a, b, c, d, e, f)
+#define		QVk_DebugMarkerInsert(a, b, c, d, e)
 #endif
 #endif
