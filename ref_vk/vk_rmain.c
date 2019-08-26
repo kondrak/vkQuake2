@@ -289,8 +289,8 @@ void R_DrawNullModel (void)
 	memcpy(vertData, verts, sizeof(verts));
 	memcpy(uboData,  model, sizeof(model));
 
-	QVk_BindPipeline(&vk_drawNullModel);
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawNullModel.layout, 0, 1, &uboDescriptorSet, 1, &uboOffset);
+	QVk_BindPipeline(&vk_drawNullModelPipeline);
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawNullModelPipeline.layout, 0, 1, &uboDescriptorSet, 1, &uboOffset);
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 	vkCmdBindIndexBuffer(vk_activeCmdbuffer, QVk_GetTriangleFanIbo(12), 0, VK_INDEX_TYPE_UINT16);
 	vkCmdDrawIndexed(vk_activeCmdbuffer, 12, 1, 0, 0, 0);
