@@ -20,39 +20,31 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "vk_local.h"
 
-static const char *devExtensions[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+static qboolean vk_ext_debug_marker_extension_available = false;
 
 // internal helper
-static qboolean deviceExtensionsSupported(const VkPhysicalDevice *physicalDevice, const char **requested, int count)
+static qboolean deviceExtensionsSupported(const VkPhysicalDevice *physicalDevice)
 {
-	uint32_t extCount;
-	VK_VERIFY(vkEnumerateDeviceExtensionProperties(*physicalDevice, NULL, &extCount, NULL));
+	uint32_t availableExtCount = 0;
+	qboolean vk_khr_swapchain_extension_available = false;
+	VK_VERIFY(vkEnumerateDeviceExtensionProperties(*physicalDevice, NULL, &availableExtCount, NULL));
 
-	if (extCount > 0)
+	if (availableExtCount > 0)
 	{
-		VkExtensionProperties *extensions = (VkExtensionProperties *)malloc(extCount * sizeof(VkExtensionProperties));
-		VK_VERIFY(vkEnumerateDeviceExtensionProperties(*physicalDevice, NULL, &extCount, extensions));
+		VkExtensionProperties *extensions = (VkExtensionProperties *)malloc(availableExtCount * sizeof(VkExtensionProperties));
+		VK_VERIFY(vkEnumerateDeviceExtensionProperties(*physicalDevice, NULL, &availableExtCount, extensions));
 
-		for (size_t i = 0; i < count; ++i)
+		for (uint32_t i = 0; i < availableExtCount; ++i)
 		{
-			int available = 0;
-			for (uint32_t j = 0; j < extCount; ++j)
-			{
-				available |= !strcmp(extensions[j].extensionName, requested[i]);
-			}
-
-			// all requested extensions must be available
-			if (!available)
-			{
-				free(extensions);
-				return false;
-			}
+			vk_khr_swapchain_extension_available    |= strcmp(extensions[i].extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0;
+			vk_ext_debug_marker_extension_available |= strcmp(extensions[i].extensionName, VK_EXT_DEBUG_MARKER_EXTENSION_NAME) == 0;
 		}
 
 		free(extensions);
 	}
 
-	return true;
+	// lack of swapchain extension disqualifies the device
+	return vk_khr_swapchain_extension_available;
 }
 
 // internal helper
@@ -80,7 +72,7 @@ static void getBestPhysicalDevice(const VkPhysicalDevice *devices, int preferred
 			uint32_t presentModesCount = 0;
 
 			// check if requested device extensions are present
-			qboolean extSupported = deviceExtensionsSupported(&devices[i], devExtensions, sizeof(devExtensions)/sizeof(devExtensions[0]));
+			qboolean extSupported = deviceExtensionsSupported(&devices[i]);
 
 			// no required extensions? try next device
 			if (!extSupported || !deviceFeatures.samplerAnisotropy || !deviceFeatures.fillModeNonSolid)
@@ -212,11 +204,17 @@ static VkResult createLogicalDevice()
 		queueCreateInfo[numQueues++].queueFamilyIndex = vk_device.transferFamilyIndex;
 	}
 
+	const char *deviceExtensions[2] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+	uint32_t enabledExtensionsCount = 1;
+	// optional extension for RenderDoc
+	if (vk_ext_debug_marker_extension_available)
+		deviceExtensions[enabledExtensionsCount++] = VK_EXT_DEBUG_MARKER_EXTENSION_NAME;
+
 	VkDeviceCreateInfo deviceCreateInfo = {
 		.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
 		.pEnabledFeatures = &wantedDeviceFeatures,
-		.ppEnabledExtensionNames = devExtensions,
-		.enabledExtensionCount = (uint32_t)(sizeof(devExtensions) / sizeof(devExtensions[0])),
+		.ppEnabledExtensionNames = deviceExtensions,
+		.enabledExtensionCount = enabledExtensionsCount,
 		.enabledLayerCount = 0,
 		.ppEnabledLayerNames = NULL,
 		.queueCreateInfoCount = numQueues,
@@ -291,3 +289,80 @@ qboolean QVk_CreateDevice(int preferredDeviceIdx)
 
 	return true;
 }
+
+// debug marker extension related functions
+#if defined(_DEBUG) || defined(ENABLE_VK_EXT_DEBUG_MARKER)
+
+void QVk_DebugSetObjectName(uint64_t obj, VkDebugReportObjectTypeEXT objType, const char *objName)
+{
+	if (vk_ext_debug_marker_extension_available)
+	{
+		VkDebugMarkerObjectNameInfoEXT oNameInf = {
+			.sType = VK_STRUCTURE_TYPE_DEBUG_MARKER_OBJECT_NAME_INFO_EXT,
+			.pNext = NULL,
+			.objectType = objType,
+			.object = obj,
+			.pObjectName = objName
+		};
+
+		qvkDebugMarkerSetObjectNameEXT(vk_device.logical, &oNameInf);
+	}
+}
+
+void QVk_DebugSetObjectTag(uint64_t obj, VkDebugReportObjectTypeEXT objType, uint64_t tagName, size_t tagSize, const void *tagData)
+{
+	if (vk_ext_debug_marker_extension_available)
+	{
+		VkDebugMarkerObjectTagInfoEXT oTagInf = {
+			.sType = VK_STRUCTURE_TYPE_DEBUG_MARKER_OBJECT_TAG_INFO_EXT,
+			.pNext = NULL,
+			.objectType = objType,
+			.object = obj,
+			.tagName = tagName,
+			.tagSize = tagSize,
+			.pTag = tagData
+		};
+
+		qvkDebugMarkerSetObjectTagEXT(vk_device.logical, &oTagInf);
+	}
+}
+
+void QVk_DebugMarkerBegin(const VkCommandBuffer *cmdBuffer, const char *markerName, const float *color)
+{
+	if (vk_ext_debug_marker_extension_available)
+	{
+		VkDebugMarkerMarkerInfoEXT markerInfo = {
+			.sType = VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT,
+			.pNext = NULL,
+			.pMarkerName = markerName,
+			.color = { color[0], color[1], color[2], color[3] }
+		};
+
+		qvkCmdDebugMarkerBeginEXT(*cmdBuffer, &markerInfo);
+	}
+}
+
+void QVk_DebugMarkerEnd(const VkCommandBuffer *cmdBuffer)
+{
+	if (vk_ext_debug_marker_extension_available)
+	{
+		qvkCmdDebugMarkerEndEXT(*cmdBuffer);
+	}
+}
+
+void QVk_DebugMarkerInsert(const VkCommandBuffer *cmdBuffer, const char *markerName, const float *color)
+{
+	if (vk_ext_debug_marker_extension_available)
+	{
+		VkDebugMarkerMarkerInfoEXT markerInfo = {
+			.sType = VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT,
+			.pNext = NULL,
+			.pMarkerName = markerName,
+			.color = { color[0], color[1], color[2], color[3] }
+		};
+
+		qvkCmdDebugMarkerInsertEXT(*cmdBuffer, &markerInfo);
+	}
+}
+
+#endif

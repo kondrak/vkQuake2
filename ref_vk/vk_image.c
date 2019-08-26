@@ -1441,6 +1441,9 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 		{
 			QVVKTEXTURE_CLEAR(vk_scrapTextures[texnum]);
 			QVk_CreateTexture(&vk_scrapTextures[texnum], (unsigned char*)texBuffer, image->upload_width, image->upload_height, samplerType ? *samplerType : vk_current_sampler);
+			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].image, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, va("Image: %s", name));
+			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].imageView, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_VIEW_EXT, va("Image View: %s", name));
+			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].descriptorSet, VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_EXT, va("Descriptor Set: %s", name));
 		}
 
 		image->vk_texture = vk_scrapTextures[texnum];
@@ -1462,6 +1465,9 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 		image->th = 1;
 
 		QVk_CreateTexture(&image->vk_texture, (unsigned char*)texBuffer, image->upload_width, image->upload_height, samplerType ? *samplerType : vk_current_sampler);
+		QVk_DebugSetObjectName((uint64_t)image->vk_texture.image, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, va("Image: %s", name));
+		QVk_DebugSetObjectName((uint64_t)image->vk_texture.imageView, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_VIEW_EXT, va("Image View: %s", name));
+		QVk_DebugSetObjectName((uint64_t)image->vk_texture.descriptorSet, VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_EXT, va("Descriptor Set: %s", name));
 	}
 
 	return image;

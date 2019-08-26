@@ -1083,6 +1083,9 @@ static void LM_UploadBlock( qboolean dynamic )
 		{
 			QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[texture]);
 			QVk_CreateTexture(&vk_state.lightmap_textures[texture], vk_lms.lightmap_buffer, BLOCK_WIDTH, BLOCK_HEIGHT, vk_current_lmap_sampler);
+			QVk_DebugSetObjectName((uint64_t)vk_state.lightmap_textures[texture].image, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, va("Image: dynamic lightmap #%d", texture));
+			QVk_DebugSetObjectName((uint64_t)vk_state.lightmap_textures[texture].imageView, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_VIEW_EXT, va("Image View: dynamic lightmap #%d", texture));
+			QVk_DebugSetObjectName((uint64_t)vk_state.lightmap_textures[texture].descriptorSet, VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_EXT, va("Descriptor Set: dynamic lightmap #%d", texture));
 		}
 		if ( ++vk_lms.current_lightmap_texture == MAX_LIGHTMAPS )
 			ri.Sys_Error( ERR_DROP, "LM_UploadBlock() - MAX_LIGHTMAPS exceeded\n" );
@@ -1276,6 +1279,9 @@ void Vk_BeginBuildingLightmaps (model_t *m)
 		{
 			QVVKTEXTURE_CLEAR(vk_state.lightmap_textures[i]);
 			QVk_CreateTexture(&vk_state.lightmap_textures[i], (unsigned char*)dummy, BLOCK_WIDTH, BLOCK_HEIGHT, vk_current_lmap_sampler);
+			QVk_DebugSetObjectName((uint64_t)vk_state.lightmap_textures[i].image, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, va("Image: dynamic lightmap #%d", i));
+			QVk_DebugSetObjectName((uint64_t)vk_state.lightmap_textures[i].imageView, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_VIEW_EXT, va("Image View: dynamic lightmap #%d", i));
+			QVk_DebugSetObjectName((uint64_t)vk_state.lightmap_textures[i].descriptorSet, VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_EXT, va("Descriptor Set: dynamic lightmap #%d", i));
 		}
 	}
 }
