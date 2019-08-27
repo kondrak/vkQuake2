@@ -256,11 +256,11 @@ extern qboolean vk_frameStarted;
 // function pointers
 extern PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;
 extern PFN_vkDestroyDebugUtilsMessengerEXT qvkDestroyDebugUtilsMessengerEXT;
-extern PFN_vkDebugMarkerSetObjectNameEXT qvkDebugMarkerSetObjectNameEXT;
-extern PFN_vkDebugMarkerSetObjectTagEXT qvkDebugMarkerSetObjectTagEXT;
-extern PFN_vkCmdDebugMarkerBeginEXT qvkCmdDebugMarkerBeginEXT;
-extern PFN_vkCmdDebugMarkerEndEXT qvkCmdDebugMarkerEndEXT;
-extern PFN_vkCmdDebugMarkerInsertEXT qvkCmdDebugMarkerInsertEXT;
+extern PFN_vkSetDebugUtilsObjectNameEXT qvkSetDebugUtilsObjectNameEXT;
+extern PFN_vkSetDebugUtilsObjectTagEXT qvkSetDebugUtilsObjectTagEXT;
+extern PFN_vkCmdBeginDebugUtilsLabelEXT qvkCmdBeginDebugUtilsLabelEXT;
+extern PFN_vkCmdEndDebugUtilsLabelEXT qvkCmdEndDebugUtilsLabelEXT;
+extern PFN_vkCmdInsertDebugUtilsLabelEXT qvkInsertDebugUtilsLabelEXT;
 
 // The Interface Functions (tm)
 qboolean	QVk_Init(void);
@@ -307,17 +307,17 @@ void		QVk_DrawTexRect(float *ubo, VkDeviceSize uboSize, qvktexture_t *texture);
 void		QVk_BindPipeline(qvkpipeline_t *pipeline);
 void		QVk_SubmitStagingBuffers(void);
 // debug marker extension related functions
-#if defined(_DEBUG) || defined(ENABLE_VK_EXT_DEBUG_MARKER)
-void		QVk_DebugSetObjectName(uint64_t obj, VkDebugReportObjectTypeEXT objType, const char *objName);
-void		QVk_DebugSetObjectTag(uint64_t obj, VkDebugReportObjectTypeEXT objType, uint64_t tagName, size_t tagSize, const void *tagData);
-void		QVk_DebugMarkerBegin(const VkCommandBuffer *cmdBuffer, const char *markerName, const float r, const float g, const float b);
-void		QVk_DebugMarkerEnd(const VkCommandBuffer *cmdBuffer);
-void		QVk_DebugMarkerInsert(const VkCommandBuffer *cmdBuffer, const char *markerName, const float r, const float g, const float b);
+#if defined(_DEBUG) || defined(ENABLE_DEBUG_LABELS)
+void		QVk_DebugSetObjectName(uint64_t obj, VkObjectType objType, const char *objName);
+void		QVk_DebugSetObjectTag(uint64_t obj, VkObjectType objType, uint64_t tagName, size_t tagSize, const void *tagData);
+void		QVk_DebugLabelBegin(const VkCommandBuffer *cmdBuffer, const char *labelName, const float r, const float g, const float b);
+void		QVk_DebugLabelEnd(const VkCommandBuffer *cmdBuffer);
+void		QVk_DebugLabelInsert(const VkCommandBuffer *cmdBuffer, const char *labelName, const float r, const float g, const float b);
 #else
 #define		QVk_DebugSetObjectName(a, b, c)
 #define		QVk_DebugSetObjectTag(a, b, c, d, e)
-#define		QVk_DebugMarkerBegin(a, b, c, d, e)
-#define		QVk_DebugMarkerEnd(a)
-#define		QVk_DebugMarkerInsert(a, b, c, d, e)
+#define		QVk_DebugLabelBegin(a, b, c, d, e)
+#define		QVk_DebugLabelEnd(a)
+#define		QVk_DebugLabelInsert(a, b, c, d, e)
 #endif
 #endif

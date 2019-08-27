@@ -20,8 +20,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "vk_local.h"
 
-static qboolean vk_ext_debug_marker_extension_available = false;
-
 // internal helper
 static qboolean deviceExtensionsSupported(const VkPhysicalDevice *physicalDevice)
 {
@@ -37,7 +35,6 @@ static qboolean deviceExtensionsSupported(const VkPhysicalDevice *physicalDevice
 		for (uint32_t i = 0; i < availableExtCount; ++i)
 		{
 			vk_khr_swapchain_extension_available    |= strcmp(extensions[i].extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0;
-			vk_ext_debug_marker_extension_available |= strcmp(extensions[i].extensionName, VK_EXT_DEBUG_MARKER_EXTENSION_NAME) == 0;
 		}
 
 		free(extensions);
@@ -204,17 +201,13 @@ static VkResult createLogicalDevice()
 		queueCreateInfo[numQueues++].queueFamilyIndex = vk_device.transferFamilyIndex;
 	}
 
-	const char *deviceExtensions[2] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
-	uint32_t enabledExtensionsCount = 1;
-	// optional extension for RenderDoc
-	if (vk_ext_debug_marker_extension_available)
-		deviceExtensions[enabledExtensionsCount++] = VK_EXT_DEBUG_MARKER_EXTENSION_NAME;
+	const char *deviceExtensions[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
 	VkDeviceCreateInfo deviceCreateInfo = {
 		.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
 		.pEnabledFeatures = &wantedDeviceFeatures,
 		.ppEnabledExtensionNames = deviceExtensions,
-		.enabledExtensionCount = enabledExtensionsCount,
+		.enabledExtensionCount = 1,
 		.enabledLayerCount = 0,
 		.ppEnabledLayerNames = NULL,
 		.queueCreateInfoCount = numQueues,
@@ -290,79 +283,64 @@ qboolean QVk_CreateDevice(int preferredDeviceIdx)
 	return true;
 }
 
-// debug marker extension related functions
-#if defined(_DEBUG) || defined(ENABLE_VK_EXT_DEBUG_MARKER)
+// debug label related functions
+#if defined(_DEBUG) || defined(ENABLE_DEBUG_LABELS)
 
-void QVk_DebugSetObjectName(uint64_t obj, VkDebugReportObjectTypeEXT objType, const char *objName)
+void QVk_DebugSetObjectName(uint64_t obj, VkObjectType objType, const char *objName)
 {
-	if (vk_ext_debug_marker_extension_available)
-	{
-		VkDebugMarkerObjectNameInfoEXT oNameInf = {
-			.sType = VK_STRUCTURE_TYPE_DEBUG_MARKER_OBJECT_NAME_INFO_EXT,
-			.pNext = NULL,
-			.objectType = objType,
-			.object = obj,
-			.pObjectName = objName
-		};
+	VkDebugUtilsObjectNameInfoEXT oNameInf = {
+		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
+		.pNext = NULL,
+		.objectType = objType,
+		.objectHandle = obj,
+		.pObjectName = objName
+	};
 
-		qvkDebugMarkerSetObjectNameEXT(vk_device.logical, &oNameInf);
-	}
+	qvkSetDebugUtilsObjectNameEXT(vk_device.logical, &oNameInf);
 }
 
-void QVk_DebugSetObjectTag(uint64_t obj, VkDebugReportObjectTypeEXT objType, uint64_t tagName, size_t tagSize, const void *tagData)
+void QVk_DebugSetObjectTag(uint64_t obj, VkObjectType objType, uint64_t tagName, size_t tagSize, const void *tagData)
 {
-	if (vk_ext_debug_marker_extension_available)
-	{
-		VkDebugMarkerObjectTagInfoEXT oTagInf = {
-			.sType = VK_STRUCTURE_TYPE_DEBUG_MARKER_OBJECT_TAG_INFO_EXT,
-			.pNext = NULL,
-			.objectType = objType,
-			.object = obj,
-			.tagName = tagName,
-			.tagSize = tagSize,
-			.pTag = tagData
-		};
+	VkDebugUtilsObjectTagInfoEXT oTagInf = {
+		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_TAG_INFO_EXT,
+		.pNext = NULL,
+		.objectType = objType,
+		.objectHandle = obj,
+		.tagName = tagName,
+		.tagSize = tagSize,
+		.pTag = tagData
+	};
 
-		qvkDebugMarkerSetObjectTagEXT(vk_device.logical, &oTagInf);
-	}
+	qvkSetDebugUtilsObjectTagEXT(vk_device.logical, &oTagInf);
 }
 
-void QVk_DebugMarkerBegin(const VkCommandBuffer *cmdBuffer, const char *markerName, const float r, const float g, const float b)
+void QVk_DebugLabelBegin(const VkCommandBuffer *cmdBuffer, const char *labelName, const float r, const float g, const float b)
 {
-	if (vk_ext_debug_marker_extension_available)
-	{
-		VkDebugMarkerMarkerInfoEXT markerInfo = {
-			.sType = VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT,
-			.pNext = NULL,
-			.pMarkerName = markerName,
-			.color = { r, g, b, 1.f }
-		};
+	VkDebugUtilsLabelEXT labelInfo = {
+		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
+		.pNext = NULL,
+		.pLabelName = labelName,
+		.color = { r, g, b, 1.f }
+	};
 
-		qvkCmdDebugMarkerBeginEXT(*cmdBuffer, &markerInfo);
-	}
+	qvkCmdBeginDebugUtilsLabelEXT(*cmdBuffer, &labelInfo);
 }
 
-void QVk_DebugMarkerEnd(const VkCommandBuffer *cmdBuffer)
+void QVk_DebugLabelEnd(const VkCommandBuffer *cmdBuffer)
 {
-	if (vk_ext_debug_marker_extension_available)
-	{
-		qvkCmdDebugMarkerEndEXT(*cmdBuffer);
-	}
+	qvkCmdEndDebugUtilsLabelEXT(*cmdBuffer);
 }
 
-void QVk_DebugMarkerInsert(const VkCommandBuffer *cmdBuffer, const char *markerName, const float r, const float g, const float b)
+void QVk_DebugLabelInsert(const VkCommandBuffer *cmdBuffer, const char *labelName, const float r, const float g, const float b)
 {
-	if (vk_ext_debug_marker_extension_available)
-	{
-		VkDebugMarkerMarkerInfoEXT markerInfo = {
-			.sType = VK_STRUCTURE_TYPE_DEBUG_MARKER_MARKER_INFO_EXT,
-			.pNext = NULL,
-			.pMarkerName = markerName,
-			.color = { r, g, b, 1.f }
-		};
+	VkDebugUtilsLabelEXT labelInfo = {
+		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
+		.pNext = NULL,
+		.pLabelName = labelName,
+		.color = { r, g, b, 1.f }
+	};
 
-		qvkCmdDebugMarkerInsertEXT(*cmdBuffer, &markerInfo);
-	}
+	qvkInsertDebugUtilsLabelEXT(*cmdBuffer, &labelInfo);
 }
 
 #endif
