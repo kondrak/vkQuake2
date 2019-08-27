@@ -1626,6 +1626,8 @@ qboolean QVk_Init()
 
 	// create Vulkan device - see if the user prefers any specific device if there's more than one GPU in the system
 	QVk_CreateDevice((int)vk_device_idx->value);
+	QVk_DebugSetObjectName((uint64_t)vk_device.physical, VK_OBJECT_TYPE_PHYSICAL_DEVICE, va("Physical Device: %s", vk_config.vendor_name));
+
 	// create memory allocator
 	VmaAllocatorCreateInfo allocInfo = {
 		.flags = 0,
