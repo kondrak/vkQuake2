@@ -346,7 +346,7 @@ VkResult QVk_CreateImage(uint32_t width, uint32_t height, VkFormat format, VkIma
 	};
 
 	texture->sharingMode = imageInfo.sharingMode;
-	return vmaCreateImage(vk_malloc, &imageInfo, &vmallocInfo, &texture->image, &texture->allocation, NULL);
+	return vmaCreateImage(vk_malloc, &imageInfo, &vmallocInfo, &texture->image, &texture->allocation, &texture->allocInfo);
 }
 
 void QVk_CreateDepthBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *depthBuffer)
@@ -1444,6 +1444,7 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].image, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, va("Image: %s", name));
 			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].imageView, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_VIEW_EXT, va("Image View: %s", name));
 			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].descriptorSet, VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_EXT, va("Descriptor Set: %s", name));
+			QVk_DebugSetObjectName((uint64_t)vk_scrapTextures[texnum].allocInfo.deviceMemory, VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_MEMORY_EXT, "Memory: scrap texture");
 		}
 
 		image->vk_texture = vk_scrapTextures[texnum];
@@ -1468,6 +1469,7 @@ image_t *Vk_LoadPic (char *name, byte *pic, int width, int height, imagetype_t t
 		QVk_DebugSetObjectName((uint64_t)image->vk_texture.image, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, va("Image: %s", name));
 		QVk_DebugSetObjectName((uint64_t)image->vk_texture.imageView, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_VIEW_EXT, va("Image View: %s", name));
 		QVk_DebugSetObjectName((uint64_t)image->vk_texture.descriptorSet, VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_EXT, va("Descriptor Set: %s", name));
+		QVk_DebugSetObjectName((uint64_t)image->vk_texture.allocInfo.deviceMemory, VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_MEMORY_EXT, "Memory: game textures");
 	}
 
 	return image;

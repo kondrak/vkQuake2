@@ -293,6 +293,7 @@ void Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data
 		QVk_DebugSetObjectName((uint64_t)vk_rawTexture.image, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, "Image: raw texture");
 		QVk_DebugSetObjectName((uint64_t)vk_rawTexture.imageView, VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_VIEW_EXT, "Image View: raw texture");
 		QVk_DebugSetObjectName((uint64_t)vk_rawTexture.descriptorSet, VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_EXT, "Descriptor Set: raw texture");
+		QVk_DebugSetObjectName((uint64_t)vk_rawTexture.allocInfo.deviceMemory, VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_MEMORY_EXT, "Memory: raw texture");
 	}
 
 	float imgTransform[] = { (float)x / vid.width, (float)y / vid.height,
