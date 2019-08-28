@@ -355,7 +355,7 @@ void QVk_CreateDepthBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *dept
 	depthBuffer->sampleCount = sampleCount;
 	// On 64-bit builds, Intel drivers throw a warning:
 	// "Mapping an image with layout VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL can result in undefined behavior if this memory is used by the device. Only GENERAL or PREINITIALIZED should be used."
-	// Minor annoyance but we don't want any validation warning either, so we crate dedicated allocation for depth buffer.
+	// Minor annoyance but we don't want any validation warnings, so we create dedicated allocation for depth buffer.
 	// more details: https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/issues/34
 	// Note that this is a false positive which in other cases could be ignored: https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/general_considerations.html#general_considerations_validation_layer_warnings
 	depthBuffer->vmaFlags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
@@ -370,7 +370,7 @@ void QVk_CreateColorBuffer(VkSampleCountFlagBits sampleCount, qvktexture_t *colo
 	colorBuffer->sampleCount = sampleCount;
 	// On 64-bit builds, Intel drivers throw a warning:
 	// "Mapping an image with layout VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL can result in undefined behavior if this memory is used by the device. Only GENERAL or PREINITIALIZED should be used."
-	// Minor annoyance but we don't want any validation warning either, so we crate dedicated allocation for color buffer.
+	// Minor annoyance but we don't want any validation warnings, so we create dedicated allocation for color buffer.
 	// more details: https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/issues/34
 	// Note that this is a false positive which in other cases could be ignored: https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/general_considerations.html#general_considerations_validation_layer_warnings
 	colorBuffer->vmaFlags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
@@ -471,7 +471,12 @@ void QVk_ReadPixels(uint8_t *dstBuffer, uint32_t width, uint32_t height)
 		.reqMemFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 		.prefMemFlags = VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
 		.vmaUsage = VMA_MEMORY_USAGE_CPU_ONLY,
-		.vmaFlags = VMA_ALLOCATION_CREATE_MAPPED_BIT
+		// When taking a screenshot on Intel, the Linux driver may throw a warning:
+		// "Mapping an image with layout VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL can result in undefined behavior if this memory is used by the device. Only GENERAL or PREINITIALIZED should be used."
+		// Minor annoyance but we don't want any validation warnings, so we create dedicated allocation for the image buffer.
+		// more details: https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/issues/34
+		// Note that this is a false positive which in other cases could be ignored: https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/general_considerations.html#general_considerations_validation_layer_warnings
+		.vmaFlags = VMA_ALLOCATION_CREATE_MAPPED_BIT | VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT
 	};
 
 	VK_VERIFY(QVk_CreateBuffer(width * height * 4, &buff, buffOpts));
