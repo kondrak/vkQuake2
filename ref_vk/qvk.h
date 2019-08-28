@@ -306,7 +306,7 @@ void		QVk_DrawColorRect(float *ubo, VkDeviceSize uboSize, qvkrenderpasstype_t rp
 void		QVk_DrawTexRect(float *ubo, VkDeviceSize uboSize, qvktexture_t *texture);
 void		QVk_BindPipeline(qvkpipeline_t *pipeline);
 void		QVk_SubmitStagingBuffers(void);
-// debug marker extension related functions
+// debug label related functions
 #if defined(_DEBUG) || defined(ENABLE_DEBUG_LABELS)
 void		QVk_DebugSetObjectName(uint64_t obj, VkObjectType objType, const char *objName);
 void		QVk_DebugSetObjectTag(uint64_t obj, VkObjectType objType, uint64_t tagName, size_t tagSize, const void *tagData);

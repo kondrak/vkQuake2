@@ -43,12 +43,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 FILE *vk_logfp = NULL;
 
 // Vulkan instance, surface and memory allocator
-VkInstance	 vk_instance = VK_NULL_HANDLE;
+VkInstance vk_instance  = VK_NULL_HANDLE;
 VkSurfaceKHR vk_surface = VK_NULL_HANDLE;
 VmaAllocator vk_malloc  = VK_NULL_HANDLE;
 
 // Vulkan device
-qvkdevice_t	 vk_device = {
+qvkdevice_t vk_device = {
 	.physical = VK_NULL_HANDLE,
 	.logical = VK_NULL_HANDLE,
 	.gfxQueue = VK_NULL_HANDLE,
@@ -162,6 +162,7 @@ qvkpipeline_t vk_postprocessPipeline = QVKPIPELINE_INIT;
 // samplers
 static VkSampler vk_samplers[S_SAMPLER_CNT];
 
+// Vulkan function pointers
 PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;
 PFN_vkDestroyDebugUtilsMessengerEXT qvkDestroyDebugUtilsMessengerEXT;
 PFN_vkSetDebugUtilsObjectNameEXT qvkSetDebugUtilsObjectNameEXT;
