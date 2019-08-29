@@ -34,7 +34,7 @@ static qboolean deviceExtensionsSupported(const VkPhysicalDevice *physicalDevice
 
 		for (uint32_t i = 0; i < availableExtCount; ++i)
 		{
-			vk_khr_swapchain_extension_available    |= strcmp(extensions[i].extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0;
+			vk_khr_swapchain_extension_available |= strcmp(extensions[i].extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0;
 		}
 
 		free(extensions);
