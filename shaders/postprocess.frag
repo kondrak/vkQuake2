@@ -15,7 +15,7 @@ layout(location = 0) out vec4 fragmentColor;
 void main() 
 {
 	// apply any additional world-only postprocessing effects here (if enabled)
-	if(pc.postprocess > 0.0)
+	if (pc.postprocess > 0.0)
 	{
 		//gamma + color intensity bump
 		fragmentColor = vec4(pow(texture(sTexture, texCoord).rgb * 1.5, vec3(pc.gamma)), 1.0);

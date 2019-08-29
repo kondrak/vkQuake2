@@ -934,7 +934,7 @@ void R_EndWorldRenderpass(void)
 	// apply postprocessing effects (underwater view warp if the player is submerged in liquid) to offscreen buffer
 	QVk_BeginRenderpass(RP_WORLD_WARP);
 	float pushConsts[] = { r_newrefdef.rdflags & RDF_UNDERWATER ? r_newrefdef.time : 0.f, viewsize->value / 100, vid.width, vid.height };
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_worldWarpPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(pushConsts), pushConsts);
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_worldWarpPipeline.layout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(pushConsts), pushConsts);
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_worldWarpPipeline.layout, 0, 1, &vk_colorbuffer.descriptorSet, 0, NULL);
 	QVk_BindPipeline(&vk_worldWarpPipeline);
 	vkCmdDraw(vk_activeCmdbuffer, 3, 1, 0, 0);

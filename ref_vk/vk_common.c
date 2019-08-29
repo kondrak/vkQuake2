@@ -1165,7 +1165,7 @@ static void CreatePipelines()
 	VkPushConstantRange pushConstantRangeFrag = {
 		.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
 		.offset = 0,
-		.size = 2 * sizeof(float)
+		.size = 4 * sizeof(float)
 	};
 
 	// textured quad pipeline
@@ -1350,7 +1350,7 @@ static void CreatePipelines()
 	vk_worldWarpPipeline.depthTestEnable = VK_FALSE;
 	vk_worldWarpPipeline.depthWriteEnable = VK_FALSE;
 	vk_worldWarpPipeline.cullMode = VK_CULL_MODE_NONE;
-	QVk_CreatePipeline(&vk_samplerDescSetLayout, 1, &vertInfoNull, &vk_worldWarpPipeline, &vk_renderpasses[RP_WORLD_WARP], shaders, 2, &pushConstantRangeVert);
+	QVk_CreatePipeline(&vk_samplerDescSetLayout, 1, &vertInfoNull, &vk_worldWarpPipeline, &vk_renderpasses[RP_WORLD_WARP], shaders, 2, &pushConstantRangeFrag);
 	QVk_DebugSetObjectName((uint64_t)vk_worldWarpPipeline.layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT, "Pipeline Layout: underwater view warp");
 	QVk_DebugSetObjectName((uint64_t)vk_worldWarpPipeline.pl, VK_OBJECT_TYPE_PIPELINE, "Pipeline: underwater view warp");
 
