@@ -9,7 +9,7 @@ Overview
 ===
 This is the official Quake 2 code v3.21 with additional Vulkan renderer and mission packs included. The goal is to maintain as much compatibility as possible with the original game, so there are no fancy visual upgrades here - just pure, vanilla Quake 2 experience as we knew it back in 1997. There are, however, a few notable differences that made the cut for various reasons:
 
-- original compiler warnings have been fixed
+- world colors have been slightly upgraded - the game's original, darker look can be still toggled via the `vk_postprocess` console command
 - on first launch, the game attempts to use Vulkan at 1920x1080 fullscreen resolution
 - 64 bit support has been added
 - additional screen resolutions have been added and the game is now DPI aware
@@ -27,6 +27,7 @@ This is the official Quake 2 code v3.21 with additional Vulkan renderer and miss
 - on Linux, sound is now handled by ALSA instead of OSS
 - support for OGG/FLAC/MP3/WAV music has been added in addition to standard CD audio
 - game menus have been slightly improved
+- original compiler warnings have been fixed
 
 Building
 ===
@@ -120,7 +121,7 @@ The Vulkan renderer comes with a set of its own additional console commands:
 | vk_lightmap           | Display lightmaps. (default: 0)                          |
 | vk_aniso              | Toggle anisotropic filtering. (default: 1)               |
 | vk_vsync              | Toggle vertical sync. (default: 0)                       |
-| vk_postprocess        | Toggle additional color/gamma postprocess - setting to 0 will give the game its original, darker look. (default: 1) |
+| vk_postprocess        | Toggle additional color/gamma correction (default: 1)    |
 | vk_mip_nearfilter     | Use nearest neighbour filtering for mipmaps. (default: 0) |
 | vk_texturemode        | Change current texture filtering.<br>VK_NEAREST - nearest filter, no mipmaps<br>VK_LINEAR - linear filter, no mipmaps<br>VK_MIPMAP_NEAREST - nearest filter with mipmaps<br>VK_MIPMAP_LINEAR - linear filter with mipmaps (default) |
 | vk_lmaptexturemode    | Same as `vk_texturemode` but applied to lightmap textures. |
