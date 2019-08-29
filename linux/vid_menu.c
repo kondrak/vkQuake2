@@ -45,6 +45,7 @@ static cvar_t *vk_sampleshading;
 static cvar_t *vk_texturemode;
 static cvar_t *vk_lmaptexturemode;
 static cvar_t *vk_vsync;
+static cvar_t *vk_postprocess;
 static cvar_t *vk_picmip;
 
 static cvar_t *sw_mode;
@@ -89,6 +90,7 @@ static menulist_s		s_aniso_filter;
 static menulist_s		s_texture_filter;
 static menulist_s		s_lmap_texture_filter;
 static menulist_s		s_vsync;
+static menulist_s		s_postprocess;
 static menuaction_s		s_apply_action[3];
 static menuaction_s		s_cancel_action[3];
 static menuaction_s		s_defaults_action[3];
@@ -180,6 +182,7 @@ static void ApplyChanges( void *unused )
 	Cvar_SetValue( "vk_aniso", s_aniso_filter.curvalue );
 	Cvar_SetValue( "vk_sampleshading", s_sampleshading.curvalue );
 	Cvar_SetValue( "vk_vsync", s_vsync.curvalue );
+	Cvar_SetValue( "vk_postprocess", s_postprocess.curvalue );
 	Cvar_SetValue( "vk_picmip", 3 - s_tqvk_slider.curvalue );
 	Cvar_SetValue( "_windowed_mouse", s_windowed_mouse.curvalue);
 
@@ -346,6 +349,8 @@ void VID_MenuInit( void )
 		vk_sampleshading = Cvar_Get( "vk_sampleshading", "1", CVAR_ARCHIVE );
 	if ( !vk_vsync )
 		vk_vsync = Cvar_Get( "vk_vsync", "0", CVAR_ARCHIVE );
+	if ( !vk_postprocess )
+		vk_postprocess = Cvar_Get( "vk_postprocess", "1", CVAR_ARCHIVE );
 	if ( !vk_texturemode )
 		vk_texturemode = Cvar_Get( "vk_texturemode", "VK_MIPMAP_LINEAR", CVAR_ARCHIVE );
 	if ( !vk_lmaptexturemode )
@@ -454,19 +459,19 @@ void VID_MenuInit( void )
 		s_apply_action[i].generic.type = MTYPE_ACTION;
 		s_apply_action[i].generic.name = "apply changes";
 		s_apply_action[i].generic.x = 0;
-		s_apply_action[i].generic.y = 140 * vid_hudscale->value;
+		s_apply_action[i].generic.y = 150 * vid_hudscale->value;
 		s_apply_action[i].generic.callback = ApplyChanges;
 
 		s_defaults_action[i].generic.type = MTYPE_ACTION;
 		s_defaults_action[i].generic.name = "reset to defaults";
 		s_defaults_action[i].generic.x    = 0;
-		s_defaults_action[i].generic.y    = 150 * vid_hudscale->value;
+		s_defaults_action[i].generic.y    = 160 * vid_hudscale->value;
 		s_defaults_action[i].generic.callback = ResetDefaults;
 
 		s_cancel_action[i].generic.type = MTYPE_ACTION;
 		s_cancel_action[i].generic.name = "cancel";
 		s_cancel_action[i].generic.x    = 0;
-		s_cancel_action[i].generic.y    = 160 * vid_hudscale->value;
+		s_cancel_action[i].generic.y    = 170 * vid_hudscale->value;
 		s_cancel_action[i].generic.callback = CancelChanges;
 	}
 
@@ -561,6 +566,13 @@ void VID_MenuInit( void )
 	s_vsync.itemnames = yesno_names;
 	s_vsync.curvalue = vk_vsync->value > 0 ? 1 : 0;
 
+	s_postprocess.generic.type = MTYPE_SPINCONTROL;
+	s_postprocess.generic.name = "postprocessing";
+	s_postprocess.generic.x = 0;
+	s_postprocess.generic.y = 130 * vid_hudscale->value;
+	s_postprocess.itemnames = yesno_names;
+	s_postprocess.curvalue = vk_postprocess->value > 0 ? 1 : 0;
+
 	Menu_AddItem( &s_software_menu, ( void * ) &s_ref_list[SOFTWARE_MENU] );
 	Menu_AddItem( &s_software_menu, ( void * ) &s_mode_list[SOFTWARE_MENU] );
 	Menu_AddItem( &s_software_menu, ( void * ) &s_screensize_slider[SOFTWARE_MENU] );
@@ -589,6 +601,7 @@ void VID_MenuInit( void )
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_texture_filter );
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_lmap_texture_filter );
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_vsync );
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_postprocess );
 
 	Menu_AddItem( &s_software_menu, ( void * ) &s_apply_action[SOFTWARE_MENU] );
 	Menu_AddItem( &s_software_menu, ( void * ) &s_defaults_action[SOFTWARE_MENU] );
@@ -606,9 +619,9 @@ void VID_MenuInit( void )
 	s_opengl_menu.x -= 8 * vid_hudscale->value;
 	s_software_menu.x -= 8 * vid_hudscale->value;
 	s_vulkan_menu.x -= 8 * vid_hudscale->value;
-	s_opengl_menu.y += 12 * vid_hudscale->value;
-	s_software_menu.y += 12 * vid_hudscale->value;
-	s_vulkan_menu.y += 12 * vid_hudscale->value;
+	s_opengl_menu.y += 18 * vid_hudscale->value;
+	s_software_menu.y += 18 * vid_hudscale->value;
+	s_vulkan_menu.y += 18 * vid_hudscale->value;
 }
 
 /*

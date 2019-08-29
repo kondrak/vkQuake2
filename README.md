@@ -120,6 +120,7 @@ The Vulkan renderer comes with a set of its own additional console commands:
 | vk_lightmap           | Display lightmaps. (default: 0)                          |
 | vk_aniso              | Toggle anisotropic filtering. (default: 1)               |
 | vk_vsync              | Toggle vertical sync. (default: 0)                       |
+| vk_postprocess        | Toggle additional color/gamma postprocess - setting to 0 will give the game its original, darker look. (default: 1) |
 | vk_mip_nearfilter     | Use nearest neighbour filtering for mipmaps. (default: 0) |
 | vk_texturemode        | Change current texture filtering.<br>VK_NEAREST - nearest filter, no mipmaps<br>VK_LINEAR - linear filter, no mipmaps<br>VK_MIPMAP_NEAREST - nearest filter with mipmaps<br>VK_MIPMAP_LINEAR - linear filter with mipmaps (default) |
 | vk_lmaptexturemode    | Same as `vk_texturemode` but applied to lightmap textures. |

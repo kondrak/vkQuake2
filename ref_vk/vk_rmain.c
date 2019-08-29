@@ -108,6 +108,7 @@ cvar_t	*vk_particle_att_c;
 cvar_t	*vk_particle_min_size;
 cvar_t	*vk_particle_max_size;
 cvar_t	*vk_point_particles;
+cvar_t	*vk_postprocess;
 cvar_t	*vk_dynamic;
 cvar_t	*vk_msaa;
 cvar_t	*vk_showtris;
@@ -958,6 +959,8 @@ void R_SetVulkan2D (void)
 	// skip this step if we're in player config screen since it uses RP_UI and draws directly to swapchain
 	if (!(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
 	{
+		float pushConsts[] = { vk_postprocess->value, vid_gamma->value };
+		vkCmdPushConstants(vk_activeCmdbuffer, vk_postprocessPipeline.layout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(pushConsts), pushConsts);
 		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_postprocessPipeline.layout, 0, 1, &vk_colorbufferWarp.descriptorSet, 0, NULL);
 		QVk_BindPipeline(&vk_postprocessPipeline);
 		vkCmdDraw(vk_activeCmdbuffer, 3, 1, 0, 0);
@@ -1051,6 +1054,7 @@ void R_Register( void )
 	vk_particle_min_size = ri.Cvar_Get("vk_particle_min_size", "2", CVAR_ARCHIVE);
 	vk_particle_max_size = ri.Cvar_Get("vk_particle_max_size", "40", CVAR_ARCHIVE);
 	vk_point_particles = ri.Cvar_Get("vk_point_particles", "1", CVAR_ARCHIVE);
+	vk_postprocess = ri.Cvar_Get("vk_postprocess", "1", CVAR_ARCHIVE);
 	vk_dynamic = ri.Cvar_Get("vk_dynamic", "1", 0);
 	vk_msaa = ri.Cvar_Get("vk_msaa", "0", CVAR_ARCHIVE);
 	vk_showtris = ri.Cvar_Get("vk_showtris", "0", 0);
