@@ -9,7 +9,7 @@ Overview
 ===
 This is the official Quake 2 code v3.21 with additional Vulkan renderer and mission packs included. The goal is to maintain as much compatibility as possible with the original game, so there are no fancy visual upgrades here - just pure, vanilla Quake 2 experience as we knew it back in 1997. There are, however, a few notable differences that made the cut for various reasons:
 
-- world colors have been slightly upgraded - the game's original, darker look can be still toggled via the `vk_postprocess` console command
+- world colors have been slightly upgraded - the game's original, darker look can be toggled with the `vk_postprocess` console command
 - on first launch, the game attempts to use Vulkan at 1920x1080 fullscreen resolution
 - 64 bit support has been added
 - additional screen resolutions have been added and the game is now DPI aware
@@ -19,7 +19,7 @@ This is the official Quake 2 code v3.21 with additional Vulkan renderer and miss
 - players can now change texture filtering modes from within the video menu
 - mouse acceleration has been disabled
 - console contents can be scrolled with mouse wheel
-- HUD elements, menus and console text are now scaled accordingly on higher screen resolutions (can be overridden with `hudscale` console command)
+- HUD elements, menus and console text are now scaled accordingly on higher screen resolutions (can be overridden with the `hudscale` console command)
 - viewmodel weapons are no longer hidden when FOV > 90
 - warped texture effect (lava, water, slime) is now properly drawn (though only in Vulkan and software renderers!)
 - software renderer has been completely replaced with [KolorSoft 1.1](https://github.com/qbism/Quake2-colored-refsoft) - this adds colored lighting and fixes severe instabilities of the original implementation
@@ -121,7 +121,7 @@ The Vulkan renderer comes with a set of its own additional console commands:
 | vk_lightmap           | Display lightmaps. (default: 0)                          |
 | vk_aniso              | Toggle anisotropic filtering. (default: 1)               |
 | vk_vsync              | Toggle vertical sync. (default: 0)                       |
-| vk_postprocess        | Toggle additional color/gamma correction (default: 1)    |
+| vk_postprocess        | Toggle additional color/gamma correction. (default: 1)    |
 | vk_mip_nearfilter     | Use nearest neighbour filtering for mipmaps. (default: 0) |
 | vk_texturemode        | Change current texture filtering.<br>VK_NEAREST - nearest filter, no mipmaps<br>VK_LINEAR - linear filter, no mipmaps<br>VK_MIPMAP_NEAREST - nearest filter with mipmaps<br>VK_MIPMAP_LINEAR - linear filter with mipmaps (default) |
 | vk_lmaptexturemode    | Same as `vk_texturemode` but applied to lightmap textures. |
