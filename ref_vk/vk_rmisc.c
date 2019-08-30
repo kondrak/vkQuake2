@@ -187,6 +187,7 @@ void Vk_Strings_f(void)
 	VkPhysicalDeviceProperties deviceProperties;
 	qboolean isPreferred = false;
 	int preferredDevice = (int)vk_device_idx->value;
+	int msaa = (int)ri.Cvar_Get("vk_msaa", "0", CVAR_ARCHIVE)->value;
 	uint32_t driverMajor = VK_VERSION_MAJOR(vk_device.properties.driverVersion);
 	uint32_t driverMinor = VK_VERSION_MINOR(vk_device.properties.driverVersion);
 	uint32_t driverPatch = VK_VERSION_PATCH(vk_device.properties.driverVersion);
@@ -223,6 +224,11 @@ void Vk_Strings_f(void)
 	}
 	ri.Con_Printf(PRINT_ALL, "Using device #%d:\n", usedDevice);
 	ri.Con_Printf(PRINT_ALL, "   deviceName: %s\n", vk_device.properties.deviceName);
+	ri.Con_Printf(PRINT_ALL, "   resolution: %dx%d", vid.width, vid.height);
+	if (msaa > 0)
+		ri.Con_Printf(PRINT_ALL, " (MSAAx%d)\n", 2 << (msaa - 1));
+	else
+		ri.Con_Printf(PRINT_ALL, "\n");
 #ifndef __linux__
 	// Intel on Windows and MacOS (Linux uses semver for Mesa drivers)
 	if (vk_device.properties.vendorID == 0x8086)
@@ -230,21 +236,20 @@ void Vk_Strings_f(void)
 	else
 #endif
 		ri.Con_Printf(PRINT_ALL, "   driverVersion: %d.%d.%d (0x%X)\n", driverMajor, driverMinor, driverPatch, vk_device.properties.driverVersion);
-	ri.Con_Printf(PRINT_ALL, "   apiVersion: %d.%d.%d\n"
-							 "   deviceID: %d\n"
-							 "   vendorID: 0x%X (%s)\n"
-							 "   deviceType: %s\n"
-							 "   gfx/present/transfer: %d/%d/%d\n",	VK_VERSION_MAJOR(vk_device.properties.apiVersion),
-																	VK_VERSION_MINOR(vk_device.properties.apiVersion),
-																	VK_VERSION_PATCH(vk_device.properties.apiVersion),
-																	vk_device.properties.deviceID,
-																	vk_device.properties.vendorID,
-																	vk_config.vendor_name,
-																	vk_config.device_type,
-																	vk_device.gfxFamilyIndex, vk_device.presentFamilyIndex, vk_device.transferFamilyIndex);
+
+	ri.Con_Printf(PRINT_ALL, "   apiVersion: %d.%d.%d\n",	VK_VERSION_MAJOR(vk_device.properties.apiVersion),
+															VK_VERSION_MINOR(vk_device.properties.apiVersion),
+															VK_VERSION_PATCH(vk_device.properties.apiVersion));
+	ri.Con_Printf(PRINT_ALL, "   deviceID: %d\n", vk_device.properties.deviceID);
+	ri.Con_Printf(PRINT_ALL, "   vendorID: 0x%X (%s)\n", vk_device.properties.vendorID, vk_config.vendor_name);
+	ri.Con_Printf(PRINT_ALL, "   deviceType: %s\n", vk_config.device_type);
+	ri.Con_Printf(PRINT_ALL, "   gfx/present/transfer: %d/%d/%d\n",	vk_device.gfxFamilyIndex,
+																	vk_device.presentFamilyIndex,
+																	vk_device.transferFamilyIndex);
 	ri.Con_Printf(PRINT_ALL, "Present mode: %s\n", vk_config.present_mode);
 	ri.Con_Printf(PRINT_ALL, "Swapchain image format: %d\n", vk_swapchain.format);
 	ri.Con_Printf(PRINT_ALL, "Supported present modes: ");
+
 	i = 0;
 	while(vk_config.supported_present_modes[i])
 	{

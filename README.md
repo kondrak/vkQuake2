@@ -7,7 +7,7 @@
 
 Overview
 ===
-This is the official Quake 2 code v3.21 with additional Vulkan renderer and mission packs included. The goal is to maintain as much compatibility as possible with the original game, so there are no fancy visual upgrades here - just pure, vanilla Quake 2 experience as we knew it back in 1997. There are, however, a few notable differences that made the cut for various reasons:
+This is the official Quake 2 code v3.21 with additional Vulkan renderer and both mission packs included. The goal of this project is to maintain as much compatibility as possible with the original game - just pure, vanilla Quake 2 experience as we knew it back in 1997. There are, however, a few notable differences that made the cut for various reasons:
 
 - world colors have been slightly upgraded - the game's original, darker look can be toggled with the `vk_postprocess` console command
 - on first launch, the game attempts to use Vulkan at 1920x1080 fullscreen resolution
