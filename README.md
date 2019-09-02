@@ -21,7 +21,7 @@ This is the official Quake 2 code v3.21 with additional Vulkan renderer and both
 - console contents can be scrolled with mouse wheel
 - HUD elements, menus and console text are now scaled accordingly on higher screen resolutions (can be overridden with the `hudscale` console command)
 - viewmodel weapons are no longer hidden when FOV > 90
-- warped texture effect (lava, water, slime) is now properly drawn (though only in Vulkan and software renderers!)
+- Vulkan renderer fixes broken warp texture effect (water, lava, slime) seen in OpenGL
 - software renderer has been completely replaced with [KolorSoft 1.1](https://github.com/qbism/Quake2-colored-refsoft) - this adds colored lighting and fixes severe instabilities of the original implementation
 - triangle fans have been replaced with indexed triangle lists due to Metal/MoltenVK limitations
 - on Linux, sound is now handled by ALSA instead of OSS
@@ -45,7 +45,7 @@ Unfortunately, Linux code for Quake 2 has not aged well and for that reason only
 ```
 sudo apt install make gcc g++ mesa-common-dev libglu1-mesa-dev libxxf86dga-dev libxxf86vm-dev libasound2-dev libx11-dev libxcb1-dev
 ```
-- install [Vulkan SDK](https://vulkan.lunarg.com/) - the easiest way is to use [LunarG Ubuntu Packages](https://vulkan.lunarg.com/sdk/home#linux) - just follow instructions and there will be no additional steps required. If you decide to manually install the SDK, make sure proper environment variables are set afterwards - the easiest way is to add a section to your `.bashrc` file which may look similar to this:
+- install [Vulkan SDK](https://vulkan.lunarg.com/) - the easiest way is to use [LunarG Ubuntu Packages](https://vulkan.lunarg.com/sdk/home#linux) - just follow the instructions and there will be no additional steps required. If you decide to manually install the SDK, make sure proper environment variables are set afterwards - the easiest way is to add a section to your `.bashrc` file which may look similar to this:
 ```
 export VULKAN_SDK=/home/user/VulkanSDK/1.1.92.1/x86_64
 export PATH=$VULKAN_SDK/bin:$PATH
@@ -62,7 +62,7 @@ sudo apt install mesa-vulkan-drivers
 - download and extract the [Vulkan SDK](https://vulkan.lunarg.com/) package
 - install XCode 10.1 or later and add the `VULKAN_SDK` environment variable to Locations/Custom Paths - make it point to the downloaded SDK
 - open `macos/vkQuake2.xcworkspace` - it should build and run without any additional steps - the output binary will be put in `macos/vkQuake2` subfolder
-- alternatively, you can compile the game from command line - modify your `.bash_profile` file and add these entries (replace SDK version and location with the one corresponding to your system):
+- alternatively, you can compile the game from command line - modify your `.bash_profile` file and add the following entries (replace SDK version and location with the one corresponding to your system):
 ```
 export VULKAN_SDK=/home/user/VulkanSDK/1.1.92.1
 export VK_ICD_FILENAMES=$VULKAN_SDK/macOS/etc/vulkan/icd.d/MoltenVK_icd.json
@@ -87,21 +87,21 @@ This project uses [Miniaudio](https://github.com/dr-soft/miniaudio) for music pl
 Console commands
 ===
 
-The Vulkan renderer comes with a set of its own additional console commands:
+The Vulkan renderer comes with a set of its own console commands:
 
 | Command               | Action                                                  |
 |-----------------------|:--------------------------------------------------------|
 | vk_validation         | Toggle validation layers.<br>0 - disabled (default in Release)<br> 1 - only errors and warnings<br>2 - full validation (default in Debug) |
 | vk_strings            | Print some basic Vulkan/GPU information.                                    |
 | vk_mem                | Print dynamic vertex/index/uniform/triangle fan buffer memory usage statistics.          |
-| vk_device             | Specifiy preferred Vulkan device index on systems with multiple GPUs.<br>-1 - prefer first DISCRETE_GPU (default)<br>0..n - use device #n (full list of devices is returned by vk_strings command) |
+| vk_device             | Specify preferred Vulkan device index on systems with multiple GPUs.<br>-1 - prefer first DISCRETE_GPU (default)<br>0..n - use device #n (full list of devices is returned by `vk_strings` command) |
 | vk_msaa               | Toggle MSAA.<br>0 - off (default)<br>1 - MSAAx2<br>2 - MSAAx4<br>3 - MSAAx8<br>4 - MSAAx16 |
 | vk_sampleshading      | Toggle sample shading for MSAA. (default: 1) |
 | vk_mode               | Vulkan video mode (default: 11). Setting this to `-1` uses a custom screen resolution defined by `r_customwidth` (default: 1024) and `r_customheight` (default: 768) console variables. |
 | vk_flashblend         | Toggle the blending of lights onto the environment. (default: 0)            |
 | vk_polyblend          | Blend fullscreen effects: blood, powerups etc. (default: 1)                 |
 | vk_skymip             | Toggle the usage of mipmap information for the sky graphics. (default: 0)   |
-| vk_finish             | Inserts vkDeviceWaitIdle() on render start (default: 0).<br>Don't use this, it's just for the sake of having a gl_finish equivalent. |
+| vk_finish             | Inserts a `vkDeviceWaitIdle()` call on render start (default: 0).<br>Don't use this, it's just for the sake of having a `gl_finish` equivalent! |
 | vk_point_particles    | Use POINT_LIST to render particles, textured triangles otherwise. (default: 1) |
 | vk_particle_size      | Rendered particle size. (default: 40)                    |
 | vk_particle_att_a     | Intensity of the particle A attribute. (default: 0.01)   |
@@ -128,7 +128,7 @@ The Vulkan renderer comes with a set of its own additional console commands:
 
 Acknowledgements
 ===
-- Sascha Willems for his [Vulkan Samples](https://github.com/SaschaWillems/Vulkan) which provided excellent examples of some more complex Vulkan features
+- Sascha Willems for his [Vulkan Samples](https://github.com/SaschaWillems/Vulkan)
 - Axel Gneiting for [vkQuake](https://github.com/Novum/vkQuake) which was a great inspiration and a rich source of knowledge
 - LunarG team and the Khronos Group for their invaluable help and resources
 
