@@ -56,19 +56,19 @@ export VK_LAYER_PATH=$VULKAN_SDK/etc/explicit_layer.d
 ```
 sudo apt install mesa-vulkan-drivers
 ```
-- in the main repository, enter the `linux` subfolder and type `make release` or `make debug` depending on which variant you want to build - the output binaries will be placed in `releasex64` and `debugx64` directories respectively
+- enter the `linux` directory and type `make release` or `make debug` depending on which variant you want to build - output binaries will be placed in `linux/releasex64` and `linux/debugx64` subdirectories respectively
 
 ## MacOS
 - download and extract the [Vulkan SDK](https://vulkan.lunarg.com/) package
 - install XCode 10.1 or later and add the `VULKAN_SDK` environment variable to Locations/Custom Paths - make it point to the downloaded SDK
-- open `macos/vkQuake2.xcworkspace` - it should build and run without any additional steps - the output binary will be put in `macos/vkQuake2` subfolder
+- open `macos/vkQuake2.xcworkspace` - it should build and run without any additional steps
 - alternatively, you can compile the game from command line - modify your `.bash_profile` file and add the following entries (replace SDK version and location with the one corresponding to your system):
 ```
 export VULKAN_SDK=/home/user/VulkanSDK/1.1.92.1
 export VK_ICD_FILENAMES=$VULKAN_SDK/macOS/etc/vulkan/icd.d/MoltenVK_icd.json
 export VK_LAYER_PATH=$VULKAN_SDK/macOS/etc/vulkan/explicit_layer.d
 ```
-- enter `macos` directory and run `make debug` or `make release` depending on which variant you want to build - output binaries will be put in `macos/vkQuake2` subfolder
+- enter the `macos` directory and run `make debug` or `make release` depending on which variant you want to build - output binaries will be placed in `macos/vkQuake2` subdirectory
 
 This project uses the Vulkan loader bundled with the SDK, rather than directly linking against `MoltenVK.framework`. This is done so that validation layers are available for debugging. Builds have been tested using MacOS 10.14.2.
 
@@ -82,7 +82,7 @@ The [release package](https://github.com/kondrak/vkQuake2/releases) comes with g
 Alternatively, on Windows it's possible to overwrite your existing Quake 2 installation with release binaries - remember to delete the demo `.pak` files before you do it, though!
 
 ## Music
-This project uses [Miniaudio](https://github.com/dr-soft/miniaudio) for music playback if the original game CD is not available. For standard Quake 2, copy all tracks to `baseq2/music` folder following the `trackXX.[ogg,flac,mp3,wav]` naming scheme, where `XX` corresponds to two digit track number on the original CD (so track02.ogg, track03.ogg... for OGG files etc.). For "Ground Zero" and "The Reckoning", copy the tracks to `rogue/music` and `xatrix/music` folders respectively. For additional control, a `miniaudio [on,off,play [X],loop [X],stop,pause,resume,info]` console command has been introduced - it works in a similar fashion to the corresponding `cd` command for audio CD.
+This project uses [Miniaudio](https://github.com/dr-soft/miniaudio) for music playback if the original game CD is not available. For standard Quake 2, copy all tracks to `baseq2/music` directory following the `trackXX.[ogg,flac,mp3,wav]` naming scheme, where `XX` corresponds to two digit track number on the original CD (so track02.ogg, track03.ogg... etc. for OGG files). For "Ground Zero" and "The Reckoning", copy the tracks to `rogue/music` and `xatrix/music` directories respectively. For additional control, a `miniaudio [on,off,play [X],loop [X],stop,pause,resume,info]` console command has been introduced - it works in a similar fashion to the corresponding `cd` command for audio CD.
 
 Console commands
 ===
