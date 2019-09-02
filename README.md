@@ -107,8 +107,8 @@ The Vulkan renderer comes with a set of its own console commands:
 | vk_particle_att_a     | Intensity of the particle A attribute. (default: 0.01)   |
 | vk_particle_att_b     | Intensity of the particle B attribute. (default: 0)      |
 | vk_particle_att_c     | Intensity of the particle C attribute. (default: 0.01)   |
-| vk_particle_min_size  | The minimum size for a rendered particle. (default: 2)   |
-| vk_particle_max_size  | The maximum size for a rendered particle. (default: 40)  |
+| vk_particle_min_size  | The minimum size of a rendered particle. (default: 2)    |
+| vk_particle_max_size  | The maximum size of a rendered particle. (default: 40)   |
 | vk_lockpvs            | Lock current PVS table. (default: 0)                     |
 | vk_clear              | Clear the color buffer each frame. (default: 0)          |
 | vk_modulate           | Texture brightness modifier. (default: 1)                |
