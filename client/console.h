@@ -24,7 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define	NUM_CON_TIMES 4
 
-#define		CON_TEXTSIZE	32768
+#define		CON_TEXTSIZE	131072
 typedef struct
 {
 	qboolean	initialized;

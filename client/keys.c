@@ -28,7 +28,7 @@ key up events are sent even if in console mode
 */
 
 #define		MAXCMDLINE	256
-char	key_lines[32][MAXCMDLINE];
+char	key_lines[128][MAXCMDLINE];
 int		key_linepos;
 int		shift_down=false;
 int	anykeydown;
@@ -648,7 +648,7 @@ void Key_Init (void)
 {
 	int		i;
 
-	for (i=0 ; i<32 ; i++)
+	for (i=0 ; i<128 ; i++)
 	{
 		key_lines[i][0] = ']';
 		key_lines[i][1] = 0;

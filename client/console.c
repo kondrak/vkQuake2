@@ -29,7 +29,7 @@ extern cvar_t	*vid_hudscale;
 
 
 #define		MAXCMDLINE	256
-extern	char	key_lines[32][MAXCMDLINE];
+extern	char	key_lines[128][MAXCMDLINE];
 extern	int		edit_line;
 extern	int		key_linepos;
 
