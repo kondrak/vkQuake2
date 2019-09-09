@@ -34,7 +34,7 @@ Building
 For extra challenge I decided to base vkQuake2 on the original id Software code. Because of this, there are no dependencies on external SDL-like libraries and the entire project is mostly self-contained. This also implies that some of the original bugs could be present.
 
 ## Windows
-- download and install [Vulkan SDK](https://vulkan.lunarg.com/) - make sure that the `VULKAN_SDK` environment variable is set afterwards
+- download and install the [Vulkan SDK](https://vulkan.lunarg.com/)
 - install [Visual Studio Community](https://www.visualstudio.com/products/free-developer-offers-vs) with the MFC package
 - install Windows Universal CRT SDK and Windows SDK 8.1 or just the latest Windows 10 SDK (the latter will require retargetting the solution)
 - open `quake2.sln` and choose the target platform (32/64bit) - it should build and run without issues
@@ -45,7 +45,7 @@ Unfortunately, Linux code for Quake 2 has not aged well and for that reason only
 ```
 sudo apt install make gcc g++ mesa-common-dev libglu1-mesa-dev libxxf86dga-dev libxxf86vm-dev libasound2-dev libx11-dev libxcb1-dev
 ```
-- install [Vulkan SDK](https://vulkan.lunarg.com/) - the easiest way is to use [LunarG Ubuntu Packages](https://vulkan.lunarg.com/sdk/home#linux) - just follow the instructions and there will be no additional steps required. If you decide to manually install the SDK, make sure proper environment variables are set afterwards - the easiest way is to add a section to your `.bashrc` file which may look similar to this:
+- Install the [Vulkan SDK](https://vulkan.lunarg.com/) - the easiest way is to use [LunarG Ubuntu Packages](https://vulkan.lunarg.com/sdk/home#linux) - just follow the instructions and there will be no additional steps required. If you decide to install the SDK manually, make sure that proper environment variables are set afterwards by adding the following section to your `.bashrc` file:
 ```
 export VULKAN_SDK=/home/user/VulkanSDK/1.1.92.1/x86_64
 export PATH=$VULKAN_SDK/bin:$PATH
@@ -59,10 +59,10 @@ sudo apt install mesa-vulkan-drivers
 - enter the `linux` directory and type `make release` or `make debug` depending on which variant you want to build - output binaries will be placed in `linux/releasex64` and `linux/debugx64` subdirectories respectively
 
 ## MacOS
-- download and extract the [Vulkan SDK](https://vulkan.lunarg.com/) package
-- install XCode 10.1 or later and add the `VULKAN_SDK` environment variable to Locations/Custom Paths - make it point to the downloaded SDK
+- download and extract the [Vulkan SDK](https://vulkan.lunarg.com/)
+- install XCode 10.1 (or later) and add the `VULKAN_SDK` environment variable to Locations/Custom Paths - make it point to the downloaded SDK
 - open `macos/vkQuake2.xcworkspace` - it should build and run without any additional steps
-- alternatively, you can compile the game from the command line - modify your `.bash_profile` file and add the following entries (replace SDK version and location with the one corresponding to your system):
+- alternatively, you can compile the game from the command line - modify your `.bash_profile` and add the following entries (replace SDK version and location with the one corresponding to your system):
 ```
 export VULKAN_SDK=/home/user/VulkanSDK/1.1.92.1
 export VK_ICD_FILENAMES=$VULKAN_SDK/macOS/etc/vulkan/icd.d/MoltenVK_icd.json
@@ -75,14 +75,14 @@ This project uses the Vulkan loader bundled with the SDK, rather than directly l
 Running
 ===
 ## Windows
-The Visual Studio 2017 C++ Redistributable is required to run the application: [32 bit](https://go.microsoft.com/fwlink/?LinkId=746571) or [64 bit](https://go.microsoft.com/fwlink/?LinkId=746572) depending on the chosen flavor. These are provided automatically if you have Visual Studio 2017 installed.
+The Visual Studio 2017 C++ Redistributable is required to run the application: [32 bit](https://go.microsoft.com/fwlink/?LinkId=746571) or [64 bit](https://go.microsoft.com/fwlink/?LinkId=746572) depending on the chosen architecture. These are provided automatically if you have Visual Studio 2017 installed.
 
 ## All platforms
 The [release package](https://github.com/kondrak/vkQuake2/releases) comes with game data used in the demo version. For full experience, copy retail Quake 2 `.pak` files (`pak0.pak`, `pak1.pak`, `pak2.pak`) into the `baseq2` directory and run the executable. For mission packs, copy necessary files to `rogue` ("Ground Zero") and `xatrix` ("The Reckoning") directories respectively. You can then start the game with `./quake2 +set game rogue` or `./quake2 +set game xatrix`.
 Alternatively, on Windows it's possible to overwrite your existing Quake 2 installation with release binaries - remember to delete the demo `.pak` files before you do it, though!
 
 ## Music
-This project uses [Miniaudio](https://github.com/dr-soft/miniaudio) for music playback if the original game CD is not available. For standard Quake 2, copy all tracks to `baseq2/music` directory following the `trackXX.[ogg,flac,mp3,wav]` naming scheme (so track02.ogg, track03.ogg... etc. for OGG files). For "Ground Zero" and "The Reckoning", copy the tracks to `rogue/music` and `xatrix/music` directories respectively. For additional control, a `miniaudio [on,off,play [X],loop [X],stop,pause,resume,info]` console command has been introduced - it works in a similar fashion to the corresponding `cd` command for CD music.
+This project uses [Miniaudio](https://github.com/dr-soft/miniaudio) for music playback if the original game CD is not available. For standard Quake 2, copy all tracks to `baseq2/music` directory following the `trackXX.[ogg,flac,mp3,wav]` naming scheme (so track02.ogg, track03.ogg... etc. for OGG files). For "Ground Zero" and "The Reckoning", copy the tracks to `rogue/music` and `xatrix/music` directories respectively. For additional control, a `miniaudio [on,off,play [X],loop [X],stop,pause,resume,info]` console command has been introduced - it works in a similar fashion to the corresponding `cd` command.
 
 Console commands
 ===
@@ -102,7 +102,7 @@ The Vulkan renderer comes with a set of its own console commands:
 | `vk_polyblend`          | Blend fullscreen effects: blood, powerups etc. (default: `1`)                 |
 | `vk_skymip`             | Toggle the usage of mipmap information for the sky graphics. (default: `0`)   |
 | `vk_finish`             | Inserts a `vkDeviceWaitIdle()` call on render start (default: `0`).<br>Don't use this, it's there just for the sake of having a `gl_finish` equivalent! |
-| `vk_point_particles`    | Use POINT_LIST to render particles, textured triangles otherwise. (default: `1`) |
+| `vk_point_particles`    | Use POINT_LIST to render particles if non-zero, textured triangles otherwise. (default: `1`) |
 | `vk_particle_size`      | Rendered particle size. (default: `40`)                    |
 | `vk_particle_att_a`     | Intensity of the particle A attribute. (default: `0.01`)   |
 | `vk_particle_att_b`     | Intensity of the particle B attribute. (default: `0`)      |
@@ -134,4 +134,4 @@ Acknowledgements
 
 Known Issues
 ===
-- some Intel GPUs may ignore texture filtering settings in video menu if anisotropic filtering is enabled - this is in fact not an issue but rather a result of anisotropic texture filtering being implementation dependent
+- some Intel GPUs may ignore texture filtering settings in video menu if anisotropic filtering is enabled - this is in fact not an issue but rather a result of anisotropic texture filtering being implementation-dependent
