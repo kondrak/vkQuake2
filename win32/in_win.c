@@ -164,14 +164,6 @@ void IN_ActivateMouse (void)
 	height = GetSystemMetrics (SM_CYSCREEN);
 
 	GetWindowRect ( cl_hwnd, &window_rect);
-	if (window_rect.left < 0)
-		window_rect.left = 0;
-	if (window_rect.top < 0)
-		window_rect.top = 0;
-	if (window_rect.right >= width)
-		window_rect.right = width-1;
-	if (window_rect.bottom >= height-1)
-		window_rect.bottom = height-1;
 
 	window_center_x = (window_rect.right + window_rect.left)/2;
 	window_center_y = (window_rect.top + window_rect.bottom)/2;

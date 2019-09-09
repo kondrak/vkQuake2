@@ -178,7 +178,12 @@ qboolean DIB_Init( unsigned char **ppbuffer, int *ppitch )
 		*ppitch		= vid.width;
     }
 
-	ChangeDisplaySettings(NULL, 0);
+	MONITORINFOEX monInfo;
+	memset(&monInfo, 0, sizeof(MONITORINFOEX));
+	monInfo.cbSize = sizeof(MONITORINFOEX);
+	GetMonitorInfo( MonitorFromWindow(sww_state.hWnd, MONITOR_DEFAULTTOPRIMARY), (LPMONITORINFO)&monInfo );
+
+	ChangeDisplaySettingsEx(monInfo.szDevice, NULL, NULL, 0, NULL);
 
 	if (vid_fullscreen->value) //qb: fullscreen dib
 	{
@@ -186,27 +191,30 @@ qboolean DIB_Init( unsigned char **ppbuffer, int *ppitch )
 		RECT		WindowRect;
 		DWORD		WindowStyle, ExWindowStyle;
 
-		WindowRect.top = WindowRect.left = 0;
+		WindowRect.top = monInfo.rcMonitor.top;
+		WindowRect.left = monInfo.rcMonitor.left;
 
 		WindowRect.right = vid.width;
 		WindowRect.bottom = vid.height;
+		memset(&gdevmode, 0, sizeof(gdevmode));
 		gdevmode.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT;
 		gdevmode.dmPelsWidth = vid.width;
 		gdevmode.dmPelsHeight = vid.height;
 		gdevmode.dmSize = sizeof (gdevmode);
 
-		if (ChangeDisplaySettings(&gdevmode, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
+		if ( ChangeDisplaySettingsEx( monInfo.szDevice, &gdevmode, NULL, CDS_FULLSCREEN, NULL ) != DISP_CHANGE_SUCCESSFUL )
 		{
 			//ri.Sys_Error(ERR_FATAL, "Couldn't set fullscreen DIB mode");
 			goto fail; //qb: don't panic
 		}
 
+		GetMonitorInfo( MonitorFromWindow(sww_state.hWnd, MONITOR_DEFAULTTOPRIMARY), (LPMONITORINFO)&monInfo );
 		if (!SetWindowPos(sww_state.hWnd,
 			NULL,
-			0, 0,
-			WindowRect.right - WindowRect.left,
-			WindowRect.bottom - WindowRect.top,
-			SWP_NOCOPYBITS | SWP_NOZORDER))
+			monInfo.rcMonitor.left, monInfo.rcMonitor.top,
+			WindowRect.right,
+			WindowRect.bottom,
+			SWP_NOACTIVATE | SWP_NOCOPYBITS | SWP_NOOWNERZORDER | SWP_NOREPOSITION | SWP_NOZORDER))
 		{
 			//ri.Sys_Error(ERR_FATAL, "Couldn't resize DIB window");
 			goto fail; //qb: don't panic

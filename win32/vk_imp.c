@@ -56,18 +56,18 @@ qboolean VID_CreateWindow( int width, int height, qboolean fullscreen )
 	int				exstyle;
 
 	/* Register the frame class */
-    wc.style         = 0;
-    wc.lpfnWndProc   = (WNDPROC)vkw_state.wndproc;
-    wc.cbClsExtra    = 0;
-    wc.cbWndExtra    = 0;
-    wc.hInstance     = vkw_state.hInstance;
-    wc.hIcon         = 0;
-    wc.hCursor       = LoadCursor (NULL,IDC_ARROW);
+	wc.style         = 0;
+	wc.lpfnWndProc   = (WNDPROC)vkw_state.wndproc;
+	wc.cbClsExtra    = 0;
+	wc.cbWndExtra    = 0;
+	wc.hInstance     = vkw_state.hInstance;
+	wc.hIcon         = 0;
+	wc.hCursor       = LoadCursor (NULL,IDC_ARROW);
 	wc.hbrBackground = (void *)COLOR_GRAYTEXT;
-    wc.lpszMenuName  = 0;
-    wc.lpszClassName = WINDOW_CLASS_NAME;
+	wc.lpszMenuName  = 0;
+	wc.lpszClassName = WINDOW_CLASS_NAME;
 
-    if (!RegisterClass (&wc) )
+	if (!RegisterClass (&wc) )
 		ri.Sys_Error (ERR_FATAL, "Couldn't register window class");
 
 	if (fullscreen)
@@ -91,18 +91,10 @@ qboolean VID_CreateWindow( int width, int height, qboolean fullscreen )
 	w = r.right - r.left;
 	h = r.bottom - r.top;
 
-	if (fullscreen)
-	{
-		x = 0;
-		y = 0;
-	}
-	else
-	{
-		vid_xpos = ri.Cvar_Get ("vid_xpos", "0", 0);
-		vid_ypos = ri.Cvar_Get ("vid_ypos", "0", 0);
-		x = vid_xpos->value;
-		y = vid_ypos->value;
-	}
+	vid_xpos = ri.Cvar_Get ("vid_xpos", "0", 0);
+	vid_ypos = ri.Cvar_Get ("vid_ypos", "0", 0);
+	x = vid_xpos->value;
+	y = vid_ypos->value;
 
 	vkw_state.hWnd = CreateWindowEx (
 		 exstyle, 
@@ -117,7 +109,41 @@ qboolean VID_CreateWindow( int width, int height, qboolean fullscreen )
 
 	if (!vkw_state.hWnd)
 		ri.Sys_Error (ERR_FATAL, "Couldn't create window");
-	
+
+	memset( &vkw_state.monInfo, 0, sizeof(MONITORINFOEX) );
+	vkw_state.monInfo.cbSize = sizeof(MONITORINFOEX);
+	GetMonitorInfo( MonitorFromWindow(vkw_state.hWnd, MONITOR_DEFAULTTOPRIMARY), (LPMONITORINFO)&vkw_state.monInfo );
+
+	if (fullscreen)
+	{
+		DEVMODE dm;
+		memset(&dm, 0, sizeof(dm));
+
+		dm.dmSize = sizeof(dm);
+		dm.dmPelsWidth = width;
+		dm.dmPelsHeight = height;
+		dm.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT;
+
+		if (vk_bitdepth->value != 0)
+		{
+			dm.dmBitsPerPel = vk_bitdepth->value;
+			dm.dmFields |= DM_BITSPERPEL;
+		}
+
+		if ( ChangeDisplaySettingsEx( vkw_state.monInfo.szDevice, &dm, NULL, CDS_FULLSCREEN, NULL ) != DISP_CHANGE_SUCCESSFUL )
+		{
+			return false;
+		}
+
+		GetMonitorInfo( MonitorFromWindow(vkw_state.hWnd, MONITOR_DEFAULTTOPRIMARY), (LPMONITORINFO)&vkw_state.monInfo );
+		SetWindowPos( vkw_state.hWnd, NULL, vkw_state.monInfo.rcMonitor.left, vkw_state.monInfo.rcMonitor.top, width, height,
+			SWP_NOACTIVATE | SWP_NOCOPYBITS | SWP_NOOWNERZORDER | SWP_NOREPOSITION | SWP_NOZORDER );
+	}
+	else
+	{
+		ChangeDisplaySettingsEx( vkw_state.monInfo.szDevice, NULL, NULL, 0, NULL );
+	}
+
 	ShowWindow( vkw_state.hWnd, SW_SHOW );
 	UpdateWindow( vkw_state.hWnd );
 	SetForegroundWindow( vkw_state.hWnd );
@@ -183,22 +209,10 @@ rserr_t Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen 
 	// do a CDS if needed
 	if ( fullscreen )
 	{
-		DEVMODE dm;
-
 		ri.Con_Printf( PRINT_ALL, "...attempting fullscreen\n" );
-
-		memset( &dm, 0, sizeof( dm ) );
-
-		dm.dmSize = sizeof( dm );
-
-		dm.dmPelsWidth  = width;
-		dm.dmPelsHeight = height;
-		dm.dmFields     = DM_PELSWIDTH | DM_PELSHEIGHT;
 
 		if ( vk_bitdepth->value != 0 )
 		{
-			dm.dmBitsPerPel = vk_bitdepth->value;
-			dm.dmFields |= DM_BITSPERPEL;
 			ri.Con_Printf( PRINT_ALL, "...using vk_bitdepth of %d\n", ( int ) vk_bitdepth->value );
 		}
 		else
@@ -212,7 +226,7 @@ rserr_t Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen 
 		}
 
 		ri.Con_Printf( PRINT_ALL, "...calling CDS: " );
-		if ( ChangeDisplaySettings( &dm, CDS_FULLSCREEN ) == DISP_CHANGE_SUCCESSFUL )
+		if ( VID_CreateWindow(width, height, true) )
 		{
 			*pwidth = width;
 			*pheight = height;
@@ -220,66 +234,26 @@ rserr_t Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen 
 			vk_state.fullscreen = true;
 
 			ri.Con_Printf( PRINT_ALL, "ok\n" );
-
-			if ( !VID_CreateWindow (width, height, true) )
-				return rserr_invalid_mode;
-
 			return rserr_ok;
 		}
 		else
 		{
+			ri.Con_Printf( PRINT_ALL, " failed\n" );
+			ri.Con_Printf( PRINT_ALL, "...setting windowed mode\n" );
+
+			DestroyWindow(vkw_state.hWnd);
+			UnregisterClass(WINDOW_CLASS_NAME, vkw_state.hInstance);
+			VID_CreateWindow(width, height, false);
+
 			*pwidth = width;
 			*pheight = height;
-
-			ri.Con_Printf( PRINT_ALL, "failed\n" );
-
-			ri.Con_Printf( PRINT_ALL, "...calling CDS assuming dual monitors:" );
-
-			dm.dmPelsWidth = width * 2;
-			dm.dmPelsHeight = height;
-			dm.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT;
-
-			if ( vk_bitdepth->value != 0 )
-			{
-				dm.dmBitsPerPel = vk_bitdepth->value;
-				dm.dmFields |= DM_BITSPERPEL;
-			}
-
-			/*
-			** our first CDS failed, so maybe we're running on some weird dual monitor
-			** system 
-			*/
-			if ( ChangeDisplaySettings( &dm, CDS_FULLSCREEN ) != DISP_CHANGE_SUCCESSFUL )
-			{
-				ri.Con_Printf( PRINT_ALL, " failed\n" );
-
-				ri.Con_Printf( PRINT_ALL, "...setting windowed mode\n" );
-
-				ChangeDisplaySettings( 0, 0 );
-
-				*pwidth = width;
-				*pheight = height;
-				vk_state.fullscreen = false;
-				if ( !VID_CreateWindow (width, height, false) )
-					return rserr_invalid_mode;
-				return rserr_invalid_fullscreen;
-			}
-			else
-			{
-				ri.Con_Printf( PRINT_ALL, " ok\n" );
-				if ( !VID_CreateWindow (width, height, true) )
-					return rserr_invalid_mode;
-
-				vk_state.fullscreen = true;
-				return rserr_ok;
-			}
+			vk_state.fullscreen = false;
+			return rserr_invalid_fullscreen;
 		}
 	}
 	else
 	{
 		ri.Con_Printf( PRINT_ALL, "...setting windowed mode\n" );
-
-		ChangeDisplaySettings( 0, 0 );
 
 		*pwidth = width;
 		*pheight = height;
@@ -315,7 +289,7 @@ void Vkimp_Shutdown( void )
 
 	if (vk_state.fullscreen)
 	{
-		ChangeDisplaySettings(0, 0);
+		ChangeDisplaySettingsEx( vkw_state.monInfo.szDevice, NULL, NULL, 0, NULL );
 		vk_state.fullscreen = false;
 	}
 }

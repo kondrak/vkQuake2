@@ -30,6 +30,7 @@ typedef struct
 	HINSTANCE	hInstance;
 	void	*wndproc;
 	HWND    hWnd;			// handle to window
+	MONITORINFOEX monInfo;	// active monitor info
 
 	qboolean allowdisplaydepthchange;
 	FILE *log_fp;
