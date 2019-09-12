@@ -78,7 +78,7 @@ Running
 The Visual Studio 2017 C++ Redistributable is required to run the application: [32 bit](https://go.microsoft.com/fwlink/?LinkId=746571) or [64 bit](https://go.microsoft.com/fwlink/?LinkId=746572) depending on the chosen architecture. These are provided automatically if you have Visual Studio 2017 installed.
 
 ## All platforms
-The [release package](https://github.com/kondrak/vkQuake2/releases) comes only with the Quake 2 demo content to showcase the Vulkan functionality. For full experience, copy retail Quake 2 `.pak` files into the `baseq2` directory and run the executable. For mission packs, copy necessary data to `rogue` ("Ground Zero") and `xatrix` ("The Reckoning") directories respectively. You can then start the game with `./quake2 +set game rogue` or `./quake2 +set game xatrix`.
+The [release package](https://github.com/kondrak/vkQuake2/releases) comes only with the demo content to showcase Vulkan functionality. For full experience, copy retail Quake 2 `.pak` files into the `baseq2` directory and run the executable. For mission packs, copy necessary data to `rogue` ("Ground Zero") and `xatrix` ("The Reckoning") directories respectively. You can then start the game with `./quake2 +set game rogue` or `./quake2 +set game xatrix`.
 Alternatively, on Windows it's possible to overwrite your existing Quake 2 installation with release binaries - remember to delete the demo `.pak` files before you do it, though!
 
 ## Music
