@@ -78,19 +78,18 @@ Running
 The Visual Studio 2017 C++ Redistributable is required to run the application: [32 bit](https://go.microsoft.com/fwlink/?LinkId=746571) or [64 bit](https://go.microsoft.com/fwlink/?LinkId=746572) depending on the chosen architecture. These are provided automatically if you have Visual Studio 2017 installed.
 
 ## All platforms
-The [release package](https://github.com/kondrak/vkQuake2/releases) comes only with the demo content to showcase Vulkan functionality. For full experience, copy retail Quake 2 `.pak` files into the `baseq2` directory and run the executable. For mission packs, copy necessary data to `rogue` ("Ground Zero") and `xatrix` ("The Reckoning") directories respectively. You can then start the game with `./quake2 +set game rogue` or `./quake2 +set game xatrix`.
-Alternatively, on Windows it's possible to overwrite your existing Quake 2 installation with release binaries - remember to delete the demo `.pak` files before you do it, though!
+The [release package](https://github.com/kondrak/vkQuake2/releases) comes only with the Quake 2 Demo content to showcase Vulkan functionality. For full experience, copy retail `.pak`, model and video files into the `baseq2` directory and run the executable. For mission packs, copy necessary data to `rogue` ("Ground Zero") and `xatrix` ("The Reckoning") directories respectively. You can then start the game with `./quake2 +set game rogue` or `./quake2 +set game xatrix`.
 
 ## Music
-This project uses [Miniaudio](https://github.com/dr-soft/miniaudio) for music playback if the original game CD is not available. For standard Quake 2, copy all tracks to `baseq2/music` directory following the `trackXX.[ogg,flac,mp3,wav]` naming scheme (so track02.ogg, track03.ogg... for OGG files etc.). For "Ground Zero" and "The Reckoning", copy the tracks to `rogue/music` and `xatrix/music` directories respectively. For additional control, a `miniaudio [on,off,play [X],loop [X],stop,pause,resume,info]` console command has been introduced - it works in a similar fashion to the corresponding `cd` command.
+This project uses [Miniaudio](https://github.com/dr-soft/miniaudio) for music playback if the original game CD is not available. For standard Quake 2, copy all tracks to `baseq2/music` directory following the `trackXX.[ogg,flac,mp3,wav]` naming scheme (so track02.ogg, track03.ogg... for OGG files etc.). For "Ground Zero" and "The Reckoning", copy the tracks to `rogue/music` and `xatrix/music` directories respectively. For additional control over the playback, use the `miniaudio [on,off,play [X],loop [X],stop,pause,resume,info]` console command.
 
 Console commands
 ===
 
-The Vulkan renderer comes with a set of its own console commands:
+The following commands are available when using the Vulkan renderer:
 
-| Command               | Action                                                  |
-|-----------------------|:--------------------------------------------------------|
+| Command                 | Action                                                  |
+|-------------------------|:--------------------------------------------------------|
 | `vk_validation`         | Toggle validation layers.<br>`0` - disabled (default in Release)<br> `1` - only errors and warnings<br>`2` - full validation (default in Debug) |
 | `vk_strings`            | Print some basic Vulkan/GPU information.                                    |
 | `vk_mem`                | Print dynamic vertex/index/uniform/triangle fan buffer memory usage statistics.          |
