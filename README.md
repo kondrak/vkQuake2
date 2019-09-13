@@ -120,9 +120,9 @@ The following commands are available when using the Vulkan renderer:
 | `vk_lightmap`           | Display lightmaps. (default: `0`)                          |
 | `vk_aniso`              | Toggle anisotropic filtering. (default: `1`)               |
 | `vk_vsync`              | Toggle vertical sync. (default: `0`)                       |
-| `vk_postprocess`        | Toggle additional color/gamma correction. (default: `1`)    |
-| `vk_mip_nearfilter`     | Use nearest neighbour filtering for mipmaps. (default: `0`) |
-| `vk_texturemode`        | Change current texture filtering.<br>`VK_NEAREST` - nearest filter, no mipmaps<br>`VK_LINEAR` - linear filter, no mipmaps<br>`VK_MIPMAP_NEAREST` - nearest filter with mipmaps<br>`VK_MIPMAP_LINEAR` - linear filter with mipmaps (default) |
+| `vk_postprocess`        | Toggle additional color/gamma correction. (default: `1`)   |
+| `vk_mip_nearfilter`     | Use nearest-neighbor filtering for mipmaps. (default: `0`) |
+| `vk_texturemode`        | Change current texture filtering.<br>`VK_NEAREST` - nearest-neighbor filtering, no mipmaps<br>`VK_LINEAR` - linear filtering, no mipmaps<br>`VK_MIPMAP_NEAREST` - nearest-neighbor filtering with mipmaps<br>`VK_MIPMAP_LINEAR` - linear filtering with mipmaps (default) |
 | `vk_lmaptexturemode`    | Same as `vk_texturemode` but applied to lightmap textures. |
 
 Acknowledgements
