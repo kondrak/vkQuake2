@@ -7,18 +7,16 @@
 
 Overview
 ===
-This is the official Quake 2 code v3.21 with additional Vulkan renderer and both mission packs included. The goal of this project is to maintain as much compatibility as possible with the original game - just pure, vanilla Quake 2 experience as we knew it back in 1997. There are, however, a few notable differences that made the cut for various reasons:
+This is the official Quake 2 code v3.21 with Vulkan support and both mission packs included. The goal of this project is to maintain as much compatibility as possible with the original game - just pure, vanilla Quake 2 experience as we knew it back in 1997. There are, however, a few notable differences that made the cut for various reasons:
 
 - world colors have been slightly upgraded - the game's original, darker look can be toggled with the `vk_postprocess` console command
-- on first launch, the game attempts to use Vulkan at 1920x1080 fullscreen resolution
-- 64 bit support has been added
-- additional screen resolutions have been added and the game is now DPI aware
+- 64-bit support, additional screen resolutions and DPI awareness have been added
 - underwater vision effect similar to software renderer has been implemented
 - antialiasing and sample shading is now natively supported
 - anisotropic filtering toggle has been added
 - players can now change texture filtering modes from within the video menu
 - mouse acceleration has been disabled
-- console contents can be scrolled with mouse wheel
+- console contents can be scrolled with a mouse wheel
 - HUD elements, menus and console text are now scaled accordingly on higher screen resolutions (can be overridden with the `hudscale` console command)
 - viewmodel weapons are no longer hidden when FOV > 90
 - Vulkan renderer fixes broken warp texture effect (water, lava, slime) seen in OpenGL
@@ -27,7 +25,6 @@ This is the official Quake 2 code v3.21 with additional Vulkan renderer and both
 - on Linux, sound is now handled by ALSA instead of OSS
 - support for OGG/FLAC/MP3/WAV music has been added in addition to standard CD audio
 - game menus have been slightly improved
-- original compiler warnings have been fixed
 
 Building
 ===
@@ -37,7 +34,7 @@ For extra challenge I decided to base vkQuake2 on the original id Software code.
 - download and install the [Vulkan SDK](https://vulkan.lunarg.com/)
 - install [Visual Studio Community](https://www.visualstudio.com/products/free-developer-offers-vs) with the MFC package
 - install Windows Universal CRT SDK and Windows SDK 8.1 or just the latest Windows 10 SDK (the latter will require retargetting the solution)
-- open `quake2.sln` and choose the target platform (32/64bit) - it should build and run without issues
+- open `quake2.sln` and choose the target architecture (x86/x64) - it should build without any additional steps
 
 ## Linux
 Unfortunately, Linux code for Quake 2 has not aged well and for that reason only the Vulkan renderer is available for use at this time. Build steps assume that Ubuntu is the target distribution:
@@ -61,7 +58,7 @@ sudo apt install mesa-vulkan-drivers
 ## MacOS
 - download and extract the [Vulkan SDK](https://vulkan.lunarg.com/)
 - install XCode 10.1 (or later) and add the `VULKAN_SDK` environment variable to Locations/Custom Paths - make it point to the downloaded SDK
-- open `macos/vkQuake2.xcworkspace` - it should build and run without any additional steps
+- open `macos/vkQuake2.xcworkspace` - it should build without any additional steps
 - alternatively, you can compile the game from the command line - modify your `.bash_profile` and add the following entries (replace SDK version and location with the one corresponding to your system):
 ```
 export VULKAN_SDK=/home/user/VulkanSDK/1.1.92.1
@@ -75,7 +72,7 @@ This project uses the Vulkan loader bundled with the SDK, rather than directly l
 Running
 ===
 ## Windows
-The Visual Studio 2017 C++ Redistributable is required to run the application: [32 bit](https://go.microsoft.com/fwlink/?LinkId=746571) or [64 bit](https://go.microsoft.com/fwlink/?LinkId=746572) depending on the chosen architecture. These are provided automatically if you have Visual Studio 2017 installed.
+The Visual Studio 2017 C++ Redistributable is required to run the application: [32-bit](https://go.microsoft.com/fwlink/?LinkId=746571) or [64-bit](https://go.microsoft.com/fwlink/?LinkId=746572) depending on the chosen architecture. These are provided automatically if you have Visual Studio 2017 installed.
 
 ## All platforms
 The [release package](https://github.com/kondrak/vkQuake2/releases) comes only with the Quake 2 Demo content to showcase Vulkan functionality. For full experience, copy retail `.pak`, model and video files into the `baseq2` directory and run the executable. For mission packs, copy necessary data to `rogue` ("Ground Zero") and `xatrix` ("The Reckoning") directories respectively. You can then start the game with `./quake2 +set game rogue` or `./quake2 +set game xatrix`.
@@ -122,7 +119,7 @@ The following commands are available when using the Vulkan renderer:
 | `vk_vsync`              | Toggle vertical sync. (default: `0`)                       |
 | `vk_postprocess`        | Toggle additional color/gamma correction. (default: `1`)   |
 | `vk_mip_nearfilter`     | Use nearest-neighbor filtering for mipmaps. (default: `0`) |
-| `vk_texturemode`        | Change current texture filtering.<br>`VK_NEAREST` - nearest-neighbor filtering, no mipmaps<br>`VK_LINEAR` - linear filtering, no mipmaps<br>`VK_MIPMAP_NEAREST` - nearest-neighbor filtering with mipmaps<br>`VK_MIPMAP_LINEAR` - linear filtering with mipmaps (default) |
+| `vk_texturemode`        | Change current texture filtering mode.<br>`VK_NEAREST` - nearest-neighbor interpolation, no mipmaps<br>`VK_LINEAR` - linear interpolation, no mipmaps<br>`VK_MIPMAP_NEAREST` - nearest-neighbor interpolation with mipmaps<br>`VK_MIPMAP_LINEAR` - linear interpolation with mipmaps (default) |
 | `vk_lmaptexturemode`    | Same as `vk_texturemode` but applied to lightmap textures. |
 
 Acknowledgements
