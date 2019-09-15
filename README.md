@@ -42,7 +42,7 @@ Unfortunately, Linux code for Quake 2 has not aged well and for that reason only
 ```
 sudo apt install make gcc g++ mesa-common-dev libglu1-mesa-dev libxxf86dga-dev libxxf86vm-dev libasound2-dev libx11-dev libxcb1-dev
 ```
-- Install the [Vulkan SDK](https://vulkan.lunarg.com/) - the easiest way is to use [LunarG Ubuntu Packages](https://vulkan.lunarg.com/sdk/home#linux) - just follow the instructions and there will be no additional steps required. If you decide to install the SDK manually, make sure that proper environment variables are set afterwards by adding the following section to your `.bashrc` file:
+- Install the [Vulkan SDK](https://vulkan.lunarg.com/) - the easiest way is to use [LunarG Ubuntu Packages](https://vulkan.lunarg.com/sdk/home#linux) - just follow the instructions and there will be no additional steps required. If you decide for a manual installation, make sure that proper environment variables are set afterwards by adding the following section to your `.bashrc` file (replace SDK version and location with the ones corresponding to your system):
 ```
 export VULKAN_SDK=/home/user/VulkanSDK/1.1.92.1/x86_64
 export PATH=$VULKAN_SDK/bin:$PATH
@@ -59,7 +59,7 @@ sudo apt install mesa-vulkan-drivers
 - download and extract the [Vulkan SDK](https://vulkan.lunarg.com/)
 - install XCode 10.1 (or later) and add the `VULKAN_SDK` environment variable to Locations/Custom Paths - make it point to the downloaded SDK
 - open `macos/vkQuake2.xcworkspace` - it should build without any additional steps
-- alternatively, you can compile the game from the command line - modify your `.bash_profile` and add the following entries (replace SDK version and location with the one corresponding to your system):
+- alternatively, you can compile the game from the command line - modify your `.bash_profile` and add the following entries (replace SDK version and location with the ones corresponding to your system):
 ```
 export VULKAN_SDK=/home/user/VulkanSDK/1.1.92.1
 export VK_ICD_FILENAMES=$VULKAN_SDK/macOS/etc/vulkan/icd.d/MoltenVK_icd.json
@@ -78,7 +78,7 @@ The Visual Studio 2017 C++ Redistributable is required to run the application: [
 The [release package](https://github.com/kondrak/vkQuake2/releases) comes only with the Quake 2 Demo content to showcase Vulkan functionality. For full experience, copy retail `.pak`, model and video files into the `baseq2` directory and run the executable. For mission packs, copy necessary data to `rogue` ("Ground Zero") and `xatrix` ("The Reckoning") directories respectively. You can then start the game with `./quake2 +set game rogue` or `./quake2 +set game xatrix`.
 
 ## Music
-This project uses [Miniaudio](https://github.com/dr-soft/miniaudio) for music playback if the original game CD is not available. For standard Quake 2, copy all tracks to `baseq2/music` directory following the `trackXX.[ogg,flac,mp3,wav]` naming scheme (so track02.ogg, track03.ogg... for OGG files etc.). For "Ground Zero" and "The Reckoning", copy the tracks to `rogue/music` and `xatrix/music` directories respectively. For additional control over the playback, use the `miniaudio [on,off,play [X],loop [X],stop,pause,resume,info]` console command.
+This project uses [Miniaudio](https://github.com/dr-soft/miniaudio) for music playback if the original game CD is not available. For standard Quake 2, copy all tracks into the `baseq2/music` directory following the `trackXX.[ogg,flac,mp3,wav]` naming scheme (so track02.ogg, track03.ogg... for OGG files etc.). For "Ground Zero" and "The Reckoning", copy the tracks to `rogue/music` and `xatrix/music` directories respectively. For additional control over the playback, use the `miniaudio [on,off,play [X],loop [X],stop,pause,resume,info]` console command.
 
 Console commands
 ===
@@ -87,11 +87,11 @@ The following commands are available when using the Vulkan renderer:
 
 | Command                 | Action                                                  |
 |-------------------------|:--------------------------------------------------------|
-| `vk_validation`         | Toggle validation layers.<br>`0` - disabled (default in Release)<br> `1` - only errors and warnings<br>`2` - full validation (default in Debug) |
+| `vk_validation`         | Toggle validation layers:<br>`0` - disabled (default in Release)<br> `1` - only errors and warnings<br>`2` - full validation (default in Debug) |
 | `vk_strings`            | Print some basic Vulkan/GPU information.                                    |
 | `vk_mem`                | Print dynamic vertex/index/uniform/triangle fan buffer memory usage statistics.          |
-| `vk_device`             | Specify index of the preferred Vulkan device on systems with multiple GPUs.<br>`-1` - prefer first DISCRETE_GPU (default)<br>`0..n` - use device #n (full list of devices is returned by `vk_strings` command) |
-| `vk_msaa`               | Toggle MSAA.<br>`0` - off (default)<br>`1` - MSAAx2<br>`2` - MSAAx4<br>`3` - MSAAx8<br>`4` - MSAAx16 |
+| `vk_device`             | Specify index of the preferred Vulkan device on systems with multiple GPUs:<br>`-1` - prefer first DISCRETE_GPU (default)<br>`0..n` - use device #n (full list of devices is returned by `vk_strings` command) |
+| `vk_msaa`               | Toggle MSAA:<br>`0` - off (default)<br>`1` - MSAAx2<br>`2` - MSAAx4<br>`3` - MSAAx8<br>`4` - MSAAx16 |
 | `vk_sampleshading`      | Toggle sample shading for MSAA. (default: `1`) |
 | `vk_mode`               | Vulkan video mode (default: `11`). Setting this to `-1` uses a custom screen resolution defined by `r_customwidth` (default: `1024`) and `r_customheight` (default: `768`) console variables. |
 | `vk_flashblend`         | Toggle the blending of lights onto the environment. (default: `0`)            |
@@ -119,7 +119,7 @@ The following commands are available when using the Vulkan renderer:
 | `vk_vsync`              | Toggle vertical sync. (default: `0`)                       |
 | `vk_postprocess`        | Toggle additional color/gamma correction. (default: `1`)   |
 | `vk_mip_nearfilter`     | Use nearest-neighbor filtering for mipmaps. (default: `0`) |
-| `vk_texturemode`        | Change current texture filtering mode.<br>`VK_NEAREST` - nearest-neighbor interpolation, no mipmaps<br>`VK_LINEAR` - linear interpolation, no mipmaps<br>`VK_MIPMAP_NEAREST` - nearest-neighbor interpolation with mipmaps<br>`VK_MIPMAP_LINEAR` - linear interpolation with mipmaps (default) |
+| `vk_texturemode`        | Change current texture filtering mode:<br>`VK_NEAREST` - nearest-neighbor interpolation, no mipmaps<br>`VK_LINEAR` - linear interpolation, no mipmaps<br>`VK_MIPMAP_NEAREST` - nearest-neighbor interpolation with mipmaps<br>`VK_MIPMAP_LINEAR` - linear interpolation with mipmaps (default) |
 | `vk_lmaptexturemode`    | Same as `vk_texturemode` but applied to lightmap textures. |
 
 Acknowledgements
