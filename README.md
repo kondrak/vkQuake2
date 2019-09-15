@@ -33,7 +33,7 @@ For extra challenge I decided to base vkQuake2 on the original id Software code.
 ## Windows
 - download and install the [Vulkan SDK](https://vulkan.lunarg.com/)
 - install [Visual Studio Community](https://www.visualstudio.com/products/free-developer-offers-vs) with the MFC package
-- install Windows Universal CRT SDK and Windows SDK 8.1 or just the latest Windows 10 SDK (the latter will require retargetting the solution)
+- install Windows Universal CRT SDK and Windows SDK 8.1 or just the latest Windows 10 SDK (the latter requires all project files to be updated)
 - open `quake2.sln` and choose the target architecture (x86/x64) - it should build without any additional steps
 
 ## Linux
