@@ -58,7 +58,7 @@ sudo apt install mesa-vulkan-drivers
 ## MacOS
 - download and extract the [Vulkan SDK](https://vulkan.lunarg.com/)
 - can be built with XCode or with just the Command Line Tools
-- if using XCode, install XCode 10.1 (or later) and add the `VULKAN_SDK` environment variable to Locations/Custom Paths - make it point to the downloaded SDK
+- install XCode 10.1 (or later) and add the `VULKAN_SDK` environment variable to Locations/Custom Paths - make it point to the downloaded SDK
 - open `macos/vkQuake2.xcworkspace` - it should build without any additional steps
 - alternatively, you can compile the game from the command line - modify your `.bash_profile` and add the following entries (replace SDK version and location with the ones corresponding to your system):
 ```
@@ -67,7 +67,7 @@ export VK_ICD_FILENAMES=$VULKAN_SDK/macOS/etc/vulkan/icd.d/MoltenVK_icd.json
 export VK_LAYER_PATH=$VULKAN_SDK/macOS/etc/vulkan/explicit_layer.d
 ```
 - enter the `macos` directory and run `make release-xcode` or `make debug-xcode` depending on which variant you want to build - output binaries will be placed in `macos/vkQuake2` subdirectory
-- if using just Command Line Tools with `xcode-select --install` then enter the `macos` directory and run `make release` or `make debug` similar to XCode method above
+- it is also possible to build the game by using Command Line Developer Tools obtainable with `xcode-select --install`: enter the `macos` directory and run `make release` or `make debug` - output binaries will be places in `macos/release` and `macos/debug` subdirectories respectively
 
 This project uses the Vulkan loader bundled with the SDK, rather than directly linking against `MoltenVK.framework`. This is done so that validation layers are available for debugging. Builds have been tested using MacOS 10.14.2.
 
