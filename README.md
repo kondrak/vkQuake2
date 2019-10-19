@@ -57,7 +57,6 @@ sudo apt install mesa-vulkan-drivers
 
 ## MacOS
 - download and extract the [Vulkan SDK](https://vulkan.lunarg.com/)
-- can be built with XCode or with just the Command Line Tools
 - install XCode 10.1 (or later) and add the `VULKAN_SDK` environment variable to Locations/Custom Paths - make it point to the downloaded SDK
 - open `macos/vkQuake2.xcworkspace` - it should build without any additional steps
 - alternatively, you can compile the game from the command line - modify your `.bash_profile` and add the following entries (replace SDK version and location with the ones corresponding to your system):
