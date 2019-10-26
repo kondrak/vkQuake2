@@ -16,13 +16,10 @@ SHLIBCPPFLAGS=-fPIC -std=c++11
 SHLIBLDFLAGS=-shared
 
 DO_CC=$(CC) $(CFLAGS) -o $@ -c $<
-DO_DEBUG_CC=$(CC) $(DEBUG_CFLAGS) -o $@ -c $<
 DO_DED_CC=$(CC) $(CFLAGS) -DDEDICATED_ONLY -o $@ -c $<
-DO_DED_DEBUG_CC=$(CC) $(DEBUG_CFLAGS) -DDEDICATED_ONLY -o $@ -c $<
 DO_O_CC=$(CC) $(CFLAGS) -O -o $@ -c $<
 DO_SHLIB_CC=$(CC) $(CFLAGS) $(SHLIBCFLAGS) -o $@ -c $<
 DO_SHLIB_O_CC=$(CC) $(CFLAGS) -O $(SHLIBCFLAGS) -o $@ -c $<
-DO_SHLIB_DEBUG_CC=$(CC) $(DEBUG_CFLAGS) $(SHLIBCFLAGS) -o $@ -c $<
 DO_VK_SHLIB_CC=$(CC) $(CFLAGS) $(SHLIBCFLAGS) $(VKCFLAGS) -o $@ -c $<
 DO_VK_SHLIB_CPP=$(CC) $(CFLAGS) $(SHLIBCPPFLAGS) $(VKCFLAGS) -o $@ -c $<
 DO_VK_SHLIB_O_CC=$(CC) $(CFLAGS) -O $(SHLIBCFLAGS) $(VKCFLAGS) -o $@ -c $<
@@ -217,7 +214,7 @@ $(BUILDDIR)/client/pmove.o :      ../qcommon/pmove.c
 	$(DO_CC)
 
 $(BUILDDIR)/client/q_shared.o :   ../game/q_shared.c
-	$(DO_DEBUG_CC)
+	$(DO_CC)
 
 $(BUILDDIR)/client/q_shmacos.o :  ../macos/q_shmacos.c
 	$(DO_O_CC)
@@ -367,7 +364,7 @@ $(BUILDDIR)/ded/net_udp.o :    ../linux/net_udp.c
 	$(DO_DED_CC)
 
 $(BUILDDIR)/ded/q_shared.o :   ../game/q_shared.c
-	$(DO_DED_DEBUG_CC)
+	$(DO_DED_CC)
 
 $(BUILDDIR)/ded/pmove.o :      ../qcommon/pmove.c
 	$(DO_DED_CC)
@@ -577,7 +574,7 @@ $(BUILDDIR)/game/p_weapon.o :    ../game/p_weapon.c
 	$(DO_SHLIB_CC)
 
 $(BUILDDIR)/game/q_shared.o :    ../game/q_shared.c
-	$(DO_SHLIB_DEBUG_CC)
+	$(DO_SHLIB_CC)
 
 #############################################################################
 # CTF
@@ -690,7 +687,7 @@ $(BUILDDIR)/ctf/p_weapon.o :   ../ctf/p_weapon.c
 	$(DO_SHLIB_CC)
 
 $(BUILDDIR)/ctf/q_shared.o :   ../ctf/q_shared.c
-	$(DO_SHLIB_DEBUG_CC)
+	$(DO_SHLIB_CC)
 
 #############################################################################
 # XATRIX
@@ -907,7 +904,7 @@ $(BUILDDIR)/xatrix/p_weapon.o :    ../xatrix/p_weapon.c
 	$(DO_SHLIB_CC)
 
 $(BUILDDIR)/xatrix/q_shared.o :    ../xatrix/q_shared.c
-	$(DO_SHLIB_DEBUG_CC)
+	$(DO_SHLIB_CC)
 
 #############################################################################
 # ROGUE
@@ -1164,7 +1161,7 @@ $(BUILDDIR)/rogue/p_weapon.o :     ../rogue/p_weapon.c
 	$(DO_SHLIB_CC)
 
 $(BUILDDIR)/rogue/q_shared.o :     ../rogue/q_shared.c
-	$(DO_SHLIB_DEBUG_CC)
+	$(DO_SHLIB_CC)
 
 #############################################################################
 # REF_VK
@@ -1202,7 +1199,7 @@ $(BUILDDIR)/ref_vk/glob.o :         ../linux/glob.c
 	$(DO_VK_SHLIB_CC)
 
 $(BUILDDIR)/ref_vk/q_shared.o :     ../game/q_shared.c
-	$(DO_SHLIB_DEBUG_CC)
+	$(DO_SHLIB_CC)
 
 $(BUILDDIR)/ref_vk/q_shmacos.o :    ../macos/q_shmacos.c
 	$(DO_VK_SHLIB_O_CC)
