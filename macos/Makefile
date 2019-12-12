@@ -1218,6 +1218,7 @@ ZAERO_OBJS = \
 	$(BUILDDIR)/zaero/p_view.o \
 	$(BUILDDIR)/zaero/p_weapon.o \
 	$(BUILDDIR)/zaero/q_shared.o \
+	$(BUILDDIR)/zaero/z_acannon.o \
 	$(BUILDDIR)/zaero/z_ai.o \
 	$(BUILDDIR)/zaero/z_anim.o \
 	$(BUILDDIR)/zaero/z_boss.o \
@@ -1376,6 +1377,9 @@ $(BUILDDIR)/zaero/p_weapon.o :     ../zaero/p_weapon.c
 	$(DO_SHLIB_CC)
 
 $(BUILDDIR)/zaero/q_shared.o :     ../zaero/q_shared.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/z_acannon.o :    ../zaero/z_acannon.c
 	$(DO_SHLIB_CC)
 
 $(BUILDDIR)/zaero/z_ai.o :         ../zaero/z_ai.c
