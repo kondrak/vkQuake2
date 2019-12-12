@@ -8,6 +8,8 @@
 #define	GAME_INCLUDE
 #include "game.h"
 
+#include <inttypes.h>
+
 // some custom defines
 #ifdef Z_MAX
 #undef Z_MAX
