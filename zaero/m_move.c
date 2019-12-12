@@ -596,7 +596,7 @@ qboolean M_MoveAwayFromFlare(edict_t *self, float dist)
 		VectorMA(self->s.origin, 128, delta, goal->s.origin);
 	}
 
-	if (rand() & 7 == 1)
+	if ((rand() & 7) == 1)
 	{
 		// set the ideal_yaw
 		VectorSubtract(goal->s.origin, self->s.origin, delta);

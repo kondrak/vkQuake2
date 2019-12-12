@@ -174,7 +174,7 @@ void tripbomb_laser_think (edict_t *self)
 	// randomly phase out or EMPNuke is in effect
 	if (EMPNukeCheck(self, self->s.origin) || random() < 0.1)
 	{
-		self->svflags != SVF_NOCLIENT;
+		self->svflags |= SVF_NOCLIENT;
 		return;
 	}
 

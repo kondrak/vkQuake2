@@ -1613,7 +1613,7 @@ void target_string_use (edict_t *self, edict_t *other, edict_t *activator)
 	int		n, l;
 	char	c;
 
-	l = strlen(self->message);
+	l = (int)strlen(self->message);
 	for (e = self->teammaster; e; e = e->teamchain)
 	{
 		if (!e->count)

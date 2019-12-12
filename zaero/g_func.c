@@ -2016,7 +2016,7 @@ void parseTargets(edict_t *self)
 		int i = 0;
 		
 		// do we have a series of targets to choose from randomly?
-		str = Z_MALLOC(strlen(self->target)+1);
+		str = Z_MALLOC((int)strlen(self->target)+1);
 		strcpy(str, self->target);
 
 		// split up the targets

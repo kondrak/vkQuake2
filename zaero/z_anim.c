@@ -48,7 +48,7 @@ qboolean cut_up_string(char **str, char **clipping)
       end++;
    }
 
-   *clipping = gi.TagMalloc(strlen(*str) + 1, TAG_LEVEL);
+   *clipping = gi.TagMalloc((int)strlen(*str) + 1, TAG_LEVEL);
    strcpy(*clipping, *str);
 
    *str = end;

@@ -534,6 +534,8 @@ qboolean thruBarrier(edict_t *targ, edict_t *inflictor)
 
 		e = tr.ent;
 	}
+
+	return true;
 }
 
 

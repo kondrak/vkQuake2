@@ -1006,7 +1006,7 @@ void ai_run (edict_t *self, float dist)
 	if (self->monsterinfo.attack_state == AS_FLY_STRAFE)
 	{
 		if (self->monsterinfo.flyStrafeTimeout < level.time)
-			self->monsterinfo.attack_state == AS_STRAIGHT;
+			self->monsterinfo.attack_state = AS_STRAIGHT;
 		else
 		{
 			ai_fly_strafe(self, dist);
