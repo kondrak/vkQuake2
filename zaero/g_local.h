@@ -672,7 +672,7 @@ int PowerArmorType (edict_t *ent);
 gitem_t	*GetItemByIndex (int index);
 qboolean Add_Ammo (edict_t *ent, gitem_t *item, int count);
 void Touch_Item (edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf);
-void precacheAllItems();
+void precacheAllItems(void);
 
 //
 // g_utils.c

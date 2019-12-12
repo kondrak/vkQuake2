@@ -23,9 +23,6 @@ void hound_sight (edict_t *self, edict_t *other);
 void infantry_sight (edict_t *self, edict_t *other);
 
 static int	sound_attack;
-static int	sound_scratch;
-static int	sound_sitdown;
-static int	sound_standup;
 
 
 void handler_sight (edict_t *self, edict_t *other)
@@ -255,8 +252,6 @@ void handler_standSitWhatNext (edict_t *self)
 
 void handler_stand (edict_t *self)
 {
-	float r = random();
-
 	if(self->monsterinfo.currentmove != &handler_stand1 &&
 				self->monsterinfo.currentmove != &handler_stand2 &&
         self->monsterinfo.currentmove != &handler_stand3 &&
@@ -397,7 +392,7 @@ End Death Stuff
 */
 
 void SP_monster_infantry_precache(void);
-void SP_monster_hound_precache();
+void SP_monster_hound_precache(void);
 
 void SP_monster_handler_precache(void)
 {

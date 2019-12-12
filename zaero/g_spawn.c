@@ -421,6 +421,8 @@ void ED_ParseField (char *key, char *value, edict_t *ent)
 				break;
 			case F_IGNORE:
 				break;
+			default:
+				break;
 			}
 			return;
 		}
@@ -534,7 +536,7 @@ void G_FindTeams (void)
 	gi.dprintf ("%i teams with %i entities\n", c, c2);
 }
 
-void Z_SpawnDMItems();
+void Z_SpawnDMItems(void);
 
 /*
 ==============

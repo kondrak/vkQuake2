@@ -187,7 +187,7 @@ int zSchoolMonsters(edict_t *self, float dist, int runStyle, float *currentSpeed
   	float totalSpeed;
     float totalBearing;
     float distanceToNearest, distanceToLeader, dist;
-    edict_t *nearestEntity, *list;
+    edict_t *nearestEntity = NULL, *list;
     vec3_t vec;
 
     totalSpeed = 0;

@@ -455,7 +455,6 @@ void findNext(edict_t *ent, struct altsel_s *ptr, int offset)
 
 void altSelect(edict_t *ent, int num)
 {
-	int index = 0;
 	int offset = -1;
 	int i = 0;
 	struct altsel_s *ptr = NULL;
@@ -485,7 +484,8 @@ void altSelect(edict_t *ent, int num)
 		offset = 0;
 	else
 	{
-		offset = ((++offset) % ptr->num);
+		++offset;
+		offset = offset % ptr->num;
 	}
 	
 	// now select this offset

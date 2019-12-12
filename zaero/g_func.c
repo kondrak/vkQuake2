@@ -514,7 +514,6 @@ void Use_Plat (edict_t *ent, edict_t *other, edict_t *activator)
 
 void Touch_Plat_Center (edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf)
 {
-	edict_t *trigger = ent;
 	if (!other->client)
 		return;
 		

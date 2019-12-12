@@ -373,7 +373,6 @@ qboolean fire_lasertripbomb(edict_t *self, vec3_t start, vec3_t dir, float timer
 	vec3_t endPos;
 	vec3_t _dir;
 	edict_t *bomb = NULL;
-	edict_t *laser = NULL;
 
 	VectorScale(dir, 64, _dir);
 	VectorAdd(start, _dir, endPos);
@@ -474,8 +473,6 @@ void Weapon_LaserTripBomb(edict_t *ent)
 	const int idleFirst = 16;
 	const int idleLast = 43;
 	const int fireFirst = 7;
-	const int fireLast = 15;
-	const int activateFirst = 0;
 	const int activateLast = 6;
 	
 	if (ent->client->weaponstate == WEAPON_DROPPING)
@@ -545,22 +542,19 @@ void Weapon_LaserTripBomb(edict_t *ent)
 		}
 		else
 		{
+			int n = 0;
 			if (ent->client->ps.gunframe == idleLast)
 			{
 				ent->client->ps.gunframe = idleFirst;
 				return;
 			}
 
-			if (pause_frames)
+			for (n = 0; pause_frames[n]; n++)
 			{
-				int n = 0;
-				for (n = 0; pause_frames[n]; n++)
+				if (ent->client->ps.gunframe == pause_frames[n])
 				{
-					if (ent->client->ps.gunframe == pause_frames[n])
-					{
-						if (rand()&15)
-							return;
-					}
+					if (rand()&15)
+						return;
 				}
 			}
 
@@ -973,10 +967,6 @@ void flare_flash(edict_t *ent)
 
 void flare_think(edict_t *self)
 {
-	edict_t *target = NULL;
-	edict_t *closestEnt = NULL;
-	float closestDist = 0.0;
-
 	// on our last leg?
 	if (level.time > self->timeout)
 	{
@@ -1389,7 +1379,6 @@ void weapon_a2k_fire (edict_t *ent)
 		edict_t *exp = NULL;
 		float damage = 2500;
 		float dmg_radius = 512;
-		edict_t *e = NULL;
 		// play quad sound
 		playQuadSound(ent);
 		if (is_quad)
@@ -1457,7 +1446,6 @@ qboolean push_hit (edict_t *self, vec3_t start, vec3_t aim, int damage, int kick
 	trace_t tr;
 	vec3_t end;
 	vec3_t v;
-	edict_t *e = NULL;
 
 	//see if enemy is in range
 	VectorMA(start, 64, aim, end);
