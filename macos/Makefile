@@ -43,7 +43,8 @@ TARGETS=$(BUILDDIR)/quake2 \
 	$(BUILDDIR)/ctf/game.dylib \
 	$(BUILDDIR)/ref_vk.dylib \
 	$(BUILDDIR)/xatrix/game.dylib \
-	$(BUILDDIR)/rogue/game.dylib
+	$(BUILDDIR)/rogue/game.dylib \
+	$(BUILDDIR)/zaero/game.dylib
 
 debug:
 	@-mkdir -p debug \
@@ -54,7 +55,8 @@ debug:
 		debug/game \
 		debug/ctf \
 		debug/xatrix \
-		debug/rogue
+		debug/rogue \
+		debug/zaero
 	$(MAKE) targets BUILDDIR=debug CFLAGS="$(DEBUG_CFLAGS)"
 
 release:
@@ -66,7 +68,8 @@ release:
 		release/game \
 		release/ctf \
 		release/xatrix \
-		release/rogue
+		release/rogue \
+		release/zaero
 	$(MAKE) targets BUILDDIR=release CFLAGS="$(RELEASE_CFLAGS)"
 
 all: debug release
@@ -1164,6 +1167,263 @@ $(BUILDDIR)/rogue/q_shared.o :     ../rogue/q_shared.c
 	$(DO_SHLIB_CC)
 
 #############################################################################
+# ZAERO
+#############################################################################
+
+ZAERO_OBJS = \
+	$(BUILDDIR)/zaero/g_ai.o \
+	$(BUILDDIR)/zaero/g_cmds.o \
+	$(BUILDDIR)/zaero/g_combat.o \
+	$(BUILDDIR)/zaero/g_func.o \
+	$(BUILDDIR)/zaero/g_items.o \
+	$(BUILDDIR)/zaero/g_main.o \
+	$(BUILDDIR)/zaero/g_misc.o \
+	$(BUILDDIR)/zaero/g_monster.o \
+	$(BUILDDIR)/zaero/g_phys.o \
+	$(BUILDDIR)/zaero/g_save.o \
+	$(BUILDDIR)/zaero/g_spawn.o \
+	$(BUILDDIR)/zaero/g_svcmds.o \
+	$(BUILDDIR)/zaero/g_target.o \
+	$(BUILDDIR)/zaero/g_trigger.o \
+	$(BUILDDIR)/zaero/g_turret.o \
+	$(BUILDDIR)/zaero/g_utils.o \
+	$(BUILDDIR)/zaero/g_weapon.o \
+	$(BUILDDIR)/zaero/m_actor.o \
+	$(BUILDDIR)/zaero/m_berserk.o \
+	$(BUILDDIR)/zaero/m_boss2.o \
+	$(BUILDDIR)/zaero/m_boss3.o \
+	$(BUILDDIR)/zaero/m_boss31.o \
+	$(BUILDDIR)/zaero/m_boss32.o \
+	$(BUILDDIR)/zaero/m_brain.o \
+	$(BUILDDIR)/zaero/m_chick.o \
+	$(BUILDDIR)/zaero/m_flash.o \
+	$(BUILDDIR)/zaero/m_flipper.o \
+	$(BUILDDIR)/zaero/m_float.o \
+	$(BUILDDIR)/zaero/m_flyer.o \
+	$(BUILDDIR)/zaero/m_gladiator.o \
+	$(BUILDDIR)/zaero/m_gunner.o \
+	$(BUILDDIR)/zaero/m_hover.o \
+	$(BUILDDIR)/zaero/m_infantry.o \
+	$(BUILDDIR)/zaero/m_insane.o \
+	$(BUILDDIR)/zaero/m_medic.o \
+	$(BUILDDIR)/zaero/m_move.o \
+	$(BUILDDIR)/zaero/m_mutant.o \
+	$(BUILDDIR)/zaero/m_parasite.o \
+	$(BUILDDIR)/zaero/m_soldier.o \
+	$(BUILDDIR)/zaero/m_supertank.o \
+	$(BUILDDIR)/zaero/m_tank.o \
+	$(BUILDDIR)/zaero/p_client.o \
+	$(BUILDDIR)/zaero/p_hud.o \
+	$(BUILDDIR)/zaero/p_trail.o \
+	$(BUILDDIR)/zaero/p_view.o \
+	$(BUILDDIR)/zaero/p_weapon.o \
+	$(BUILDDIR)/zaero/q_shared.o \
+	$(BUILDDIR)/zaero/z_ai.o \
+	$(BUILDDIR)/zaero/z_anim.o \
+	$(BUILDDIR)/zaero/z_boss.o \
+	$(BUILDDIR)/zaero/z_camera.o \
+	$(BUILDDIR)/zaero/z_debug.o \
+	$(BUILDDIR)/zaero/z_frames.o \
+	$(BUILDDIR)/zaero/z_handler.o \
+	$(BUILDDIR)/zaero/z_hound.o \
+	$(BUILDDIR)/zaero/z_item.o \
+	$(BUILDDIR)/zaero/z_list.o \
+	$(BUILDDIR)/zaero/z_mtest.o \
+	$(BUILDDIR)/zaero/z_sentien.o \
+	$(BUILDDIR)/zaero/z_spawn.o \
+	$(BUILDDIR)/zaero/z_trigger.o \
+	$(BUILDDIR)/zaero/z_weapon.o
+
+$(BUILDDIR)/zaero/game.dylib : $(ZAERO_OBJS)
+	$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(ZAERO_OBJS)
+
+$(BUILDDIR)/zaero/g_ai.o :         ../zaero/g_ai.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/g_cmds.o :       ../zaero/g_cmds.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/g_combat.o :     ../zaero/g_combat.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/g_func.o :       ../zaero/g_func.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/g_items.o :      ../zaero/g_items.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/g_main.o :       ../zaero/g_main.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/g_misc.o :       ../zaero/g_misc.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/g_monster.o :    ../zaero/g_monster.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/g_phys.o :       ../zaero/g_phys.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/g_save.o :       ../zaero/g_save.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/g_spawn.o :      ../zaero/g_spawn.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/g_svcmds.o :     ../zaero/g_svcmds.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/g_target.o :     ../zaero/g_target.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/g_trigger.o :    ../zaero/g_trigger.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/g_turret.o :     ../zaero/g_turret.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/g_utils.o :      ../zaero/g_utils.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/g_weapon.o :     ../zaero/g_weapon.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/m_actor.o :      ../zaero/m_actor.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/m_berserk.o :    ../zaero/m_berserk.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/m_boss2.o :      ../zaero/m_boss2.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/m_boss3.o :      ../zaero/m_boss3.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/m_boss31.o :     ../zaero/m_boss31.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/m_boss32.o :     ../zaero/m_boss32.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/m_brain.o :      ../zaero/m_brain.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/m_chick.o :      ../zaero/m_chick.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/m_flash.o :      ../zaero/m_flash.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/m_flipper.o :    ../zaero/m_flipper.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/m_float.o :      ../zaero/m_float.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/m_flyer.o :      ../zaero/m_flyer.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/m_gladiator.o :  ../zaero/m_gladiator.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/m_gunner.o :     ../zaero/m_gunner.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/m_hover.o :      ../zaero/m_hover.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/m_infantry.o :   ../zaero/m_infantry.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/m_insane.o :     ../zaero/m_insane.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/m_medic.o :      ../zaero/m_medic.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/m_move.o :       ../zaero/m_move.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/m_mutant.o :     ../zaero/m_mutant.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/m_parasite.o :   ../zaero/m_parasite.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/m_soldier.o :    ../zaero/m_soldier.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/m_supertank.o :  ../zaero/m_supertank.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/m_tank.o :       ../zaero/m_tank.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/p_client.o :     ../zaero/p_client.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/p_hud.o :        ../zaero/p_hud.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/p_trail.o :      ../zaero/p_trail.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/p_view.o :       ../zaero/p_view.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/p_weapon.o :     ../zaero/p_weapon.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/q_shared.o :     ../zaero/q_shared.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/z_ai.o :         ../zaero/z_ai.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/z_anim.o :       ../zaero/z_anim.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/z_boss.o :       ../zaero/z_boss.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/z_camera.o :     ../zaero/z_camera.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/z_debug.o :      ../zaero/z_debug.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/z_frames.o :     ../zaero/z_frames.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/z_handler.o :    ../zaero/z_handler.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/z_hound.o :      ../zaero/z_hound.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/z_item.o :       ../zaero/z_item.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/z_list.o :       ../zaero/z_list.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/z_mtest.o :      ../zaero/z_mtest.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/z_sentien.o :    ../zaero/z_sentien.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/z_spawn.o :      ../zaero/z_spawn.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/z_trigger.o :    ../zaero/z_trigger.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/zaero/z_weapon.o :     ../zaero/z_weapon.c
+	$(DO_SHLIB_CC)
+
+#############################################################################
 # REF_VK
 #############################################################################
 
@@ -1258,10 +1518,10 @@ $(BUILDDIR)/ref_vk/vk_swapchain.o : ../ref_vk/vk_swapchain.c
 $(BUILDDIR)/ref_vk/vk_validation.o : ../ref_vk/vk_validation.c
 	$(DO_VK_SHLIB_CC)
 
-$(BUILDDIR)/ref_vk/vk_warp.o :      ../ref_vk/vk_warp.c
+$(BUILDDIR)/ref_vk/vk_warp.o :       ../ref_vk/vk_warp.c
 	$(DO_VK_SHLIB_CC)
 
-$(BUILDDIR)/ref_vk/win_macos.o :    ../macos/win_macos.m
+$(BUILDDIR)/ref_vk/win_macos.o :     ../macos/win_macos.m
 	$(DO_VK_SHLIB_CC)
 
 #############################################################################
@@ -1296,6 +1556,7 @@ clean2:
 	$(CTF_OBJS) \
 	$(XATRIX_OBJS) \
 	$(ROGUE_OBJS) \
+	$(ZAERO_OBS) \
 	$(REF_VK_OBJS)
 
 .PHONY: help all debug release clean clean-debug clean-release debug-xcode release-xcode clean-xcode
