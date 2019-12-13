@@ -257,7 +257,11 @@ int FS_FOpenFile (char *filename, FILE **file)
 	// check a file in the directory tree
 			
 			Com_sprintf (netpath, sizeof(netpath), "%s/%s",search->filename, filename);
-			
+#ifndef _WIN32
+			// some expansion packs use backslashes in file paths which works only on Windows
+			char *np = netpath;
+			while ( *np++ ) *np = *np == '\\' ? '/' : *np;
+#endif
 			*file = fopen (netpath, "rb");
 			if (!*file)
 				continue;
