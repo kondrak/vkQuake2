@@ -35,7 +35,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <sys/wait.h>
 #include <sys/mman.h>
 #include <errno.h>
+#if defined(__linux__)
 #include <mntent.h>
+#endif
 
 #include <dlfcn.h>
 
@@ -323,6 +325,7 @@ int main (int argc, char **argv)
 
 void Sys_CopyProtect(void)
 {
+#if defined(__linux__)
 	FILE *mnt;
 	struct mntent *ent;
 	char path[MAX_OSPATH];
@@ -370,6 +373,7 @@ void Sys_CopyProtect(void)
 		Com_Error (ERR_FATAL, "Could not find a Quake2 CD in your CD drive.");
 	Com_Error (ERR_FATAL, "Unable to find a mounted iso9660 file system.\n"
 		"You must mount the Quake2 CD in a cdrom drive in order to play.");
+#endif
 }
 
 #if 0

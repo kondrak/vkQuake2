@@ -17,8 +17,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
-#ifndef __linux__
-#error You shouldnt be including this file on non-Linux platforms
+#if !defined(__linux__) && !defined(__FreeBSD__)
+#error You shouldnt be including this file on non-unixes platforms
 #endif
 
 #ifndef __GLW_LINUX_H__

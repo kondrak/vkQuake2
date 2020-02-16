@@ -25,6 +25,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <assert.h>
 #include <ctype.h>
 #include <dlfcn.h> // ELF dl loader
+#if defined(__FreeBSD__)
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#endif
 #include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
@@ -251,8 +255,18 @@ qboolean VID_LoadRefresh( char *name )
 	Com_Printf( "------- Loading %s -------\n", name );
 
 	// locate executable location so we don't need the silly /etc/quake2.conf file
+#if defined(__linux__)
 	snprintf(fn, sizeof(fn), "/proc/%d/exe", getpid());
 	int l = readlink(fn, so_path, MAX_OSPATH-1);
+#else
+	int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1};
+	size_t l = sizeof(so_path);
+	if (sysctl(mib, 4, so_path, &l, NULL, 0) == -1)
+	{
+		Com_Printf( "LoadLibrary(\"%s\") failed: %s\n", name , strerror(errno));
+		return false;
+	}
+#endif
 	so_path[l <= 0 ? 0 : l] = '\0';
 	char *s = strrchr(so_path, '/');
 	// cut off binary from path
