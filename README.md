@@ -71,8 +71,11 @@ export VK_LAYER_PATH=$VULKAN_SDK/macOS/etc/vulkan/explicit_layer.d
 This project uses the Vulkan loader bundled with the SDK, rather than directly linking against `MoltenVK.framework`. This is done so that validation layers are available for debugging. Builds have been tested using MacOS 10.14.2.
 
 ## FreeBSD
-- pkg install vulkan-tools vulkan-validation-layers
-- make sure your graphics drivers support Vulkan (run `vulkaninfo` to verify) - if not, you can get them with:
+- install required Vulkan packages:
+```
+pkg install vulkan-tools vulkan-validation-layers
+```
+- make sure your graphics drivers support Vulkan (run `vulkaninfo` to verify) - if not, you should either update them or find a package that is best suited for your hardware configuration
 - enter the `linux` directory and type `make release` or `make debug` depending on which variant you want to build - output binaries will be placed in `linux/releasex64` and `linux/debugx64` subdirectories respectively
 
 Running
