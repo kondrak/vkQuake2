@@ -52,7 +52,7 @@ MESA_DIR=/usr/local/src/Mesa-2.6
 EGCS=/usr/local/egcs-1.1.2/bin/gcc
 
 CC=gcc
-BASE_CFLAGS=-Dstricmp=strcasecmp -D_GNU_SOURCE -Wno-format-truncation -Wno-unused-result
+BASE_CFLAGS=-I/usr/local/include -Dstricmp=strcasecmp -D_GNU_SOURCE -Wno-format-truncation -Wno-unused-result
 
 ifeq ($(ARCH),axp)
 RELEASE_CFLAGS=$(BASE_CFLAGS) -DNDEBUG -O6 -ffast-math -funroll-loops \
@@ -63,14 +63,14 @@ RELEASE_CFLAGS=$(BASE_CFLAGS) -DNDEBUG -O6 -ffast-math -funroll-loops \
 endif
 
 DEBUG_CFLAGS=$(BASE_CFLAGS) -g -D_DEBUG
-LDFLAGS=-ldl -lm -lasound -lpthread
+LDFLAGS=-L/usr/local/lib -ldl -lm -lasound -lpthread
 SVGALDFLAGS=-lvga -lm
-XLDFLAGS=-L/usr/X11R6/lib -lX11 -lXext -lXxf86dga
+XLDFLAGS=-L/usr/X11R6/lib -L/usr/local/lib -lX11 -lXext -lXxf86dga
 XCFLAGS=
 
 GLLDFLAGS=-L/usr/X11R6/lib -L/usr/local/lib -L$(MESA_DIR)/lib -lX11 -lXext -lvga -lm
 GLXLDFLAGS=-L/usr/X11R6/lib -L/usr/local/lib -L$(MESA_DIR)/lib -lX11 -lXext -lXxf86dga -lXxf86vm -lm
-VKLDFLAGS=-L/usr/X11R6/lib -L$(VULKAN_SDK)/lib -lX11 -lXext -lXxf86dga -lXxf86vm -lm -lvulkan -lstdc++
+VKLDFLAGS=-L/usr/X11R6/lib -L$(VULKAN_SDK)/lib -L/usr/local/lib -lX11 -lXext -lXxf86dga -lXxf86vm -lm -lvulkan -lstdc++
 GLCFLAGS=-I$(MESA_DIR)/include -I/usr/include/glide
 VKCFLAGS=-I$(VULKAN_SDK)/include
 

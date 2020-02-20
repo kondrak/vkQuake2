@@ -69,9 +69,16 @@ int Hunk_End (void)
 {
 	byte *n;
 
+#if defined(__linux__)
 	n = mremap(membase, maxhunksize, curhunksize + sizeof(int), 0);
 	if (n != membase)
 		Sys_Error("Hunk_End:  Could not remap virtual block (%d)", errno);
+#else
+	size_t nchunk = curhunksize + sizeof(int);
+	size_t diff = maxhunksize - nchunk;
+	if (munmap(membase + nchunk, diff) != 0)
+		Sys_Error("Hunk_End:  Could not shrink virtual block (%d)", errno);
+#endif
 	*((int *)membase) = curhunksize + sizeof(int);
 	
 	return curhunksize;

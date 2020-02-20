@@ -229,7 +229,7 @@ void Vk_Strings_f(void)
 		ri.Con_Printf(PRINT_ALL, " (MSAAx%d)\n", 2 << (msaa - 1));
 	else
 		ri.Con_Printf(PRINT_ALL, "\n");
-#ifndef __linux__
+#if !defined(__linux__) && !defined(__FreeBSD__)
 	// Intel on Windows and MacOS (Linux uses semver for Mesa drivers)
 	if (vk_device.properties.vendorID == 0x8086)
 		ri.Con_Printf(PRINT_ALL, "   driverVersion: %d (0x%X)\n", vk_device.properties.driverVersion, vk_device.properties.driverVersion);
