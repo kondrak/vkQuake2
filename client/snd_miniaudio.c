@@ -57,7 +57,7 @@ static cvar_t *cd_loopcount;
 static cvar_t *cd_looptrack;
 
 #ifdef __APPLE__
-static ma_uint32 bufferSizeInFrames;
+static ma_uint32 periodSizeInFrames;
 
 static UInt32 GetBytesPerSampleFrame()
 {
@@ -201,7 +201,7 @@ void Miniaudio_Init(void)
 	paused = false;
 
 #ifdef __APPLE__
-	bufferSizeInFrames = Cvar_VariableValue("s_chunksize") * sizeof(float) / GetBytesPerSampleFrame();
+	periodSizeInFrames = Cvar_VariableValue("s_chunksize") * sizeof(float) / GetBytesPerSampleFrame();
 #endif
 	Cmd_AddCommand("miniaudio", Miniaudio_f);
 }
@@ -257,7 +257,7 @@ void Miniaudio_Play(int track, qboolean looping)
 	deviceConfig.dataCallback = data_callback;
 	deviceConfig.pUserData = &decoder;
 #ifdef __APPLE__
-	deviceConfig.bufferSizeInFrames = bufferSizeInFrames;
+	deviceConfig.periodSizeInFrames = periodSizeInFrames;
 	deviceConfig.periods = 1;
 #endif
 
