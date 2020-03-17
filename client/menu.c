@@ -1253,7 +1253,7 @@ void Options_MenuInit( void )
 	s_options_cdvolume_slider.generic.type	= MTYPE_SLIDER;
 	s_options_cdvolume_slider.generic.x		= 0;
 	s_options_cdvolume_slider.generic.y		= 10 * vid_hudscale->value;
-	s_options_cdvolume_slider.generic.name	= "CD volume";
+	s_options_cdvolume_slider.generic.name	= "music volume";
 	s_options_cdvolume_slider.generic.callback	= UpdateCDVolumeFunc;
 	s_options_cdvolume_slider.minvalue		= 0;
 	s_options_cdvolume_slider.maxvalue		= 10;
