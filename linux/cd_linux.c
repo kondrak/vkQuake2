@@ -65,7 +65,6 @@ static int cdfile = -1;
 //static char cd_dev[64] = "/dev/cdrom";
 
 cvar_t	*cd_volume;
-cvar_t *cd_nocd;
 cvar_t *cd_dev;
 
 void CDAudio_Pause(void);
@@ -445,11 +444,9 @@ int CDAudio_Init(void)
 	if (cv->value)
 		return -1;
 
-	cd_nocd = Cvar_Get ("cd_nocd", "0", CVAR_ARCHIVE );
-	if ( cd_nocd->value)
-		return -1;
-
 	cd_volume = Cvar_Get ("cd_volume", "1", CVAR_ARCHIVE);
+	if ( cd_volume->value == 0 )
+		return -1;
 
 	cd_dev = Cvar_Get("cd_dev", "/dev/cdrom", CVAR_ARCHIVE);
 

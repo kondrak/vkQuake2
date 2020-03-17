@@ -52,12 +52,12 @@ static qboolean paused = false;
 static qboolean playLooping = false;
 static qboolean trackFinished = false;
 
-static cvar_t *cd_nocd;
+static cvar_t *cd_volume;
 static cvar_t *cd_loopcount;
 static cvar_t *cd_looptrack;
 
 #ifdef __APPLE__
-static ma_uint32 bufferSizeInFrames;
+static ma_uint32 periodSizeInFrames;
 
 static UInt32 GetBytesPerSampleFrame()
 {
@@ -194,14 +194,14 @@ static void Miniaudio_f(void)
 
 void Miniaudio_Init(void)
 {
-	cd_nocd = Cvar_Get("cd_nocd", "0", CVAR_ARCHIVE);
+	cd_volume = Cvar_Get("cd_volume", "1", CVAR_ARCHIVE);
 	cd_loopcount = Cvar_Get("cd_loopcount", "4", 0);
 	cd_looptrack = Cvar_Get("cd_looptrack", "11", 0);
 	enabled = true;
 	paused = false;
 
 #ifdef __APPLE__
-	bufferSizeInFrames = Cvar_VariableValue("s_chunksize") * sizeof(float) / GetBytesPerSampleFrame();
+	periodSizeInFrames = Cvar_VariableValue("s_chunksize") * sizeof(float) / GetBytesPerSampleFrame();
 #endif
 	Cmd_AddCommand("miniaudio", Miniaudio_f);
 }
@@ -257,7 +257,7 @@ void Miniaudio_Play(int track, qboolean looping)
 	deviceConfig.dataCallback = data_callback;
 	deviceConfig.pUserData = &decoder;
 #ifdef __APPLE__
-	deviceConfig.bufferSizeInFrames = bufferSizeInFrames;
+	deviceConfig.periodSizeInFrames = periodSizeInFrames;
 	deviceConfig.periods = 1;
 #endif
 
@@ -280,8 +280,10 @@ void Miniaudio_Play(int track, qboolean looping)
 	paused = false;
 	trackFinished = false;
 
-	if (Cvar_VariableValue("cd_nocd"))
+	if ( Cvar_VariableValue("cd_volume") == 0 )
 		Miniaudio_Pause();
+
+	ma_device_set_master_volume(&device, cd_volume->value);
 }
 
 void Miniaudio_Stop(void)
@@ -298,9 +300,21 @@ void Miniaudio_Stop(void)
 
 void Miniaudio_Update(void)
 {
-	if (cd_nocd->value != !enabled)
+	if (cd_volume->modified)
 	{
-		if (cd_nocd->value)
+		cd_volume->modified = false;
+
+		if (cd_volume->value < 0.f)
+			Cvar_SetValue("cd_volume", 0.f);
+		if (cd_volume->value > 1.f)
+			Cvar_SetValue("cd_volume", 1.f);
+
+		ma_device_set_master_volume(&device, cd_volume->value);
+	}
+
+	if ((cd_volume->value == 0) != !enabled)
+	{
+		if (cd_volume->value == 0)
 		{
 			Miniaudio_Pause();
 			enabled = false;
