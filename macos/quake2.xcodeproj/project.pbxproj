@@ -274,7 +274,7 @@
 		E29552F521F620FB00336DD3 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1010;
+				LastUpgradeCheck = 1130;
 				ORGANIZATIONNAME = Krzysztof;
 				TargetAttributes = {
 					E29552FC21F620FB00336DD3 = {
@@ -288,6 +288,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				Base,
 			);
 			mainGroup = E29552F421F620FB00336DD3;
 			productRefGroup = E29552FE21F620FB00336DD3 /* Products */;
@@ -491,6 +492,7 @@
 		E295530521F620FB00336DD3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				"LD_RUNPATH_SEARCH_PATHS[arch=*]" = $VULKAN_SDK/macOS/lib;
 				"OTHER_CFLAGS[arch=*]" = (
@@ -509,6 +511,7 @@
 		E295530621F620FB00336DD3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				"LD_RUNPATH_SEARCH_PATHS[arch=*]" = $VULKAN_SDK/macOS/lib;
 				"OTHER_CFLAGS[arch=*]" = (
