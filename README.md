@@ -24,6 +24,7 @@ This is the official Quake 2 code v3.21 with Vulkan support and mission packs in
 - triangle fans have been replaced with indexed triangle lists due to Metal/MoltenVK limitations
 - on Linux, sound is now handled by ALSA instead of OSS
 - support for OGG/FLAC/MP3/WAV music has been added in addition to standard CD audio
+- music volume slider has been added (OGG/FLAC/MP3/WAV only, CD music still plays at full volume as originally intended)
 - game menus have been slightly improved
 
 Building
