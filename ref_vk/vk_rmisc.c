@@ -107,6 +107,12 @@ void Vk_ScreenShot_f (void)
 	FILE		*f;
 	size_t		buffSize = vid.width * vid.height * 4 + 18;
 
+	if (!vk_device.screenshotSupported)
+	{
+		ri.Con_Printf(PRINT_ALL, "SCR_ScreenShot_f: Screenshots are not supported by this GPU.\n");
+		return;
+	}
+
 	// create the scrnshots directory if it doesn't exist
 	Com_sprintf(checkname, sizeof(checkname), "%s/scrnshot", ri.FS_Gamedir());
 	Sys_Mkdir(checkname);

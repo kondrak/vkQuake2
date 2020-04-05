@@ -46,6 +46,7 @@ typedef struct
 	int gfxFamilyIndex;
 	int presentFamilyIndex;
 	int transferFamilyIndex;
+	qboolean screenshotSupported;
 } qvkdevice_t;
 
 // Vulkan swapchain

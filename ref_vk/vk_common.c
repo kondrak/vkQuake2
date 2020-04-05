@@ -56,7 +56,8 @@ qvkdevice_t vk_device = {
 	.transferQueue = VK_NULL_HANDLE,
 	.gfxFamilyIndex = -1,
 	.presentFamilyIndex = -1,
-	.transferFamilyIndex = -1
+	.transferFamilyIndex = -1,
+	.screenshotSupported = false
 };
 
 // Vulkan swapchain

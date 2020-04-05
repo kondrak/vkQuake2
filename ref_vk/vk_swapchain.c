@@ -164,6 +164,15 @@ VkResult QVk_CreateSwapchain()
 	if (surfaceCaps.maxImageCount > 0)
 		imageCount = min(imageCount, surfaceCaps.maxImageCount);
 
+	VkImageUsageFlags imgUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+	// TRANSFER_SRC_BIT is required for taking screenshots
+	if (surfaceCaps.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_SRC_BIT)
+	{
+		imgUsage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+		vk_device.screenshotSupported = true;
+	}
+
 	VkSwapchainKHR oldSwapchain = vk_swapchain.sc;
 	VkSwapchainCreateInfoKHR scCreateInfo = {
 		.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
@@ -175,7 +184,7 @@ VkResult QVk_CreateSwapchain()
 		.imageColorSpace = swapSurfaceFormat.colorSpace,
 		.imageExtent = extent,
 		.imageArrayLayers = 1,
-		.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, // TRANSFER_SRC_BIT is required for taking screenshots
+		.imageUsage = imgUsage,
 		.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
 		.queueFamilyIndexCount = 0,
 		.pQueueFamilyIndices = NULL,
