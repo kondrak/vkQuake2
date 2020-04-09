@@ -17,7 +17,7 @@ matrix:
         - export VULKAN_SDK=$TRAVIS_BUILD_DIR/$VK_VERSION/ppc64le
         - sudo apt-get -qq update
         - sudo apt-get install -y make gcc g++ mesa-common-dev libglu1-mesa-dev libxxf86dga-dev libxxf86vm-dev libasound2-dev libx11-dev libxcb1-dev
-        - curl -L -v -o vulkansdk-linux-x86_64-$VK_VERSION.tar.gz -O https://vulkan.lunarg.com/sdk/download/$VK_VERSION/linux/vulkansdk-linux-ppc64le-$VK_VERSION.tar.gz?Human=true
+        - curl -L -v -o vulkansdk-linux-x86_64-$VK_VERSION.tar.gz -O https://sdk.lunarg.com/sdk/download/$VK_VERSION/linux/vulkansdk-linux-ppc64le-$VK_VERSION.tar.gz?Human=true
         - tar zxf vulkansdk-linux-ppc64le-$VK_VERSION.tar.gz
       script:
         - cd linux
