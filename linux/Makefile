@@ -18,13 +18,21 @@ else
 GLIBC=
 endif
 
-ifneq (,$(findstring alpha,$(shell uname -m)))
-ARCH=axp
-RPMARCH=alpha
+KERNEL_ARCH=$(shell uname -m)
+
+ifeq ($(KERNEL_ARCH),x86_64)
+  ARCH=x64
+  RPMARCH=i386
+else ifeq ($(KERNEL_ARCH),ppc64le)
+  ARCH=ppc64le
+  RPMARCH=ppc64le
+else ifneq (,$(findstring alpha,$(KERNEL_ARCH)))
+  ARCH=axp
+  RPMARCH=alpha
 else
-ARCH=x64
-RPMARCH=i386
+  $(error "Unsupported ARCH: ${KERNEL_ARCH}")
 endif
+
 NOARCH=noarch
 
 MOUNT_DIR=..
