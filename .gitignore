@@ -18,6 +18,8 @@ xcuserdata
 macos/vkQuake2
 debugx64
 releasex64
+debugppc64le
+releaseppc64le
 Debug
 Release
 Quake2
