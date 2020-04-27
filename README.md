@@ -97,7 +97,7 @@ The following commands are available when using the Vulkan renderer:
 
 | Command                 | Action                                                  |
 |-------------------------|:--------------------------------------------------------|
-| `vk_validation`         | Toggle validation layers:<br>`0` - disabled (default in Release)<br> `1` - only errors and warnings<br>`2` - full validation (default in Debug) |
+| `vk_validation`         | Toggle validation layers:<br>`0` - disabled (default in Release)<br> `1` - only errors and warnings<br>`2` - full validation (default in Debug)<br>`3` - enables `VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT` |
 | `vk_strings`            | Print some basic Vulkan/GPU information.                                    |
 | `vk_mem`                | Print dynamic vertex/index/uniform/triangle fan buffer memory usage statistics.          |
 | `vk_device`             | Specify index of the preferred Vulkan device on systems with multiple GPUs:<br>`-1` - prefer first DISCRETE_GPU (default)<br>`0..n` - use device #n (full list of devices is returned by `vk_strings` command) |

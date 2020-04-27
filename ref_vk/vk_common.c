@@ -1574,6 +1574,16 @@ qboolean QVk_Init()
 	}
 	ri.Con_Printf(PRINT_ALL, "\n");
 
+	VkValidationFeatureEnableEXT validationFeaturesEnable[] = { VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT };
+	VkValidationFeaturesEXT validationFeatures = {
+		.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT,
+		.pNext = NULL,
+		.enabledValidationFeatureCount = sizeof(validationFeaturesEnable) / sizeof(validationFeaturesEnable[0]),
+		.pEnabledValidationFeatures = validationFeaturesEnable,
+		.disabledValidationFeatureCount = 0,
+		.pDisabledValidationFeatures = NULL
+	};
+
 	VkInstanceCreateInfo createInfo = {
 		.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
 		.pNext = NULL,
@@ -1583,6 +1593,9 @@ qboolean QVk_Init()
 		.enabledExtensionCount = extCount,
 		.ppEnabledExtensionNames = (const char* const*)wantedExtensions
 	};
+
+	if (vk_validation->value > 2)
+		createInfo.pNext = &validationFeatures;
 
 #if VK_HEADER_VERSION > 101
 	const char *validationLayers[] = { "VK_LAYER_KHRONOS_validation" };
