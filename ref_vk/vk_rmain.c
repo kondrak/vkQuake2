@@ -1013,6 +1013,9 @@ R_RenderFrame
 */
 void R_RenderFrame (refdef_t *fd)
 {
+	if (!vk_frameStarted)
+		return;
+
 	R_RenderView( fd );
 	R_SetLightLevel ();
 	R_SetVulkan2D ();

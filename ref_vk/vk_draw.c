@@ -53,6 +53,9 @@ void Draw_Char (int x, int y, int num)
 	int				row, col;
 	float			frow, fcol, size;
 
+	if (!vk_frameStarted)
+		return;
+
 	num &= 255;
 
 	if ((num & 127) == 32)
@@ -127,6 +130,9 @@ Draw_StretchPic
 void Draw_StretchPic (int x, int y, int w, int h, char *pic)
 {
 	image_t *vk;
+
+	if (!vk_frameStarted)
+		return;
 
 	vk = Draw_FindPic(pic);
 	if (!vk)
@@ -205,6 +211,9 @@ void Draw_Fill (int x, int y, int w, int h, int c)
 		byte		v[4];
 	} color;
 
+	if (!vk_frameStarted)
+		return;
+
 	if ((unsigned)c > 255)
 		ri.Sys_Error(ERR_FATAL, "Draw_Fill: bad color");
 
@@ -227,6 +236,10 @@ Draw_FadeScreen
 void Draw_FadeScreen (void)
 {
 	float imgTransform[] = { 0.f, 0.f, vid.width, vid.height, 0.f, 0.f, 0.f, .8f };
+
+	if (!vk_frameStarted)
+		return;
+
 	QVk_DrawColorRect(imgTransform, sizeof(imgTransform), RP_UI);
 }
 
