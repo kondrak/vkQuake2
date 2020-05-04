@@ -42,6 +42,7 @@ cvar_t		*vid_ref;			// Name of Refresh DLL loaded
 cvar_t		*vid_xpos;			// X coordinate of window position
 cvar_t		*vid_ypos;			// Y coordinate of window position
 cvar_t		*vid_fullscreen;
+cvar_t		*vid_refresh;
 cvar_t		*vid_hudscale;
 cvar_t		*r_customwidth;
 cvar_t		*r_customheight;
@@ -403,6 +404,11 @@ void VID_CheckChanges (void)
 		cls.disable_screen = false;
 	}
 
+	if ( vid_refresh->modified )
+	{
+		vid_refresh->modified = false;
+		cl.refresh_prepped = false;
+	}
 }
 
 /*
@@ -416,6 +422,7 @@ void VID_Init (void)
 	vid_xpos = Cvar_Get ("vid_xpos", "3", CVAR_ARCHIVE);
 	vid_ypos = Cvar_Get ("vid_ypos", "22", CVAR_ARCHIVE);
 	vid_fullscreen = Cvar_Get ("vid_fullscreen", "0", CVAR_ARCHIVE);
+	vid_refresh = Cvar_Get ("vid_refresh", "0", CVAR_NOSET);
 	vid_gamma = Cvar_Get( "vid_gamma", "1", CVAR_ARCHIVE );
 	r_customwidth = Cvar_Get( "r_customwidth", "1024", CVAR_ARCHIVE );
 	r_customheight = Cvar_Get( "r_customheight", "768", CVAR_ARCHIVE );

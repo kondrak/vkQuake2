@@ -134,6 +134,8 @@ uint32_t vk_imageIndex = 0;
 int vk_activeStagingBuffer = 0;
 // started rendering frame?
 qboolean vk_frameStarted = false;
+// renderer needs to restart next frame?
+qboolean vk_restart = false;
 
 // render pipelines
 qvkpipeline_t vk_drawTexQuadPipeline = QVKPIPELINE_INIT;
@@ -1848,6 +1850,17 @@ VkResult QVk_BeginFrame()
 	ReleaseSwapBuffers();
 
 	VkResult result = vkAcquireNextImageKHR(vk_device.logical, vk_swapchain.sc, UINT32_MAX, vk_imageAvailableSemaphores[vk_activeBufferIdx], VK_NULL_HANDLE, &vk_imageIndex);
+	// for VK_OUT_OF_DATE_KHR and VK_SUBOPTIMAL_KHR it'd be fine to just rebuild the swapchain but let's take the easy way out and restart video system
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_SURFACE_LOST_KHR)
+	{
+		ri.Con_Printf(PRINT_ALL, "QVk_BeginFrame(): received %s after vkAcquireNextImageKHR - restarting video!\n", QVk_GetError(result));
+		return result;
+	}
+	else if (result != VK_SUCCESS)
+	{
+		Sys_Error("QVk_BeginFrame(): unexpected error after vkAcquireNextImageKHR: %s", QVk_GetError(result));
+	}
+
 	vk_activeCmdbuffer = vk_commandbuffers[vk_activeBufferIdx];
 
 	// swap dynamic buffers
@@ -1859,17 +1872,6 @@ VkResult QVk_BeginFrame()
 	vmaInvalidateAllocation(vk_malloc, vk_dynUniformBuffers[vk_activeDynBufferIdx].allocation, 0, VK_WHOLE_SIZE);
 	vmaInvalidateAllocation(vk_malloc, vk_dynVertexBuffers[vk_activeDynBufferIdx].allocation, 0, VK_WHOLE_SIZE);
 	vmaInvalidateAllocation(vk_malloc, vk_dynIndexBuffers[vk_activeDynBufferIdx].allocation, 0, VK_WHOLE_SIZE);
-
-	// for VK_OUT_OF_DATE_KHR and VK_SUBOPTIMAL_KHR it'd be fine to just rebuild the swapchain but let's take the easy way out and restart video system
-	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_SURFACE_LOST_KHR)
-	{
-		ri.Con_Printf(PRINT_ALL, "QVk_BeginFrame(): received %s after vkAcquireNextImageKHR - restarting video!\n", QVk_GetError(result));
-		return result;
-	}
-	else if (result != VK_SUCCESS)
-	{
-		Sys_Error("QVk_BeginFrame(): unexpected error after vkAcquireNextImageKHR: %s", QVk_GetError(result));
-	}
 
 	VK_VERIFY(vkWaitForFences(vk_device.logical, 1, &vk_fences[vk_activeBufferIdx], VK_TRUE, UINT32_MAX));
 	VK_VERIFY(vkResetFences(vk_device.logical, 1, &vk_fences[vk_activeBufferIdx]));
@@ -1895,7 +1897,8 @@ VkResult QVk_EndFrame(qboolean force)
 {
 	// continue only if QVk_BeginFrame() had been previously issued
 	if (!vk_frameStarted)
-		return VK_NOT_READY;
+		return VK_SUCCESS;
+
 	// this may happen if Sys_Error is issued mid-frame, so we need to properly advance the draw pipeline
 	if (force)
 	{
@@ -1944,7 +1947,6 @@ VkResult QVk_EndFrame(qboolean force)
 	if (renderResult == VK_ERROR_OUT_OF_DATE_KHR || renderResult == VK_SUBOPTIMAL_KHR || renderResult == VK_ERROR_SURFACE_LOST_KHR)
 	{
 		ri.Con_Printf(PRINT_ALL, "QVk_EndFrame(): received %s after vkQueuePresentKHR - restarting video!\n", QVk_GetError(renderResult));
-		vid_ref->modified = true;
 	}
 	else if (renderResult != VK_SUCCESS)
 	{

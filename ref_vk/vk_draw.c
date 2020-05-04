@@ -252,6 +252,9 @@ void Draw_StretchRaw (int x, int y, int w, int h, int cols, int rows, byte *data
 	int			row;
 	float		t;
 
+	if (!vk_frameStarted)
+		return;
+
 	if (rows <= 256)
 	{
 		hscale = 1;

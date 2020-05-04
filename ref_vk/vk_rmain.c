@@ -46,6 +46,7 @@ int			c_brush_polys, c_alias_polys;
 float		v_blend[4];			// final blending color
 
 void Vk_Strings_f(void);
+void Vk_PollRestart_f(void);
 void Vk_Mem_f(void);
 
 //
@@ -124,6 +125,7 @@ cvar_t	*vk_device_idx;
 cvar_t	*vid_fullscreen;
 cvar_t	*vid_gamma;
 cvar_t	*vid_ref;
+cvar_t	*vid_refresh;
 cvar_t	*viewsize;
 
 /*
@@ -1075,9 +1077,11 @@ void R_Register( void )
 	vid_fullscreen = ri.Cvar_Get("vid_fullscreen", "0", CVAR_ARCHIVE);
 	vid_gamma = ri.Cvar_Get("vid_gamma", "1.0", CVAR_ARCHIVE);
 	vid_ref = ri.Cvar_Get("vid_ref", "soft", CVAR_ARCHIVE);
+	vid_refresh = ri.Cvar_Get("vid_refresh", "0", CVAR_NOSET);
 	viewsize = ri.Cvar_Get("viewsize", "100", CVAR_ARCHIVE);
 
 	ri.Cmd_AddCommand("vk_strings", Vk_Strings_f);
+	ri.Cmd_AddCommand("vk_restart", Vk_PollRestart_f);
 	ri.Cmd_AddCommand("vk_mem", Vk_Mem_f);
 	ri.Cmd_AddCommand("imagelist", Vk_ImageList_f);
 	ri.Cmd_AddCommand("screenshot", Vk_ScreenShot_f);
@@ -1196,6 +1200,7 @@ void R_Shutdown (void)
 {
 	ri.Cmd_RemoveCommand("vk_strings");
 	ri.Cmd_RemoveCommand("vk_mem");
+	ri.Cmd_RemoveCommand("vk_restart");
 	ri.Cmd_RemoveCommand("imagelist");
 	ri.Cmd_RemoveCommand("screenshot");
 
@@ -1220,13 +1225,16 @@ R_BeginFrame
 void R_BeginFrame( float camera_separation )
 {
 	// if ri.Sys_Error() had been issued mid-frame, we might end up here without properly submitting the image, so call QVk_EndFrame to be safe
-	QVk_EndFrame(true);
+	if (QVk_EndFrame(true) != VK_SUCCESS)
+	{
+		Vk_PollRestart_f();
+		return;
+	}
 	/*
 	** change modes if necessary
 	*/
-	if (vk_mode->modified || vid_fullscreen->modified || vk_msaa->modified || vk_clear->modified || vk_picmip->modified ||
-		vk_validation->modified || vk_texturemode->modified || vk_lmaptexturemode->modified || vk_aniso->modified || vid_gamma->modified ||
-		vk_mip_nearfilter->modified || vk_sampleshading->modified || vk_vsync->modified || vk_device_idx->modified)
+	if (vk_mode->modified || vid_fullscreen->modified || vk_texturemode->modified ||
+		vk_lmaptexturemode->modified || vk_aniso->modified || vk_device_idx->modified)
 	{
 		if (vk_texturemode->modified || vk_lmaptexturemode->modified || vk_aniso->modified)
 		{
@@ -1267,14 +1275,19 @@ void R_BeginFrame( float camera_separation )
 	// if the swapchain is invalid, just recreate the video system and revert to safe windowed mode
 	if (swapChainValid != VK_SUCCESS)
 	{
-		vid_ref->modified = true;
-		vid_fullscreen->value = false;
-		ri.Cvar_SetValue("vid_fullscreen", 0);
+		Vk_PollRestart_f();
 	}
 	else
 	{
 		QVk_BeginRenderpass(RP_WORLD);
 	}
+}
+
+static qboolean R_ShouldRestart()
+{
+	return	vk_restart || vk_validation->modified || vk_msaa->modified || vk_clear->modified ||
+			vk_picmip->modified || vid_gamma->modified || vk_mip_nearfilter->modified ||
+			vk_sampleshading->modified || vk_vsync->modified;
 }
 
 /*
@@ -1284,7 +1297,47 @@ R_EndFrame
 */
 void R_EndFrame( void )
 {
-	QVk_EndFrame(false);
+	if (QVk_EndFrame(false) != VK_SUCCESS)
+		Vk_PollRestart_f();
+
+	// restart Vulkan renderer without rebuilding the entire window
+	if (R_ShouldRestart())
+	{
+		vk_restart = false;
+		vk_validation->modified = false;
+		vk_msaa->modified = false;
+		vk_clear->modified = false;
+		vk_picmip->modified = false;
+		vid_gamma->modified = false;
+		vk_mip_nearfilter->modified = false;
+		vk_sampleshading->modified = false;
+		vk_vsync->modified = false;
+
+		// shutdown
+		vkDeviceWaitIdle(vk_device.logical);
+		Mod_FreeAll();
+		Vk_ShutdownImages();
+		QVk_Shutdown();
+		numvktextures = 0;
+
+		// initialize
+		if (!QVk_Init())
+		{
+			ri.Sys_Error(ERR_FATAL, "R_EndFrame(): could not re-initialize Vulkan!");
+		}
+
+		ri.Con_Printf(PRINT_ALL, "Successfully restarted Vulkan!\n");
+
+		Vk_Strings_f();
+
+		Vk_InitImages();
+		Mod_Init();
+		R_InitParticleTexture();
+		Draw_InitLocal();
+
+		extern cvar_t *vid_refresh;
+		vid_refresh->modified = true;
+	}
 }
 
 /*

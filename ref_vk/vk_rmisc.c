@@ -279,6 +279,15 @@ void Vk_Strings_f(void)
 }
 
 /*
+** Vk_PollRestart_f
+*/
+
+void Vk_PollRestart_f(void)
+{
+	vk_restart = true;
+}
+
+/*
 ** Vk_Mem_f
 */
 void Vk_Mem_f(void)

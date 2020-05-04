@@ -253,6 +253,8 @@ extern qvktexture_t vk_colorbuffer;
 extern qvktexture_t vk_colorbufferWarp;
 // indicator if the frame is currently being rendered
 extern qboolean vk_frameStarted;
+// indicator if the renderer needs to restart next frame
+extern qboolean vk_restart;
 
 // function pointers
 extern PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;
