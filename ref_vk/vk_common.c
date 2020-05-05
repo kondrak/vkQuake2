@@ -1561,6 +1561,7 @@ qboolean QVk_Init()
 	wantedExtensions = (char **)malloc(extCount * sizeof(const char *));
 	Vkimp_GetSurfaceExtensions(wantedExtensions, NULL);
 
+
 	if (vk_validation->value)
 		wantedExtensions[extCount - 1] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
 #if defined(_DEBUG) || defined(ENABLE_DEBUG_LABELS)
@@ -1576,6 +1577,8 @@ qboolean QVk_Init()
 	}
 	ri.Con_Printf(PRINT_ALL, "\n");
 
+// introduced in SDK 1.1.121
+#if VK_HEADER_VERSION > 114
 	VkValidationFeatureEnableEXT validationFeaturesEnable[] = { VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT };
 	VkValidationFeaturesEXT validationFeatures = {
 		.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT,
@@ -1585,6 +1588,7 @@ qboolean QVk_Init()
 		.disabledValidationFeatureCount = 0,
 		.pDisabledValidationFeatures = NULL
 	};
+#endif
 
 	VkInstanceCreateInfo createInfo = {
 		.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
@@ -1596,9 +1600,12 @@ qboolean QVk_Init()
 		.ppEnabledExtensionNames = (const char* const*)wantedExtensions
 	};
 
+#if VK_HEADER_VERSION > 114
 	if (vk_validation->value > 2)
 		createInfo.pNext = &validationFeatures;
+#endif
 
+// introduced in SDK 1.1.106
 #if VK_HEADER_VERSION > 101
 	const char *validationLayers[] = { "VK_LAYER_KHRONOS_validation" };
 #else
