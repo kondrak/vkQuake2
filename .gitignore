@@ -1,6 +1,7 @@
 .vs
 .DS_Store
 *~
+*#
 *.vcxproj.user
 *.VC.db
 *.dylib
