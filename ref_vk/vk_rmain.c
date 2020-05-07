@@ -1290,7 +1290,7 @@ static qboolean R_ShouldRestart()
 {
 	return	vk_restart || vk_validation->modified || vk_msaa->modified || vk_clear->modified ||
 			vk_picmip->modified || vid_gamma->modified || vk_mip_nearfilter->modified ||
-			vk_sampleshading->modified || vk_vsync->modified;
+			vk_sampleshading->modified || vk_vsync->modified || vk_modulate->modified;
 }
 
 /*
@@ -1315,6 +1315,7 @@ void R_EndFrame( void )
 		vk_mip_nearfilter->modified = false;
 		vk_sampleshading->modified = false;
 		vk_vsync->modified = false;
+		vk_modulate->modified = false;
 
 		// shutdown
 		vkDeviceWaitIdle(vk_device.logical);

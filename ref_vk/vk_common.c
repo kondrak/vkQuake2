@@ -1561,7 +1561,6 @@ qboolean QVk_Init()
 	wantedExtensions = (char **)malloc(extCount * sizeof(const char *));
 	Vkimp_GetSurfaceExtensions(wantedExtensions, NULL);
 
-
 	if (vk_validation->value)
 		wantedExtensions[extCount - 1] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
 #if defined(_DEBUG) || defined(ENABLE_DEBUG_LABELS)
