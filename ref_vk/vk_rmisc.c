@@ -230,7 +230,7 @@ void Vk_Strings_f(void)
 	}
 	ri.Con_Printf(PRINT_ALL, "Using device #%d:\n", usedDevice);
 	ri.Con_Printf(PRINT_ALL, "   deviceName: %s\n", vk_device.properties.deviceName);
-	ri.Con_Printf(PRINT_ALL, "   resolution: %dx%d", vid.width, vid.height);
+	ri.Con_Printf(PRINT_ALL, "   resolution: %dx%d%s", vid.width, vid.height, vid_fullscreen->value ? " fullscreen" : "");
 	if (msaa > 0)
 		ri.Con_Printf(PRINT_ALL, " (MSAAx%d)\n", 2 << (msaa - 1));
 	else
