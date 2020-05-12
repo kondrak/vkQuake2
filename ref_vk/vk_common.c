@@ -1516,13 +1516,17 @@ void QVk_Shutdown( void )
 */
 qboolean QVk_Init()
 {
-	PFN_vkEnumerateInstanceVersion vkEnumerateInstanceVersion = (PFN_vkEnumerateInstanceVersion)vkGetInstanceProcAddr(NULL, "vkEnumerateInstanceVersion");
 	uint32_t instanceVersion = VK_API_VERSION_1_0;
+
+// MoltenVK device only provides 1.0 support as of SDK 1.2.135.0, so no need to further enumerate instance version.
+#ifndef __APPLE__
+	PFN_vkEnumerateInstanceVersion vkEnumerateInstanceVersion = (PFN_vkEnumerateInstanceVersion)vkGetInstanceProcAddr(NULL, "vkEnumerateInstanceVersion");
 
 	if (vkEnumerateInstanceVersion)
 	{
 		VK_VERIFY(vkEnumerateInstanceVersion(&instanceVersion));
 	}
+#endif
 
 	VkApplicationInfo appInfo = {
 		.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
