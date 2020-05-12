@@ -200,6 +200,10 @@ typedef enum
 	RP_COUNT = 3
 } qvkrenderpasstype_t;
 
+// Vulkan constants: command and dynamic buffer count
+#define NUM_CMDBUFFERS 2
+#define NUM_DYNBUFFERS 2
+
 // Vulkan instance
 extern VkInstance vk_instance;
 // Vulkan surface
@@ -213,7 +217,7 @@ extern qvkswapchain_t vk_swapchain;
 // Vulkan command buffer currently in use
 extern VkCommandBuffer vk_activeCmdbuffer;
 // Vulkan command pools
-extern VkCommandPool vk_commandPool;
+extern VkCommandPool vk_commandPool[NUM_CMDBUFFERS];
 extern VkCommandPool vk_transferCommandPool;
 // Vulkan descriptor pool
 extern VkDescriptorPool vk_descriptorPool;

@@ -93,10 +93,10 @@ qvkrenderpass_t vk_renderpasses[RP_COUNT] = {
 };
 
 // Vulkan pools
-VkCommandPool vk_commandPool = VK_NULL_HANDLE;
+VkCommandPool vk_commandPool[NUM_CMDBUFFERS] = { VK_NULL_HANDLE, VK_NULL_HANDLE };
 VkCommandPool vk_transferCommandPool = VK_NULL_HANDLE;
 VkDescriptorPool vk_descriptorPool = VK_NULL_HANDLE;
-static VkCommandPool vk_stagingCommandPool = VK_NULL_HANDLE;
+static VkCommandPool vk_stagingCommandPool[NUM_DYNBUFFERS] = { VK_NULL_HANDLE, VK_NULL_HANDLE };
 // Vulkan image views
 VkImageView *vk_imageviews = NULL;
 // Vulkan framebuffers
@@ -115,7 +115,6 @@ qvktexture_t vk_msaaColorbuffer = QVVKTEXTURE_INIT;
 VkViewport vk_viewport = { .0f, .0f, .0f, .0f, .0f, .0f };
 VkRect2D vk_scissor = { { 0, 0 }, { 0, 0 } };
 
-#define NUM_CMDBUFFERS 2
 // Vulkan command buffers
 VkCommandBuffer *vk_commandbuffers = NULL;
 // command buffer double buffering fences
@@ -226,7 +225,6 @@ qvkbuffer_t vk_colorRectVbo;
 qvkbuffer_t vk_rectIbo;
 
 // global dynamic buffers (double buffered)
-#define NUM_DYNBUFFERS 2
 static qvkbuffer_t vk_dynVertexBuffers[NUM_DYNBUFFERS];
 static qvkbuffer_t vk_dynIndexBuffers[NUM_DYNBUFFERS];
 static qvkbuffer_t vk_dynUniformBuffers[NUM_DYNBUFFERS];
@@ -1039,9 +1037,6 @@ static void RebuildTriangleFanIndexBuffer()
 // internal helper
 static void CreateStagingBuffers()
 {
-	VK_VERIFY(QVk_CreateCommandPool(&vk_stagingCommandPool, vk_device.gfxFamilyIndex));
-	QVk_DebugSetObjectName((uint64_t)vk_stagingCommandPool, VK_OBJECT_TYPE_COMMAND_POOL, "Command Pool: Staging Buffers");
-
 	VkFenceCreateInfo fCreateInfo = {
 		.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
 		.flags = 0
@@ -1049,13 +1044,16 @@ static void CreateStagingBuffers()
 
 	for (int i = 0; i < NUM_DYNBUFFERS; ++i)
 	{
+		VK_VERIFY(QVk_CreateCommandPool(&vk_stagingCommandPool[i], vk_device.gfxFamilyIndex));
+		QVk_DebugSetObjectName((uint64_t)vk_stagingCommandPool[i], VK_OBJECT_TYPE_COMMAND_POOL, va("Command Pool #%d: Staging", i));
+
 		VK_VERIFY(QVk_CreateStagingBuffer(STAGING_BUFFER_MAXSIZE, &vk_stagingBuffers[i].buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, VK_MEMORY_PROPERTY_HOST_CACHED_BIT));
 		VK_VERIFY(vmaMapMemory(vk_malloc, vk_stagingBuffers[i].buffer.allocation, &vk_stagingBuffers[i].buffer.allocInfo.pMappedData));
 		vk_stagingBuffers[i].submitted = false;
 
 		VK_VERIFY(vkCreateFence(vk_device.logical, &fCreateInfo, NULL, &vk_stagingBuffers[i].fence));
 
-		vk_stagingBuffers[i].cmdBuffer = QVk_CreateCommandBuffer(&vk_stagingCommandPool, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+		vk_stagingBuffers[i].cmdBuffer = QVk_CreateCommandBuffer(&vk_stagingCommandPool[i], VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 		VK_VERIFY(QVk_BeginCommand(&vk_stagingBuffers[i].cmdBuffer));
 
 		QVk_DebugSetObjectName((uint64_t)vk_stagingBuffers[i].fence, VK_OBJECT_TYPE_FENCE, va("Fence: Staging Buffer #%d", i));
@@ -1434,6 +1432,11 @@ void QVk_Shutdown( void )
 				QVk_FreeBuffer(&vk_stagingBuffers[i].buffer);
 				vkDestroyFence(vk_device.logical, vk_stagingBuffers[i].fence, NULL);
 			}
+			if (vk_stagingCommandPool[i] != VK_NULL_HANDLE)
+			{
+				vkDestroyCommandPool(vk_device.logical, vk_stagingCommandPool[i], NULL);
+				vk_stagingCommandPool[i] = VK_NULL_HANDLE;
+			}
 		}
 		if (vk_descriptorPool != VK_NULL_HANDLE)
 			vkDestroyDescriptorPool(vk_device.logical, vk_descriptorPool, NULL);
@@ -1451,16 +1454,13 @@ void QVk_Shutdown( void )
 		}
 		if (vk_commandbuffers)
 		{
-			vkFreeCommandBuffers(vk_device.logical, vk_commandPool, NUM_CMDBUFFERS, vk_commandbuffers);
+			for (int i = 0; i < NUM_CMDBUFFERS; i++)
+				vkFreeCommandBuffers(vk_device.logical, vk_commandPool[i], 1, &vk_commandbuffers[i]);
 			free(vk_commandbuffers);
 			vk_commandbuffers = NULL;
 		}
-		if (vk_commandPool != VK_NULL_HANDLE)
-			vkDestroyCommandPool(vk_device.logical, vk_commandPool, NULL);
 		if (vk_transferCommandPool != VK_NULL_HANDLE)
 			vkDestroyCommandPool(vk_device.logical, vk_transferCommandPool, NULL);
-		if (vk_stagingCommandPool != VK_NULL_HANDLE)
-			vkDestroyCommandPool(vk_device.logical, vk_stagingCommandPool, NULL);
 		DestroySamplers();
 		DestroyFramebuffers();
 		DestroyImageViews();
@@ -1475,6 +1475,12 @@ void QVk_Shutdown( void )
 		}
 		for (int i = 0; i < NUM_CMDBUFFERS; ++i)
 		{
+			if (vk_commandPool[i] != VK_NULL_HANDLE)
+			{
+				vkDestroyCommandPool(vk_device.logical, vk_commandPool[i], NULL);
+				vk_commandPool[i] = VK_NULL_HANDLE;
+			}
+
 			vkDestroySemaphore(vk_device.logical, vk_imageAvailableSemaphores[i], NULL);
 			vkDestroySemaphore(vk_device.logical, vk_renderFinishedSemaphores[i], NULL);
 			vkDestroyFence(vk_device.logical, vk_fences[i], NULL);
@@ -1494,9 +1500,7 @@ void QVk_Shutdown( void )
 		vk_uboDescSetLayout = VK_NULL_HANDLE;
 		vk_samplerDescSetLayout = VK_NULL_HANDLE;
 		vk_samplerLightmapDescSetLayout = VK_NULL_HANDLE;
-		vk_commandPool = VK_NULL_HANDLE;
 		vk_transferCommandPool = VK_NULL_HANDLE;
-		vk_stagingCommandPool = VK_NULL_HANDLE;
 		vk_activeBufferIdx = 0;
 		vk_imageIndex = 0;
 	}
@@ -1749,11 +1753,15 @@ qboolean QVk_Init()
 	ri.Con_Printf(PRINT_ALL, "...created %d Vulkan render passes\n", RP_COUNT);
 
 	// setup command pools
-	res = QVk_CreateCommandPool(&vk_commandPool, vk_device.gfxFamilyIndex);
-	if (res != VK_SUCCESS)
+	for (int i = 0; i < NUM_CMDBUFFERS; i++)
 	{
-		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan command pool for graphics: %s\n", QVk_GetError(res));
-		return false;
+		res = QVk_CreateCommandPool(&vk_commandPool[i], vk_device.gfxFamilyIndex);
+		if (res != VK_SUCCESS)
+		{
+			ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan command pool #%d for graphics: %s\n", i, QVk_GetError(res));
+			return false;
+		}
+		QVk_DebugSetObjectName((uint64_t)vk_commandPool[i], VK_OBJECT_TYPE_COMMAND_POOL, va("Command Pool #%d: Graphics", i));
 	}
 	res = QVk_CreateCommandPool(&vk_transferCommandPool, vk_device.transferFamilyIndex);
 	if (res != VK_SUCCESS)
@@ -1762,7 +1770,6 @@ qboolean QVk_Init()
 		return false;
 	}
 
-	QVk_DebugSetObjectName((uint64_t)vk_commandPool, VK_OBJECT_TYPE_COMMAND_POOL, "Command Pool: Graphics");
 	QVk_DebugSetObjectName((uint64_t)vk_transferCommandPool, VK_OBJECT_TYPE_COMMAND_POOL, "Command Pool: Transfer");
 	ri.Con_Printf(PRINT_ALL, "...created Vulkan command pools\n");
 
@@ -1793,18 +1800,23 @@ qboolean QVk_Init()
 	VkCommandBufferAllocateInfo cbInfo = {
 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
 		.pNext = NULL,
-		.commandPool = vk_commandPool,
+		.commandPool = VK_NULL_HANDLE,
 		.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-		.commandBufferCount = NUM_CMDBUFFERS
+		.commandBufferCount = 1
 	};
 
-	res = vkAllocateCommandBuffers(vk_device.logical, &cbInfo, vk_commandbuffers);
-	if (res != VK_SUCCESS)
+	for (int i = 0; i < NUM_CMDBUFFERS; i++)
 	{
-		ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan commandbuffers: %s\n", QVk_GetError(res));
-		free(vk_commandbuffers);
-		vk_commandbuffers = NULL;
-		return false;
+		cbInfo.commandPool = vk_commandPool[i];
+		res = vkAllocateCommandBuffers(vk_device.logical, &cbInfo, &vk_commandbuffers[i]);
+
+		if (res != VK_SUCCESS)
+		{
+			ri.Con_Printf(PRINT_ALL, "QVk_Init(): Could not create Vulkan commandbuffers #%d: %s\n", i, QVk_GetError(res));
+			free(vk_commandbuffers);
+			vk_commandbuffers = NULL;
+			return false;
+		}
 	}
 	ri.Con_Printf(PRINT_ALL, "...created %d Vulkan commandbuffers\n", NUM_CMDBUFFERS);
 
@@ -1890,6 +1902,10 @@ VkResult QVk_BeginFrame()
 		.pInheritanceInfo = NULL
 	};
 
+	// Command buffers are implicitly reset by vkBeginCommandBuffer if VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT is set - this is expensive.
+	// It's more efficient to reset entire pool instead and it also fixes the VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT performance warning.
+	// see also: https://github.com/KhronosGroup/Vulkan-Samples/blob/master/samples/performance/command_buffer_usage/command_buffer_usage_tutorial.md
+	vkResetCommandPool(vk_device.logical, vk_commandPool[vk_activeBufferIdx], 0);
 	VK_VERIFY(vkBeginCommandBuffer(vk_commandbuffers[vk_activeBufferIdx], &beginInfo));
 
 	vkCmdSetViewport(vk_commandbuffers[vk_activeBufferIdx], 0, 1, &vk_viewport);
@@ -2201,6 +2217,7 @@ uint8_t *QVk_GetStagingBuffer(VkDeviceSize size, int alignment, VkCommandBuffer 
 			.pInheritanceInfo = NULL
 		};
 
+		vkResetCommandPool(vk_device.logical, vk_stagingCommandPool[vk_activeStagingBuffer], 0);
 		VK_VERIFY(vkBeginCommandBuffer(stagingBuffer->cmdBuffer, &beginInfo));
 	}
 

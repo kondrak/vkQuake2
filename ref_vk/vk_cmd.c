@@ -67,8 +67,7 @@ VkResult QVk_CreateCommandPool(VkCommandPool *commandPool, uint32_t queueFamilyI
 	VkCommandPoolCreateInfo cpCreateInfo = {
 		.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
 		.pNext = NULL,
-		// allow the command pool to be explicitly reset without reallocating it manually during recording each frame
-		.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+		.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT,
 		.queueFamilyIndex = queueFamilyIndex
 	};
 
