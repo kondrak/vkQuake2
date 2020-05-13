@@ -388,6 +388,6 @@ void		Vkimp_EnableLogging( qboolean enable );
 void		Vkimp_LogNewFrame( void );
 void		Vkimp_GetSurfaceExtensions(char **extensions, uint32_t *extCount);
 VkResult	Vkimp_CreateSurface(void);
-VkSurfaceCapabilitiesKHR	Vkimp_SetupFullScreenExclusive();
+VkSurfaceCapabilitiesKHR	Vkimp_SetupFullScreenExclusive(void);
 
 #endif

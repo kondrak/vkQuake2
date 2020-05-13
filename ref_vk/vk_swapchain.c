@@ -122,7 +122,10 @@ VkResult QVk_CreateSwapchain()
 	uint32_t formatCount, presentModesCount;
 
 #ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
-	surfaceCaps = Vkimp_SetupFullScreenExclusive();
+	if (vid_fullscreen->value && vk_config.vk_ext_full_screen_exclusive_available)
+	{
+		surfaceCaps = Vkimp_SetupFullScreenExclusive();
+	}
 #endif
 
 	VK_VERIFY(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vk_device.physical, vk_surface, &surfaceCaps));
