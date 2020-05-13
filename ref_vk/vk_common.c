@@ -889,7 +889,7 @@ static void CreateDescriptorPool()
 		// sampler
 		{
 			.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-			.descriptorCount = MAX_VKTEXTURES + 1
+			.descriptorCount = MAX_VKTEXTURES + 32
 		}
 	};
 
