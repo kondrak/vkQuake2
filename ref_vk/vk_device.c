@@ -204,8 +204,13 @@ static VkResult createLogicalDevice()
 		queueCreateInfo[numQueues++].queueFamilyIndex = vk_device.transferFamilyIndex;
 	}
 
-	const char *deviceExtensions[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME };
-
+	const char *deviceExtensions[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME
+#ifdef VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME
+	, VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME
+	};
+#else
+	};
+#endif
 	VkDeviceCreateInfo deviceCreateInfo = {
 		.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
 		.pEnabledFeatures = &wantedDeviceFeatures,

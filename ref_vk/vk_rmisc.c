@@ -268,8 +268,10 @@ void Vk_Strings_f(void)
 	{
 		ri.Con_Printf(PRINT_ALL, "%s ", vk_config.extensions[i++]);
 	}
+#ifdef VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME
 	if (vk_config.vk_ext_full_screen_exclusive_available)
 		ri.Con_Printf(PRINT_ALL, "%s ", VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME);
+#endif
 	ri.Con_Printf(PRINT_ALL, "\nEnabled layers: ");
 
 	i = 0;
