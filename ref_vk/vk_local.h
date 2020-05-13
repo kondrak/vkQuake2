@@ -323,7 +323,7 @@ typedef struct
 	uint32_t    triangle_fan_index_max_usage;
 	uint32_t    triangle_fan_index_count;
 	qboolean    vk_ext_full_screen_exclusive_available;
-	qboolean    vk_full_screen_exclusive_supported;
+	qboolean    vk_full_screen_exclusive_enabled;
 	qboolean    vk_full_screen_exclusive_acquired;
 } vkconfig_t;
 

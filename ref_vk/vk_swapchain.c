@@ -204,7 +204,7 @@ VkResult QVk_CreateSwapchain()
 	};
 
 #ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
-	if (vk_config.vk_full_screen_exclusive_supported)
+	if (vk_config.vk_full_screen_exclusive_enabled)
 	{
 		scCreateInfo.pNext = &vk_state.full_screen_exclusive_info;
 	}
@@ -224,6 +224,18 @@ VkResult QVk_CreateSwapchain()
 	ri.Con_Printf(PRINT_ALL, "...trying swapchain image format: %d\n", vk_swapchain.format);
 
 	VkResult res = vkCreateSwapchainKHR(vk_device.logical, &scCreateInfo, NULL, &vk_swapchain.sc);
+	// "In some cases, swapchain creation may fail if exclusive full - screen mode is requested for application control, 
+	// but for some implementation - specific reason exclusive full - screen access is unavailable for the particular combination
+	// of parameters provided. If this occurs, VK_ERROR_INITIALIZATION_FAILED will be returned."
+	//
+	// This seems to affect at least a certain AMD Vega + Intel combination when running on a TV, so disable fullscreen exclusive and try again.
+	if (vk_config.vk_full_screen_exclusive_enabled && res == VK_ERROR_INITIALIZATION_FAILED)
+	{
+		ri.Con_Printf(PRINT_ALL, "...received VK_ERROR_INITIALIZATION_FAILED from vkCreateSwapchainKHR() - disabling fullscreen exclusive!\n");
+		scCreateInfo.pNext = NULL;
+		res = vkCreateSwapchainKHR(vk_device.logical, &scCreateInfo, NULL, &vk_swapchain.sc);
+		vk_config.vk_full_screen_exclusive_enabled = false;
+	}
 	if (res != VK_SUCCESS)
 		return res;
 

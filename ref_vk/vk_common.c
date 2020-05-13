@@ -1561,7 +1561,7 @@ qboolean QVk_Init()
 	vk_config.triangle_fan_index_max_usage = 0;
 	vk_config.triangle_fan_index_count = TRIANGLE_FAN_INDEX_CNT;
 	vk_config.vk_ext_full_screen_exclusive_available = false;
-	vk_config.vk_full_screen_exclusive_supported = false;
+	vk_config.vk_full_screen_exclusive_enabled = false;
 	vk_config.vk_full_screen_exclusive_acquired = false;
 
 	Vkimp_GetSurfaceExtensions(NULL, &extCount);
@@ -1883,7 +1883,7 @@ VkResult QVk_BeginFrame()
 	ReleaseSwapBuffers();
 
 #ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
-	if (vk_config.vk_full_screen_exclusive_supported)
+	if (vk_config.vk_full_screen_exclusive_enabled)
 	{
 		VkResult res;
 		if (vid_fullscreen->value && !vk_config.vk_full_screen_exclusive_acquired)

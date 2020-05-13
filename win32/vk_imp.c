@@ -211,7 +211,7 @@ VkSurfaceCapabilitiesKHR Vkimp_SetupFullScreenExclusive()
 
 	PFN_vkGetPhysicalDeviceSurfaceCapabilities2KHR qvkGetPhysicalDeviceSurfaceCapabilities2KHR = (PFN_vkGetPhysicalDeviceSurfaceCapabilities2KHR)vkGetInstanceProcAddr(vk_instance, "vkGetPhysicalDeviceSurfaceCapabilities2KHR");
 	VK_VERIFY(qvkGetPhysicalDeviceSurfaceCapabilities2KHR(vk_device.physical, &surfInfo2, &surfCap2));
-	vk_config.vk_full_screen_exclusive_supported = surfCapFse.fullScreenExclusiveSupported;
+	vk_config.vk_full_screen_exclusive_enabled = surfCapFse.fullScreenExclusiveSupported;
 	return surfCap2.surfaceCapabilities;
 }
 
