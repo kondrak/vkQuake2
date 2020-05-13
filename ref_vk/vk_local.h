@@ -348,7 +348,9 @@ typedef struct
 	qboolean stereo_enabled;
 
 	VkPipeline current_pipeline;
+#ifdef _WIN32
 	VkSurfaceFullScreenExclusiveInfoEXT full_screen_exclusive_info;
+#endif
 } vkstate_t;
 
 extern vkconfig_t  vk_config;
