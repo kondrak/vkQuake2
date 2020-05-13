@@ -120,6 +120,11 @@ VkResult QVk_CreateSwapchain()
 	VkSurfaceFormatKHR *surfaceFormats = NULL;
 	VkPresentModeKHR *presentModes = NULL;
 	uint32_t formatCount, presentModesCount;
+
+#ifdef FS_EXCLUSIVE
+	surfaceCaps = Vkimp_SetupFullScreenExclusive();
+#endif
+
 	VK_VERIFY(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vk_device.physical, vk_surface, &surfaceCaps));
 	VK_VERIFY(vkGetPhysicalDeviceSurfaceFormatsKHR(vk_device.physical, vk_surface, &formatCount, NULL));
 	VK_VERIFY(vkGetPhysicalDeviceSurfacePresentModesKHR(vk_device.physical, vk_surface, &presentModesCount, NULL));
@@ -194,6 +199,13 @@ VkResult QVk_CreateSwapchain()
 		.clipped = VK_TRUE,
 		.oldSwapchain = oldSwapchain
 	};
+
+#ifdef FS_EXCLUSIVE
+	if (vk_config.vk_full_screen_exclusive_supported)
+	{
+		scCreateInfo.pNext = &vk_state.full_screen_exclusive_info;
+	}
+#endif
 
 	uint32_t queueFamilyIndices[] = { (uint32_t)vk_device.gfxFamilyIndex, (uint32_t)vk_device.presentFamilyIndex };
 	if (vk_device.presentFamilyIndex != vk_device.gfxFamilyIndex)

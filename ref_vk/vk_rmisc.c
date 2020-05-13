@@ -230,7 +230,7 @@ void Vk_Strings_f(void)
 	}
 	ri.Con_Printf(PRINT_ALL, "Using device #%d:\n", usedDevice);
 	ri.Con_Printf(PRINT_ALL, "   deviceName: %s\n", vk_device.properties.deviceName);
-	ri.Con_Printf(PRINT_ALL, "   resolution: %dx%d%s", vid.width, vid.height, vid_fullscreen->value ? " fullscreen" : "");
+	ri.Con_Printf(PRINT_ALL, "   resolution: %dx%d%s%s", vid.width, vid.height, vid_fullscreen->value ? " fullscreen" : "", vk_config.vk_full_screen_exclusive_acquired ? " exclusive" : "");
 	if (msaa > 0)
 		ri.Con_Printf(PRINT_ALL, " (MSAAx%d)\n", 2 << (msaa - 1));
 	else
@@ -268,6 +268,8 @@ void Vk_Strings_f(void)
 	{
 		ri.Con_Printf(PRINT_ALL, "%s ", vk_config.extensions[i++]);
 	}
+	if (vk_config.vk_ext_full_screen_exclusive_available)
+		ri.Con_Printf(PRINT_ALL, "%s ", VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME);
 	ri.Con_Printf(PRINT_ALL, "\nEnabled layers: ");
 
 	i = 0;

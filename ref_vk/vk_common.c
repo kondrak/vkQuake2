@@ -172,6 +172,10 @@ PFN_vkSetDebugUtilsObjectTagEXT qvkSetDebugUtilsObjectTagEXT;
 PFN_vkCmdBeginDebugUtilsLabelEXT qvkCmdBeginDebugUtilsLabelEXT;
 PFN_vkCmdEndDebugUtilsLabelEXT qvkCmdEndDebugUtilsLabelEXT;
 PFN_vkCmdInsertDebugUtilsLabelEXT qvkInsertDebugUtilsLabelEXT;
+#ifdef FS_EXCLUSIVE
+PFN_vkAcquireFullScreenExclusiveModeEXT qvkAcquireFullScreenExclusiveModeEXT;
+PFN_vkReleaseFullScreenExclusiveModeEXT qvkReleaseFullScreenExclusiveModeEXT;
+#endif
 
 #define VK_INPUTBIND_DESC(s) { \
 	.binding = 0, \
@@ -1556,6 +1560,9 @@ qboolean QVk_Init()
 	vk_config.triangle_fan_index_usage = 0;
 	vk_config.triangle_fan_index_max_usage = 0;
 	vk_config.triangle_fan_index_count = TRIANGLE_FAN_INDEX_CNT;
+	vk_config.vk_ext_full_screen_exclusive_available = false;
+	vk_config.vk_full_screen_exclusive_supported = false;
+	vk_config.vk_full_screen_exclusive_acquired = false;
 
 	Vkimp_GetSurfaceExtensions(NULL, &extCount);
 
@@ -1647,6 +1654,10 @@ qboolean QVk_Init()
 	qvkCmdBeginDebugUtilsLabelEXT = (PFN_vkCmdBeginDebugUtilsLabelEXT)vkGetInstanceProcAddr(vk_instance, "vkCmdBeginDebugUtilsLabelEXT");
 	qvkCmdEndDebugUtilsLabelEXT   = (PFN_vkCmdEndDebugUtilsLabelEXT)vkGetInstanceProcAddr(vk_instance, "vkCmdEndDebugUtilsLabelEXT");
 	qvkInsertDebugUtilsLabelEXT   = (PFN_vkCmdInsertDebugUtilsLabelEXT)vkGetInstanceProcAddr(vk_instance, "vkCmdInsertDebugUtilsLabelEXT");
+#ifdef FS_EXCLUSIVE
+	qvkAcquireFullScreenExclusiveModeEXT = (PFN_vkAcquireFullScreenExclusiveModeEXT)vkGetInstanceProcAddr(vk_instance, "vkAcquireFullScreenExclusiveModeEXT");
+	qvkReleaseFullScreenExclusiveModeEXT = (PFN_vkReleaseFullScreenExclusiveModeEXT)vkGetInstanceProcAddr(vk_instance, "vkReleaseFullScreenExclusiveModeEXT");
+#endif
 
 	if (vk_validation->value)
 		QVk_CreateValidationLayers();
@@ -1871,9 +1882,34 @@ VkResult QVk_BeginFrame()
 
 	ReleaseSwapBuffers();
 
+#ifdef FS_EXCLUSIVE
+	if (vk_config.vk_full_screen_exclusive_supported)
+	{
+		VkResult res;
+		if (vid_fullscreen->value && !vk_config.vk_full_screen_exclusive_acquired)
+		{
+			res = qvkAcquireFullScreenExclusiveModeEXT(vk_device.logical, vk_swapchain.sc);
+			if (res == VK_SUCCESS)
+			{
+				vk_config.vk_full_screen_exclusive_acquired = true;
+				ri.Con_Printf(PRINT_ALL, "Full Screen Exclusive Mode acquired.\n");
+			}
+		}
+		else if (!vid_fullscreen->value && vk_config.vk_full_screen_exclusive_acquired)
+		{
+			res = qvkReleaseFullScreenExclusiveModeEXT(vk_device.logical, vk_swapchain.sc);
+			if (res == VK_SUCCESS)
+			{
+				vk_config.vk_full_screen_exclusive_acquired = false;
+				ri.Con_Printf(PRINT_ALL, "Full Screen Exclusive Mode released.\n");
+			}
+		}
+	}
+#endif
+
 	VkResult result = vkAcquireNextImageKHR(vk_device.logical, vk_swapchain.sc, UINT32_MAX, vk_imageAvailableSemaphores[vk_activeBufferIdx], VK_NULL_HANDLE, &vk_imageIndex);
 	// for VK_OUT_OF_DATE_KHR and VK_SUBOPTIMAL_KHR it'd be fine to just rebuild the swapchain but let's take the easy way out and restart video system
-	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_SURFACE_LOST_KHR)
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_SURFACE_LOST_KHR || result == VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT)
 	{
 		ri.Con_Printf(PRINT_ALL, "QVk_BeginFrame(): received %s after vkAcquireNextImageKHR - restarting video!\n", QVk_GetError(result));
 		return result;
@@ -1970,7 +2006,8 @@ VkResult QVk_EndFrame(qboolean force)
 	VkResult renderResult = vkQueuePresentKHR(vk_device.presentQueue, &presentInfo);
 
 	// for VK_OUT_OF_DATE_KHR and VK_SUBOPTIMAL_KHR it'd be fine to just rebuild the swapchain but let's take the easy way out and restart video system
-	if (renderResult == VK_ERROR_OUT_OF_DATE_KHR || renderResult == VK_SUBOPTIMAL_KHR || renderResult == VK_ERROR_SURFACE_LOST_KHR)
+	if (renderResult == VK_ERROR_OUT_OF_DATE_KHR || renderResult == VK_SUBOPTIMAL_KHR || 
+		renderResult == VK_ERROR_SURFACE_LOST_KHR || renderResult == VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT)
 	{
 		ri.Con_Printf(PRINT_ALL, "QVk_EndFrame(): received %s after vkQueuePresentKHR - restarting video!\n", QVk_GetError(renderResult));
 	}
@@ -2362,6 +2399,7 @@ const char *QVk_GetError(VkResult errorCode)
 		ERRSTR(ERROR_INCOMPATIBLE_DISPLAY_KHR);
 		ERRSTR(ERROR_VALIDATION_FAILED_EXT);
 		ERRSTR(ERROR_INVALID_SHADER_NV);
+		ERRSTR(ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT);
 		default: return "<unknown>";
 	}
 #undef ERRSTR
