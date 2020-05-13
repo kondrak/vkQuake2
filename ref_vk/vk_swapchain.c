@@ -121,7 +121,7 @@ VkResult QVk_CreateSwapchain()
 	VkPresentModeKHR *presentModes = NULL;
 	uint32_t formatCount, presentModesCount;
 
-#ifdef FS_EXCLUSIVE
+#ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
 	surfaceCaps = Vkimp_SetupFullScreenExclusive();
 #endif
 
@@ -200,7 +200,7 @@ VkResult QVk_CreateSwapchain()
 		.oldSwapchain = oldSwapchain
 	};
 
-#ifdef FS_EXCLUSIVE
+#ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
 	if (vk_config.vk_full_screen_exclusive_supported)
 	{
 		scCreateInfo.pNext = &vk_state.full_screen_exclusive_info;

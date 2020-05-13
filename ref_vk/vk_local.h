@@ -373,8 +373,9 @@ IMPLEMENTATION SPECIFIC FUNCTIONS
 ====================================================================
 */
 
+// Windows-only feature for now
 #ifdef _WIN32
-#define FS_EXCLUSIVE
+#define FULL_SCREEN_EXCLUSIVE_ENABLED
 #endif
 
 void		Vkimp_BeginFrame( float camera_separation );

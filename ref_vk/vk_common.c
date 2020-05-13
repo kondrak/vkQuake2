@@ -172,7 +172,7 @@ PFN_vkSetDebugUtilsObjectTagEXT qvkSetDebugUtilsObjectTagEXT;
 PFN_vkCmdBeginDebugUtilsLabelEXT qvkCmdBeginDebugUtilsLabelEXT;
 PFN_vkCmdEndDebugUtilsLabelEXT qvkCmdEndDebugUtilsLabelEXT;
 PFN_vkCmdInsertDebugUtilsLabelEXT qvkInsertDebugUtilsLabelEXT;
-#ifdef FS_EXCLUSIVE
+#ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
 PFN_vkAcquireFullScreenExclusiveModeEXT qvkAcquireFullScreenExclusiveModeEXT;
 PFN_vkReleaseFullScreenExclusiveModeEXT qvkReleaseFullScreenExclusiveModeEXT;
 #endif
@@ -1654,7 +1654,7 @@ qboolean QVk_Init()
 	qvkCmdBeginDebugUtilsLabelEXT = (PFN_vkCmdBeginDebugUtilsLabelEXT)vkGetInstanceProcAddr(vk_instance, "vkCmdBeginDebugUtilsLabelEXT");
 	qvkCmdEndDebugUtilsLabelEXT   = (PFN_vkCmdEndDebugUtilsLabelEXT)vkGetInstanceProcAddr(vk_instance, "vkCmdEndDebugUtilsLabelEXT");
 	qvkInsertDebugUtilsLabelEXT   = (PFN_vkCmdInsertDebugUtilsLabelEXT)vkGetInstanceProcAddr(vk_instance, "vkCmdInsertDebugUtilsLabelEXT");
-#ifdef FS_EXCLUSIVE
+#ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
 	qvkAcquireFullScreenExclusiveModeEXT = (PFN_vkAcquireFullScreenExclusiveModeEXT)vkGetInstanceProcAddr(vk_instance, "vkAcquireFullScreenExclusiveModeEXT");
 	qvkReleaseFullScreenExclusiveModeEXT = (PFN_vkReleaseFullScreenExclusiveModeEXT)vkGetInstanceProcAddr(vk_instance, "vkReleaseFullScreenExclusiveModeEXT");
 #endif
@@ -1882,7 +1882,7 @@ VkResult QVk_BeginFrame()
 
 	ReleaseSwapBuffers();
 
-#ifdef FS_EXCLUSIVE
+#ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
 	if (vk_config.vk_full_screen_exclusive_supported)
 	{
 		VkResult res;
