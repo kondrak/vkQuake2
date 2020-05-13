@@ -322,6 +322,9 @@ typedef struct
 	uint32_t    triangle_fan_index_usage;
 	uint32_t    triangle_fan_index_max_usage;
 	uint32_t    triangle_fan_index_count;
+	qboolean    vk_ext_full_screen_exclusive_available;
+	qboolean    vk_full_screen_exclusive_enabled;
+	qboolean    vk_full_screen_exclusive_acquired;
 } vkconfig_t;
 
 #define MAX_LIGHTMAPS 128
@@ -345,6 +348,9 @@ typedef struct
 	qboolean stereo_enabled;
 
 	VkPipeline current_pipeline;
+#ifdef _WIN32
+	VkSurfaceFullScreenExclusiveInfoEXT full_screen_exclusive_info;
+#endif
 } vkstate_t;
 
 extern vkconfig_t  vk_config;
@@ -369,6 +375,11 @@ IMPLEMENTATION SPECIFIC FUNCTIONS
 ====================================================================
 */
 
+// Windows-only feature for now
+#ifdef _WIN32
+#define FULL_SCREEN_EXCLUSIVE_ENABLED
+#endif
+
 void		Vkimp_BeginFrame( float camera_separation );
 void		Vkimp_EndFrame( void );
 int 		Vkimp_Init( void *hinstance, void *hWnd );
@@ -379,5 +390,6 @@ void		Vkimp_EnableLogging( qboolean enable );
 void		Vkimp_LogNewFrame( void );
 void		Vkimp_GetSurfaceExtensions(char **extensions, uint32_t *extCount);
 VkResult	Vkimp_CreateSurface(void);
+VkSurfaceCapabilitiesKHR	Vkimp_SetupFullScreenExclusive(void);
 
 #endif

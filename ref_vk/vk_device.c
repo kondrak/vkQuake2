@@ -35,6 +35,9 @@ static qboolean deviceExtensionsSupported(const VkPhysicalDevice *physicalDevice
 		for (uint32_t i = 0; i < availableExtCount; ++i)
 		{
 			vk_khr_swapchain_extension_available |= strcmp(extensions[i].extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0;
+#ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
+			vk_config.vk_ext_full_screen_exclusive_available |= strcmp(extensions[i].extensionName, VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME) == 0;
+#endif
 		}
 
 		free(extensions);
@@ -201,13 +204,18 @@ static VkResult createLogicalDevice()
 		queueCreateInfo[numQueues++].queueFamilyIndex = vk_device.transferFamilyIndex;
 	}
 
-	const char *deviceExtensions[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
-
+	const char *deviceExtensions[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME
+#ifdef VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME
+	, VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME
+	};
+#else
+	};
+#endif
 	VkDeviceCreateInfo deviceCreateInfo = {
 		.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
 		.pEnabledFeatures = &wantedDeviceFeatures,
 		.ppEnabledExtensionNames = deviceExtensions,
-		.enabledExtensionCount = 1,
+		.enabledExtensionCount = vk_config.vk_ext_full_screen_exclusive_available ? 2 : 1,
 		.enabledLayerCount = 0,
 		.ppEnabledLayerNames = NULL,
 		.queueCreateInfoCount = numQueues,

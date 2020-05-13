@@ -120,6 +120,14 @@ VkResult QVk_CreateSwapchain()
 	VkSurfaceFormatKHR *surfaceFormats = NULL;
 	VkPresentModeKHR *presentModes = NULL;
 	uint32_t formatCount, presentModesCount;
+
+#ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
+	if (vid_fullscreen->value && vk_config.vk_ext_full_screen_exclusive_available)
+	{
+		surfaceCaps = Vkimp_SetupFullScreenExclusive();
+	}
+#endif
+
 	VK_VERIFY(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vk_device.physical, vk_surface, &surfaceCaps));
 	VK_VERIFY(vkGetPhysicalDeviceSurfaceFormatsKHR(vk_device.physical, vk_surface, &formatCount, NULL));
 	VK_VERIFY(vkGetPhysicalDeviceSurfacePresentModesKHR(vk_device.physical, vk_surface, &presentModesCount, NULL));
@@ -195,6 +203,13 @@ VkResult QVk_CreateSwapchain()
 		.oldSwapchain = oldSwapchain
 	};
 
+#ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
+	if (vk_config.vk_full_screen_exclusive_enabled)
+	{
+		scCreateInfo.pNext = &vk_state.full_screen_exclusive_info;
+	}
+#endif
+
 	uint32_t queueFamilyIndices[] = { (uint32_t)vk_device.gfxFamilyIndex, (uint32_t)vk_device.presentFamilyIndex };
 	if (vk_device.presentFamilyIndex != vk_device.gfxFamilyIndex)
 	{
@@ -209,6 +224,21 @@ VkResult QVk_CreateSwapchain()
 	ri.Con_Printf(PRINT_ALL, "...trying swapchain image format: %d\n", vk_swapchain.format);
 
 	VkResult res = vkCreateSwapchainKHR(vk_device.logical, &scCreateInfo, NULL, &vk_swapchain.sc);
+	// "In some cases, swapchain creation may fail if exclusive full-screen mode is requested for application control,
+	// but for some implementation-specific reason exclusive full-screen access is unavailable for the particular combination
+	// of parameters provided. If this occurs, VK_ERROR_INITIALIZATION_FAILED will be returned."
+	//
+	// This seems to affect at least a certain AMD Vega + Intel combination when running on a TV, so disable fullscreen exclusive and try again.
+#ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
+	if (vk_config.vk_full_screen_exclusive_enabled && res == VK_ERROR_INITIALIZATION_FAILED)
+	{
+		ri.Con_Printf(PRINT_ALL, "...received VK_ERROR_INITIALIZATION_FAILED from vkCreateSwapchainKHR() - disabling fullscreen exclusive!\n");
+		scCreateInfo.pNext = NULL;
+		res = vkCreateSwapchainKHR(vk_device.logical, &scCreateInfo, NULL, &vk_swapchain.sc);
+		vk_config.vk_full_screen_exclusive_enabled = false;
+	}
+#endif
+
 	if (res != VK_SUCCESS)
 		return res;
 

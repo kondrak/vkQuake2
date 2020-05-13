@@ -1111,6 +1111,7 @@ qboolean R_SetMode (void)
 	vk_mip_nearfilter->modified = false;
 	vk_sampleshading->modified = false;
 	vk_vsync->modified = false;
+	vk_modulate->modified = false;
 	vk_device_idx->modified = false;
 	vk_picmip->modified = false;
 	// refresh texture samplers

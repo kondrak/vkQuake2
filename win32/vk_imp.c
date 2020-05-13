@@ -37,6 +37,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "winquake.h"
 
 vkwstate_t vkw_state;
+VkSurfaceFullScreenExclusiveWin32InfoEXT g_surface_full_screen_exclusive_win32_info;
 
 extern cvar_t *vid_fullscreen;
 extern cvar_t *vid_ref;
@@ -112,7 +113,8 @@ qboolean VID_CreateWindow( int width, int height, qboolean fullscreen )
 
 	memset( &vkw_state.monInfo, 0, sizeof(MONITORINFOEX) );
 	vkw_state.monInfo.cbSize = sizeof(MONITORINFOEX);
-	GetMonitorInfo( MonitorFromWindow(vkw_state.hWnd, MONITOR_DEFAULTTOPRIMARY), (LPMONITORINFO)&vkw_state.monInfo );
+	vkw_state.monitor = MonitorFromWindow(vkw_state.hWnd, MONITOR_DEFAULTTOPRIMARY);
+	GetMonitorInfo( vkw_state.monitor, (LPMONITORINFO)&vkw_state.monInfo );
 
 	if (fullscreen)
 	{
@@ -135,7 +137,8 @@ qboolean VID_CreateWindow( int width, int height, qboolean fullscreen )
 			return false;
 		}
 
-		GetMonitorInfo( MonitorFromWindow(vkw_state.hWnd, MONITOR_DEFAULTTOPRIMARY), (LPMONITORINFO)&vkw_state.monInfo );
+		vkw_state.monitor = MonitorFromWindow(vkw_state.hWnd, MONITOR_DEFAULTTOPRIMARY);
+		GetMonitorInfo( vkw_state.monitor, (LPMONITORINFO)&vkw_state.monInfo );
 		SetWindowPos( vkw_state.hWnd, NULL, vkw_state.monInfo.rcMonitor.left, vkw_state.monInfo.rcMonitor.top, width, height,
 			SWP_NOACTIVATE | SWP_NOCOPYBITS | SWP_NOOWNERZORDER | SWP_NOREPOSITION | SWP_NOZORDER );
 	}
@@ -161,10 +164,11 @@ void Vkimp_GetSurfaceExtensions(char **extensions, uint32_t *extCount)
 	{
 		extensions[0] = VK_KHR_SURFACE_EXTENSION_NAME;
 		extensions[1] = VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
+		extensions[2] = VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME;
 	}
 
 	if (extCount)
-		*extCount = 2;
+		*extCount = 3;
 }
 
 VkResult Vkimp_CreateSurface()
@@ -178,6 +182,37 @@ VkResult Vkimp_CreateSurface()
 	};
 
 	return vkCreateWin32SurfaceKHR(vk_instance, &surfaceCreateInfo, NULL, &vk_surface);
+}
+
+VkSurfaceCapabilitiesKHR Vkimp_SetupFullScreenExclusive()
+{
+	g_surface_full_screen_exclusive_win32_info.sType = VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_WIN32_INFO_EXT;
+	g_surface_full_screen_exclusive_win32_info.pNext = NULL;
+	g_surface_full_screen_exclusive_win32_info.hmonitor = vkw_state.monitor;
+
+	vk_state.full_screen_exclusive_info.sType = VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_INFO_EXT;
+	vk_state.full_screen_exclusive_info.pNext = &g_surface_full_screen_exclusive_win32_info;
+	vk_state.full_screen_exclusive_info.fullScreenExclusive = VK_FULL_SCREEN_EXCLUSIVE_APPLICATION_CONTROLLED_EXT;
+
+	VkPhysicalDeviceSurfaceInfo2KHR surfInfo2 = {
+		.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SURFACE_INFO_2_KHR,
+		.pNext = &vk_state.full_screen_exclusive_info,
+		.surface = vk_surface
+	};
+	VkSurfaceCapabilitiesFullScreenExclusiveEXT surfCapFse = {
+		.sType = VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_FULL_SCREEN_EXCLUSIVE_EXT,
+		.pNext = NULL,
+		.fullScreenExclusiveSupported = VK_FALSE
+	};
+	VkSurfaceCapabilities2KHR surfCap2 = {
+		.sType = VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_2_KHR,
+		.pNext = &surfCapFse
+	};
+
+	PFN_vkGetPhysicalDeviceSurfaceCapabilities2KHR qvkGetPhysicalDeviceSurfaceCapabilities2KHR = (PFN_vkGetPhysicalDeviceSurfaceCapabilities2KHR)vkGetInstanceProcAddr(vk_instance, "vkGetPhysicalDeviceSurfaceCapabilities2KHR");
+	VK_VERIFY(qvkGetPhysicalDeviceSurfaceCapabilities2KHR(vk_device.physical, &surfInfo2, &surfCap2));
+	vk_config.vk_full_screen_exclusive_enabled = surfCapFse.fullScreenExclusiveSupported;
+	return surfCap2.surfaceCapabilities;
 }
 
 /*
