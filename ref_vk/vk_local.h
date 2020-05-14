@@ -322,6 +322,10 @@ typedef struct
 	uint32_t    triangle_fan_index_usage;
 	uint32_t    triangle_fan_index_max_usage;
 	uint32_t    triangle_fan_index_count;
+	uint32_t    allocated_ubo_descriptor_set_count;
+	uint32_t    allocated_sampler_descriptor_set_count;
+	uint32_t    ubo_descriptor_set_count;
+	uint32_t    sampler_descriptor_set_count;
 	qboolean    vk_ext_full_screen_exclusive_available;
 	qboolean    vk_full_screen_exclusive_enabled;
 	qboolean    vk_full_screen_exclusive_acquired;

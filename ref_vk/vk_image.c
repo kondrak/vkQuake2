@@ -394,6 +394,7 @@ void QVk_CreateTexture(qvktexture_t *texture, const unsigned char *data, uint32_
 	};
 
 	VK_VERIFY(vkAllocateDescriptorSets(vk_device.logical, &dsAllocInfo, &texture->descriptorSet));
+	vk_config.allocated_sampler_descriptor_set_count++;
 
 	// attach sampler
 	QVk_UpdateTextureSampler(texture, samplerType);
@@ -455,7 +456,10 @@ void QVk_ReleaseTexture(qvktexture_t *texture)
 	if (texture->imageView != VK_NULL_HANDLE)
 		vkDestroyImageView(vk_device.logical, texture->imageView, NULL);
 	if (texture->descriptorSet != VK_NULL_HANDLE)
+	{
 		vkFreeDescriptorSets(vk_device.logical, vk_descriptorPool, 1, &texture->descriptorSet);
+		vk_config.allocated_sampler_descriptor_set_count--;
+	}
 
 	texture->image = VK_NULL_HANDLE;
 	texture->imageView = VK_NULL_HANDLE;

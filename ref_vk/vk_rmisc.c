@@ -313,4 +313,11 @@ void Vk_Mem_f(void)
 																	vk_config.triangle_fan_index_count,
 																	100.f * vk_config.triangle_fan_index_usage / vk_config.triangle_fan_index_count,
 																	vk_config.triangle_fan_index_max_usage);
+	ri.Con_Printf(PRINT_ALL, "\nDescriptor stats: \n");
+	ri.Con_Printf(PRINT_ALL, "UNIFORM_BUFFER_DYNAMIC: %u/%u (%.1f%%)\n", vk_config.allocated_ubo_descriptor_set_count,
+																		 vk_config.ubo_descriptor_set_count,
+																		 100.f * vk_config.allocated_ubo_descriptor_set_count / vk_config.ubo_descriptor_set_count);
+	ri.Con_Printf(PRINT_ALL, "COMBINED_IMAGE_SAMPLER: %u/%u (%.1f%%)\n", vk_config.allocated_sampler_descriptor_set_count,
+																		 vk_config.sampler_descriptor_set_count,
+																		 100.f * vk_config.allocated_sampler_descriptor_set_count / vk_config.sampler_descriptor_set_count);
 }

@@ -902,6 +902,8 @@ static void CreateDescriptorPool()
 		.pPoolSizes = poolSizes,
 	};
 
+	vk_config.ubo_descriptor_set_count = poolSizes[0].descriptorCount;
+	vk_config.sampler_descriptor_set_count = poolSizes[1].descriptorCount;
 	VK_VERIFY(vkCreateDescriptorPool(vk_device.logical, &poolInfo, NULL, &vk_descriptorPool));
 	QVk_DebugSetObjectName((uint64_t)vk_descriptorPool, VK_OBJECT_TYPE_DESCRIPTOR_POOL, "Descriptor Pool: Sampler + UBO");
 }
@@ -918,6 +920,7 @@ static void CreateUboDescriptorSet(VkDescriptorSet *descSet, VkBuffer buffer)
 	};
 
 	VK_VERIFY(vkAllocateDescriptorSets(vk_device.logical, &dsAllocInfo, descSet));
+	vk_config.allocated_ubo_descriptor_set_count++;
 
 	VkDescriptorBufferInfo bufferInfo = {
 		.buffer = buffer,
@@ -985,6 +988,7 @@ static void ReleaseSwapBuffers()
 	if (vk_swapDescSetsCnt[releaseBufferIdx] > 0)
 	{
 		vkFreeDescriptorSets(vk_device.logical, vk_descriptorPool, vk_swapDescSetsCnt[releaseBufferIdx], vk_swapDescriptorSets[releaseBufferIdx]);
+		vk_config.allocated_ubo_descriptor_set_count--;
 
 		free(vk_swapDescriptorSets[releaseBufferIdx]);
 		vk_swapDescriptorSets[releaseBufferIdx] = NULL;
@@ -1560,6 +1564,10 @@ qboolean QVk_Init()
 	vk_config.triangle_fan_index_usage = 0;
 	vk_config.triangle_fan_index_max_usage = 0;
 	vk_config.triangle_fan_index_count = TRIANGLE_FAN_INDEX_CNT;
+	vk_config.allocated_ubo_descriptor_set_count = 0;
+	vk_config.allocated_sampler_descriptor_set_count = 0;
+	vk_config.ubo_descriptor_set_count = 0;
+	vk_config.sampler_descriptor_set_count = 0;
 	vk_config.vk_ext_full_screen_exclusive_available = false;
 	vk_config.vk_full_screen_exclusive_enabled = false;
 	vk_config.vk_full_screen_exclusive_acquired = false;
@@ -1861,8 +1869,10 @@ qboolean QVk_Init()
 	};
 
 	VK_VERIFY(vkAllocateDescriptorSets(vk_device.logical, &dsAllocInfo, &vk_colorbuffer.descriptorSet));
+	vk_config.allocated_sampler_descriptor_set_count++;
 	QVk_UpdateTextureSampler(&vk_colorbuffer, S_NEAREST);
 	VK_VERIFY(vkAllocateDescriptorSets(vk_device.logical, &dsAllocInfo, &vk_colorbufferWarp.descriptorSet));
+	vk_config.allocated_sampler_descriptor_set_count++;
 	QVk_UpdateTextureSampler(&vk_colorbufferWarp, S_NEAREST);
 
 	QVk_DebugSetObjectName((uint64_t)vk_colorbuffer.descriptorSet, VK_OBJECT_TYPE_DESCRIPTOR_SET, "Descriptor Set: World Color Buffer");
@@ -2400,6 +2410,7 @@ const char *QVk_GetError(VkResult errorCode)
 		ERRSTR(ERROR_VALIDATION_FAILED_EXT);
 		ERRSTR(ERROR_INVALID_SHADER_NV);
 		ERRSTR(ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT);
+		ERRSTR(ERROR_OUT_OF_POOL_MEMORY);
 		default: return "<unknown>";
 	}
 #undef ERRSTR
