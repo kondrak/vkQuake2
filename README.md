@@ -62,9 +62,9 @@ sudo apt install mesa-vulkan-drivers
 - open `macos/vkQuake2.xcworkspace` - it should build without any additional steps
 - alternatively, you can compile the game from the command line - modify your `.bash_profile` and add the following entries (replace SDK version and location with the ones corresponding to your system):
 ```
-export VULKAN_SDK=/home/user/VulkanSDK/1.1.92.1
-export VK_ICD_FILENAMES=$VULKAN_SDK/macOS/etc/vulkan/icd.d/MoltenVK_icd.json
-export VK_LAYER_PATH=$VULKAN_SDK/macOS/etc/vulkan/explicit_layer.d
+export VULKAN_SDK=/home/user/VulkanSDK/1.2.135.0
+export VK_ICD_FILENAMES=$VULKAN_SDK/macOS/share/vulkan/icd.d/MoltenVK_icd.json
+export VK_LAYER_PATH=$VULKAN_SDK/macOS/share/vulkan/explicit_layer.d
 ```
 - enter the `macos` directory and run `make release-xcode` or `make debug-xcode` depending on which variant you want to build - output binaries will be placed in `macos/vkQuake2` subdirectory
 - it is also possible to build the game with Command Line Developer Tools if you have them installed: enter the `macos` directory and run `make release` or `make debug` - output binaries will be placed in `macos/release` and `macos/debug` subdirectories respectively
