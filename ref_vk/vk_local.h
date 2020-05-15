@@ -326,7 +326,8 @@ typedef struct
 	uint32_t    allocated_sampler_descriptor_set_count;
 	uint32_t    ubo_descriptor_set_count;
 	uint32_t    sampler_descriptor_set_count;
-	qboolean    vk_ext_full_screen_exclusive_available;
+	qboolean    vk_ext_full_screen_exclusive_available; // the extension is available
+	qboolean    vk_ext_full_screen_exclusive_possible;  // extension dependencies are available
 	qboolean    vk_full_screen_exclusive_enabled;
 	qboolean    vk_full_screen_exclusive_acquired;
 } vkconfig_t;
@@ -392,7 +393,7 @@ int			Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen );
 void		Vkimp_AppActivate( qboolean active );
 void		Vkimp_EnableLogging( qboolean enable );
 void		Vkimp_LogNewFrame( void );
-void		Vkimp_GetSurfaceExtensions(char **extensions, uint32_t *extCount);
+void		Vkimp_GetInstanceExtensions(char **extensions, uint32_t *extCount);
 VkResult	Vkimp_CreateSurface(void);
 VkSurfaceCapabilitiesKHR	Vkimp_SetupFullScreenExclusive(void);
 

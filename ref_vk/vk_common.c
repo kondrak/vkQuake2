@@ -1569,10 +1569,11 @@ qboolean QVk_Init()
 	vk_config.ubo_descriptor_set_count = 0;
 	vk_config.sampler_descriptor_set_count = 0;
 	vk_config.vk_ext_full_screen_exclusive_available = false;
+	vk_config.vk_ext_full_screen_exclusive_possible = false;
 	vk_config.vk_full_screen_exclusive_enabled = false;
 	vk_config.vk_full_screen_exclusive_acquired = false;
 
-	Vkimp_GetSurfaceExtensions(NULL, &extCount);
+	Vkimp_GetInstanceExtensions(NULL, &extCount);
 
 	if (vk_validation->value)
 		extCount++;
@@ -1582,7 +1583,7 @@ qboolean QVk_Init()
 #endif
 
 	wantedExtensions = (char **)malloc(extCount * sizeof(const char *));
-	Vkimp_GetSurfaceExtensions(wantedExtensions, NULL);
+	Vkimp_GetInstanceExtensions(wantedExtensions, NULL);
 
 	if (vk_validation->value)
 		wantedExtensions[extCount - 1] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
@@ -1681,6 +1682,9 @@ qboolean QVk_Init()
 	// create Vulkan device - see if the user prefers any specific device if there's more than one GPU in the system
 	QVk_CreateDevice((int)vk_device_idx->value);
 	QVk_DebugSetObjectName((uint64_t)vk_device.physical, VK_OBJECT_TYPE_PHYSICAL_DEVICE, va("Physical Device: %s", vk_config.vendor_name));
+
+	// final check for VK_EXT_full_screen_exclusive: both dependencies and the extension must be supported
+	vk_config.vk_ext_full_screen_exclusive_possible &= vk_config.vk_ext_full_screen_exclusive_available;
 
 	// create memory allocator
 	VmaAllocatorCreateInfo allocInfo = {

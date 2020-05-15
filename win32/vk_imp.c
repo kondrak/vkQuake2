@@ -158,17 +158,44 @@ qboolean VID_CreateWindow( int width, int height, qboolean fullscreen )
 	return true;
 }
 
-void Vkimp_GetSurfaceExtensions(char **extensions, uint32_t *extCount)
+void Vkimp_GetInstanceExtensions(char **extensions, uint32_t *extCount)
 {
+	// check available instance extensions and see if we can use VK_EXT_full_screen_exclusive
+	uint32_t instanceExtCount;
+	VK_VERIFY(vkEnumerateInstanceExtensionProperties(NULL, &instanceExtCount, NULL));
+
+	if (instanceExtCount > 0)
+	{
+		qboolean getSurfaceCapabilities2 = false;
+		qboolean getPhysicalDeviceProperties2 = false;
+		VkExtensionProperties *availableExtensions = (VkExtensionProperties *)malloc(sizeof(VkExtensionProperties) * instanceExtCount);
+		VK_VERIFY(vkEnumerateInstanceExtensionProperties(NULL, &instanceExtCount, availableExtensions));
+
+		for (int i = 0; i < instanceExtCount; ++i)
+		{
+			getSurfaceCapabilities2 |= strcmp(VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME, availableExtensions[i].extensionName) == 0;
+			getPhysicalDeviceProperties2 |= strcmp(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, availableExtensions[i].extensionName) == 0;
+		}
+
+		// VK_EXT_full_screen_exclusive specification requires VK_KHR_get_surface_capabilities2 and VK_KHR_get_physical_device_properties2
+		vk_config.vk_ext_full_screen_exclusive_possible = getSurfaceCapabilities2 && getPhysicalDeviceProperties2;
+
+		free(availableExtensions);
+	}
+
 	if (extensions)
 	{
 		extensions[0] = VK_KHR_SURFACE_EXTENSION_NAME;
 		extensions[1] = VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
-		extensions[2] = VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME;
+		if (vk_config.vk_ext_full_screen_exclusive_possible)
+		{
+			extensions[2] = VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME;
+			extensions[3] = VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME;
+		}
 	}
 
 	if (extCount)
-		*extCount = 3;
+		*extCount = vk_config.vk_ext_full_screen_exclusive_possible ? 4 : 2;
 }
 
 VkResult Vkimp_CreateSurface()

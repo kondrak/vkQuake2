@@ -215,7 +215,7 @@ static VkResult createLogicalDevice()
 		.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
 		.pEnabledFeatures = &wantedDeviceFeatures,
 		.ppEnabledExtensionNames = deviceExtensions,
-		.enabledExtensionCount = vk_config.vk_ext_full_screen_exclusive_available ? 2 : 1,
+		.enabledExtensionCount = vk_config.vk_ext_full_screen_exclusive_possible ? 2 : 1,
 		.enabledLayerCount = 0,
 		.ppEnabledLayerNames = NULL,
 		.queueCreateInfoCount = numQueues,

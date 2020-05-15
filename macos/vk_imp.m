@@ -289,7 +289,7 @@ int Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 	return rserr_ok;
 }
 
-void Vkimp_GetSurfaceExtensions(char **extensions, uint32_t *extCount)
+void Vkimp_GetInstanceExtensions(char **extensions, uint32_t *extCount)
 {
 	if (extensions)
 	{
