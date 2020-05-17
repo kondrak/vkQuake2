@@ -36,7 +36,7 @@
 		E2ED827521F628D10009C478 /* vk_validation.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED826221F628D10009C478 /* vk_validation.c */; };
 		E2ED827621F628D10009C478 /* vk_mesh.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED826321F628D10009C478 /* vk_mesh.c */; };
 		E2ED827721F628D10009C478 /* vk_buffer.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED826421F628D10009C478 /* vk_buffer.c */; };
-		E2ED827821F628D10009C478 /* vk_mem_alloc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2ED826521F628D10009C478 /* vk_mem_alloc.cpp */; settings = {COMPILER_FLAGS = "-Wno-conditional-uninitialized"; }; };
+		E2ED827821F628D10009C478 /* vk_mem_alloc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E2ED826521F628D10009C478 /* vk_mem_alloc.cpp */; settings = {COMPILER_FLAGS = "-Wno-conditional-uninitialized -Wno-nullability-completeness"; }; };
 		E2ED827921F628D10009C478 /* vk_image.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED826621F628D10009C478 /* vk_image.c */; };
 		E2ED827A21F628D10009C478 /* vk_rsurf.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED826721F628D10009C478 /* vk_rsurf.c */; };
 		E2ED827C21F628D10009C478 /* vk_draw.c in Sources */ = {isa = PBXBuildFile; fileRef = E2ED826921F628D10009C478 /* vk_draw.c */; };
