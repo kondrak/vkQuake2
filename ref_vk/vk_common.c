@@ -1683,9 +1683,6 @@ qboolean QVk_Init()
 	QVk_CreateDevice((int)vk_device_idx->value);
 	QVk_DebugSetObjectName((uint64_t)vk_device.physical, VK_OBJECT_TYPE_PHYSICAL_DEVICE, va("Physical Device: %s", vk_config.vendor_name));
 
-	// final check for VK_EXT_full_screen_exclusive: both dependencies and the extension must be supported
-	vk_config.vk_ext_full_screen_exclusive_possible &= vk_config.vk_ext_full_screen_exclusive_available;
-
 	// create memory allocator
 	VmaAllocatorCreateInfo allocInfo = {
 		.flags = 0,

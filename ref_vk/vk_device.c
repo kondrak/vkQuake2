@@ -211,6 +211,9 @@ static VkResult createLogicalDevice()
 #else
 	};
 #endif
+	// final check for VK_EXT_full_screen_exclusive: both dependencies and the extension must be supported
+	vk_config.vk_ext_full_screen_exclusive_possible &= vk_config.vk_ext_full_screen_exclusive_available;
+
 	VkDeviceCreateInfo deviceCreateInfo = {
 		.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
 		.pEnabledFeatures = &wantedDeviceFeatures,
