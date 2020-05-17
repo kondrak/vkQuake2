@@ -1696,7 +1696,7 @@ qboolean QVk_Init()
 		.pVulkanFunctions = NULL,
 		.pRecordSettings = NULL,
 		.instance = vk_instance,
-		.vulkanApiVersion = appInfo.apiVersion
+		.vulkanApiVersion = vk_device.properties.apiVersion
 	};
 
 	res = vmaCreateAllocator(&allocInfo, &vk_malloc);
