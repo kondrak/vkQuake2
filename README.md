@@ -99,7 +99,7 @@ The following commands are available when using the Vulkan renderer:
 |-------------------------|:--------------------------------------------------------|
 | `vk_validation`         | Toggle validation layers:<br>`0` - disabled (default in Release)<br> `1` - only errors and warnings<br>`2` - full validation (default in Debug)<br>`3` - enables `VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT` |
 | `vk_strings`            | Print some basic Vulkan/GPU information.                                    |
-| `vk_mem`                | Print dynamic vertex/index/uniform/triangle fan buffer memory usage statistics.          |
+| `vk_mem`                | Print dynamic vertex/index/uniform/triangle fan buffer memory and descriptor set usage statistics.          |
 | `vk_device`             | Specify index of the preferred Vulkan device on systems with multiple GPUs:<br>`-1` - prefer first DISCRETE_GPU (default)<br>`0..n` - use device #n (full list of devices is returned by `vk_strings` command) |
 | `vk_msaa`               | Toggle MSAA:<br>`0` - off (default)<br>`1` - MSAAx2<br>`2` - MSAAx4<br>`3` - MSAAx8<br>`4` - MSAAx16 |
 | `vk_sampleshading`      | Toggle sample shading for MSAA. (default: `1`) |
@@ -136,6 +136,7 @@ The following commands are available when using the Vulkan renderer:
 Acknowledgements
 ===
 - Sascha Willems for his [Vulkan Samples](https://github.com/SaschaWillems/Vulkan)
+- Adam Sawicki for [Vulkan Memory Allocator](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator) and tips on how to use it as efficiently as possible
 - Axel Gneiting for [vkQuake](https://github.com/Novum/vkQuake) which was a great inspiration and a rich source of knowledge
 - LunarG team and the Khronos Group for their invaluable help and resources
 

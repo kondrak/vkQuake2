@@ -1697,7 +1697,9 @@ qboolean QVk_Init()
 		.frameInUseCount = 0,
 		.pHeapSizeLimit = NULL,
 		.pVulkanFunctions = NULL,
-		.pRecordSettings = NULL
+		.pRecordSettings = NULL,
+		.instance = vk_instance,
+		.vulkanApiVersion = appInfo.apiVersion
 	};
 
 	res = vmaCreateAllocator(&allocInfo, &vk_malloc);
