@@ -3,7 +3,7 @@
 #
 
 CC=gcc
-BASE_CFLAGS=-Wno-unused-result -Wno-dangling-else -Wno-pointer-sign -Wno-pointer-bool-conversion
+BASE_CFLAGS=-Wno-unused-result -Wno-dangling-else -Wno-pointer-sign -Wno-pointer-bool-conversion -Wno-nullability-completeness
 RELEASE_CFLAGS=$(BASE_CFLAGS) -DNDEBUG -O3
 DEBUG_CFLAGS=$(BASE_CFLAGS) -g -D_DEBUG
 LDFLAGS=-framework CoreAudio
