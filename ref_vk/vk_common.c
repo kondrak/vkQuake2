@@ -1696,7 +1696,8 @@ qboolean QVk_Init()
 		.pVulkanFunctions = NULL,
 		.pRecordSettings = NULL,
 		.instance = vk_instance,
-		.vulkanApiVersion = vk_device.properties.apiVersion
+		// VMA ignores version patch, so compare version minors (assuming major is always 1) and choose the lower (safer) one
+		.vulkanApiVersion = VK_VERSION_MINOR(vk_device.properties.apiVersion) < VK_VERSION_MINOR(appInfo.apiVersion) ? vk_device.properties.apiVersion : appInfo.apiVersion
 	};
 
 	res = vmaCreateAllocator(&allocInfo, &vk_malloc);
