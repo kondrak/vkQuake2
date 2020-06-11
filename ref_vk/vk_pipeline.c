@@ -96,7 +96,7 @@ void QVk_CreatePipeline(const VkDescriptorSetLayout *descriptorLayout, const uin
 		.flags = 0,
 		.depthClampEnable = VK_FALSE,
 		.rasterizerDiscardEnable = VK_FALSE,
-		.polygonMode = pipeline->mode,
+		.polygonMode = VK_POLYGON_MODE_FILL,
 		.cullMode = pipeline->cullMode,
 		.frontFace = VK_FRONT_FACE_CLOCKWISE,
 		.depthBiasEnable = VK_FALSE,
