@@ -299,6 +299,8 @@ qboolean QVk_CreateDevice(int preferredDeviceIdx)
 
 void QVk_DebugSetObjectName(uint64_t obj, VkObjectType objType, const char *objName)
 {
+	if (!vk_config.vk_ext_debug_utils_supported) return;
+
 	VkDebugUtilsObjectNameInfoEXT oNameInf = {
 		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
 		.pNext = NULL,
@@ -312,6 +314,8 @@ void QVk_DebugSetObjectName(uint64_t obj, VkObjectType objType, const char *objN
 
 void QVk_DebugSetObjectTag(uint64_t obj, VkObjectType objType, uint64_t tagName, size_t tagSize, const void *tagData)
 {
+	if (!vk_config.vk_ext_debug_utils_supported) return;
+
 	VkDebugUtilsObjectTagInfoEXT oTagInf = {
 		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_TAG_INFO_EXT,
 		.pNext = NULL,
@@ -327,6 +331,8 @@ void QVk_DebugSetObjectTag(uint64_t obj, VkObjectType objType, uint64_t tagName,
 
 void QVk_DebugLabelBegin(const VkCommandBuffer *cmdBuffer, const char *labelName, const float r, const float g, const float b)
 {
+	if (!vk_config.vk_ext_debug_utils_supported) return;
+
 	VkDebugUtilsLabelEXT labelInfo = {
 		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
 		.pNext = NULL,
@@ -339,11 +345,15 @@ void QVk_DebugLabelBegin(const VkCommandBuffer *cmdBuffer, const char *labelName
 
 void QVk_DebugLabelEnd(const VkCommandBuffer *cmdBuffer)
 {
+	if (!vk_config.vk_ext_debug_utils_supported) return;
+
 	qvkCmdEndDebugUtilsLabelEXT(*cmdBuffer);
 }
 
 void QVk_DebugLabelInsert(const VkCommandBuffer *cmdBuffer, const char *labelName, const float r, const float g, const float b)
 {
+	if (!vk_config.vk_ext_debug_utils_supported) return;
+
 	VkDebugUtilsLabelEXT labelInfo = {
 		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
 		.pNext = NULL,

@@ -73,6 +73,12 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugUtilsCallback(VkDebugUtilsMessageSeve
 
 void QVk_CreateValidationLayers()
 {
+	if (!vk_config.vk_ext_debug_utils_supported)
+	{
+		ri.Con_Printf(PRINT_ALL, "...VK_EXT_DEBUG_UTILS extension is not supported by this driver!\n");
+		return;
+	}
+
 	VkDebugUtilsMessengerCreateInfoEXT callbackInfo = {
 		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
 		.pNext = NULL,

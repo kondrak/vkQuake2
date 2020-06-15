@@ -1568,6 +1568,7 @@ qboolean QVk_Init()
 	vk_config.allocated_sampler_descriptor_set_count = 0;
 	vk_config.ubo_descriptor_set_count = 0;
 	vk_config.sampler_descriptor_set_count = 0;
+	vk_config.vk_ext_debug_utils_supported = false;
 	vk_config.vk_ext_full_screen_exclusive_available = false;
 	vk_config.vk_ext_full_screen_exclusive_possible = false;
 	vk_config.vk_full_screen_exclusive_enabled = false;
@@ -1575,22 +1576,28 @@ qboolean QVk_Init()
 
 	Vkimp_GetInstanceExtensions(NULL, &extCount);
 
-	if (vk_validation->value)
-		extCount++;
+	if (vk_config.vk_ext_debug_utils_supported)
+	{
+		if (vk_validation->value)
+			extCount++;
 #if defined(_DEBUG) || defined(ENABLE_DEBUG_LABELS)
-	else
-		extCount++;
+		else
+			extCount++;
 #endif
+	}
 
 	wantedExtensions = (char **)malloc(extCount * sizeof(const char *));
 	Vkimp_GetInstanceExtensions(wantedExtensions, NULL);
 
-	if (vk_validation->value)
-		wantedExtensions[extCount - 1] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
+	if (vk_config.vk_ext_debug_utils_supported)
+	{
+		if (vk_validation->value)
+			wantedExtensions[extCount - 1] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
 #if defined(_DEBUG) || defined(ENABLE_DEBUG_LABELS)
-	else
-		wantedExtensions[extCount - 1] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
+		else
+			wantedExtensions[extCount - 1] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
 #endif
+	}
 
 	ri.Con_Printf(PRINT_ALL, "Enabled extensions: ");
 	for (int i = 0; i < extCount; i++)
@@ -1635,7 +1642,7 @@ qboolean QVk_Init()
 	const char *validationLayers[] = { "VK_LAYER_LUNARG_standard_validation" };
 #endif
 
-	if (vk_validation->value)
+	if (vk_validation->value && vk_config.vk_ext_debug_utils_supported)
 	{
 		createInfo.enabledLayerCount = sizeof(validationLayers) / sizeof(validationLayers[0]);
 		createInfo.ppEnabledLayerNames = validationLayers;
