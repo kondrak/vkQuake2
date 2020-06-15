@@ -1897,6 +1897,7 @@ static menuframework_s	s_game_menu;
 static menuaction_s		s_easy_game_action;
 static menuaction_s		s_medium_game_action;
 static menuaction_s		s_hard_game_action;
+static menuaction_s		s_hard_plus_game_action;
 static menuaction_s		s_load_game_action;
 static menuaction_s		s_save_game_action;
 static menuaction_s		s_credits_action;
@@ -1931,6 +1932,12 @@ static void MediumGameFunc( void *data )
 static void HardGameFunc( void *data )
 {
 	Cvar_ForceSet( "skill", "2" );
+	StartGame();
+}
+
+static void HardPlusGameFunc( void *data )
+{
+	Cvar_ForceSet ( "skill", "3" );
 	StartGame();
 }
 
@@ -1975,32 +1982,40 @@ void Game_MenuInit( void )
 	s_hard_game_action.generic.name	= "hard";
 	s_hard_game_action.generic.callback = HardGameFunc;
 
+	s_hard_plus_game_action.generic.type = MTYPE_ACTION;
+	s_hard_plus_game_action.generic.flags = QMF_LEFT_JUSTIFY;
+	s_hard_plus_game_action.generic.x = 0;
+	s_hard_plus_game_action.generic.y = 30 * vid_hudscale->value;
+	s_hard_plus_game_action.generic.name = "nightmare"; // even though officially it's called "hard+"
+	s_hard_plus_game_action.generic.callback = HardPlusGameFunc;
+
 	s_blankline.generic.type = MTYPE_SEPARATOR;
 
 	s_load_game_action.generic.type	= MTYPE_ACTION;
 	s_load_game_action.generic.flags  = QMF_LEFT_JUSTIFY;
 	s_load_game_action.generic.x		= 0;
-	s_load_game_action.generic.y		= 40 * vid_hudscale->value;
+	s_load_game_action.generic.y		= 50 * vid_hudscale->value;
 	s_load_game_action.generic.name	= "load game";
 	s_load_game_action.generic.callback = LoadGameFunc;
 
 	s_save_game_action.generic.type	= MTYPE_ACTION;
 	s_save_game_action.generic.flags  = QMF_LEFT_JUSTIFY;
 	s_save_game_action.generic.x		= 0;
-	s_save_game_action.generic.y		= 50 * vid_hudscale->value;
+	s_save_game_action.generic.y		= 60 * vid_hudscale->value;
 	s_save_game_action.generic.name	= "save game";
 	s_save_game_action.generic.callback = SaveGameFunc;
 
 	s_credits_action.generic.type	= MTYPE_ACTION;
 	s_credits_action.generic.flags  = QMF_LEFT_JUSTIFY;
 	s_credits_action.generic.x		= 0;
-	s_credits_action.generic.y		= 60 * vid_hudscale->value;
+	s_credits_action.generic.y		= 70 * vid_hudscale->value;
 	s_credits_action.generic.name	= "credits";
 	s_credits_action.generic.callback = CreditsFunc;
 
 	Menu_AddItem( &s_game_menu, ( void * ) &s_easy_game_action );
 	Menu_AddItem( &s_game_menu, ( void * ) &s_medium_game_action );
 	Menu_AddItem( &s_game_menu, ( void * ) &s_hard_game_action );
+	Menu_AddItem( &s_game_menu, ( void * ) &s_hard_plus_game_action );
 	Menu_AddItem( &s_game_menu, ( void * ) &s_blankline );
 	Menu_AddItem( &s_game_menu, ( void * ) &s_load_game_action );
 	Menu_AddItem( &s_game_menu, ( void * ) &s_save_game_action );
