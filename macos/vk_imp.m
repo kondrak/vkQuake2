@@ -291,6 +291,23 @@ int Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 
 void Vkimp_GetInstanceExtensions(char **extensions, uint32_t *extCount)
 {
+	// check if we can use optional instance extensions
+	uint32_t instanceExtCount;
+	VK_VERIFY(vkEnumerateInstanceExtensionProperties(NULL, &instanceExtCount, NULL));
+
+	if (instanceExtCount > 0)
+	{
+		VkExtensionProperties *availableExtensions = (VkExtensionProperties *)malloc(sizeof(VkExtensionProperties) * instanceExtCount);
+		VK_VERIFY(vkEnumerateInstanceExtensionProperties(NULL, &instanceExtCount, availableExtensions));
+
+		for (int i = 0; i < instanceExtCount; ++i)
+		{
+			vk_config.vk_ext_debug_utils_supported |= strcmp(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, availableExtensions[i].extensionName) == 0;
+		}
+
+		free(availableExtensions);
+	}
+
 	if (extensions)
 	{
 		extensions[0] = VK_KHR_SURFACE_EXTENSION_NAME;
