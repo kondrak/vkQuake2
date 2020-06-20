@@ -29,6 +29,9 @@ else ifeq ($(KERNEL_ARCH),ppc64le)
 else ifeq ($(KERNEL_ARCH),armv7l)
   ARCH=armv7l
   RPMARCH=armv7l
+else ifeq ($(KERNEL_ARCH),e2k)
+  ARCH=e2k
+  RPMARCH=e2k
 else ifneq (,$(findstring alpha,$(KERNEL_ARCH)))
   ARCH=axp
   RPMARCH=alpha
@@ -68,6 +71,8 @@ BASE_CFLAGS=-I/usr/local/include -Dstricmp=strcasecmp -D_GNU_SOURCE -Wno-format-
 ifeq ($(ARCH),axp)
 RELEASE_CFLAGS=$(BASE_CFLAGS) -DNDEBUG -O3 -ffast-math -funroll-loops \
 	-fomit-frame-pointer -fexpensive-optimizations
+else ifeq ($(ARCH),e2k)
+RELEASE_CFLAGS=$(BASE_CFLAGS) -DNDEBUG -O3 -ffast-math -ffast
 else
 RELEASE_CFLAGS=$(BASE_CFLAGS) -DNDEBUG -O3 -ffast-math -funroll-loops \
 	-fomit-frame-pointer -fexpensive-optimizations
