@@ -662,6 +662,8 @@ extern	cvar_t	*sv_maplist;
 
 extern	cvar_t	*sv_stopspeed;		// PGM - this was a define in g_phys.c
 
+extern cvar_t   *aimfix;
+
 //ROGUE
 extern	cvar_t	*g_showlogic;
 extern	cvar_t	*gamerules;

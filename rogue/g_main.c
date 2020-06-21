@@ -54,6 +54,8 @@ cvar_t	*sv_maplist;
 
 cvar_t	*sv_stopspeed;	//PGM	 (this was a define in g_phys.c)
 
+cvar_t  *aimfix;
+
 //ROGUE cvars
 cvar_t	*g_showlogic;
 cvar_t	*gamerules;
