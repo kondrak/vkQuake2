@@ -204,6 +204,9 @@ void InitGame (void)
 	bob_roll = gi.cvar ("bob_roll", "0.002", 0);
 
 	gamedir = gi.cvar ("gamedir", "baseq2", CVAR_SERVERINFO);
+
+	/* others */
+	aimfix = gi.cvar ("aimfix", "0", CVAR_ARCHIVE);
 #ifdef CACHE_SOUND
 	printSoundRejects = gi.cvar("printsoundrejects", "0", CVAR_SERVERINFO);
 #endif

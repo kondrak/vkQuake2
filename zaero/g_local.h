@@ -602,6 +602,7 @@ extern	cvar_t  *gamedir;
 extern	cvar_t	*grenadeammotype;
 extern	cvar_t	*grenadeammo;
 extern	cvar_t	*bettyammo;
+extern  cvar_t  *aimfix;
 #ifdef CACHE_SOUND
 extern cvar_t *printSoundRejects;
 #endif
