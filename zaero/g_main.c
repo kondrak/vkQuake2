@@ -45,6 +45,8 @@ cvar_t  *gamedir;
 
 cvar_t	*sv_cheats;
 
+cvar_t  *aimfix;
+
 #ifdef CACHE_SOUND
 cvar_t *printSoundRejects;
 int internalSoundIndex(char *name);

@@ -17,7 +17,7 @@ void NoAmmoWeaponChange (edict_t *ent);
 void check_dodge (edict_t *self, vec3_t start, vec3_t dir, int speed);
 
 void Grenade_Explode(edict_t *ent);
-void P_ProjectSource (gclient_t *client, vec3_t point, vec3_t distance, vec3_t forward, vec3_t right, vec3_t result);
+void P_ProjectSource (edict_t *ent, vec3_t distance, vec3_t forward, vec3_t right, vec3_t result);
 
 
 void fire_sconnan (edict_t *self);
@@ -800,7 +800,7 @@ void fire_sconnanEffects (edict_t *self)
 	self->client->kick_angles[0] = -3;
 
 	VectorSet(offset, 0, 7,  self->viewheight-8);
-	P_ProjectSource (self->client, self->s.origin, offset, forward, right, start);
+	P_ProjectSource (self, offset, forward, right, start);
 
 	VectorMA (start, 8192, forward, end);
 
@@ -844,7 +844,7 @@ void fire_sconnan (edict_t *self)
 	self->client->kick_angles[0] = -3;
 
 	VectorSet(offset, 0, 7,  self->viewheight-8);
-	P_ProjectSource (self->client, self->s.origin, offset, forward, right, start);
+	P_ProjectSource (self, offset, forward, right, start);
 
 	VectorMA (start, 8192, forward, end);
 
@@ -1038,7 +1038,7 @@ void Weapon_FlareLauncher_Fire (edict_t *ent)
 	AngleVectors (ent->client->v_angle, forward, right, NULL);
 
 	VectorSet(offset, 8, 8, ent->viewheight-8);
-	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
+	P_ProjectSource (ent, offset, forward, right, start);
 	fire_flare(ent, start, forward, 1, 600, 1, 1);
 
 	ent->client->ps.gunframe++;

@@ -548,6 +548,8 @@ extern	cvar_t	*flood_waitdelay;
 
 extern	cvar_t	*sv_maplist;
 
+extern  cvar_t  *aimfix;
+
 #define world	(&g_edicts[0])
 
 // item spawnflags
