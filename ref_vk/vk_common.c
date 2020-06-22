@@ -165,6 +165,7 @@ qvkpipeline_t vk_postprocessPipeline = QVKPIPELINE_INIT;
 static VkSampler vk_samplers[S_SAMPLER_CNT];
 
 // Vulkan function pointers
+#if DEBUG_UTILS_AVAILABLE
 PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;
 PFN_vkDestroyDebugUtilsMessengerEXT qvkDestroyDebugUtilsMessengerEXT;
 PFN_vkSetDebugUtilsObjectNameEXT qvkSetDebugUtilsObjectNameEXT;
@@ -172,6 +173,11 @@ PFN_vkSetDebugUtilsObjectTagEXT qvkSetDebugUtilsObjectTagEXT;
 PFN_vkCmdBeginDebugUtilsLabelEXT qvkCmdBeginDebugUtilsLabelEXT;
 PFN_vkCmdEndDebugUtilsLabelEXT qvkCmdEndDebugUtilsLabelEXT;
 PFN_vkCmdInsertDebugUtilsLabelEXT qvkInsertDebugUtilsLabelEXT;
+#endif
+#if DEBUG_REPORT_AVAILABLE
+PFN_vkCreateDebugReportCallbackEXT qvkCreateDebugReportCallbackEXT;
+PFN_vkDestroyDebugReportCallbackEXT qvkDestroyDebugReportCallbackEXT;
+#endif
 #ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
 PFN_vkAcquireFullScreenExclusiveModeEXT qvkAcquireFullScreenExclusiveModeEXT;
 PFN_vkReleaseFullScreenExclusiveModeEXT qvkReleaseFullScreenExclusiveModeEXT;
@@ -1569,6 +1575,7 @@ qboolean QVk_Init()
 	vk_config.ubo_descriptor_set_count = 0;
 	vk_config.sampler_descriptor_set_count = 0;
 	vk_config.vk_ext_debug_utils_supported = false;
+	vk_config.vk_ext_debug_report_supported = false;
 	vk_config.vk_ext_full_screen_exclusive_available = false;
 	vk_config.vk_ext_full_screen_exclusive_possible = false;
 	vk_config.vk_full_screen_exclusive_enabled = false;
@@ -1576,7 +1583,7 @@ qboolean QVk_Init()
 
 	Vkimp_GetInstanceExtensions(NULL, &extCount);
 
-	if (vk_config.vk_ext_debug_utils_supported)
+	if (vk_config.vk_ext_debug_utils_supported || vk_config.vk_ext_debug_report_supported)
 	{
 		if (vk_validation->value)
 			extCount++;
@@ -1589,6 +1596,7 @@ qboolean QVk_Init()
 	wantedExtensions = (char **)malloc(extCount * sizeof(const char *));
 	Vkimp_GetInstanceExtensions(wantedExtensions, NULL);
 
+#if DEBUG_UTILS_AVAILABLE
 	if (vk_config.vk_ext_debug_utils_supported)
 	{
 		if (vk_validation->value)
@@ -1598,6 +1606,18 @@ qboolean QVk_Init()
 			wantedExtensions[extCount - 1] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
 #endif
 	}
+#endif
+#if DEBUG_REPORT_AVAILABLE
+	if (vk_config.vk_ext_debug_report_supported && !vk_config.vk_ext_debug_utils_supported)
+	{
+		if (vk_validation->value)
+			wantedExtensions[extCount - 1] = VK_EXT_DEBUG_REPORT_EXTENSION_NAME;
+#if defined(_DEBUG) || defined(ENABLE_DEBUG_LABELS)
+		else
+			wantedExtensions[extCount - 1] = VK_EXT_DEBUG_REPORT_EXTENSION_NAME;
+#endif
+	}
+#endif
 
 	ri.Con_Printf(PRINT_ALL, "Enabled extensions: ");
 	for (int i = 0; i < extCount; i++)
@@ -1642,7 +1662,7 @@ qboolean QVk_Init()
 	const char *validationLayers[] = { "VK_LAYER_LUNARG_standard_validation" };
 #endif
 
-	if (vk_validation->value && vk_config.vk_ext_debug_utils_supported)
+	if (vk_validation->value && (vk_config.vk_ext_debug_utils_supported || vk_config.vk_ext_debug_report_supported))
 	{
 		createInfo.enabledLayerCount = sizeof(validationLayers) / sizeof(validationLayers[0]);
 		createInfo.ppEnabledLayerNames = validationLayers;
@@ -1663,6 +1683,7 @@ qboolean QVk_Init()
 	ri.Con_Printf(PRINT_ALL, "...created Vulkan instance\n");
 
 	// initialize function pointers
+#if DEBUG_UTILS_AVAILABLE
 	qvkCreateDebugUtilsMessengerEXT  = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vk_instance, "vkCreateDebugUtilsMessengerEXT");
 	qvkDestroyDebugUtilsMessengerEXT = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vk_instance, "vkDestroyDebugUtilsMessengerEXT");
 	qvkSetDebugUtilsObjectNameEXT = (PFN_vkSetDebugUtilsObjectNameEXT)vkGetInstanceProcAddr(vk_instance, "vkSetDebugUtilsObjectNameEXT");
@@ -1670,6 +1691,11 @@ qboolean QVk_Init()
 	qvkCmdBeginDebugUtilsLabelEXT = (PFN_vkCmdBeginDebugUtilsLabelEXT)vkGetInstanceProcAddr(vk_instance, "vkCmdBeginDebugUtilsLabelEXT");
 	qvkCmdEndDebugUtilsLabelEXT   = (PFN_vkCmdEndDebugUtilsLabelEXT)vkGetInstanceProcAddr(vk_instance, "vkCmdEndDebugUtilsLabelEXT");
 	qvkInsertDebugUtilsLabelEXT   = (PFN_vkCmdInsertDebugUtilsLabelEXT)vkGetInstanceProcAddr(vk_instance, "vkCmdInsertDebugUtilsLabelEXT");
+#endif
+#if DEBUG_REPORT_AVAILABLE
+	qvkCreateDebugReportCallbackEXT  = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(vk_instance, "vkCreateDebugReportCallbackEXT");
+	qvkDestroyDebugReportCallbackEXT = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(vk_instance, "vkDestroyDebugReportCallbackEXT");
+#endif
 #ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
 	qvkAcquireFullScreenExclusiveModeEXT = (PFN_vkAcquireFullScreenExclusiveModeEXT)vkGetInstanceProcAddr(vk_instance, "vkAcquireFullScreenExclusiveModeEXT");
 	qvkReleaseFullScreenExclusiveModeEXT = (PFN_vkReleaseFullScreenExclusiveModeEXT)vkGetInstanceProcAddr(vk_instance, "vkReleaseFullScreenExclusiveModeEXT");

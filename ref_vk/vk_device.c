@@ -295,7 +295,7 @@ qboolean QVk_CreateDevice(int preferredDeviceIdx)
 }
 
 // debug label related functions
-#if defined(_DEBUG) || defined(ENABLE_DEBUG_LABELS)
+#if (defined(_DEBUG) || defined(ENABLE_DEBUG_LABELS)) && DEBUG_UTILS_AVAILABLE
 
 void QVk_DebugSetObjectName(uint64_t obj, VkObjectType objType, const char *objName)
 {

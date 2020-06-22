@@ -175,7 +175,12 @@ void Vkimp_GetInstanceExtensions(char **extensions, uint32_t *extCount)
 		{
 			getSurfaceCapabilities2 |= strcmp(VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME, availableExtensions[i].extensionName) == 0;
 			getPhysicalDeviceProperties2 |= strcmp(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, availableExtensions[i].extensionName) == 0;
+#if DEBUG_UTILS_AVAILABLE
 			vk_config.vk_ext_debug_utils_supported |= strcmp(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, availableExtensions[i].extensionName) == 0;
+#endif
+#if DEBUG_REPORT_AVAILABLE
+			vk_config.vk_ext_debug_report_supported |= strcmp(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, availableExtensions[i].extensionName) == 0;
+#endif
 		}
 
 		// VK_EXT_full_screen_exclusive specification requires VK_KHR_get_surface_capabilities2 and VK_KHR_get_physical_device_properties2

@@ -202,6 +202,14 @@ typedef enum
 #define NUM_CMDBUFFERS 2
 #define NUM_DYNBUFFERS 2
 
+// check if the system supports either VK_EXT_DEBUG_UTILS or VK_EXT_DEBUG_REPORT
+#ifdef VK_EXT_DEBUG_UTILS_EXTENSION_NAME
+#define DEBUG_UTILS_AVAILABLE 1
+#endif
+#ifdef VK_EXT_DEBUG_REPORT_EXTENSION_NAME
+#define DEBUG_REPORT_AVAILABLE 1
+#endif
+
 // Vulkan instance
 extern VkInstance vk_instance;
 // Vulkan surface
@@ -259,6 +267,7 @@ extern qboolean vk_frameStarted;
 extern qboolean vk_restart;
 
 // function pointers
+#if DEBUG_UTILS_AVAILABLE
 extern PFN_vkCreateDebugUtilsMessengerEXT qvkCreateDebugUtilsMessengerEXT;
 extern PFN_vkDestroyDebugUtilsMessengerEXT qvkDestroyDebugUtilsMessengerEXT;
 extern PFN_vkSetDebugUtilsObjectNameEXT qvkSetDebugUtilsObjectNameEXT;
@@ -266,6 +275,11 @@ extern PFN_vkSetDebugUtilsObjectTagEXT qvkSetDebugUtilsObjectTagEXT;
 extern PFN_vkCmdBeginDebugUtilsLabelEXT qvkCmdBeginDebugUtilsLabelEXT;
 extern PFN_vkCmdEndDebugUtilsLabelEXT qvkCmdEndDebugUtilsLabelEXT;
 extern PFN_vkCmdInsertDebugUtilsLabelEXT qvkInsertDebugUtilsLabelEXT;
+#endif
+#if DEBUG_REPORT_AVAILABLE
+extern PFN_vkCreateDebugReportCallbackEXT qvkCreateDebugReportCallbackEXT;
+extern PFN_vkDestroyDebugReportCallbackEXT qvkDestroyDebugReportCallbackEXT;
+#endif
 
 // The Interface Functions (tm)
 qboolean	QVk_Init(void);
@@ -311,8 +325,8 @@ void		QVk_DrawColorRect(float *ubo, VkDeviceSize uboSize, qvkrenderpasstype_t rp
 void		QVk_DrawTexRect(float *ubo, VkDeviceSize uboSize, qvktexture_t *texture);
 void		QVk_BindPipeline(qvkpipeline_t *pipeline);
 void		QVk_SubmitStagingBuffers(void);
-// debug label related functions
-#if defined(_DEBUG) || defined(ENABLE_DEBUG_LABELS)
+// debug label related functions - ignore if VK_EXT_DEBUG_UTILS is not available
+#if (defined(_DEBUG) || defined(ENABLE_DEBUG_LABELS)) && DEBUG_UTILS_AVAILABLE
 void		QVk_DebugSetObjectName(uint64_t obj, VkObjectType objType, const char *objName);
 void		QVk_DebugSetObjectTag(uint64_t obj, VkObjectType objType, uint64_t tagName, size_t tagSize, const void *tagData);
 void		QVk_DebugLabelBegin(const VkCommandBuffer *cmdBuffer, const char *labelName, const float r, const float g, const float b);

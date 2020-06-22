@@ -784,7 +784,12 @@ void Vkimp_GetInstanceExtensions(char **extensions, uint32_t *extCount)
 
 		for (int i = 0; i < instanceExtCount; ++i)
 		{
+#if DEBUG_UTILS_AVAILABLE
 			vk_config.vk_ext_debug_utils_supported |= strcmp(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, availableExtensions[i].extensionName) == 0;
+#endif
+#if DEBUG_REPORT_AVAILABLE
+			vk_config.vk_ext_debug_report_supported |= strcmp(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, availableExtensions[i].extensionName) == 0;
+#endif
 		}
 
 		free(availableExtensions);
