@@ -1956,7 +1956,11 @@ VkResult QVk_BeginFrame()
 
 	VkResult result = vkAcquireNextImageKHR(vk_device.logical, vk_swapchain.sc, UINT32_MAX, vk_imageAvailableSemaphores[vk_activeBufferIdx], VK_NULL_HANDLE, &vk_imageIndex);
 	// for VK_OUT_OF_DATE_KHR and VK_SUBOPTIMAL_KHR it'd be fine to just rebuild the swapchain but let's take the easy way out and restart video system
-	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_SURFACE_LOST_KHR || result == VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT)
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_SURFACE_LOST_KHR
+#ifdef VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT
+     || result == VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT
+#endif
+       )
 	{
 		ri.Con_Printf(PRINT_ALL, "QVk_BeginFrame(): received %s after vkAcquireNextImageKHR - restarting video!\n", QVk_GetError(result));
 		return result;
@@ -2054,7 +2058,11 @@ VkResult QVk_EndFrame(qboolean force)
 
 	// for VK_OUT_OF_DATE_KHR and VK_SUBOPTIMAL_KHR it'd be fine to just rebuild the swapchain but let's take the easy way out and restart video system
 	if (renderResult == VK_ERROR_OUT_OF_DATE_KHR || renderResult == VK_SUBOPTIMAL_KHR || 
-		renderResult == VK_ERROR_SURFACE_LOST_KHR || renderResult == VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT)
+		renderResult == VK_ERROR_SURFACE_LOST_KHR
+#ifdef VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT
+     || renderResult == VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT
+#endif
+       )
 	{
 		ri.Con_Printf(PRINT_ALL, "QVk_EndFrame(): received %s after vkQueuePresentKHR - restarting video!\n", QVk_GetError(renderResult));
 	}
@@ -2446,7 +2454,9 @@ const char *QVk_GetError(VkResult errorCode)
 		ERRSTR(ERROR_INCOMPATIBLE_DISPLAY_KHR);
 		ERRSTR(ERROR_VALIDATION_FAILED_EXT);
 		ERRSTR(ERROR_INVALID_SHADER_NV);
+#ifdef VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT
 		ERRSTR(ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT);
+#endif
 		ERRSTR(ERROR_OUT_OF_POOL_MEMORY);
 		default: return "<unknown>";
 	}
