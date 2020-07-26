@@ -32,7 +32,7 @@ Building
 For extra challenge I decided to base vkQuake2 on the original id Software code. Because of this, there are no dependencies on external SDL-like libraries and the entire project is mostly self-contained. This also implies that some of the original bugs could be present.
 
 ## Windows
-- download and install the [Vulkan SDK](https://vulkan.lunarg.com/)
+- download and install the latest [Vulkan SDK](https://vulkan.lunarg.com/)
 - install [Visual Studio Community](https://www.visualstudio.com/products/free-developer-offers-vs) with the MFC package
 - install Windows Universal CRT SDK and Windows SDK 8.1 or just the latest Windows 10 SDK (the latter requires all project files to be updated)
 - open `quake2.sln` and choose the target architecture (x86/x64) - it should build without any additional steps
@@ -43,9 +43,9 @@ Unfortunately, Linux code for Quake 2 has not aged well and for that reason only
 ```
 sudo apt install make gcc g++ mesa-common-dev libglu1-mesa-dev libxxf86dga-dev libxxf86vm-dev libasound2-dev libx11-dev libxcb1-dev
 ```
-- Install the [Vulkan SDK](https://vulkan.lunarg.com/) - the easiest way is to use [LunarG Ubuntu Packages](https://vulkan.lunarg.com/sdk/home#linux) - just follow the instructions and there will be no additional steps required. If you decide for a manual installation, make sure that proper environment variables are set afterwards by adding the following section to your `.bashrc` file (replace SDK version and location with the ones corresponding to your system):
+- Install the latest [Vulkan SDK](https://vulkan.lunarg.com/) - the easiest way is to use [LunarG Ubuntu Packages](https://vulkan.lunarg.com/sdk/home#linux) - just follow the instructions and there will be no additional steps required. If you decide for a manual installation, make sure that proper environment variables are set afterwards by adding the following section to your `.bashrc` file (replace SDK version and location with the ones corresponding to your system):
 ```
-export VULKAN_SDK=/home/user/VulkanSDK/1.1.92.1/x86_64
+export VULKAN_SDK=/home/user/VulkanSDK/1.2.141.2/x86_64
 export PATH=$VULKAN_SDK/bin:$PATH
 export LD_LIBRARY_PATH=$VULKAN_SDK/lib:$LD_LIBRARY_PATH
 export VK_LAYER_PATH=$VULKAN_SDK/etc/explicit_layer.d
@@ -57,12 +57,12 @@ sudo apt install mesa-vulkan-drivers
 - enter the `linux` directory and type `make release` or `make debug` depending on which variant you want to build - output binaries will be placed in `linux/releasex64` and `linux/debugx64` subdirectories respectively
 
 ## MacOS
-- download and extract the [Vulkan SDK](https://vulkan.lunarg.com/)
+- download and extract the latest [Vulkan SDK](https://vulkan.lunarg.com/)
 - install XCode 10.1 (or later) and add the `VULKAN_SDK` environment variable to Locations/Custom Paths - make it point to the downloaded SDK
 - open `macos/vkQuake2.xcworkspace` - it should build without any additional steps
 - alternatively, you can compile the game from the command line - modify your `.bash_profile` and add the following entries (replace SDK version and location with the ones corresponding to your system):
 ```
-export VULKAN_SDK=/home/user/VulkanSDK/1.2.135.0
+export VULKAN_SDK=/home/user/VulkanSDK/1.2.141.2
 export VK_ICD_FILENAMES=$VULKAN_SDK/macOS/share/vulkan/icd.d/MoltenVK_icd.json
 export VK_LAYER_PATH=$VULKAN_SDK/macOS/share/vulkan/explicit_layer.d
 ```
@@ -78,6 +78,9 @@ pkg install vulkan-tools vulkan-validation-layers
 ```
 - make sure your graphics drivers support Vulkan (run `vulkaninfo` to verify) - if not, you should either update them or find a package that is best suited for your hardware configuration
 - enter the `linux` directory and type `make release` or `make debug` depending on which variant you want to build - output binaries will be placed in `linux/releasex64` and `linux/debugx64` subdirectories respectively
+
+## Raspberry Pi 4
+Thanks to the effort of [Igalia](https://www.igalia.com/) and their [V3DV Driver](https://blogs.igalia.com/itoral/2020/07/23/v3dv_vulkan_driver_update/), it is possible to compile and run vkQuake2 on Raspberry Pi 4. Same build instructions as for Linux apply.
 
 Running
 ===
