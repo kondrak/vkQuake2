@@ -5,7 +5,7 @@ branches:
     - master
 
 before_install:
-  - export VK_VERSION=1.2.135.0
+  - export VK_VERSION=1.2.141.2
   - export VK_VERSION_PPC64LE=1.2.131.2
 
 matrix:
