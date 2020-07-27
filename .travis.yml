@@ -8,7 +8,7 @@ before_install:
   - export VK_VERSION=1.2.141.2
   - export VK_VERSION_PPC64LE=1.2.131.2
 
-matrix:
+jobs:
   include:
     - os: linux
       dist: bionic
@@ -38,11 +38,13 @@ matrix:
         - make clean debug
         - make clean release
     - os: osx
-      osx_image: xcode10.1
+      osx_image: xcode12
       install:
         - export VULKAN_SDK=$TRAVIS_BUILD_DIR/vulkansdk-macos-$VK_VERSION
-        - curl -L -v -o vulkansdk-macos-x86_64-$VK_VERSION.tar.gz -O https://vulkan.lunarg.com/sdk/download/$VK_VERSION/mac/vulkansdk-macos-x86_64-$VK_VERSION.tar.gz?Human=true
-        - tar zxf vulkansdk-macos-x86_64-$VK_VERSION.tar.gz
+        - curl -L -v -o vulkansdk-macos-$VK_VERSION.dmg -O https://vulkan.lunarg.com/sdk/download/$VK_VERSION/mac/vulkansdk-macos-$VK_VERSION.dmg?Human=true
+        - hdiutil mount vulkansdk-macos-$VK_VERSION.dmg
+        - cp -R "/Volumes/vulkansdk-macos-$VK_VERSION/" $TRAVIS_BUILD_DIR/vulkansdk-macos-$VK_VERSION
+        - hdiutil unmount "/Volumes/vulkansdk-macos-$VK_VERSION"
       script:
         - cd macos
         - make clean-xcode debug-xcode
