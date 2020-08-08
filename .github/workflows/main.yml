@@ -1,4 +1,4 @@
-name: vkQuake2 master branch
+name: CI
 env:
   VK_VERSION: 1.2.141.2
 on: push
