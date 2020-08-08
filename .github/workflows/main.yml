@@ -1,0 +1,75 @@
+name: vkQuake2 master branch
+env:
+  VK_VERSION: 1.2.141.2
+on: push
+
+jobs:
+  Linux:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install required packages
+        shell: bash
+        run: |
+          sudo apt-get -qq update
+          sudo apt-get install -y make gcc g++ mesa-common-dev libglu1-mesa-dev libxxf86dga-dev libxxf86vm-dev libasound2-dev libx11-dev libxcb1-dev
+      - name: Download and Install Vulkan SDK
+        shell: bash
+        run: |
+          curl -L -v -o vulkansdk-linux-x86_64-$VK_VERSION.tar.gz -O https://vulkan.lunarg.com/sdk/download/$VK_VERSION/linux/vulkansdk-linux-x86_64-$VK_VERSION.tar.gz?Human=true
+          tar zxf vulkansdk-linux-x86_64-$VK_VERSION.tar.gz
+      - name: Build vkQuake2
+        shell: bash
+        run: |
+          export VULKAN_SDK=$GITHUB_WORKSPACE/$VK_VERSION/x86_64
+          cd linux
+          make clean debug
+          make clean release
+  MacOS:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Download and Install Vulkan SDK
+        run: |
+          curl -L -v -o vulkansdk-macos-$VK_VERSION.dmg -O https://vulkan.lunarg.com/sdk/download/$VK_VERSION/mac/vulkansdk-macos-$VK_VERSION.dmg?Human=true
+          hdiutil mount vulkansdk-macos-$VK_VERSION.dmg
+          cp -R "/Volumes/vulkansdk-macos-$VK_VERSION/" $GITHUB_WORKSPACE/vulkansdk-macos-$VK_VERSION
+          hdiutil unmount "/Volumes/vulkansdk-macos-$VK_VERSION"  
+      - name: Build vkQuake2
+        run: |
+          export VULKAN_SDK=$GITHUB_WORKSPACE/vulkansdk-macos-$VK_VERSION
+          cd macos
+          make clean-xcode debug-xcode
+          make clean-xcode release-xcode
+  Windows:
+    env:
+      VULKAN_SDK: c:\VulkanSDK\%VK_VERSION%
+    runs-on: windows-latest
+
+    steps:
+    - uses: microsoft/setup-msbuild@v1.0.1
+    - uses: actions/checkout@v2
+
+    - name: Install Windows 8.1 SDK
+      shell: powershell
+      run: |
+        Invoke-WebRequest -Method Get -Uri https://go.microsoft.com/fwlink/p/?LinkId=323507 -OutFile sdksetup.exe -UseBasicParsing
+        Start-Process -Wait sdksetup.exe -ArgumentList "/q", "/norestart", "/features", "OptionId.WindowsDesktopSoftwareDevelopmentKit", "OptionId.NetFxSoftwareDevelopmentKit"
+    - name: Download Vulkan SDK
+      shell: powershell
+      run: curl -v -o VulkanSDK.exe https://vulkan.lunarg.com/sdk/download/$env:VK_VERSION/windows/VulkanSDK-$env:VK_VERSION-Installer.exe?Human=true
+    - name: Install Vulkan SDK
+      shell: cmd
+      run: .\VulkanSDK.exe /S
+    - name: Build vkQuake2 Debug (x86)
+      run: msbuild quake2.sln /m /t:Rebuild /p:Configuration=Debug /p:Platform=x86
+    - name: Build vkQuake2 Release (x86)
+      run: msbuild quake2.sln /m /t:Rebuild /p:Configuration=Release /p:Platform=x86
+    - name: Build vkQuake2 Debug (x64)
+      run: msbuild quake2.sln /m /t:Rebuild /p:Configuration=Debug /p:Platform=x64
+    - name: Build vkQuake2 Release (x64)
+      run: msbuild quake2.sln /m /t:Rebuild /p:Configuration=Release /p:Platform=x64
