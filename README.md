@@ -4,7 +4,7 @@
 | Windows  | [![Build status](https://ci.appveyor.com/api/projects/status/73kmpd5e6hpg8jt5?svg=true)](https://ci.appveyor.com/project/kondrak/vkquake2) |
 |----------|:------------:|
 | <b>Linux/MacOS</b> | [![Build Status](https://travis-ci.org/kondrak/vkQuake2.svg?branch=master)](https://travis-ci.org/kondrak/vkQuake2) |
-| <b>Github Actions</b> | ![CI](https://github.com/kondrak/vkQuake2/workflows/CI/badge.svg)
+| <b>GitHub Actions</b> | ![CI](https://github.com/kondrak/vkQuake2/workflows/CI/badge.svg)
 
 Overview
 ===
