@@ -29,6 +29,9 @@ else ifeq ($(KERNEL_ARCH),ppc64le)
 else ifeq ($(KERNEL_ARCH),armv7l)
   ARCH=armv7l
   RPMARCH=armv7l
+else ifeq ($(KERNEL_ARCH),aarch64)
+  ARCH=aarch64
+  RPMARCH=aarch64
 else ifeq ($(KERNEL_ARCH),e2k)
   ARCH=e2k
   RPMARCH=e2k
