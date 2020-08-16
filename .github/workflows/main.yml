@@ -51,6 +51,62 @@ jobs:
           path: |
             linux/releasex64
             !linux/releasex64/**/*.o
+  ARMv7:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build vkQuake2 ARMv7 Debug
+        uses: uraimo/run-on-arch-action@v1.0.9
+        with:
+          architecture: armv7
+          distribution: ubuntu18.04
+          run: |
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get -qq update
+            apt-get install -y make gcc g++ libvulkan-dev mesa-common-dev libglu1-mesa-dev libxxf86dga-dev libxxf86vm-dev libasound2-dev libx11-dev libxcb1-dev
+            cd linux
+            make debug
+      - name: Build vkQuake2 ARMv7 Release
+        uses: uraimo/run-on-arch-action@v1.0.9
+        with:
+          architecture: armv7
+          distribution: ubuntu18.04
+          run: |
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get -qq update
+            apt-get install -y make gcc g++ libvulkan-dev mesa-common-dev libglu1-mesa-dev libxxf86dga-dev libxxf86vm-dev libasound2-dev libx11-dev libxcb1-dev
+            cd linux
+            make release
+  AArch64:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build vkQuake2 AArch64 Debug
+        uses: uraimo/run-on-arch-action@v1.0.9
+        with:
+          architecture: aarch64
+          distribution: ubuntu18.04
+          run: |
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get -qq update
+            apt-get install -y make gcc g++ libvulkan-dev mesa-common-dev libglu1-mesa-dev libxxf86dga-dev libxxf86vm-dev libasound2-dev libx11-dev libxcb1-dev
+            cd linux
+            make debug
+      - name: Build vkQuake2 AArch64 Release
+        uses: uraimo/run-on-arch-action@v1.0.9
+        with:
+          architecture: aarch64
+          distribution: ubuntu18.04
+          run: |
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get -qq update
+            apt-get install -y make gcc g++ libvulkan-dev mesa-common-dev libglu1-mesa-dev libxxf86dga-dev libxxf86vm-dev libasound2-dev libx11-dev libxcb1-dev
+            cd linux
+            make release
   MacOS:
     runs-on: macos-latest
 
