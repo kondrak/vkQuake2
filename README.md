@@ -26,6 +26,8 @@ This is the official Quake 2 code v3.21 with Vulkan support and mission packs in
 - support for OGG/FLAC/MP3/WAV music has been added in addition to standard CD audio
 - music volume slider has been added (OGG/FLAC/MP3/WAV only, CD music still plays at full volume as originally intended)
 - game menus have been slightly improved
+- added Nightmare/Hard+ skill to the game menu
+- added the `aimfix` console command, backported from Berserker@Quake2
 
 Building
 ===
