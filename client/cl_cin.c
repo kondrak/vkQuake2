@@ -46,6 +46,7 @@ typedef struct
 } cinematics_t;
 
 cinematics_t	cin;
+qboolean		cin_finished = false;
 
 /*
 =================================================================
@@ -197,6 +198,13 @@ Called when either the cinematic completes, or it is aborted
 */
 void SCR_FinishCinematic (void)
 {
+	// For expansions packs/mods with multiple cinematics played in a row, the input queue
+	// may cause the "nextserver" message to be sent out more than once which results in a lockup.
+	// Here we make sure that SCR_FinishCinematic() is called exactly once to avoid this.
+	if (cin_finished)
+		return;
+
+	cin_finished = true;
 	// tell the server to advance to the next map / cinematic
 	MSG_WriteByte (&cls.netchan.message, clc_stringcmd);
 	SZ_Print (&cls.netchan.message, va("nextserver %i\n", cl.servercount));
@@ -584,6 +592,7 @@ void SCR_PlayCinematic (char *arg)
 	CDAudio_Stop();
 	Miniaudio_Stop();
 
+	cin_finished = false;
 	cl.cinematicframe = 0;
 	dot = strstr (arg, ".");
 	if (dot && !strcmp (dot, ".pcx"))
