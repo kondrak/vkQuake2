@@ -1939,7 +1939,7 @@ VkResult QVk_BeginFrame()
 			if (res == VK_SUCCESS)
 			{
 				vk_config.vk_full_screen_exclusive_acquired = true;
-				ri.Con_Printf(PRINT_ALL, "Full Screen Exclusive Mode acquired.\n");
+				ri.Con_Printf(PRINT_ALL, "Fullscreen Exclusive Mode acquired.\n");
 			}
 		}
 		else if (!vid_fullscreen->value && vk_config.vk_full_screen_exclusive_acquired)
@@ -1948,7 +1948,7 @@ VkResult QVk_BeginFrame()
 			if (res == VK_SUCCESS)
 			{
 				vk_config.vk_full_screen_exclusive_acquired = false;
-				ri.Con_Printf(PRINT_ALL, "Full Screen Exclusive Mode released.\n");
+				ri.Con_Printf(PRINT_ALL, "Fullscreen Exclusive Mode released.\n");
 			}
 		}
 	}

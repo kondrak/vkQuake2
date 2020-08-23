@@ -210,6 +210,7 @@ extern	cvar_t	*vk_aniso;
 extern	cvar_t	*vk_sampleshading;
 extern	cvar_t	*vk_vsync;
 extern	cvar_t	*vk_device_idx;
+extern	cvar_t	*vk_fullscreen_exclusive;
 
 extern	cvar_t	*vid_fullscreen;
 extern	cvar_t	*vid_gamma;

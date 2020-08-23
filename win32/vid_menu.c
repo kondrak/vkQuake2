@@ -47,6 +47,7 @@ static cvar_t *vk_texturemode;
 static cvar_t *vk_lmaptexturemode;
 static cvar_t *vk_vsync;
 static cvar_t *vk_postprocess;
+static cvar_t *vk_fullscreen_exclusive;
 static cvar_t *vk_picmip;
 
 static cvar_t *sw_mode;
@@ -90,6 +91,7 @@ static menulist_s		s_texture_filter;
 static menulist_s		s_lmap_texture_filter;
 static menulist_s		s_vsync;
 static menulist_s		s_postprocess;
+static menulist_s		s_exclusive_fullscreen;
 static menulist_s		s_finish_box;
 static menulist_s		s_vkfinish_box;
 static menuaction_s		s_apply_action[3];
@@ -185,6 +187,7 @@ static void ApplyChanges( void *unused )
 	Cvar_SetValue( "vk_sampleshading", s_sampleshading.curvalue );
 	Cvar_SetValue( "vk_vsync", s_vsync.curvalue );
 	Cvar_SetValue( "vk_postprocess", s_postprocess.curvalue );
+	Cvar_SetValue( "vk_fullscreen_exclusive", s_exclusive_fullscreen.curvalue );
 	Cvar_SetValue( "vk_picmip", 3 - s_tqvk_slider.curvalue );
 
 	switch ( s_texture_filter.curvalue )
@@ -368,6 +371,8 @@ void VID_MenuInit( void )
 		vk_vsync = Cvar_Get( "vk_vsync", "0", CVAR_ARCHIVE );
 	if ( !vk_postprocess )
 		vk_postprocess = Cvar_Get( "vk_postprocess", "1", CVAR_ARCHIVE );
+	if ( !vk_fullscreen_exclusive )
+		vk_fullscreen_exclusive = Cvar_Get( "vk_fullscreen_exclusive", "0", CVAR_ARCHIVE );
 	if ( !vk_texturemode )
 		vk_texturemode = Cvar_Get( "vk_texturemode", "VK_MIPMAP_LINEAR", CVAR_ARCHIVE );
 	if ( !vk_lmaptexturemode )
@@ -465,19 +470,19 @@ void VID_MenuInit( void )
 		s_apply_action[i].generic.type = MTYPE_ACTION;
 		s_apply_action[i].generic.name = "apply changes";
 		s_apply_action[i].generic.x = 0;
-		s_apply_action[i].generic.y = 160 * vid_hudscale->value;
+		s_apply_action[i].generic.y = 170 * vid_hudscale->value;
 		s_apply_action[i].generic.callback = ApplyChanges;
 
 		s_defaults_action[i].generic.type = MTYPE_ACTION;
 		s_defaults_action[i].generic.name = "reset to defaults";
 		s_defaults_action[i].generic.x    = 0;
-		s_defaults_action[i].generic.y    = 170 * vid_hudscale->value;
+		s_defaults_action[i].generic.y    = 180 * vid_hudscale->value;
 		s_defaults_action[i].generic.callback = ResetDefaults;
 
 		s_cancel_action[i].generic.type = MTYPE_ACTION;
 		s_cancel_action[i].generic.name = "cancel";
 		s_cancel_action[i].generic.x    = 0;
-		s_cancel_action[i].generic.y    = 180 * vid_hudscale->value;
+		s_cancel_action[i].generic.y    = 190 * vid_hudscale->value;
 		s_cancel_action[i].generic.callback = CancelChanges;
 	}
 
@@ -586,6 +591,13 @@ void VID_MenuInit( void )
 	s_postprocess.itemnames = yesno_names;
 	s_postprocess.curvalue = vk_postprocess->value > 0 ? 1 : 0;
 
+	s_exclusive_fullscreen.generic.type = MTYPE_SPINCONTROL;
+	s_exclusive_fullscreen.generic.name = "exclusive fullscreen";
+	s_exclusive_fullscreen.generic.x = 0;
+	s_exclusive_fullscreen.generic.y = 150 * vid_hudscale->value;
+	s_exclusive_fullscreen.itemnames = yesno_names;
+	s_exclusive_fullscreen.curvalue = vk_fullscreen_exclusive->value > 0 ? 1 : 0;
+
 	Menu_AddItem( &s_software_menu, ( void * ) &s_ref_list[SOFTWARE_MENU] );
 	Menu_AddItem( &s_software_menu, ( void * ) &s_mode_list[SOFTWARE_MENU] );
 	Menu_AddItem( &s_software_menu, ( void * ) &s_screensize_slider[SOFTWARE_MENU] );
@@ -616,6 +628,7 @@ void VID_MenuInit( void )
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_lmap_texture_filter );
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_vsync );
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_postprocess );
+	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_exclusive_fullscreen );
 
 	Menu_AddItem( &s_software_menu, ( void * ) &s_apply_action[SOFTWARE_MENU] );
 	Menu_AddItem( &s_software_menu, ( void * ) &s_defaults_action[SOFTWARE_MENU] );
@@ -635,7 +648,7 @@ void VID_MenuInit( void )
 	s_vulkan_menu.x -= 8 * vid_hudscale->value;
 	s_opengl_menu.y += 20 * vid_hudscale->value;
 	s_software_menu.y += 20 * vid_hudscale->value;
-	s_vulkan_menu.y += 20 * vid_hudscale->value;
+	s_vulkan_menu.y += 30 * vid_hudscale->value;
 }
 
 /*
