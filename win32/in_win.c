@@ -222,7 +222,7 @@ void IN_StartupMouse (void)
 
 	mouseinitialized = true;
 	mouseparmsvalid = SystemParametersInfo (SPI_GETMOUSE, 0, originalmouseparms, 0);
-	mouse_buttons = 3;
+	mouse_buttons = 5;
 }
 
 /*
@@ -243,13 +243,14 @@ void IN_MouseEvent (int mstate)
 		if ( (mstate & (1<<i)) &&
 			!(mouse_oldbuttonstate & (1<<i)) )
 		{
-			Key_Event (K_MOUSE1 + i, true, sys_msg_time);
+			// MOUSE4 and MOUSE5 detection needs to have an offset applied due to higher virtual key codes
+			Key_Event (K_MOUSE1 + i + (i > 2 ? 38 : 0), true, sys_msg_time);
 		}
 
 		if ( !(mstate & (1<<i)) &&
 			(mouse_oldbuttonstate & (1<<i)) )
 		{
-				Key_Event (K_MOUSE1 + i, false, sys_msg_time);
+				Key_Event (K_MOUSE1 + i + (i > 2 ? 38 : 0), false, sys_msg_time);
 		}
 	}	
 		

@@ -400,6 +400,8 @@ LONG WINAPI MainWndProc (
 	case WM_RBUTTONUP:
 	case WM_MBUTTONDOWN:
 	case WM_MBUTTONUP:
+	case WM_XBUTTONDOWN: // MOUSE4 and MOUSE5
+	case WM_XBUTTONUP:
 	case WM_MOUSEMOVE:
 		{
 			int	temp;
@@ -414,6 +416,12 @@ LONG WINAPI MainWndProc (
 
 			if (wParam & MK_MBUTTON)
 				temp |= 4;
+
+			if (wParam & MK_XBUTTON1)
+				temp |= 8;
+
+			if (wParam & MK_XBUTTON2)
+				temp |= 16;
 
 			IN_MouseEvent (temp);
 		}
