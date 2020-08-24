@@ -45,6 +45,7 @@ cvar_t	*fixedtime;
 cvar_t	*logfile_active;	// 1 = buffer log, 2 = flush after each print
 cvar_t	*showtrace;
 cvar_t	*dedicated;
+cvar_t	*debug_console;		// debug console toggle for Windows
 
 FILE	*logfile;
 
@@ -1457,6 +1458,11 @@ void Qcommon_Init (int argc, char **argv)
 	dedicated = Cvar_Get ("dedicated", "1", CVAR_NOSET);
 #else
 	dedicated = Cvar_Get ("dedicated", "0", CVAR_NOSET);
+#endif
+#ifdef WIN_DEBUG_CONSOLE
+	debug_console = Cvar_Get ("debug_console", "1", CVAR_NOSET);
+#else
+	debug_console = Cvar_Get ("debug_console", "0", CVAR_NOSET);
 #endif
 
 	s = va("%4.2f %s %s %s", VERSION, CPUSTRING, __DATE__, BUILDSTRING);

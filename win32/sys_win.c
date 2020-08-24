@@ -97,10 +97,8 @@ void Sys_Quit (void)
 	CloseHandle (qwclsemaphore);
 	if (dedicated && dedicated->value)
 		FreeConsole ();
-#ifdef WIN_DEBUG_CONSOLE
-	else
+	else if (debug_console->value)
 		FreeConsole();
-#endif
 
 // shut down QHOST hooks if necessary
 	DeinitConProc ();
@@ -263,15 +261,13 @@ void Sys_Init (void)
 		// let QHOST hook in
 		InitConProc (argc, argv);
 	}
-#ifdef WIN_DEBUG_CONSOLE
-	else
+	else if (debug_console->value)
 	{
 		AllocConsole();
 		SetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), 0x07);
 		DeleteMenu(GetSystemMenu(GetConsoleWindow(), false), SC_CLOSE, MF_BYCOMMAND);
 		freopen("CONOUT$", "w", stderr);
 	}
-#endif
 
 	// enable DPI awareness
 	Sys_SetDPIAwareness();
@@ -373,10 +369,11 @@ void Sys_ConsoleOutput (char *string)
 
 	if (!dedicated || !dedicated->value)
 	{
-#ifdef WIN_DEBUG_CONSOLE
-		fputs(string, stderr);
-		OutputDebugString(string);
-#endif
+		if (debug_console && debug_console->value)
+		{
+			fputs(string, stderr);
+			OutputDebugString(string);
+		}
 		return;
 	}
 
