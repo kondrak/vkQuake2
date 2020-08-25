@@ -1941,6 +1941,10 @@ VkResult QVk_BeginFrame()
 				vk_config.vk_full_screen_exclusive_acquired = true;
 				ri.Con_Printf(PRINT_ALL, "Fullscreen Exclusive Mode acquired.\n");
 			}
+			else
+			{
+				ri.Con_Printf(PRINT_ALL, "Fullscreen Exclusive Mode acquisition error: %s\n", QVk_GetError(res));
+			}
 		}
 		else if (!vid_fullscreen->value && vk_config.vk_full_screen_exclusive_acquired)
 		{
@@ -1949,6 +1953,10 @@ VkResult QVk_BeginFrame()
 			{
 				vk_config.vk_full_screen_exclusive_acquired = false;
 				ri.Con_Printf(PRINT_ALL, "Fullscreen Exclusive Mode released.\n");
+			}
+			else
+			{
+				ri.Con_Printf(PRINT_ALL, "Fullscreen Exclusive Mode release error: %s\n", QVk_GetError(res));
 			}
 		}
 	}
@@ -2057,15 +2065,19 @@ VkResult QVk_EndFrame(qboolean force)
 	VkResult renderResult = vkQueuePresentKHR(vk_device.presentQueue, &presentInfo);
 
 	// for VK_OUT_OF_DATE_KHR and VK_SUBOPTIMAL_KHR it'd be fine to just rebuild the swapchain but let's take the easy way out and restart video system
-	if (renderResult == VK_ERROR_OUT_OF_DATE_KHR || renderResult == VK_SUBOPTIMAL_KHR || 
-		renderResult == VK_ERROR_SURFACE_LOST_KHR 
-#ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
-		|| renderResult == VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT
-#endif
-		)
+	if (renderResult == VK_ERROR_OUT_OF_DATE_KHR || renderResult == VK_SUBOPTIMAL_KHR || renderResult == VK_ERROR_SURFACE_LOST_KHR)
 	{
 		ri.Con_Printf(PRINT_ALL, "QVk_EndFrame(): received %s after vkQueuePresentKHR - restarting video!\n", QVk_GetError(renderResult));
 	}
+#ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
+	else if (renderResult == VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT)
+	{
+		ri.Con_Printf(PRINT_ALL, "QVk_EndFrame(): received VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT after vkQueuePresentKHR - attemtping to reacquire!\n");
+		vk_config.vk_full_screen_exclusive_acquired = false;
+		// imply success so that we don't restart the renderer needlessly
+		renderResult = VK_SUCCESS;
+	}
+#endif
 	else if (renderResult != VK_SUCCESS)
 	{
 		Sys_Error("QVk_EndFrame(): unexpected error after vkQueuePresentKHR: %s", QVk_GetError(renderResult));
