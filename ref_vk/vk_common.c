@@ -1943,9 +1943,10 @@ VkResult QVk_BeginFrame()
 			}
 			else
 			{
+				// Some hardware configurations seem to be incapable of acquiring fullscreen exclusive mode - likely due to installed 3rd party software.
+				// This causes the renderer to lock up indefinitely, so let's just revert to borderless window if a failure occurs.
 				ri.Con_Printf(PRINT_ALL, "Fullscreen Exclusive Mode acquisition error: %s - reverting to borderless windowed mode.\n", QVk_GetError(res));
 				ri.Cvar_SetValue("vk_fullscreen_exclusive", 0);
-				vk_restart = true;
 			}
 		}
 		else if (!vid_fullscreen->value && vk_config.vk_full_screen_exclusive_acquired)
