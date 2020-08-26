@@ -1072,7 +1072,7 @@ void R_Register( void )
 	vk_sampleshading = ri.Cvar_Get("vk_sampleshading", "1", CVAR_ARCHIVE);
 	vk_vsync = ri.Cvar_Get("vk_vsync", "0", CVAR_ARCHIVE);
 	vk_device_idx = ri.Cvar_Get("vk_device", "-1", CVAR_ARCHIVE);
-	vk_fullscreen_exclusive = ri.Cvar_Get("vk_fullscreen_exclusive", "0", CVAR_ARCHIVE);
+	vk_fullscreen_exclusive = ri.Cvar_Get("vk_fullscreen_exclusive", "1", CVAR_ARCHIVE);
 	// clamp vk_msaa to accepted range so that video menu doesn't crash on us
 	if (vk_msaa->value < 0)
 		ri.Cvar_Set("vk_msaa", "0");

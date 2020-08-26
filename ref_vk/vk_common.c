@@ -1943,7 +1943,9 @@ VkResult QVk_BeginFrame()
 			}
 			else
 			{
-				ri.Con_Printf(PRINT_ALL, "Fullscreen Exclusive Mode acquisition error: %s\n", QVk_GetError(res));
+				ri.Con_Printf(PRINT_ALL, "Fullscreen Exclusive Mode acquisition error: %s - reverting to borderless windowed mode.\n", QVk_GetError(res));
+				ri.Cvar_SetValue("vk_fullscreen_exclusive", 0);
+				vk_restart = true;
 			}
 		}
 		else if (!vid_fullscreen->value && vk_config.vk_full_screen_exclusive_acquired)
@@ -1964,15 +1966,18 @@ VkResult QVk_BeginFrame()
 
 	VkResult result = vkAcquireNextImageKHR(vk_device.logical, vk_swapchain.sc, UINT32_MAX, vk_imageAvailableSemaphores[vk_activeBufferIdx], VK_NULL_HANDLE, &vk_imageIndex);
 	// for VK_OUT_OF_DATE_KHR and VK_SUBOPTIMAL_KHR it'd be fine to just rebuild the swapchain but let's take the easy way out and restart video system
-	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_SURFACE_LOST_KHR 
-#ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
-		|| result == VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT
-#endif
-		)
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_SURFACE_LOST_KHR)
 	{
 		ri.Con_Printf(PRINT_ALL, "QVk_BeginFrame(): received %s after vkAcquireNextImageKHR - restarting video!\n", QVk_GetError(result));
 		return result;
 	}
+#ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
+	else if (result == VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT)
+	{
+		ri.Con_Printf(PRINT_ALL, "QVk_BeginFrame(): received VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT after vkAcquireNextImageKHR - attempting to reacquire in next frame.\n");
+		vk_config.vk_full_screen_exclusive_acquired = false;
+	}
+#endif
 	else if (result != VK_SUCCESS)
 	{
 		Sys_Error("QVk_BeginFrame(): unexpected error after vkAcquireNextImageKHR: %s", QVk_GetError(result));
@@ -2072,9 +2077,9 @@ VkResult QVk_EndFrame(qboolean force)
 #ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
 	else if (renderResult == VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT)
 	{
-		ri.Con_Printf(PRINT_ALL, "QVk_EndFrame(): received VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT after vkQueuePresentKHR - attemtping to reacquire!\n");
+		ri.Con_Printf(PRINT_ALL, "QVk_EndFrame(): received VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT after vkQueuePresentKHR - attempting to reacquire in next frame.\n");
 		vk_config.vk_full_screen_exclusive_acquired = false;
-		// imply success so that we don't restart the renderer needlessly
+		// imply success so that we don't restart the renderer needlessly - specs allow reacquiring exclusive fullscreen for the same swapchain
 		renderResult = VK_SUCCESS;
 	}
 #endif
