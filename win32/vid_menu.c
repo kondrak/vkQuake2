@@ -646,8 +646,8 @@ void VID_MenuInit( void )
 	s_opengl_menu.x -= 8 * vid_hudscale->value;
 	s_software_menu.x -= 8 * vid_hudscale->value;
 	s_vulkan_menu.x -= 8 * vid_hudscale->value;
-	s_opengl_menu.y += 20 * vid_hudscale->value;
-	s_software_menu.y += 20 * vid_hudscale->value;
+	s_opengl_menu.y += 30 * vid_hudscale->value;
+	s_software_menu.y += 30 * vid_hudscale->value;
 	s_vulkan_menu.y += 30 * vid_hudscale->value;
 }
 
