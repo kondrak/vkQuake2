@@ -1478,6 +1478,7 @@ void R_DrawBeam( entity_t *e )
 	memcpy(vertData, beamvertex, sizeof(beamvertex));
 	memcpy(uboData,  color, sizeof(color));
 
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawBeamPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawBeamPipeline.layout, 0, 1, &uboDescriptorSet, 1, &uboOffset);
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 	vkCmdDraw(vk_activeCmdbuffer, NUM_BEAM_SEGS * 4, 1, 0, 0);
