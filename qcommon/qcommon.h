@@ -30,9 +30,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifdef WIN32
 
 #ifdef NDEBUG
-#define BUILDSTRING "Win32"
+#define BUILDSTRING "Windows"
 #else
-#define BUILDSTRING "Win32 DEBUG"
+#define BUILDSTRING "Windows DEBUG"
 #endif
 
 #ifdef _M_IX86
