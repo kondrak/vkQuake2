@@ -215,16 +215,21 @@ void R_DrawSpriteModel (entity_t *e)
 						  spriteQuad[2][0], spriteQuad[2][1], spriteQuad[2][2], 1.f, 0.f,
 						  spriteQuad[3][0], spriteQuad[3][1], spriteQuad[3][2], 1.f, 1.f };
 
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawSpritePipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, sizeof(r_viewproj_matrix), sizeof(float), &alpha);
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawSpritePipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
 	QVk_BindPipeline(&vk_drawSpritePipeline);
 
 	VkBuffer vbo;
 	VkDeviceSize vboOffset;
+	uint32_t uboOffset;
+	VkDescriptorSet uboDescriptorSet;
 	uint8_t *vertData = QVk_GetVertexBuffer(sizeof(quadVerts), &vbo, &vboOffset);
+	uint8_t *uboData  = QVk_GetUniformBuffer(sizeof(alpha), &uboOffset, &uboDescriptorSet);
 	memcpy(vertData, quadVerts, sizeof(quadVerts));
-	
+	memcpy(uboData, &alpha, sizeof(alpha));
+
+	VkDescriptorSet descriptorSets[] = { currentmodel->skins[e->frame]->vk_texture.descriptorSet, uboDescriptorSet };
+	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawSpritePipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
-	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawSpritePipeline.layout, 0, 1, &currentmodel->skins[e->frame]->vk_texture.descriptorSet, 0, NULL);
 	vkCmdDraw(vk_activeCmdbuffer, 6, 1, 0, 0);
 }
 
@@ -543,6 +548,7 @@ void R_DrawParticles (void)
 		uint8_t *uboData  = QVk_GetUniformBuffer(sizeof(particleUbo), &uboOffset, &uboDescriptorSet);
 		memcpy(vertData, &visibleParticles, sizeof(ppoint) * r_newrefdef.num_particles);
 		memcpy(uboData,  &particleUbo, sizeof(particleUbo));
+		vkCmdPushConstants(vk_activeCmdbuffer, vk_drawPointParticlesPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
 		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPointParticlesPipeline.layout, 0, 1, &uboDescriptorSet, 1, &uboOffset);
 		vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 		vkCmdDraw(vk_activeCmdbuffer, r_newrefdef.num_particles, 1, 0, 0);
@@ -852,8 +858,6 @@ void R_SetupVulkan (void)
 
 	// precalculate view-projection matrix
 	Mat_Mul(r_view_matrix, r_projection_matrix, r_viewproj_matrix);
-	// view-projection matrix will always be stored as the first push constant item, so set no offset
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawTexQuadPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
 }
 
 void R_Flash( void )
@@ -962,7 +966,7 @@ void R_SetVulkan2D (void)
 	// skip this step if we're in player config screen since it uses RP_UI and draws directly to swapchain
 	if (!(r_newrefdef.rdflags & RDF_NOWORLDMODEL))
 	{
-		float pushConsts[] = { vk_postprocess->value, vid_gamma->value };
+		float pushConsts[] = { vk_postprocess->value, vid_gamma->value, 0.f, 0.f };
 		vkCmdPushConstants(vk_activeCmdbuffer, vk_postprocessPipeline.layout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(pushConsts), pushConsts);
 		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_postprocessPipeline.layout, 0, 1, &vk_colorbufferWarp.descriptorSet, 0, NULL);
 		QVk_BindPipeline(&vk_postprocessPipeline);

@@ -7,8 +7,12 @@ layout(location = 1) in vec2 inTexCoord;
 layout(push_constant) uniform PushConstant
 {
     mat4 mvpMatrix;
-    float alpha;
 } pc;
+
+layout(set = 1, binding = 0) uniform UniformBufferObject
+{
+    float alpha;
+} ubo;
 
 layout(location = 0) out vec2 texCoord;
 layout(location = 1) out vec4 color;
@@ -21,6 +25,6 @@ out gl_PerVertex {
 void main() {
     gl_Position = pc.mvpMatrix * vec4(inVertex, 1.0);
     texCoord = inTexCoord;
-    color = vec4(1.0, 1.0, 1.0, pc.alpha);
+    color = vec4(1.0, 1.0, 1.0, ubo.alpha);
     aTreshold = 0.0666;
 }
