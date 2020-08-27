@@ -137,7 +137,7 @@ The following commands are available when using the Vulkan renderer:
 | `vk_mip_nearfilter`     | Use nearest-neighbor filtering for mipmaps. (default: `0`) |
 | `vk_texturemode`        | Change current texture filtering mode:<br>`VK_NEAREST` - nearest-neighbor interpolation, no mipmaps<br>`VK_LINEAR` - linear interpolation, no mipmaps<br>`VK_MIPMAP_NEAREST` - nearest-neighbor interpolation with mipmaps<br>`VK_MIPMAP_LINEAR` - linear interpolation with mipmaps (default) |
 | `vk_lmaptexturemode`    | Same as `vk_texturemode` but applied to lightmap textures. |
-| `vk_fullscreen_exclusive` | Toggle between exclusive and borderless windowed fullscreen mode (default: `1`). |
+| `vk_fullscreen_exclusive` | Windows only: toggle between exclusive and borderless windowed fullscreen mode (default: `1`). |
 
 Acknowledgements
 ===
