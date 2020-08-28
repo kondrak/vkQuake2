@@ -327,6 +327,7 @@ typedef struct
 	uint32_t    allocated_sampler_descriptor_set_count;
 	uint32_t    ubo_descriptor_set_count;
 	uint32_t    sampler_descriptor_set_count;
+	int         swapchain_image_count;
 	qboolean    vk_ext_debug_utils_supported;
 	qboolean    vk_ext_debug_report_supported;
 	qboolean    vk_ext_full_screen_exclusive_available; // the extension is available

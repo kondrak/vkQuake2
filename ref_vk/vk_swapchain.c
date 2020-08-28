@@ -251,5 +251,7 @@ VkResult QVk_CreateSwapchain()
 	if (oldSwapchain != VK_NULL_HANDLE)
 		vkDestroySwapchainKHR(vk_device.logical, oldSwapchain, NULL);
 
+	vk_config.swapchain_image_count = imageCount;
+
 	return res;
 }

@@ -254,6 +254,7 @@ void Vk_Strings_f(void)
 																	vk_device.transferFamilyIndex);
 	ri.Con_Printf(PRINT_ALL, "Present mode: %s\n", vk_config.present_mode);
 	ri.Con_Printf(PRINT_ALL, "Swapchain image format: %d\n", vk_swapchain.format);
+	ri.Con_Printf(PRINT_ALL, "Swapchain image count: %d\n", vk_config.swapchain_image_count);
 	ri.Con_Printf(PRINT_ALL, "Supported present modes: ");
 
 	i = 0;

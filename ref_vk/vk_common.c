@@ -1580,6 +1580,7 @@ qboolean QVk_Init()
 	vk_config.allocated_sampler_descriptor_set_count = 0;
 	vk_config.ubo_descriptor_set_count = 0;
 	vk_config.sampler_descriptor_set_count = 0;
+	vk_config.swapchain_image_count = 0;
 	vk_config.vk_ext_debug_utils_supported = false;
 	vk_config.vk_ext_debug_report_supported = false;
 	vk_config.vk_ext_full_screen_exclusive_available = false;
