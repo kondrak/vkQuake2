@@ -726,8 +726,11 @@ static void CreateDrawBuffers()
 	ri.Con_Printf(PRINT_ALL, "...created world color buffer\n");
 	QVk_CreateColorBuffer(VK_SAMPLE_COUNT_1_BIT, &vk_colorbufferWarp, VK_IMAGE_USAGE_SAMPLED_BIT);
 	ri.Con_Printf(PRINT_ALL, "...created world postpocess color buffer\n");
-	QVk_CreateColorBuffer(vk_renderpasses[RP_WORLD].sampleCount, &vk_msaaColorbuffer, 0);
-	ri.Con_Printf(PRINT_ALL, "...created MSAAx%d color buffer\n", vk_renderpasses[RP_WORLD].sampleCount);
+	if (vk_renderpasses[RP_WORLD].sampleCount > 1)
+	{
+		QVk_CreateColorBuffer(vk_renderpasses[RP_WORLD].sampleCount, &vk_msaaColorbuffer, 0);
+		ri.Con_Printf(PRINT_ALL, "...created MSAAx%d color buffer\n", vk_renderpasses[RP_WORLD].sampleCount);
+	}
 
 	QVk_DebugSetObjectName((uint64_t)vk_depthbuffer.image, VK_OBJECT_TYPE_IMAGE, "Depth Buffer: World");
 	QVk_DebugSetObjectName((uint64_t)vk_depthbuffer.imageView, VK_OBJECT_TYPE_IMAGE_VIEW, "Image View: World Depth Buffer");
@@ -741,9 +744,12 @@ static void CreateDrawBuffers()
 	QVk_DebugSetObjectName((uint64_t)vk_colorbufferWarp.image, VK_OBJECT_TYPE_IMAGE, "Color Buffer: Warp Postprocess");
 	QVk_DebugSetObjectName((uint64_t)vk_colorbufferWarp.imageView, VK_OBJECT_TYPE_IMAGE_VIEW, "Image View: Warp Postprocess Color Buffer");
 	QVk_DebugSetObjectName((uint64_t)vk_colorbufferWarp.allocInfo.deviceMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: Warp Postprocess Color Buffer");
-	QVk_DebugSetObjectName((uint64_t)vk_msaaColorbuffer.image, VK_OBJECT_TYPE_IMAGE, "Color Buffer: MSAA");
-	QVk_DebugSetObjectName((uint64_t)vk_msaaColorbuffer.imageView, VK_OBJECT_TYPE_IMAGE_VIEW, "Image View: MSAA Color Buffer");
-	QVk_DebugSetObjectName((uint64_t)vk_msaaColorbuffer.allocInfo.deviceMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: MSAA Color Buffer");
+	if (vk_renderpasses[RP_WORLD].sampleCount > 1)
+	{
+		QVk_DebugSetObjectName((uint64_t)vk_msaaColorbuffer.image, VK_OBJECT_TYPE_IMAGE, "Color Buffer: MSAA");
+		QVk_DebugSetObjectName((uint64_t)vk_msaaColorbuffer.imageView, VK_OBJECT_TYPE_IMAGE_VIEW, "Image View: MSAA Color Buffer");
+		QVk_DebugSetObjectName((uint64_t)vk_msaaColorbuffer.allocInfo.deviceMemory, VK_OBJECT_TYPE_DEVICE_MEMORY, "Memory: MSAA Color Buffer");
+	}
 }
 
 // internal helper
