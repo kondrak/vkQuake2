@@ -165,7 +165,8 @@ VkResult QVk_CreateSwapchain()
 	}
 
 	// request at least 2 images - this fixes fullscreen crashes on AMD when launching the game in fullscreen
-	uint32_t imageCount = max(2, surfaceCaps.minImageCount);
+	// update: validation layer performance warning suggests trying triple buffering, so let's try 3 images!
+	uint32_t imageCount = max(3, surfaceCaps.minImageCount);
 	if (swapPresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
 		imageCount = max(3, surfaceCaps.minImageCount);
 
