@@ -276,9 +276,9 @@ void Vk_DrawAliasFrameLerp (dmdl_t *paliashdr, float backlerp, image_t *skin, fl
 		uint8_t *vertData = QVk_GetVertexBuffer(vaoSize, &vbo, &vboOffset);
 		memcpy(vertData, vertList[p], vaoSize);
 
-		vkCmdPushConstants(vk_activeCmdbuffer, pipelines[translucentIdx][p + leftHandOffset].layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
 		QVk_BindPipeline(&pipelines[translucentIdx][p + leftHandOffset]);
 		VkDescriptorSet descriptorSets[] = { skin->vk_texture.descriptorSet, uboDescriptorSet };
+		vkCmdPushConstants(vk_activeCmdbuffer, pipelines[translucentIdx][p + leftHandOffset].layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
 		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[translucentIdx][p + leftHandOffset].layout, 0, 2, descriptorSets, 1, &uboOffset);
 		vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 
@@ -386,6 +386,7 @@ void Vk_DrawAliasShadow (dmdl_t *paliashdr, int posenum, float *modelMatrix)
 			memcpy(vertData, shadowverts, vaoSize);
 
 			QVk_BindPipeline(&pipelines[pipelineIdx]);
+			vkCmdPushConstants(vk_activeCmdbuffer, pipelines[pipelineIdx].layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
 			vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines[pipelineIdx].layout, 0, 1, &uboDescriptorSet, 1, &uboOffset);
 			vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 

@@ -188,6 +188,7 @@ void DrawVkFlowingPoly (msurface_t *fa, image_t *texture, float *color)
 	memcpy(uboData,  color, sizeof(float) * 4);
 
 	VkDescriptorSet descriptorSets[] = { texture->vk_texture.descriptorSet, uboDescriptorSet };
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawPolyPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawPolyPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 	vkCmdBindIndexBuffer(vk_activeCmdbuffer, QVk_GetTriangleFanIbo((p->numverts - 2) * 3), 0, VK_INDEX_TYPE_UINT16);
@@ -470,8 +471,8 @@ static void Vk_RenderLightmappedPoly( msurface_t *surf, float *modelMatrix, floa
 		Mat_Identity(lmapPolyUbo.model);
 	}
 
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawPolyLmapPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
 	QVk_BindPipeline(&vk_drawPolyLmapPipeline);
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawPolyLmapPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
 
 	uint32_t uboOffset;
 	VkDescriptorSet uboDescriptorSet;

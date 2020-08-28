@@ -215,7 +215,6 @@ void R_DrawSpriteModel (entity_t *e)
 						  spriteQuad[2][0], spriteQuad[2][1], spriteQuad[2][2], 1.f, 0.f,
 						  spriteQuad[3][0], spriteQuad[3][1], spriteQuad[3][2], 1.f, 1.f };
 
-	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawSpritePipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
 	QVk_BindPipeline(&vk_drawSpritePipeline);
 
 	VkBuffer vbo;
@@ -228,6 +227,7 @@ void R_DrawSpriteModel (entity_t *e)
 	memcpy(uboData, &alpha, sizeof(alpha));
 
 	VkDescriptorSet descriptorSets[] = { currentmodel->skins[e->frame]->vk_texture.descriptorSet, uboDescriptorSet };
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawSpritePipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawSpritePipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 	vkCmdDraw(vk_activeCmdbuffer, 6, 1, 0, 0);
@@ -299,6 +299,8 @@ void R_DrawNullModel (void)
 	memcpy(uboData,  model, sizeof(model));
 
 	QVk_BindPipeline(&vk_drawNullModelPipeline);
+
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawNullModelPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawNullModelPipeline.layout, 0, 1, &uboDescriptorSet, 1, &uboOffset);
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 	vkCmdBindIndexBuffer(vk_activeCmdbuffer, QVk_GetTriangleFanIbo(12), 0, VK_INDEX_TYPE_UINT16);
@@ -476,6 +478,7 @@ void Vk_DrawParticles( int num_particles, const particle_t particles[], const un
 	uint8_t *vertData = QVk_GetVertexBuffer(3 * sizeof(pvertex) * num_particles, &vbo, &vboOffset);
 	memcpy(vertData, &visibleParticles, 3 * sizeof(pvertex) * num_particles);
 
+	vkCmdPushConstants(vk_activeCmdbuffer, vk_drawParticlesPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawParticlesPipeline.layout, 0, 1, &r_particletexture->vk_texture.descriptorSet, 0, NULL);
 	vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 	vkCmdDraw(vk_activeCmdbuffer, 3 * num_particles, 1, 0, 0);

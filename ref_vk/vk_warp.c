@@ -638,6 +638,7 @@ void R_DrawSkyBox (void)
 		memcpy(vertData, verts, sizeof(verts));
 		
 		VkDescriptorSet descriptorSets[] = { sky_images[skytexorder[i]]->vk_texture.descriptorSet, uboDescriptorSet };
+		vkCmdPushConstants(vk_activeCmdbuffer, vk_drawSkyboxPipeline.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(r_viewproj_matrix), r_viewproj_matrix);
 		vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_drawSkyboxPipeline.layout, 0, 2, descriptorSets, 1, &uboOffset);
 		vkCmdBindVertexBuffers(vk_activeCmdbuffer, 0, 1, &vbo, &vboOffset);
 		vkCmdDraw(vk_activeCmdbuffer, 6, 1, 0, 0);
