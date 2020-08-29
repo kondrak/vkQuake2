@@ -589,10 +589,10 @@ void Con_DrawConsole (float frac)
 	SCR_AddDirtyPoint (0,0);
 	SCR_AddDirtyPoint (viddef.width-1,lines-1);
 
-	Com_sprintf (version, sizeof(version), "v%4.2f", VERSION);
+	Com_sprintf (version, sizeof(version), "vkQuake2 v%s", VKQUAKE2_VERSION);
 
-	for (x=0 ; x<5 ; x++)
-		re.DrawChar (viddef.width-44*vid_hudscale->value+x*8*vid_hudscale->value, lines-12*vid_hudscale->value, 128 + version[x] );
+	for (x=0 ; x<15 ; x++)
+		re.DrawChar (viddef.width-122*vid_hudscale->value+x*8*vid_hudscale->value, lines-12*vid_hudscale->value, 128 + version[x] );
 
 // draw the text
 	con.vislines = lines;
