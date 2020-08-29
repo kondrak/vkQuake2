@@ -508,6 +508,7 @@ void SV_GameMap_f (void)
 	{
 		// wipe all the *.sav files
 		SV_WipeSavegame ("current");
+		map++;
 	}
 	else
 	{	// save the map just exited
@@ -533,7 +534,7 @@ void SV_GameMap_f (void)
 	}
 
 	// start up the next map
-	SV_Map (false, Cmd_Argv(1), false );
+	SV_Map (false, map, false );
 
 	// archive server state
 	strncpy (svs.mapcmd, Cmd_Argv(1), sizeof(svs.mapcmd)-1);
