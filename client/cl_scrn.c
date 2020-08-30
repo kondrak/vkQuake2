@@ -870,11 +870,21 @@ void SCR_TouchPics (void)
 
 	if (crosshair->value)
 	{
+		cvar_t *scale = Cvar_Get("hudscale", "1", 0);
+
 		if (crosshair->value > 3 || crosshair->value < 0)
 			crosshair->value = 3;
 
 		Com_sprintf (crosshair_pic, sizeof(crosshair_pic), "ch%i", (int)(crosshair->value));
 		re.DrawGetPicSize (&crosshair_width, &crosshair_height, crosshair_pic);
+
+		// remove scaling - it will be applied during draw with proper screen centering
+		if (scale->value > 1)
+		{
+			crosshair_width /= (int)scale->value;
+			crosshair_height /= (int)scale->value;
+		}
+
 		if (!crosshair_width)
 			crosshair_pic[0] = 0;
 	}
