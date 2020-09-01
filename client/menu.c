@@ -1779,12 +1779,12 @@ void M_Credits_MenuDraw( void )
 	/*
 	** draw the credits
 	*/
-	for ( i = 0, y = viddef.height - ( ( cls.realtime - credits_start_time ) / 40.0F ); credits[i] && y < viddef.height; y += 10 * vid_hudscale->value, i++ )
+	for ( i = 0, y = viddef.height - ( ( cls.realtime - credits_start_time ) / 40.0F ); credits[i] && y < viddef.height * vid_hudscale->value; y += 10 * vid_hudscale->value, i++ )
 	{
 		int j, stringoffset = 0;
 		int bold = false;
 
-		if ( y <= -8 )
+		if ( y <= -8 * vid_hudscale->value )
 			continue;
 
 		if ( credits[i][0] == '+' )

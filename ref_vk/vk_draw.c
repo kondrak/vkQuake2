@@ -61,10 +61,10 @@ void Draw_Char (int x, int y, int num)
 	if ((num & 127) == 32)
 		return;		// space
 
-	if (y <= -8)
-		return;			// totally off screen
-
 	cvar_t *scale = ri.Cvar_Get("hudscale", "1", 0);
+
+	if (y <= -8 * scale->value)
+		return;			// totally off screen
 
 	row = num >> 4;
 	col = num & 15;
