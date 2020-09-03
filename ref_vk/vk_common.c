@@ -1183,10 +1183,17 @@ static void CreatePipelines()
 		.offset = 0,
 		.size = 16 * sizeof(float)
 	};
-	VkPushConstantRange pushConstantRangeFrag = {
+	// underwater world warp effect push constant
+	VkPushConstantRange pushConstantRangeWorldWarpFrag = {
 		.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
 		.offset = 0,
 		.size = 4 * sizeof(float)
+	};
+	// postprocessing fragment shader push constant
+	VkPushConstantRange pushConstantRangePostprocessFrag = {
+		.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
+		.offset = 0,
+		.size = 2 * sizeof(float)
 	};
 
 	// textured quad pipeline
@@ -1371,7 +1378,7 @@ static void CreatePipelines()
 	vk_worldWarpPipeline.depthTestEnable = VK_FALSE;
 	vk_worldWarpPipeline.depthWriteEnable = VK_FALSE;
 	vk_worldWarpPipeline.cullMode = VK_CULL_MODE_NONE;
-	QVk_CreatePipeline(&vk_samplerDescSetLayout, 1, &vertInfoNull, &vk_worldWarpPipeline, &vk_renderpasses[RP_WORLD_WARP], shaders, 2, &pushConstantRangeFrag);
+	QVk_CreatePipeline(&vk_samplerDescSetLayout, 1, &vertInfoNull, &vk_worldWarpPipeline, &vk_renderpasses[RP_WORLD_WARP], shaders, 2, &pushConstantRangeWorldWarpFrag);
 	QVk_DebugSetObjectName((uint64_t)vk_worldWarpPipeline.layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT, "Pipeline Layout: underwater view warp");
 	QVk_DebugSetObjectName((uint64_t)vk_worldWarpPipeline.pl, VK_OBJECT_TYPE_PIPELINE, "Pipeline: underwater view warp");
 
@@ -1380,7 +1387,7 @@ static void CreatePipelines()
 	vk_postprocessPipeline.depthTestEnable = VK_FALSE;
 	vk_postprocessPipeline.depthWriteEnable = VK_FALSE;
 	vk_postprocessPipeline.cullMode = VK_CULL_MODE_NONE;
-	QVk_CreatePipeline(&vk_samplerDescSetLayout, 1, &vertInfoNull, &vk_postprocessPipeline, &vk_renderpasses[RP_UI], shaders, 2, &pushConstantRangeFrag);
+	QVk_CreatePipeline(&vk_samplerDescSetLayout, 1, &vertInfoNull, &vk_postprocessPipeline, &vk_renderpasses[RP_UI], shaders, 2, &pushConstantRangePostprocessFrag);
 	QVk_DebugSetObjectName((uint64_t)vk_postprocessPipeline.layout, VK_OBJECT_TYPE_PIPELINE_LAYOUT, "Pipeline Layout: world postprocess");
 	QVk_DebugSetObjectName((uint64_t)vk_postprocessPipeline.pl, VK_OBJECT_TYPE_PIPELINE, "Pipeline: world postprocess");
 
