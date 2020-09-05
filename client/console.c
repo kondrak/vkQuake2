@@ -635,10 +635,10 @@ void Con_DrawConsole (float frac)
 			text = cls.downloadname;
 
 		x = con.linewidth - ((con.linewidth * 7) / 40);
-		y = (x - (int)strlen(text) - 8) / vid_hudscale->value;
-		i = con.linewidth/3;
+		y = (x - (int)strlen(text) - 24 * vid_hudscale->value) / vid_hudscale->value;
+		i = con.linewidth/6;
 		if (strlen(text) > i) {
-			y = x - i - 11;
+			y = x - i - 20;
 			strncpy(dlbar, text, i);
 			dlbar[i] = 0;
 			strcat(dlbar, "...");
