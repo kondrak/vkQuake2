@@ -35,8 +35,7 @@ For extra challenge I decided to base vkQuake2 on the original id Software code.
 
 ## Windows
 - download and install the latest [Vulkan SDK](https://vulkan.lunarg.com/)
-- install [Visual Studio Community](https://www.visualstudio.com/products/free-developer-offers-vs) with the MFC package
-- install Windows Universal CRT SDK and Windows SDK 8.1 or just the latest Windows 10 SDK (the latter requires all project files to be updated)
+- install [Visual Studio Community](https://www.visualstudio.com/products/free-developer-offers-vs) with C++ MFC for build tools and Windows 10 SDK
 - open `quake2.sln` and choose the target architecture (x86/x64) - it should build without any additional steps
 
 ## Linux
@@ -87,7 +86,7 @@ Thanks to the effort of [Igalia](https://www.igalia.com/) and their [V3DV Driver
 Running
 ===
 ## Windows
-The Visual Studio 2017 C++ Redistributable is required to run the application: [32-bit](https://go.microsoft.com/fwlink/?LinkId=746571) or [64-bit](https://go.microsoft.com/fwlink/?LinkId=746572) depending on the chosen architecture. These are provided automatically if you have Visual Studio 2017 installed.
+The Visual Studio C++ Redistributable is required to run the application: [32-bit](https://go.microsoft.com/fwlink/?LinkId=746571) or [64-bit](https://go.microsoft.com/fwlink/?LinkId=746572) depending on the chosen architecture. These are provided automatically if you have Visual Studio installed.
 
 ## All platforms
 The [release package](https://github.com/kondrak/vkQuake2/releases) comes only with the Quake 2 Demo content to showcase Vulkan functionality. For full experience, copy retail `.pak`, model and video files into the `baseq2` directory and run the executable. For mission packs, copy necessary data to `rogue` ("Ground Zero"), `xatrix` ("The Reckoning") and `zaero` ("Quake II: Zaero") directories respectively. You can then start the game with either `./quake2 +set game rogue`, `./quake2 +set game xatrix` or `./quake2 +set game zaero`.

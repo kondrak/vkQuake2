@@ -9,7 +9,7 @@ environment:
   VULKAN_SDK: c:\VulkanSDK\%VK_VERSION%
 
 skip_tags: true
-image: Visual Studio 2017
+image: Visual Studio 2019
 clone_depth: 1
 test: off
 
