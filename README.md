@@ -29,6 +29,8 @@ This is the official Quake 2 code v3.21 with Vulkan support and mission packs in
 - added Nightmare/Hard+ skill to the game menu
 - added the `aimfix` console command, backported from Berserker@Quake2
 
+A more detailed description of the thought process behind this project can be found in my [blog post](https://kondrak.github.io/posts/2020-09-20-porting-quake2-to-vulkan/), where I explain the overall design, how I attacked some of the challenges and also how things developed after the initial release.
+
 Building
 ===
 For extra challenge I decided to base vkQuake2 on the original id Software code. Because of this, there are no dependencies on external SDL-like libraries and the entire project is mostly self-contained. This also implies that some of the original bugs could be present.
