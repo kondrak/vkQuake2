@@ -597,7 +597,8 @@ void VID_MenuInit( void )
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_tqvk_slider );
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_msaa_mode );
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_sampleshading );
-	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_aniso_filter );
+	if (Cvar_Get("vidmenu_aniso", "1", 0)->value)
+		Menu_AddItem( &s_vulkan_menu, ( void * ) &s_aniso_filter );
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_texture_filter );
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_lmap_texture_filter );
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_vsync );

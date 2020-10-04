@@ -682,7 +682,7 @@ void Vk_TextureMode( char *string )
 	memcpy(prev_mode, string, strlen(string));
 	prev_mode[strlen(string)] = '\0';
 
-	i += vk_aniso->value > 0 ? NUM_VK_MODES : 0;
+	i += vk_aniso->value > 0 && vk_device.features.samplerAnisotropy ? NUM_VK_MODES : 0;
 	vk_current_sampler = i;
 
 	vkDeviceWaitIdle(vk_device.logical);
@@ -733,7 +733,7 @@ void Vk_LmapTextureMode( char *string )
 	memcpy(prev_mode, string, strlen(string));
 	prev_mode[strlen(string)] = '\0';
 
-	i += vk_aniso->value > 0 ? NUM_VK_MODES : 0;
+	i += vk_aniso->value > 0 && vk_device.features.samplerAnisotropy ? NUM_VK_MODES : 0;
 	vk_current_lmap_sampler = i;
 
 	vkDeviceWaitIdle(vk_device.logical);

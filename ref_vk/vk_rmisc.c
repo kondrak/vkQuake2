@@ -255,6 +255,7 @@ void Vk_Strings_f(void)
 	ri.Con_Printf(PRINT_ALL, "Present mode: %s\n", vk_config.present_mode);
 	ri.Con_Printf(PRINT_ALL, "Swapchain image format: %d\n", vk_swapchain.format);
 	ri.Con_Printf(PRINT_ALL, "Swapchain image count: %d\n", vk_config.swapchain_image_count);
+	ri.Con_Printf(PRINT_ALL, "Sampler anisotropy: %s\n", vk_device.features.samplerAnisotropy ? "yes" : "no");
 	ri.Con_Printf(PRINT_ALL, "Supported present modes: ");
 
 	i = 0;

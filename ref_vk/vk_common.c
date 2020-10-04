@@ -848,8 +848,9 @@ static void CreateSamplers()
 	VK_VERIFY(vkCreateSampler(vk_device.logical, &samplerInfo, NULL, &vk_samplers[S_LINEAR]));
 	QVk_DebugSetObjectName((uint64_t)vk_samplers[S_LINEAR], VK_OBJECT_TYPE_SAMPLER, "Sampler: S_LINEAR");
 
-	// aniso samplers
-	assert((vk_device.properties.limits.maxSamplerAnisotropy > 1.f) && "maxSamplerAnisotropy is 1");
+	// aniso samplers - skip if unsupported by current device
+	if (!vk_device.features.samplerAnisotropy || (vk_device.properties.limits.maxSamplerAnisotropy <= 1.f))
+		return;
 
 	samplerInfo.magFilter = VK_FILTER_NEAREST;
 	samplerInfo.minFilter = VK_FILTER_NEAREST;
@@ -1729,6 +1730,8 @@ qboolean QVk_Init()
 	// create Vulkan device - see if the user prefers any specific device if there's more than one GPU in the system
 	QVk_CreateDevice((int)vk_device_idx->value);
 	QVk_DebugSetObjectName((uint64_t)vk_device.physical, VK_OBJECT_TYPE_PHYSICAL_DEVICE, va("Physical Device: %s", vk_config.vendor_name));
+
+	ri.Cvar_Set("vidmenu_aniso", vk_device.features.samplerAnisotropy ? "1" : "0");
 
 	// create memory allocator
 	VmaAllocatorCreateInfo allocInfo = {

@@ -75,7 +75,7 @@ static void getBestPhysicalDevice(const VkPhysicalDevice *devices, int preferred
 			qboolean extSupported = deviceExtensionsSupported(&devices[i]);
 
 			// no required extensions? try next device
-			if (!extSupported || !deviceFeatures.samplerAnisotropy)
+			if (!extSupported)
 				continue;
 
 			// if extensions are fine, query surface formats and present modes to see if the device can be used
