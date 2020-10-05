@@ -5,7 +5,7 @@ branches:
   - master
 
 environment:
-  VK_VERSION: 1.2.141.2
+  VK_VERSION: 1.2.154.0
   VULKAN_SDK: c:\VulkanSDK\%VK_VERSION%
 
 skip_tags: true
