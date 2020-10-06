@@ -229,7 +229,7 @@ VkResult QVk_CreateSwapchain()
 	// but for some implementation-specific reason exclusive full-screen access is unavailable for the particular combination
 	// of parameters provided. If this occurs, VK_ERROR_INITIALIZATION_FAILED will be returned."
 	//
-	// This seems to affect at least a certain AMD Vega + Intel combination when running on a TV, so disable fullscreen exclusive and try again.
+	// Some drivers reportedly have problems here, so just disable exclusive fullscreen and try to recreate the swapchain.
 #ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
 	if (vk_config.vk_full_screen_exclusive_enabled && res == VK_ERROR_INITIALIZATION_FAILED)
 	{
@@ -237,6 +237,9 @@ VkResult QVk_CreateSwapchain()
 		scCreateInfo.pNext = NULL;
 		res = vkCreateSwapchainKHR(vk_device.logical, &scCreateInfo, NULL, &vk_swapchain.sc);
 		vk_config.vk_full_screen_exclusive_enabled = false;
+		ri.Cvar_SetValue("vk_fullscreen_exclusive", 0);
+		// don't perform unnecessary restart of the renderer
+		vk_fullscreen_exclusive->modified = false;
 	}
 #endif
 

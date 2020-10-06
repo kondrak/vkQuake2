@@ -1960,8 +1960,11 @@ VkResult QVk_BeginFrame()
 			}
 			else
 			{
-				// Some hardware configurations seem to be incapable of acquiring fullscreen exclusive mode - likely due to installed 3rd party software.
-				// This causes the renderer to lock up indefinitely, so let's just revert to borderless window if a failure occurs.
+				// "An application can attempt to acquire exclusive full-screen access again for the same swapchain
+				// even if this command fails, or if VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT has been returned
+				// by a swapchain command."
+				//
+				// In our case, however, we'll simply revert to borderless windowed mode to avoid potential indefinite lockups here.
 				ri.Con_Printf(PRINT_ALL, "Fullscreen Exclusive Mode acquisition error: %s - reverting to borderless windowed mode.\n", QVk_GetError(res));
 				ri.Cvar_SetValue("vk_fullscreen_exclusive", 0);
 			}
