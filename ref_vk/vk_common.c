@@ -1732,6 +1732,7 @@ qboolean QVk_Init()
 	QVk_DebugSetObjectName((uint64_t)vk_device.physical, VK_OBJECT_TYPE_PHYSICAL_DEVICE, va("Physical Device: %s", vk_config.vendor_name));
 
 	ri.Cvar_Set("vidmenu_aniso", vk_device.features.samplerAnisotropy ? "1" : "0");
+	ri.Cvar_Set("vidmenu_efs", vk_config.vk_ext_full_screen_exclusive_possible ? "1" : "0");
 
 	// create memory allocator
 	VmaAllocatorCreateInfo allocInfo = {

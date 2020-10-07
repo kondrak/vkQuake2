@@ -629,7 +629,8 @@ void VID_MenuInit( void )
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_lmap_texture_filter );
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_vsync );
 	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_postprocess );
-	Menu_AddItem( &s_vulkan_menu, ( void * ) &s_exclusive_fullscreen );
+	if (Cvar_Get("vidmenu_efs", "1", 0)->value)
+		Menu_AddItem( &s_vulkan_menu, ( void * ) &s_exclusive_fullscreen );
 
 	Menu_AddItem( &s_software_menu, ( void * ) &s_apply_action[SOFTWARE_MENU] );
 	Menu_AddItem( &s_software_menu, ( void * ) &s_defaults_action[SOFTWARE_MENU] );
