@@ -1495,6 +1495,13 @@ void QVk_Shutdown( void )
 		DestroyDrawBuffers();
 		if (vk_swapchain.sc != VK_NULL_HANDLE)
 		{
+#ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
+			if (vk_config.vk_full_screen_exclusive_acquired)
+			{
+				vk_config.vk_full_screen_exclusive_acquired = false;
+				VK_VERIFY(qvkReleaseFullScreenExclusiveModeEXT(vk_device.logical, vk_swapchain.sc));
+			}
+#endif
 			vkDestroySwapchainKHR(vk_device.logical, vk_swapchain.sc, NULL);
 			free(vk_swapchain.images);
 			vk_swapchain.sc = VK_NULL_HANDLE;
@@ -1961,6 +1968,7 @@ VkResult QVk_BeginFrame()
 			}
 			else
 			{
+				// According to vkAcquireFullScreenExclusiveModeEXT documentation:
 				// "An application can attempt to acquire exclusive full-screen access again for the same swapchain
 				// even if this command fails, or if VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT has been returned
 				// by a swapchain command."
@@ -1988,18 +1996,15 @@ VkResult QVk_BeginFrame()
 
 	VkResult result = vkAcquireNextImageKHR(vk_device.logical, vk_swapchain.sc, UINT32_MAX, vk_imageAvailableSemaphores[vk_activeBufferIdx], VK_NULL_HANDLE, &vk_imageIndex);
 	// for VK_OUT_OF_DATE_KHR and VK_SUBOPTIMAL_KHR it'd be fine to just rebuild the swapchain but let's take the easy way out and restart video system
-	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_SURFACE_LOST_KHR)
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_SURFACE_LOST_KHR
+#ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
+		|| result == VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT
+#endif
+		)
 	{
 		ri.Con_Printf(PRINT_ALL, "QVk_BeginFrame(): received %s after vkAcquireNextImageKHR - restarting video!\n", QVk_GetError(result));
 		return result;
 	}
-#ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
-	else if (result == VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT)
-	{
-		ri.Con_Printf(PRINT_ALL, "QVk_BeginFrame(): received VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT after vkAcquireNextImageKHR - attempting to reacquire in next frame.\n");
-		vk_config.vk_full_screen_exclusive_acquired = false;
-	}
-#endif
 	else if (result != VK_SUCCESS)
 	{
 		Sys_Error("QVk_BeginFrame(): unexpected error after vkAcquireNextImageKHR: %s", QVk_GetError(result));
@@ -2092,19 +2097,20 @@ VkResult QVk_EndFrame(qboolean force)
 	VkResult renderResult = vkQueuePresentKHR(vk_device.presentQueue, &presentInfo);
 
 	// for VK_OUT_OF_DATE_KHR and VK_SUBOPTIMAL_KHR it'd be fine to just rebuild the swapchain but let's take the easy way out and restart video system
-	if (renderResult == VK_ERROR_OUT_OF_DATE_KHR || renderResult == VK_SUBOPTIMAL_KHR || renderResult == VK_ERROR_SURFACE_LOST_KHR)
+	if (renderResult == VK_ERROR_OUT_OF_DATE_KHR || renderResult == VK_SUBOPTIMAL_KHR || renderResult == VK_ERROR_SURFACE_LOST_KHR
+#ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
+		// According to vkAcquireFullScreenExclusiveModeEXT documentation:
+		// "An application can attempt to acquire exclusive full-screen access again for the same swapchain
+		// even if this command fails, or if VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT has been returned
+		// by a swapchain command."
+		//
+		// This would imply that swapchain recreation should not be required here but apparently vkQueuePresentKHR keeps failing without doing it.
+		|| renderResult == VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT
+#endif
+		)
 	{
 		ri.Con_Printf(PRINT_ALL, "QVk_EndFrame(): received %s after vkQueuePresentKHR - restarting video!\n", QVk_GetError(renderResult));
 	}
-#ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
-	else if (renderResult == VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT)
-	{
-		ri.Con_Printf(PRINT_ALL, "QVk_EndFrame(): received VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT after vkQueuePresentKHR - attempting to reacquire in next frame.\n");
-		vk_config.vk_full_screen_exclusive_acquired = false;
-		// imply success so that we don't restart the renderer needlessly - specs allow reacquiring exclusive fullscreen for the same swapchain
-		renderResult = VK_SUCCESS;
-	}
-#endif
 	else if (renderResult != VK_SUCCESS)
 	{
 		Sys_Error("QVk_EndFrame(): unexpected error after vkQueuePresentKHR: %s", QVk_GetError(renderResult));

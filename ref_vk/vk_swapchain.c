@@ -252,7 +252,18 @@ VkResult QVk_CreateSwapchain()
 	res = vkGetSwapchainImagesKHR(vk_device.logical, vk_swapchain.sc, &imageCount, vk_swapchain.images);
 
 	if (oldSwapchain != VK_NULL_HANDLE)
+	{
+#ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
+		extern PFN_vkReleaseFullScreenExclusiveModeEXT qvkReleaseFullScreenExclusiveModeEXT;
+
+		if (vk_config.vk_full_screen_exclusive_acquired)
+		{
+			vk_config.vk_full_screen_exclusive_acquired = false;
+			VK_VERIFY(qvkReleaseFullScreenExclusiveModeEXT(vk_device.logical, oldSwapchain));
+		}
+#endif
 		vkDestroySwapchainKHR(vk_device.logical, oldSwapchain, NULL);
+	}
 
 	vk_config.swapchain_image_count = imageCount;
 
