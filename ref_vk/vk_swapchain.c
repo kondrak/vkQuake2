@@ -126,9 +126,13 @@ VkResult QVk_CreateSwapchain()
 	{
 		surfaceCaps = Vkimp_SetupFullScreenExclusive();
 	}
+	else
+	{
 #endif
-
-	VK_VERIFY(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vk_device.physical, vk_surface, &surfaceCaps));
+		VK_VERIFY(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vk_device.physical, vk_surface, &surfaceCaps));
+#ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
+	}
+#endif
 	VK_VERIFY(vkGetPhysicalDeviceSurfaceFormatsKHR(vk_device.physical, vk_surface, &formatCount, NULL));
 	VK_VERIFY(vkGetPhysicalDeviceSurfacePresentModesKHR(vk_device.physical, vk_surface, &presentModesCount, NULL));
 
@@ -167,8 +171,6 @@ VkResult QVk_CreateSwapchain()
 	// request at least 2 images - this fixes fullscreen crashes on AMD when launching the game in fullscreen
 	// update: validation layer performance warning suggests trying triple buffering, so let's try 3 images!
 	uint32_t imageCount = max(3, surfaceCaps.minImageCount);
-	if (swapPresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
-		imageCount = max(3, surfaceCaps.minImageCount);
 
 	if (surfaceCaps.maxImageCount > 0)
 		imageCount = min(imageCount, surfaceCaps.maxImageCount);
