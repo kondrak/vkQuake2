@@ -256,32 +256,31 @@ void Vk_Strings_f(void)
 	ri.Con_Printf(PRINT_ALL, "Swapchain image format: %d\n", vk_swapchain.format);
 	ri.Con_Printf(PRINT_ALL, "Swapchain image count: %d\n", vk_config.swapchain_image_count);
 	ri.Con_Printf(PRINT_ALL, "Sampler anisotropy: %s\n", vk_device.features.samplerAnisotropy ? "yes" : "no");
-	ri.Con_Printf(PRINT_ALL, "Supported present modes: ");
+	ri.Con_Printf(PRINT_ALL, "Supported present modes:\n");
 
 	i = 0;
 	while(vk_config.supported_present_modes[i])
 	{
-		ri.Con_Printf(PRINT_ALL, "%s ", vk_config.supported_present_modes[i++]);
+		ri.Con_Printf(PRINT_ALL, "   %s\n", vk_config.supported_present_modes[i++]);
 	}
-	ri.Con_Printf(PRINT_ALL, "\nEnabled extensions: ");
+	ri.Con_Printf(PRINT_ALL, "Enabled extensions:\n");
 
 	i = 0;
 	while(vk_config.extensions[i])
 	{
-		ri.Con_Printf(PRINT_ALL, "%s ", vk_config.extensions[i++]);
+		ri.Con_Printf(PRINT_ALL, "   %s\n", vk_config.extensions[i++]);
 	}
 #ifdef VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME
 	if (vk_config.vk_ext_full_screen_exclusive_possible)
-		ri.Con_Printf(PRINT_ALL, "%s ", VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME);
+		ri.Con_Printf(PRINT_ALL, "   %s\n", VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME);
 #endif
-	ri.Con_Printf(PRINT_ALL, "\nEnabled layers: ");
+	ri.Con_Printf(PRINT_ALL, "Enabled layers:\n");
 
 	i = 0;
 	while(vk_config.layers[i])
 	{
-		ri.Con_Printf(PRINT_ALL, "%s ", vk_config.layers[i++]);
+		ri.Con_Printf(PRINT_ALL, "   %s\n", vk_config.layers[i++]);
 	}
-	ri.Con_Printf(PRINT_ALL, "\n");
 }
 
 /*
