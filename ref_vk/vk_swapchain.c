@@ -231,11 +231,11 @@ VkResult QVk_CreateSwapchain()
 	// but for some implementation-specific reason exclusive full-screen access is unavailable for the particular combination
 	// of parameters provided. If this occurs, VK_ERROR_INITIALIZATION_FAILED will be returned."
 	//
-	// Some drivers reportedly have problems here, so just disable exclusive fullscreen and try to recreate the swapchain.
+	// Exclusive fullscreen cannot be guaranteed, so just disable it and try to recreate the swapchain if an error occurs.
 #ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
-	if (vk_config.vk_full_screen_exclusive_enabled && res == VK_ERROR_INITIALIZATION_FAILED)
+	if (vk_config.vk_full_screen_exclusive_enabled && res != VK_SUCCESS)
 	{
-		ri.Con_Printf(PRINT_ALL, "...received VK_ERROR_INITIALIZATION_FAILED from vkCreateSwapchainKHR() - disabling fullscreen exclusive!\n");
+		ri.Con_Printf(PRINT_ALL, "...received %s from vkCreateSwapchainKHR() - disabling fullscreen exclusive!\n", QVk_GetError(res));
 		scCreateInfo.pNext = NULL;
 		res = vkCreateSwapchainKHR(vk_device.logical, &scCreateInfo, NULL, &vk_swapchain.sc);
 		vk_config.vk_full_screen_exclusive_enabled = false;
