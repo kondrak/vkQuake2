@@ -635,6 +635,7 @@ int Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen )
 	else
 		putenv("MESA_GLX_FX=window");
 
+	XInitThreads();
 	if (!(dpy = XOpenDisplay(NULL))) {
 		fprintf(stderr, "Error couldn't open the X display\n");
 		return rserr_invalid_mode;
