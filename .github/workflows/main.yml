@@ -21,7 +21,7 @@ jobs:
       - name: Download and Install Vulkan SDK
         shell: bash
         run: |
-          curl -L -v -o vulkansdk-linux-x86_64-$VK_VERSION.tar.gz -O https://vulkan.lunarg.com/sdk/download/$VK_VERSION/linux/vulkansdk-linux-x86_64-$VK_VERSION.tar.gz?Human=true
+          curl -L -v -o vulkansdk-linux-x86_64-$VK_VERSION.tar.gz -O https://sdk.lunarg.com/sdk/download/$VK_VERSION/linux/vulkan_sdk.tar.gz?Human=true
           tar zxf vulkansdk-linux-x86_64-$VK_VERSION.tar.gz
       - name: Build vkQuake2 Debug
         shell: bash
@@ -143,7 +143,7 @@ jobs:
       
       - name: Download and Install Vulkan SDK
         run: |
-          curl -L -v -o vulkansdk-macos-$VK_VERSION.dmg -O https://vulkan.lunarg.com/sdk/download/$VK_VERSION/mac/vulkansdk-macos-$VK_VERSION.dmg?Human=true
+          curl -L -v -o vulkansdk-macos-$VK_VERSION.dmg -O https://sdk.lunarg.com/sdk/download/$VK_VERSION/mac/vulkan_sdk.dmg?Human=true
           hdiutil mount vulkansdk-macos-$VK_VERSION.dmg
           cp -R "/Volumes/vulkansdk-macos-$VK_VERSION/" $GITHUB_WORKSPACE/vulkansdk-macos-$VK_VERSION
           hdiutil unmount "/Volumes/vulkansdk-macos-$VK_VERSION"  
@@ -184,7 +184,7 @@ jobs:
 
     - name: Download Vulkan SDK
       shell: powershell
-      run: curl -v -o VulkanSDK.exe https://vulkan.lunarg.com/sdk/download/$env:VK_VERSION/windows/VulkanSDK-$env:VK_VERSION-Installer.exe?Human=true
+      run: curl -v -o VulkanSDK.exe https://sdk.lunarg.com/sdk/download/$env:VK_VERSION/windows/vulkan_sdk.exe?Human=true
     - name: Install Vulkan SDK
       shell: cmd
       run: .\VulkanSDK.exe /S
