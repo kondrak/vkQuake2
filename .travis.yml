@@ -26,7 +26,7 @@ jobs:
       osx_image: xcode12
       install:
         - export VULKAN_SDK=$TRAVIS_BUILD_DIR/vulkansdk-macos-$VK_VERSION
-        - curl -L -v -o vulkansdk-macos-$VK_VERSION.dmg -O https://vulkan.lunarg.com/sdk/download/$VK_VERSION/mac/vulkansdk-macos-$VK_VERSION.dmg?Human=true
+        - curl -L -v -o vulkansdk-macos-$VK_VERSION.dmg -O https://sdk.lunarg.com/sdk/download/$VK_VERSION/mac/vulkan_sdk.dmg?Human=true
         - hdiutil mount vulkansdk-macos-$VK_VERSION.dmg
         - cp -R "/Volumes/vulkansdk-macos-$VK_VERSION/" $TRAVIS_BUILD_DIR/vulkansdk-macos-$VK_VERSION
         - hdiutil unmount "/Volumes/vulkansdk-macos-$VK_VERSION"
