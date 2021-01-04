@@ -231,9 +231,6 @@ qboolean SNDDMA_Init(void)
     }
 
     submissionChunk = chunkSize->value;
-    if (outputStreamBasicDescription.mSampleRate == 44100) {
-        submissionChunk = chunkSize->value/2;
-    }
 	maxMixedSamples = bufferSize->value;
     s_mixedSamples = calloc(1, sizeof(*s_mixedSamples) * maxMixedSamples);
     Com_Printf("Chunk Count = %d\n", (maxMixedSamples / submissionChunk));
@@ -244,7 +241,7 @@ qboolean SNDDMA_Init(void)
     dma.samplebits = 16;
     dma.buffer = (byte *)s_mixedSamples;
     dma.channels = outputStreamBasicDescription.mChannelsPerFrame;
-    dma.speed = 22050;	//(unsigned long)outputStreamBasicDescription.mSampleRate;
+    dma.speed = (unsigned long)outputStreamBasicDescription.mSampleRate;
 
     // We haven't enqueued anything yet
     s_chunkCount = 0;
