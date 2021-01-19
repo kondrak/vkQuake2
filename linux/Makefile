@@ -75,12 +75,12 @@ CC=gcc
 BASE_CFLAGS=-I/usr/local/include -Dstricmp=strcasecmp -D_GNU_SOURCE -Wno-format-truncation -Wno-unused-result
 
 ifeq ($(ARCH),axp)
-RELEASE_CFLAGS=$(BASE_CFLAGS) -DNDEBUG -O3 -ffast-math -funroll-loops \
+RELEASE_CFLAGS=$(BASE_CFLAGS) -DNDEBUG -O3 -funroll-loops \
 	-fomit-frame-pointer -fexpensive-optimizations
 else ifeq ($(ARCH),e2k)
-RELEASE_CFLAGS=$(BASE_CFLAGS) -DNDEBUG -O3 -ffast-math -ffast
+RELEASE_CFLAGS=$(BASE_CFLAGS) -DNDEBUG -O3 -ffast
 else
-RELEASE_CFLAGS=$(BASE_CFLAGS) -DNDEBUG -O3 -ffast-math -funroll-loops \
+RELEASE_CFLAGS=$(BASE_CFLAGS) -DNDEBUG -O3 -funroll-loops \
 	-fomit-frame-pointer -fexpensive-optimizations
 endif
 
