@@ -78,13 +78,6 @@ static void getBestPhysicalDevice(const VkPhysicalDevice *devices, int preferred
 			if (!extSupported)
 				continue;
 
-			// if extensions are fine, query surface formats and present modes to see if the device can be used
-			VK_VERIFY(vkGetPhysicalDeviceSurfaceFormatsKHR(devices[i], vk_surface, &formatCount, NULL));
-			VK_VERIFY(vkGetPhysicalDeviceSurfacePresentModesKHR(devices[i], vk_surface, &presentModesCount, NULL));
-
-			if (formatCount == 0 || presentModesCount == 0)
-				continue;
-
 			VkQueueFamilyProperties *queueFamilies = (VkQueueFamilyProperties *)malloc(queueFamilyCount * sizeof(VkQueueFamilyProperties));
 			vkGetPhysicalDeviceQueueFamilyProperties(devices[i], &queueFamilyCount, queueFamilies);
 

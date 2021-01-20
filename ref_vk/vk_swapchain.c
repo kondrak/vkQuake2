@@ -136,25 +136,19 @@ VkResult QVk_CreateSwapchain()
 	VK_VERIFY(vkGetPhysicalDeviceSurfaceFormatsKHR(vk_device.physical, vk_surface, &formatCount, NULL));
 	VK_VERIFY(vkGetPhysicalDeviceSurfacePresentModesKHR(vk_device.physical, vk_surface, &presentModesCount, NULL));
 
-	if (formatCount > 0)
-	{
-		surfaceFormats = (VkSurfaceFormatKHR *)malloc(formatCount * sizeof(VkSurfaceFormatKHR));
-		VK_VERIFY(vkGetPhysicalDeviceSurfaceFormatsKHR(vk_device.physical, vk_surface, &formatCount, surfaceFormats));
-	}
+	surfaceFormats = (VkSurfaceFormatKHR*)malloc(formatCount * sizeof(VkSurfaceFormatKHR));
+	VK_VERIFY(vkGetPhysicalDeviceSurfaceFormatsKHR(vk_device.physical, vk_surface, &formatCount, surfaceFormats));
 
-	if (presentModesCount > 0)
-	{
-		presentModes = (VkPresentModeKHR *)malloc(presentModesCount * sizeof(VkPresentModeKHR));
-		VK_VERIFY(vkGetPhysicalDeviceSurfacePresentModesKHR(vk_device.physical, vk_surface, &presentModesCount, presentModes));
+	presentModes = (VkPresentModeKHR*)malloc(presentModesCount * sizeof(VkPresentModeKHR));
+	VK_VERIFY(vkGetPhysicalDeviceSurfacePresentModesKHR(vk_device.physical, vk_surface, &presentModesCount, presentModes));
 
-		ri.Con_Printf(PRINT_ALL, "Supported present modes: ");
-		for (int i = 0; i < presentModesCount; i++)
-		{
-			ri.Con_Printf(PRINT_ALL, "%s ", presentModeString(presentModes[i]));
-			vk_config.supported_present_modes[i] = presentModeString(presentModes[i]);
-		}
-		ri.Con_Printf(PRINT_ALL, "\n");
+	ri.Con_Printf(PRINT_ALL, "Supported present modes: ");
+	for (int i = 0; i < presentModesCount; i++)
+	{
+		ri.Con_Printf(PRINT_ALL, "%s ", presentModeString(presentModes[i]));
+		vk_config.supported_present_modes[i] = presentModeString(presentModes[i]);
 	}
+	ri.Con_Printf(PRINT_ALL, "\n");
 
 	VkSurfaceFormatKHR swapSurfaceFormat = getSwapSurfaceFormat(surfaceFormats, formatCount);
 	VkPresentModeKHR swapPresentMode = getSwapPresentMode(presentModes, presentModesCount, vk_vsync->value > 0 ? VK_PRESENT_MODE_FIFO_KHR : VK_PRESENT_MODE_MAILBOX_KHR);
