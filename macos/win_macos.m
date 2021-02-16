@@ -369,7 +369,6 @@ void CocoaCreateWindow(int x, int y, int *w, int *h, qboolean fullscreen)
 			[NSMenu setMenuBarVisible:NO];
 			*w = windowFrame.size.width * s;
 			*h = windowFrame.size.height * s;
-			windowStyle = NSWindowStyleMaskFullScreen;
 		}
 		else
 		{
@@ -383,11 +382,7 @@ void CocoaCreateWindow(int x, int y, int *w, int *h, qboolean fullscreen)
 		[window setContentView:[[NSView alloc] initWithFrame:windowFrame]];
 		[window setTitle:@"Quake 2 (Vulkan) "CPUSTRING];
 		[window makeKeyAndOrderFront:nil];
-		[[window standardWindowButton:NSWindowCloseButton] setHidden:fullscreen];
-		[[window standardWindowButton:NSWindowMiniaturizeButton] setHidden:fullscreen];
-		[[window standardWindowButton:NSWindowZoomButton] setHidden:fullscreen];
-		window.titlebarAppearsTransparent = YES;
-		window.titleVisibility = fullscreen ? NSWindowTitleHidden : NSWindowTitleVisible;
+
 		[app activateIgnoringOtherApps:YES];
 		[windowListener listen:app];
 	}
