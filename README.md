@@ -9,6 +9,7 @@ Overview
 ===
 This is the official Quake 2 code v3.21 with Vulkan support and mission packs included. The goal of this project is to maintain as much compatibility as possible with the original game - just pure, vanilla Quake 2 experience as we knew it back in 1997. There are, however, a few notable differences that made the cut for various reasons:
 
+- 1920x1200 screen resolutions have been added
 - world colors have been slightly upgraded - the game's original, darker look can be toggled with the `vk_postprocess` console command
 - 64-bit support, additional screen resolutions and DPI awareness have been added
 - underwater vision effect similar to software renderer has been implemented
