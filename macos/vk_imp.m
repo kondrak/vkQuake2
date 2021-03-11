@@ -302,6 +302,7 @@ void Vkimp_GetInstanceExtensions(char **extensions, uint32_t *extCount)
 
 		for (int i = 0; i < instanceExtCount; ++i)
 		{
+			vk_config.vk_khr_get_physical_device_properties2_available |= strcmp(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, availableExtensions[i].extensionName) == 0;
 #if DEBUG_UTILS_AVAILABLE
 			vk_config.vk_ext_debug_utils_supported |= strcmp(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, availableExtensions[i].extensionName) == 0;
 #endif
@@ -317,10 +318,13 @@ void Vkimp_GetInstanceExtensions(char **extensions, uint32_t *extCount)
 	{
 		extensions[0] = VK_KHR_SURFACE_EXTENSION_NAME;
 		extensions[1] = VK_MVK_MACOS_SURFACE_EXTENSION_NAME;
+		// required by VK_EXT_full_screen_exclusive and VK_KHR_portability_subset
+		if (vk_config.vk_khr_get_physical_device_properties2_available)
+			extensions[2] = VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME;
 	}
 
 	if (extCount)
-		*extCount = 2;
+		*extCount = vk_config.vk_khr_get_physical_device_properties2_available ? 3 : 2;
 }
 
 VkResult Vkimp_CreateSurface()

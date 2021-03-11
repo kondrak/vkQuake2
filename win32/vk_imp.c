@@ -162,19 +162,18 @@ void Vkimp_GetInstanceExtensions(char **extensions, uint32_t *extCount)
 {
 	// check available instance extensions and see if we can use VK_EXT_full_screen_exclusive
 	uint32_t instanceExtCount;
+	uint32_t numExts = 2; // minimum number of extensions required
 	VK_VERIFY(vkEnumerateInstanceExtensionProperties(NULL, &instanceExtCount, NULL));
 
 	if (instanceExtCount > 0)
 	{
-		qboolean getSurfaceCapabilities2 = false;
-		qboolean getPhysicalDeviceProperties2 = false;
 		VkExtensionProperties *availableExtensions = (VkExtensionProperties *)malloc(sizeof(VkExtensionProperties) * instanceExtCount);
 		VK_VERIFY(vkEnumerateInstanceExtensionProperties(NULL, &instanceExtCount, availableExtensions));
 
 		for (int i = 0; i < instanceExtCount; ++i)
 		{
-			getSurfaceCapabilities2 |= strcmp(VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME, availableExtensions[i].extensionName) == 0;
-			getPhysicalDeviceProperties2 |= strcmp(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, availableExtensions[i].extensionName) == 0;
+			vk_config.vk_khr_get_surface_capabilities2_available |= strcmp(VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME, availableExtensions[i].extensionName) == 0;
+			vk_config.vk_khr_get_physical_device_properties2_available |= strcmp(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, availableExtensions[i].extensionName) == 0;
 #if DEBUG_UTILS_AVAILABLE
 			vk_config.vk_ext_debug_utils_supported |= strcmp(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, availableExtensions[i].extensionName) == 0;
 #endif
@@ -184,7 +183,8 @@ void Vkimp_GetInstanceExtensions(char **extensions, uint32_t *extCount)
 		}
 
 		// VK_EXT_full_screen_exclusive specification requires VK_KHR_get_surface_capabilities2 and VK_KHR_get_physical_device_properties2
-		vk_config.vk_ext_full_screen_exclusive_possible = getSurfaceCapabilities2 && getPhysicalDeviceProperties2;
+		vk_config.vk_ext_full_screen_exclusive_possible =	vk_config.vk_khr_get_surface_capabilities2_available &&
+															vk_config.vk_khr_get_physical_device_properties2_available;
 
 		free(availableExtensions);
 	}
@@ -193,15 +193,22 @@ void Vkimp_GetInstanceExtensions(char **extensions, uint32_t *extCount)
 	{
 		extensions[0] = VK_KHR_SURFACE_EXTENSION_NAME;
 		extensions[1] = VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
-		if (vk_config.vk_ext_full_screen_exclusive_possible)
-		{
-			extensions[2] = VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME;
-			extensions[3] = VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME;
-		}
+		// required by VK_EXT_full_screen_exclusive and VK_KHR_portability_subset
+		if (vk_config.vk_khr_get_physical_device_properties2_available)
+			extensions[numExts++] = VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME;
+		if (vk_config.vk_khr_get_surface_capabilities2_available)
+			extensions[numExts++] = VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME;
 	}
 
 	if (extCount)
-		*extCount = vk_config.vk_ext_full_screen_exclusive_possible ? 4 : 2;
+	{
+		*extCount = numExts;
+
+		if (vk_config.vk_khr_get_physical_device_properties2_available)
+			(*extCount)++;
+		if (vk_config.vk_khr_get_surface_capabilities2_available)
+			(*extCount)++;
+	}
 }
 
 VkResult Vkimp_CreateSurface()

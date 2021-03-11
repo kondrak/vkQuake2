@@ -18,6 +18,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 */
 
+// required for VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME visibility (as of SDK 1.2.170.0)
+#define VK_ENABLE_BETA_EXTENSIONS
 #include "vk_local.h"
 
 // internal helper
@@ -35,6 +37,9 @@ static qboolean deviceExtensionsSupported(const VkPhysicalDevice *physicalDevice
 		for (uint32_t i = 0; i < availableExtCount; ++i)
 		{
 			vk_khr_swapchain_extension_available |= strcmp(extensions[i].extensionName, VK_KHR_SWAPCHAIN_EXTENSION_NAME) == 0;
+#ifdef VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME
+			vk_config.vk_khr_portability_subset_available |= strcmp(extensions[i].extensionName, VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME) == 0;
+#endif
 #ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
 			vk_config.vk_ext_full_screen_exclusive_available |= strcmp(extensions[i].extensionName, VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME) == 0;
 #endif
@@ -197,21 +202,26 @@ static VkResult createLogicalDevice()
 		queueCreateInfo[numQueues++].queueFamilyIndex = vk_device.transferFamilyIndex;
 	}
 
-	const char *deviceExtensions[] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME
-#ifdef VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME
-	, VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME
-	};
-#else
-	};
-#endif
 	// final check for VK_EXT_full_screen_exclusive: both dependencies and the extension must be supported
 	vk_config.vk_ext_full_screen_exclusive_possible &= vk_config.vk_ext_full_screen_exclusive_available;
+
+	const char *deviceExtensions[3] = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+	int enabledExtCount = 1;
+
+#ifdef VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME
+	if (vk_config.vk_ext_full_screen_exclusive_possible)
+		deviceExtensions[enabledExtCount++] = VK_EXT_FULL_SCREEN_EXCLUSIVE_EXTENSION_NAME;
+#endif
+#ifdef VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME
+	if (vk_config.vk_khr_portability_subset_available)
+		deviceExtensions[enabledExtCount++] = VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME;
+#endif
 
 	VkDeviceCreateInfo deviceCreateInfo = {
 		.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
 		.pEnabledFeatures = &wantedDeviceFeatures,
 		.ppEnabledExtensionNames = deviceExtensions,
-		.enabledExtensionCount = vk_config.vk_ext_full_screen_exclusive_possible ? 2 : 1,
+		.enabledExtensionCount = enabledExtCount,
 		.enabledLayerCount = 0,
 		.ppEnabledLayerNames = NULL,
 		.queueCreateInfoCount = numQueues,

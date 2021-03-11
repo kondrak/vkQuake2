@@ -1594,6 +1594,9 @@ qboolean QVk_Init()
 	vk_config.ubo_descriptor_set_count = 0;
 	vk_config.sampler_descriptor_set_count = 0;
 	vk_config.swapchain_image_count = 0;
+	vk_config.vk_khr_portability_subset_available = false;
+	vk_config.vk_khr_get_physical_device_properties2_available = false;
+	vk_config.vk_khr_get_surface_capabilities2_available = false;
 	vk_config.vk_ext_debug_utils_supported = false;
 	vk_config.vk_ext_debug_report_supported = false;
 	vk_config.vk_ext_full_screen_exclusive_available = false;
