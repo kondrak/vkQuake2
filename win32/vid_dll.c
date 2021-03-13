@@ -360,6 +360,34 @@ LONG WINAPI MainWndProc (
 
 			if ( reflib_active )
 				re.AppActivate( !( fActive == WA_INACTIVE ) );
+
+			// handle toggling between game's fullscreen and desktop resolution on ALT+TAB
+			if (vid_fullscreen->value)
+			{
+				MONITORINFOEX monInfo;
+				memset(&monInfo, 0, sizeof(MONITORINFOEX));
+				monInfo.cbSize = sizeof(MONITORINFOEX);
+				HMONITOR monitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTOPRIMARY);
+				GetMonitorInfo(monitor, (LPMONITORINFO)&monInfo);
+				
+				// fullscreen -> desktop transition
+				if(fActive == WA_INACTIVE)
+					ChangeDisplaySettingsEx(monInfo.szDevice, NULL, NULL, 0, NULL);
+
+				// desktop -> fullscreen transition
+				if (fMinimized && (fActive == WA_ACTIVE))
+				{
+					DEVMODE dm;
+					memset(&dm, 0, sizeof(dm));
+
+					dm.dmSize = sizeof(dm);
+					dm.dmPelsWidth = viddef.width;
+					dm.dmPelsHeight = viddef.height;
+					dm.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT;
+
+					ChangeDisplaySettingsEx(monInfo.szDevice, &dm, NULL, CDS_FULLSCREEN, NULL);
+				}
+			}
 		}
         return DefWindowProc (hWnd, uMsg, wParam, lParam);
 
