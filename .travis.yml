@@ -5,7 +5,7 @@ branches:
     - master
 
 before_install:
-  - export VK_VERSION=1.2.162.1
+  - export VK_VERSION=1.2.170.0
 
 jobs:
   include:

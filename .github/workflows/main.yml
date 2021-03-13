@@ -1,6 +1,6 @@
 name: CI
 env:
-  VK_VERSION: 1.2.162.1
+  VK_VERSION: 1.2.170.0
 on:
   push:
     branches:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   Linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     steps:
       - uses: actions/checkout@v2
