@@ -371,7 +371,7 @@ LONG WINAPI MainWndProc (
 				GetMonitorInfo(monitor, (LPMONITORINFO)&monInfo);
 				
 				// fullscreen -> desktop transition
-				if(fActive == WA_INACTIVE)
+				if (fActive == WA_INACTIVE)
 					ChangeDisplaySettingsEx(monInfo.szDevice, NULL, NULL, 0, NULL);
 
 				// desktop -> fullscreen transition

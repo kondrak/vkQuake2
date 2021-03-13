@@ -90,7 +90,6 @@ cvar_t	*r_lightlevel;	// FIXME: This is a HACK to get the client's light level
 
 cvar_t	*vk_validation;
 cvar_t	*vk_mode;
-cvar_t	*vk_bitdepth;
 cvar_t	*vk_log;
 cvar_t	*vk_picmip;
 cvar_t	*vk_skymip;
@@ -1048,7 +1047,6 @@ void R_Register( void )
 	vk_validation = ri.Cvar_Get("vk_validation", "0", 0);
 #endif
 	vk_mode = ri.Cvar_Get("vk_mode", "11", CVAR_ARCHIVE);
-	vk_bitdepth = ri.Cvar_Get("vk_bitdepth", "0", 0);
 	vk_log = ri.Cvar_Get("vk_log", "0", 0);
 	vk_picmip = ri.Cvar_Get("vk_picmip", "0", 0);
 	vk_skymip = ri.Cvar_Get("vk_skymip", "0", 0);

@@ -126,12 +126,6 @@ qboolean VID_CreateWindow( int width, int height, qboolean fullscreen )
 		dm.dmPelsHeight = height;
 		dm.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT;
 
-		if (vk_bitdepth->value != 0)
-		{
-			dm.dmBitsPerPel = vk_bitdepth->value;
-			dm.dmFields |= DM_BITSPERPEL;
-		}
-
 		if ( ChangeDisplaySettingsEx( vkw_state.monInfo.szDevice, &dm, NULL, CDS_FULLSCREEN, NULL ) != DISP_CHANGE_SUCCESSFUL )
 		{
 			return false;
@@ -286,19 +280,12 @@ rserr_t Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen 
 	{
 		ri.Con_Printf( PRINT_ALL, "...attempting fullscreen\n" );
 
-		if ( vk_bitdepth->value != 0 )
-		{
-			ri.Con_Printf( PRINT_ALL, "...using vk_bitdepth of %d\n", ( int ) vk_bitdepth->value );
-		}
-		else
-		{
-			HDC hdc = GetDC( NULL );
-			int bitspixel = GetDeviceCaps( hdc, BITSPIXEL );
+		HDC hdc = GetDC( NULL );
+		int bitspixel = GetDeviceCaps( hdc, BITSPIXEL );
 
-			ri.Con_Printf( PRINT_ALL, "...using desktop display depth of %d\n", bitspixel );
+		ri.Con_Printf( PRINT_ALL, "...using desktop display depth of %d\n", bitspixel );
 
-			ReleaseDC( 0, hdc );
-		}
+		ReleaseDC( 0, hdc );
 
 		ri.Con_Printf( PRINT_ALL, "...calling CDS: " );
 		if ( VID_CreateWindow(width, height, true) )
@@ -424,15 +411,6 @@ qboolean Vkimp_Init( void *hinstance, void *wndproc )
 */
 void Vkimp_BeginFrame( float camera_separation )
 {
-	if (vk_bitdepth->modified)
-	{
-		if (vk_bitdepth->value != 0 && !vkw_state.allowdisplaydepthchange)
-		{
-			ri.Cvar_SetValue("vk_bitdepth", 0);
-			ri.Con_Printf(PRINT_ALL, "vk_bitdepth requires Win95 OSR2.x or WinNT 4.x\n");
-		}
-		vk_bitdepth->modified = false;
-	}
 }
 
 /*
