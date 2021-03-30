@@ -1074,7 +1074,7 @@ void R_Register( void )
 	vk_lmaptexturemode = ri.Cvar_Get("vk_lmaptexturemode", "VK_MIPMAP_LINEAR", CVAR_ARCHIVE);
 	vk_aniso = ri.Cvar_Get("vk_aniso", "1", CVAR_ARCHIVE);
 	vk_mip_nearfilter = ri.Cvar_Get("vk_mip_nearfilter", "0", CVAR_ARCHIVE);
-	vk_sampleshading = ri.Cvar_Get("vk_sampleshading", "1", CVAR_ARCHIVE);
+	vk_sampleshading = ri.Cvar_Get("vk_sampleshading", "0", CVAR_ARCHIVE);
 	vk_vsync = ri.Cvar_Get("vk_vsync", "0", CVAR_ARCHIVE);
 	vk_device_idx = ri.Cvar_Get("vk_device", "-1", CVAR_ARCHIVE);
 	vk_fullscreen_exclusive = ri.Cvar_Get("vk_fullscreen_exclusive", "1", CVAR_ARCHIVE);
