@@ -367,7 +367,7 @@ void VID_MenuInit( void )
 	if ( !vk_aniso )
 		vk_aniso = Cvar_Get( "vk_aniso", "1", CVAR_ARCHIVE );
 	if ( !vk_sampleshading )
-		vk_sampleshading = Cvar_Get( "vk_sampleshading", "1", CVAR_ARCHIVE );
+		vk_sampleshading = Cvar_Get( "vk_sampleshading", "0", CVAR_ARCHIVE );
 	if ( !vk_vsync )
 		vk_vsync = Cvar_Get( "vk_vsync", "0", CVAR_ARCHIVE );
 	if ( !vk_postprocess )

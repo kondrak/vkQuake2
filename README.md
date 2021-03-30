@@ -107,8 +107,8 @@ The following commands are available when using the Vulkan renderer:
 | `vk_strings`            | Print some basic Vulkan/GPU information.                                    |
 | `vk_mem`                | Print dynamic vertex/index/uniform/triangle fan buffer memory and descriptor set usage statistics.          |
 | `vk_device`             | Specify index of the preferred Vulkan device on systems with multiple GPUs:<br>`-1` - prefer first DISCRETE_GPU (default)<br>`0..n` - use device #n (full list of devices is returned by `vk_strings` command) |
-| `vk_msaa`               | Toggle MSAA:<br>`0` - off (default)<br>`1` - MSAAx2<br>`2` - MSAAx4<br>`3` - MSAAx8<br>`4` - MSAAx16 |
-| `vk_sampleshading`      | Toggle sample shading for MSAA. (default: `1`) |
+| `vk_msaa`               | Toggle MSAA ([multisampling](https://en.wikipedia.org/wiki/Multisample_anti-aliasing)):<br>`0` - off (default)<br>`1` - MSAAx2<br>`2` - MSAAx4<br>`3` - MSAAx8<br>`4` - MSAAx16 |
+| `vk_sampleshading`      | Toggle sample shading ([supersampling](https://en.wikipedia.org/wiki/Supersampling)) for MSAA. (default: `0`) |
 | `vk_mode`               | Vulkan video mode (default: `11`). Setting this to `-1` uses a custom screen resolution defined by `r_customwidth` (default: `1024`) and `r_customheight` (default: `768`) console variables. |
 | `vk_flashblend`         | Toggle the blending of lights onto the environment. (default: `0`)            |
 | `vk_polyblend`          | Blend fullscreen effects: blood, powerups etc. (default: `1`)                 |
@@ -151,3 +151,4 @@ Acknowledgements
 Known Issues
 ===
 - some Intel GPUs may ignore texture filtering settings in video menu if anisotropic filtering is enabled - this is in fact not an issue but rather a result of anisotropic texture filtering being implementation-dependent
+- macOS using Vulkan SDK 1.2.162 or higher: the application may hang on some MacBooks if `vk_sampleshading` is enabled due to a potential bug in the Metal driver causing a deadlock during shader compilation
