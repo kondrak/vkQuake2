@@ -1176,7 +1176,7 @@ static void CreatePipelines()
 	VkDescriptorSetLayout samplerUboLmapDsLayouts[] = { vk_samplerDescSetLayout, vk_uboDescSetLayout, vk_samplerLightmapDescSetLayout };
 
 	// shader array (vertex and fragment, no compute... yet)
-	qvkshader_t shaders[2] = { VK_NULL_HANDLE, VK_NULL_HANDLE };
+	qvkshader_t shaders[2] = { 0, 0 };
 
 	// 4x4 matrix push constant
 	VkPushConstantRange pushConstantRangeMatrix = {
