@@ -109,6 +109,7 @@ cvar_t	*vk_particle_min_size;
 cvar_t	*vk_particle_max_size;
 cvar_t	*vk_point_particles;
 cvar_t	*vk_postprocess;
+cvar_t	*vk_underwater;
 cvar_t	*vk_dynamic;
 cvar_t	*vk_msaa;
 cvar_t	*vk_showtris;
@@ -942,7 +943,7 @@ void R_EndWorldRenderpass(void)
 
 	// apply postprocessing effects (underwater view warp if the player is submerged in liquid) to offscreen buffer
 	QVk_BeginRenderpass(RP_WORLD_WARP);
-	float pushConsts[] = { r_newrefdef.rdflags & RDF_UNDERWATER ? r_newrefdef.time : 0.f, viewsize->value / 100, vid.width, vid.height };
+	float pushConsts[] = { (r_newrefdef.rdflags & RDF_UNDERWATER) && vk_underwater->value > 0 ? r_newrefdef.time : 0.f, viewsize->value / 100, vid.width, vid.height };
 	vkCmdPushConstants(vk_activeCmdbuffer, vk_worldWarpPipeline.layout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(pushConsts), pushConsts);
 	vkCmdBindDescriptorSets(vk_activeCmdbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_worldWarpPipeline.layout, 0, 1, &vk_colorbuffer.descriptorSet, 0, NULL);
 	QVk_BindPipeline(&vk_worldWarpPipeline);
@@ -1066,6 +1067,7 @@ void R_Register( void )
 	vk_particle_max_size = ri.Cvar_Get("vk_particle_max_size", "40", CVAR_ARCHIVE);
 	vk_point_particles = ri.Cvar_Get("vk_point_particles", "1", CVAR_ARCHIVE);
 	vk_postprocess = ri.Cvar_Get("vk_postprocess", "1", CVAR_ARCHIVE);
+	vk_underwater = ri.Cvar_Get("vk_underwater", "1", CVAR_ARCHIVE);
 	vk_dynamic = ri.Cvar_Get("vk_dynamic", "1", 0);
 	vk_msaa = ri.Cvar_Get("vk_msaa", "0", CVAR_ARCHIVE);
 	vk_showtris = ri.Cvar_Get("vk_showtris", "0", 0);

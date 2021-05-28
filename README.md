@@ -16,6 +16,7 @@ This is the official Quake 2 code v3.21 with Vulkan support and mission packs in
 - anisotropic filtering toggle has been added
 - players can now change texture filtering modes from within the video menu
 - mouse acceleration has been disabled
+- player vision is now warped by default when underwater
 - console contents can be scrolled with a mouse wheel
 - HUD elements, menus and console text are now scaled accordingly on higher screen resolutions (can be overridden with the `hudscale` console command)
 - viewmodel weapons are no longer hidden when FOV > 90
@@ -134,6 +135,7 @@ The following commands are available when using the Vulkan renderer:
 | `vk_aniso`              | Toggle anisotropic filtering. (default: `1`)               |
 | `vk_vsync`              | Toggle vertical sync. (default: `0`)                       |
 | `vk_postprocess`        | Toggle additional color/gamma correction. (default: `1`)   |
+| `vk_underwater`         | Toggle player vision warp when underwater. (default: `1`)  |
 | `vk_restart`            | Recreate entire Vulkan subsystem.                          |
 | `vk_mip_nearfilter`     | Use nearest-neighbor filtering for mipmaps. (default: `0`) |
 | `vk_texturemode`        | Change current texture filtering mode:<br>`VK_NEAREST` - nearest-neighbor interpolation, no mipmaps<br>`VK_LINEAR` - linear interpolation, no mipmaps<br>`VK_MIPMAP_NEAREST` - nearest-neighbor interpolation with mipmaps<br>`VK_MIPMAP_LINEAR` - linear interpolation with mipmaps (default) |
