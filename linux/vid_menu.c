@@ -678,19 +678,23 @@ const char *VID_MenuKey( int key )
 	case K_UPARROW:
 		m->cursor--;
 		Menu_AdjustCursor( m, -1 );
+		sound = "misc/menu2.wav";
 		break;
 	case K_KP_DOWNARROW:
 	case K_DOWNARROW:
 		m->cursor++;
 		Menu_AdjustCursor( m, 1 );
+		sound = "misc/menu2.wav";
 		break;
 	case K_KP_LEFTARROW:
 	case K_LEFTARROW:
 		Menu_SlideItem( m, -1 );
+		sound = "misc/menu2.wav";
 		break;
 	case K_KP_RIGHTARROW:
 	case K_RIGHTARROW:
 		Menu_SlideItem( m, 1 );
+		sound = "misc/menu2.wav";
 		break;
 	case K_KP_ENTER:
 	case K_ENTER:
