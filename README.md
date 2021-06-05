@@ -11,12 +11,11 @@ This is the official Quake 2 code v3.21 with Vulkan support and mission packs in
 
 - world colors have been slightly upgraded - the game's original, darker look can be toggled with the `vk_postprocess` console command
 - 64-bit support, additional screen resolutions and DPI awareness have been added
-- underwater vision effect similar to software renderer has been implemented
+- underwater vision warp effect similar to software renderer has been implemented and enabled by default
 - antialiasing and sample shading is now natively supported
 - anisotropic filtering toggle has been added
 - players can now change texture filtering modes from within the video menu
 - mouse acceleration has been disabled
-- player vision is now warped by default when underwater
 - console contents can be scrolled with a mouse wheel
 - HUD elements, menus and console text are now scaled accordingly on higher screen resolutions (can be overridden with the `hudscale` console command)
 - viewmodel weapons are no longer hidden when FOV > 90
@@ -149,6 +148,11 @@ Acknowledgements
 - Axel Gneiting for [vkQuake](https://github.com/Novum/vkQuake) which was a great inspiration and a rich source of knowledge
 - LunarG team and the Khronos Group for their invaluable help and resources
 - Dorian Apanel and the Intel team for technical support, inspiring email discussions and blazing-fast reaction to driver bug reports!
+
+See also
+===
+- [SauRay](https://github.com/HonestGamingInc/vkQuake2_SauRay) - a server-side anti-wallhack solution using hardware accelerated ray-tracing, using vkQuake2 as a PoC
+- [yquake2/ref_vk](https://github.com/yquake2/ref_vk) - Vulkan Renderer Library for Yamagi Quake 2 based on vkQuake2
 
 Known Issues
 ===
