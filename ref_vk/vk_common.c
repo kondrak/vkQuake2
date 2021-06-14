@@ -2192,6 +2192,8 @@ void QVk_RecreateSwapchain()
 	vk_scissor.extent = vk_swapchain.extent;
 	DestroyDrawBuffers();
 	CreateDrawBuffers();
+	QVk_UpdateTextureSampler(&vk_colorbuffer, S_NEAREST);
+	QVk_UpdateTextureSampler(&vk_colorbufferWarp, S_NEAREST);
 	VK_VERIFY(CreateImageViews());
 	VK_VERIFY(CreateFramebuffers());
 }
