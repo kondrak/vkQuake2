@@ -153,6 +153,7 @@ See also
 ===
 - [SauRay](https://github.com/HonestGamingInc/vkQuake2_SauRay) - a server-side anti-wallhack solution using hardware accelerated ray-tracing, using vkQuake2 as a PoC
 - [yquake2/ref_vk](https://github.com/yquake2/ref_vk) - Vulkan Renderer Library for Yamagi Quake 2 based on vkQuake2
+- [vkQuake2 Miniaudio](https://github.com/mackron/vkQuake2) - vkQuake2 fork with added spacialized audio using [Miniaudio](https://github.com/dr-soft/miniaudio) library
 
 Known Issues
 ===
