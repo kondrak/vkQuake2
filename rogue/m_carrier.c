@@ -1193,7 +1193,7 @@ qboolean Carrier_CheckAttack (edict_t *self)
 	return false;
 }
 
-void CarrierPrecache ()
+void CarrierPrecache (void)
 {
 	gi.soundindex ("flyer/flysght1.wav");
 	gi.soundindex ("flyer/flysrch1.wav");

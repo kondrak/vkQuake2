@@ -1712,7 +1712,7 @@ void CL_AddLasers (void)
 }
 
 /* PMM - CL_Sustains */
-void CL_ProcessSustain ()
+void CL_ProcessSustain (void)
 {
 	cl_sustain_t	*s;
 	int				i;

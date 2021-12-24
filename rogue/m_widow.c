@@ -1605,7 +1605,7 @@ void WidowCalcSlots (edict_t *self)
 //		gi.dprintf ("number of slots changed from %d to %d\n", old_slots, self->monsterinfo.monster_slots);
 }
 
-void WidowPrecache ()
+void WidowPrecache (void)
 {
 	// cache in all of the stalker stuff, widow stuff, spawngro stuff, gibs
 	gi.soundindex ("stalker/pain.wav");	

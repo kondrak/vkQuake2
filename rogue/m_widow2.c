@@ -1114,7 +1114,7 @@ qboolean Widow2_CheckAttack (edict_t *self)
 	return false;
 }
 
-void Widow2Precache ()
+void Widow2Precache (void)
 {
 	// cache in all of the stalker stuff, widow stuff, spawngro stuff, gibs
 	gi.soundindex ("parasite/parpain1.wav");	
