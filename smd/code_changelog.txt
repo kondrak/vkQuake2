@@ -1,0 +1,80 @@
+Here's a list of changes I've made to the Lazarus code base...
+ -- Musashi
+
+
+- Tank commanders fall apart when they die (tank_commander_body generated).
+- New monster type: [monster_sentrybot].
+- Infantry guards can fire hyperblasters (spawnflag: SPECIAL).
+- Infantry guards can dodge by rolling left/right.
+- Infantry guards have a fountain of blood when they lose their head (death anim).
+- Light Soldiers can fire super-blaster bolts (spawnflag: SPECIAL).
+- Flyers can fire super-blaster bolts (spawnflag: SPECIAL).
+- Technicians can fire super-blaster bolts (spawnflag: SPECIAL).
+- Technicians can dodge by quickly moving sideways.
+- Icari can fire rockets (spawnflag: SPECIAL).
+- Icari alternate shots between their shoulder mounts.
+- Icari can dodge by quickly moving sideways.
+- Brains can fire plasma bolts (spawnflag: SPECIAL).
+- Brains can use Parasite-like attacks; hooked players are reeled in for gutting!
+- Beserkers don't pause before swinging if skill > EASY.
+- Tanks fire rockets sooner after activating their launcher.
+- Tanks follow their target when spraying their MG.
+- Tank Commanders break apart upon death (rather than gibbing), and spawn the head/key model.
+- Chicks can dodge using high backflips.
+- Increased damage for Beserkers (club and swing attacks).
+- Increased damage to 2 for Flyers.
+- Increased damage to 3 for Floaters.
+- Increased damage to 4 for Icari and Medics.
+- Monsters learn to not bother ducking if it hasn't stopped them getting hurt.
+- Monsters' ducking time depends on ETA of projectile.
+- Monsters don't duck if they'd be vulnerable for too long.
+- Monsters don't duck if they're currently firing (or about to fire) a weapon.
+- Monsters preferentially use homing rockets (if flagged) compared to other ranged weapons.
+- Monsters lead their target when firing (accuracy is dependent upon skill level and target velocity).
+- Probability of monsters reattacking is proportional to skill level.
+- Increase default 'gib_health' for lighter monsters.
+- Add 'nohint' spawnflag (64) for monsters.
+- Reduce default 'flies' probability on [monster_*] entities.
+- Add 'powerscreen' field to [monster_*] entities.
+- No pain anims below a certain amount of damage (eg. <= 6); depends on the 
+  specific monster.
+- Fixed incorrect CG muzzle flash on Supertank.
+- Chicks and Infantry guards use their special dodges against rockets, if at the right range for it.
+- Infantry guards use their roll-dodges against non-distant MG fire.
+
+- Increased falling damage.
+- Automatically turn off crosshair and HUD info when using a [target_monitor].
+- Health does not decrease after picking up the MH.
+- Extended soundlist & user-specified WAV files for [trigger_single], [_multiple] and [_relay].
+- Light and heavy start/mid/end sounds played internally by [func_plat]s.
+- Light and heavy start/mid/end sounds played internally by [func_door_*]s.
+- Start/mid/end sounds played internally by [func_train]s.
+- Brush content flag that allows bullets/bolts but stops rockets/grenades (for grills).
+- Blaster and plasma bolts bounce off [func_force_wall] surfaces.
+- Add 'killtarget' key to items/keys/etc.
+- New [trigger_medibot] entity.
+- New [key_hipower_cube] entity.
+- New [target_holo] entity.
+- New [item_hackedpass] entity.
+- New [target_bubbles] entity.
+- New [func_air] entity.
+- New [trigger_command] entity.
+- New [func_clock_screen] entity.
+- New [target_viewshake] entity.
+- [trigger_relay_toggle] to toggle between two delay/message/target key values.
+- [func_button] to toggle between two delay/message/target key values.
+- [trigger_multiple] to toggle between two delay/message/target key values.
+- [func_door*] entities shouldn't damage player when dmg = 0.
+- Allow [model_turrets] to be remotely fired (just like [turret_breaches] can be).
+- Fix [trigger_key] so 'key_message' is displayed if set.
+- Stop [key_pass] rotating when dropped by a monster.
+- Only fire an [item_*]'s targets if it is actually picked up (not just touched).
+- Spawnflag added for [func_force_wall]s to reflect energy bolts. 
+- Ability for entities spawned by [target_fountain]s to be animated.
+- Ability for turrets to be double-barrelled (alternate and simultaneous fire modes).
+- Teleporter destinations can be flagged to have no model.
+- [key_commanders_head] is indestructable to crushing damage (non-crusher doors).
+- Spawnflag added for [func_force_wall]s to play "bzzz" sound when hit.
+- Fixed crashes with target_monitor (resulting from self->enemy being NULL).
+- Added spawngflag 32 to misc_teleporter (can have (no) effects OR (no) model).
+- Fixed bug where middle sounds of doors weren't played (requires info_notnull in map).
