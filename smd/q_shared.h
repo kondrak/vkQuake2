@@ -74,7 +74,12 @@ __inline int Q_vsnprintf (char *Dest, size_t Count, const char *Format, va_list 
 #endif
 
 //Knightmare- whether to include new engine enhancements
-#define	KMQUAKE2_ENGINE_MOD
+//#define	KMQUAKE2_ENGINE_MOD
+
+// disable fog altogether - code is incompatible with vkQuake2
+#ifndef DISABLE_FOG
+#define DISABLE_FOG
+#endif
 
 //only use FMOD footsteps when not using custom engine
 #ifndef KMQUAKE2_ENGINE_MOD
