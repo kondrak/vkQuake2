@@ -634,7 +634,7 @@ void ReadTextureSurfaceAssignments()
 
 	while(fgets(line, sizeof(line), f) && num_texsurfs < MAX_TEX_SURF)
 	{
-		sscanf(line,"%d %s",&tex_surf[num_texsurfs].step_id,tex_surf[num_texsurfs].tex);
+		(void)sscanf(line,"%d %s",&tex_surf[num_texsurfs].step_id,tex_surf[num_texsurfs].tex);
 //		gi.dprintf("%d %s\n",tex_surf[num_texsurfs].step_id,tex_surf[num_texsurfs].tex);
 		num_texsurfs++;
 	}
@@ -972,7 +972,7 @@ static signed char EndStream(FSOUND_STREAM *stream,void *buff,int len,int param)
 {
 	edict_t	*e;
 
-	e = (edict_t *)param;
+	e = (edict_t *)(intptr_t)param;
 	if(!e)
 		return TRUE;
 	if(!e->inuse)
@@ -1131,7 +1131,7 @@ int FMOD_PlaySound(edict_t *ent)
 			if(ent->channel >= 0)
 			{
 				ent->spawnflags &= ~SF_PLAYBACK_TURNED_OFF;
-				FSOUND_Stream_SetEndCallback((FSOUND_STREAM *)ent->stream,EndStream,(int)ent);
+				FSOUND_Stream_SetEndCallback((FSOUND_STREAM *)ent->stream,EndStream,(intptr_t)ent);
 				return 1;
 			}
 			else
@@ -1377,7 +1377,7 @@ void SP_target_playback (edict_t *ent)
 		return;
 	}
 	GameDirRelativePath(st.noise,filename);
-	ent->message = gi.TagMalloc(strlen(filename)+1,TAG_LEVEL);
+	ent->message = gi.TagMalloc((int)strlen(filename)+1,TAG_LEVEL);
 	strcpy(ent->message,filename);
 
 	if (ent->fadein < 0)

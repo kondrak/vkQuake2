@@ -22,7 +22,7 @@
 #ifdef DISABLE_FOG
 
 void Fog_Init()	{}
-void Fog (edict_t *ent)	{}
+void Fog (vec3_t viewpoint)	{}
 void Fog_Off ()	{}
 void Fog_ConsoleFog ()	{}
 void GLFog ()	{}

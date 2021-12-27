@@ -69,7 +69,7 @@ void lock_initialize (edict_t *lock)
 		return;
 	}
 	// Maximum of 8 digits in combination
-	l = min(strlen(lock->key_message),8);
+	l = (int)min(strlen(lock->key_message),8);
 	numdigits = 0;
 	for (e = lock->teammaster; e; e = e->teamchain)
 	{
@@ -137,7 +137,7 @@ void lock_code_use (edict_t *self, edict_t *other, edict_t *activator)
 		}
 		sprintf(message,"Lock combination is %s",game.lock_code);
 		Do_Text_Display(activator, 0, message);
-		L = strlen(game.lock_code);
+		L = (int)strlen(game.lock_code);
 		for(i=0; i<L; i++)
 			game.lock_revealed |= 1<<i;
 	}
@@ -151,7 +151,7 @@ void lock_code_use (edict_t *self, edict_t *other, edict_t *activator)
 		{
 			sprintf(message,"Lock combination is %s",game.lock_code);
 			Do_Text_Display(activator, 0, message);
-			L = min(8,strlen(lock->key_message));
+			L = (int)min(8,strlen(lock->key_message));
 			for(i=0; i<L; i++)
 				game.lock_revealed |= 1<<i;
 		}
@@ -178,7 +178,7 @@ void lock_clue_use (edict_t *self, edict_t *other, edict_t *activator)
 			gi.dprintf("Lock has not been properly initialized.\n");
 			return;
 		}
-		L = strlen(game.lock_code);
+		L = (int)strlen(game.lock_code);
 		for(i=0; i<L; i++)
 			if(self->message[i] != '?') game.lock_revealed |= 1<<i;
 	}
@@ -190,7 +190,7 @@ void lock_clue_use (edict_t *self, edict_t *other, edict_t *activator)
 			gi.dprintf("Target of target_lock_clue does not exist\n");
 		else
 		{
-			L = min(8,strlen(lock->key_message));
+			L = (int)min(8,strlen(lock->key_message));
 			for(i=0; i<L; i++)
 				if(self->message[i] != '?') game.lock_revealed |= 1<<i;
 		}

@@ -133,12 +133,12 @@ void SP_target_speaker (edict_t *ent)
 		//      via trigger_transition
 		if (!strstr (st.noise, ".wav"))
 		{
-			ent->message = gi.TagMalloc(strlen(st.noise)+5,TAG_LEVEL);
+			ent->message = gi.TagMalloc((int)strlen(st.noise)+5,TAG_LEVEL);
 			sprintf(ent->message,"%s.wav", st.noise);
 		}
 		else
 		{
-			ent->message = gi.TagMalloc(strlen(st.noise)+1,TAG_LEVEL);
+			ent->message = gi.TagMalloc((int)strlen(st.noise)+1,TAG_LEVEL);
 			strcpy(ent->message,st.noise);
 		}
 	}
@@ -3665,7 +3665,7 @@ void use_target_change (edict_t *self, edict_t *other, edict_t *activator)
 
 	if (!self->target)
 		return;
-	L = strlen(self->target);
+	L = (int)strlen(self->target);
 //	buffer = (char *)malloc(L+1);
 	buffer = (char *)gi.TagMalloc(L+1, TAG_LEVEL);
 	strcpy(buffer,self->target);
@@ -3953,7 +3953,7 @@ void SP_target_sky (edict_t *self)
 		G_FreeEdict(self);
 		return;
 	}
-	self->pathtarget = gi.TagMalloc(strlen(st.sky)+1,TAG_LEVEL);
+	self->pathtarget = gi.TagMalloc((int)strlen(st.sky)+1,TAG_LEVEL);
 	strcpy(self->pathtarget,st.sky);
 	self->use = use_target_sky;
 }
@@ -4026,7 +4026,7 @@ void clone (edict_t *self, edict_t *other, edict_t *activator)
 	if (!parent)
 		return;
 	child = G_Spawn();
-	child->classname = gi.TagMalloc(strlen(parent->classname)+1,TAG_LEVEL);
+	child->classname = gi.TagMalloc((int)strlen(parent->classname)+1,TAG_LEVEL);
 	strcpy(child->classname,parent->classname);
 	child->s.modelindex = parent->s.modelindex;
 	VectorCopy(self->s.origin,child->s.origin);

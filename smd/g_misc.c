@@ -240,7 +240,7 @@ void ThrowGib (edict_t *self, char *gibname, int damage, int type)
 	}
 
 	// Save gibname and type for level transition gibs
-	gib->key_message = gi.TagMalloc (strlen(modelname)+1,TAG_LEVEL);
+	gib->key_message = gi.TagMalloc ((int)strlen(modelname)+1,TAG_LEVEL);
 	strcpy(gib->key_message, modelname);
 	gib->style = type;
 
@@ -359,7 +359,7 @@ void ThrowHead (edict_t *self, char *gibname, int damage, int type)
 	}
 
 	// Save gibname and type for level transition gibs
-	self->key_message = gi.TagMalloc (strlen(modelname)+1,TAG_LEVEL);
+	self->key_message = gi.TagMalloc ((int)strlen(modelname)+1,TAG_LEVEL);
 	strcpy(self->key_message, modelname);
 
 	self->style = type;
@@ -531,7 +531,7 @@ void ThrowDebris (edict_t *self, char *modelname, float speed, vec3_t origin, in
 	chunk->die = debris_die;
 
 	// Lazarus: Preserve model name for level changes:
-	chunk->message = gi.TagMalloc (strlen(modelname)+1,TAG_LEVEL);
+	chunk->message = gi.TagMalloc ((int)strlen(modelname)+1,TAG_LEVEL);
 	strcpy(chunk->message, modelname);
 
 	// Lazarus: skin number and effects
@@ -2351,7 +2351,7 @@ void target_string_use (edict_t *self, edict_t *other, edict_t *activator)
 	int		n, l;
 	char	c;
 
-	l = strlen(self->message);
+	l = (int)strlen(self->message);
 	for (e = self->teammaster; e; e = e->teamchain)
 	{
 		if (!e->count)
@@ -3641,7 +3641,7 @@ void SP_target_precipitation (edict_t *ent)
 			G_FreeEdict(ent);
 			return;
 		}
-		buffer = gi.TagMalloc(strlen(ent->usermodel)+10,TAG_LEVEL);
+		buffer = gi.TagMalloc((int)strlen(ent->usermodel)+10,TAG_LEVEL);
 		if (strstr(ent->usermodel,".sp2"))
 			sprintf(buffer, "sprites/%s", ent->usermodel);
 		else
@@ -3849,7 +3849,7 @@ void SP_target_fountain (edict_t *ent)
 		G_FreeEdict(ent);
 		return;
 	}
-	buffer = gi.TagMalloc(strlen(ent->usermodel)+10, TAG_LEVEL);
+	buffer = gi.TagMalloc((int)strlen(ent->usermodel)+10, TAG_LEVEL);
 	if (strstr(ent->usermodel,".sp2"))
 		sprintf(buffer, "sprites/%s", ent->usermodel);
 	else

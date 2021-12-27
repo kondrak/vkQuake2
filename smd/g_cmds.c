@@ -266,7 +266,7 @@ void SaveEntProps(edict_t *e, FILE *f)
 		e->sounds,e->count);
 	fprintf(f,"noise_index = %d\n"
 		"noise_index2= %d\n"
-		"volume      = %d\n"
+		"volume      = %g\n"
 		"attenuation = %g\n"
 		"wait        = %g\n"
 		"delay       = %g\n"
@@ -2471,7 +2471,7 @@ void ClientCommand (edict_t *ent)
 				return;
 			}
 			e = G_Spawn();
-			e->classname = gi.TagMalloc(strlen(parm)+1,TAG_LEVEL);
+			e->classname = gi.TagMalloc((int)strlen(parm)+1,TAG_LEVEL);
 			strcpy(e->classname,parm);
 			AngleVectors(ent->client->v_angle,forward,NULL,NULL);
 			VectorMA(ent->s.origin,128,forward,e->s.origin);

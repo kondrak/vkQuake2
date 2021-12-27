@@ -1756,7 +1756,7 @@ qboolean InPak(char *basedir, char *gamedir, char *filename)
 		strcat(pakfile,va("/pak%d.pak",k));
 		if (NULL != (f = fopen(pakfile, "rb")))
 		{
-			num=fread(&pakheader,1,sizeof(pak_header_t),f);
+			num=(int)fread(&pakheader,1,sizeof(pak_header_t),f);
 			if(num >= sizeof(pak_header_t))
 			{
 				if( pakheader.id[0] == 'P' &&

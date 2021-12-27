@@ -134,9 +134,9 @@ void Text_Update(edict_t *ent)
 		{
 			sprintf(string + strlen(string), "yv %d ", 24 + i * 8);
 			if (align == TEXT_CENTER)
-				x = 20 + (MAX_LINE_LENGTH-1-strlen(t))*4;
+				x = 20 + (MAX_LINE_LENGTH-1-(int)strlen(t))*4;
 			else if (align == TEXT_RIGHT)
-				x = 20 + (MAX_LINE_LENGTH-1-strlen(t))*8;
+				x = 20 + (MAX_LINE_LENGTH-1-(int)strlen(t))*8;
 			else
 				x = 20;
 			if(x != xlast)
@@ -282,7 +282,7 @@ void Do_Text_Display(edict_t *activator, int flags, char *message)
 			sprintf(pakfile,"%s\\pak%d.pak",filename,i);
 			if (NULL != (f = fopen(pakfile, "rb")))
 			{
-				num=fread(&pakheader,1,sizeof(pak_header_t),f);
+				num=(int)fread(&pakheader,1,(int)sizeof(pak_header_t),f);
 				if(num >= sizeof(pak_header_t))
 				{
 					if( pakheader.id[0] == 'P' &&
@@ -357,7 +357,7 @@ void Do_Text_Display(edict_t *activator, int flags, char *message)
 	}
 	else
 	{
-		L = strlen(message);
+		L = (int)strlen(message);
 		hnd->allocated = L+128;
 	//	hnd->buffer = malloc(hnd->allocated);
 		hnd->buffer = gi.TagMalloc(hnd->allocated, TAG_LEVEL);
@@ -371,7 +371,7 @@ void Do_Text_Display(edict_t *activator, int flags, char *message)
 		memcpy(hnd->buffer,message,L);
 	}
 	
-	hnd->size = strlen(hnd->buffer) + 1;
+	hnd->size = (int)strlen(hnd->buffer) + 1;
 	// Eliminate all <CR>'s so lines are delineated with <LF>'s only
 	p1 = hnd->buffer;
 	while(p1 < hnd->buffer+hnd->size)

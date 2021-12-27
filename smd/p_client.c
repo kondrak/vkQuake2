@@ -448,7 +448,7 @@ void TossClientWeapon (edict_t *self)
 		drop->spawnflags |= DROPPED_PLAYER_ITEM;
 
 		drop->touch = Touch_Item;
-		drop->nextthink = level.time + (self->client->quad_framenum - level.framenum) * FRAMETIME;
+		drop->nextthink = level.time + (self->client->quad_framenum - level.framenum) * (float)FRAMETIME;
 		drop->think = G_FreeEdict;
 	}
 }
@@ -1152,18 +1152,21 @@ void	SelectSpawnPoint (edict_t *ent, vec3_t origin, vec3_t angles, int *style, i
 		}
 	}
 
-	*style = spot->style;
-	*health = spot->health;
-	VectorCopy (spot->s.origin, origin);
-	origin[2] += 9;
-	VectorCopy (spot->s.angles, angles);
+	if (spot)
+	{
+		*style = spot->style;
+		*health = spot->health;
+		VectorCopy(spot->s.origin, origin);
+		origin[2] += 9;
+		VectorCopy(spot->s.angles, angles);
 
-	if(!deathmatch->value && !coop->value) {
+		if (!deathmatch->value && !coop->value) {
 
-		spot->count--;
-		if(!spot->count) {
-			spot->think = G_FreeEdict;
-			spot->nextthink = level.time + 1;
+			spot->count--;
+			if (!spot->count) {
+				spot->think = G_FreeEdict;
+				spot->nextthink = level.time + 1;
+			}
 		}
 	}
 }
@@ -2054,8 +2057,8 @@ float PM_CmdScale( usercmd_t *cmd ) {
 		return 0;
 	}
 
-	total = sqrt( cmd->forwardmove * cmd->forwardmove
-		+ cmd->sidemove * cmd->sidemove + cmd->upmove * cmd->upmove );
+	total = sqrt( (double)cmd->forwardmove * cmd->forwardmove
+		+ (double)cmd->sidemove * cmd->sidemove + (double)cmd->upmove * cmd->upmove );
 	scale = max / total;
 
 	return scale;
@@ -2581,7 +2584,7 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 						viewing->monsterinfo.leader   = ent;
 						VectorSubtract(ent->s.origin,viewing->s.origin,dir);
 						viewing->ideal_yaw = vectoyaw(dir);
-						if(fabs(viewing->s.angles[YAW] - viewing->ideal_yaw) < 90)
+						if(fabs((double)viewing->s.angles[YAW] - (double)viewing->ideal_yaw) < 90)
 							actor_salute(viewing);
 					}
 				}
@@ -2917,7 +2920,7 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 				if(dist <= 10)
 					frac = MUD3;
 				else
-					frac = MUD3 + (dist-10)/22.*(MUD1BASE-MUD3);
+					frac = MUD3 + (dist-10.f)/22.f*((float)MUD1BASE-MUD3);
 				ent->s.origin[0] = oldorigin[0]   + frac*deltapos[0];
 				ent->s.origin[1] = oldorigin[1]   + frac*deltapos[1];
 				ent->s.origin[2] = oldorigin[2]   + frac*deltapos[2];

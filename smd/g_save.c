@@ -553,7 +553,7 @@ void WriteField1 (FILE *f, field_t *field, byte *base)
 	case F_LSTRING:
 	case F_GSTRING:
 		if ( *(char **)p )
-			len = strlen(*(char **)p) + 1;
+			len = (int)strlen(*(char **)p) + 1;
 		else
 			len = 0;
 		*(int *)p = len;
@@ -590,7 +590,7 @@ void WriteField1 (FILE *f, field_t *field, byte *base)
 			func = GetFunctionByAddress (*(byte **)p);
 			if (!func)
 				gi.error ("WriteField1: function not in list, can't save game");
-			len = strlen(func->funcStr)+1;
+			len = (int)strlen(func->funcStr)+1;
 		}
 		*(int *)p = len;
 		break;
@@ -604,7 +604,7 @@ void WriteField1 (FILE *f, field_t *field, byte *base)
 			mmove = GetMmoveByAddress (*(mmove_t **)p);
 			if (!mmove)
 				gi.error ("WriteField1: mmove not in list, can't save game");
-			len = strlen(mmove->mmoveStr)+1;
+			len = (int)strlen(mmove->mmoveStr)+1;
 		}
 		*(int *)p = len;
 		break;
@@ -651,7 +651,7 @@ void WriteField2 (FILE *f, field_t *field, byte *base)
 	case F_LSTRING:
 		if ( *(char **)p )
 		{
-			len = strlen(*(char **)p) + 1;
+			len = (int)strlen(*(char **)p) + 1;
 			fwrite (*(char **)p, len, 1, f);
 		}
 		break;
@@ -662,7 +662,7 @@ void WriteField2 (FILE *f, field_t *field, byte *base)
 			func = GetFunctionByAddress (*(byte **)p);
 			if (!func)
 				gi.error ("WriteField2: function not in list, can't save game");
-			len = strlen(func->funcStr)+1;
+			len = (int)strlen(func->funcStr)+1;
 			fwrite (func->funcStr, len, 1, f);
 		}
 		break;
@@ -672,7 +672,7 @@ void WriteField2 (FILE *f, field_t *field, byte *base)
 			mmove = GetMmoveByAddress (*(mmove_t **)p);
 			if (!mmove)
 				gi.error ("WriteField2: mmove not in list, can't save game");
-			len = strlen(mmove->mmoveStr)+1;
+			len = (int)strlen(mmove->mmoveStr)+1;
 			fwrite (mmove->mmoveStr, len, 1, f);
 		}
 		break;
