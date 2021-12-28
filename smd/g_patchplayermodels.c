@@ -12,6 +12,9 @@
 #include <direct.h>
 #else
 #include <sys/stat.h>
+#ifndef _mkdir
+#define _mkdir(s) mkdir(s, 0777)
+#endif
 #endif
 #include "g_local.h"
 
