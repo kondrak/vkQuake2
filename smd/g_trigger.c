@@ -1102,7 +1102,7 @@ void trigger_inside_think (edict_t *self)
 		hit = touch[i];
 		if (!hit->inuse) continue;
 		if (!hit->targetname) continue;
-		if (stricmp(self->pathtarget, hit->targetname)) continue;
+		if (strcmp(self->pathtarget, hit->targetname)) continue;
 		// must be COMPLETELY inside
 		if (hit->absmin[0] < self->absmin[0]) continue;
 		if (hit->absmin[1] < self->absmin[1]) continue;

@@ -645,7 +645,7 @@ void GunnerGrenade (edict_t *self)
 		VectorNormalize(aim);
 	}
 
-	monster_fire_grenade (self, start, aim, 50, GRENADE_VELOCITY, flash_number);
+	monster_fire_grenade (self, start, aim, 50, (int)GRENADE_VELOCITY, flash_number);
 }
 
 mframe_t gunner_frames_attack_chain [] =

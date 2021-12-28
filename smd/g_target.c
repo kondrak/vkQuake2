@@ -5,7 +5,7 @@
 #define ANIM_MASK	(EF_ANIM01|EF_ANIM23|EF_ANIM_ALL|EF_ANIM_ALLFAST)		//CW
 
 static float fCrosshair;	//CW: store crosshair value for [target_monitor] use
-char *single_statusbar;		//CW: reference external definition in g_spawn.c
+extern char *single_statusbar;		//CW: reference external definition in g_spawn.c
 
 ///CW++ Holographic "repair catalogue" of monsters.
 #define	HOLO_SIZE	12
@@ -1644,7 +1644,7 @@ void target_locator_init(edict_t *self)
 	int num_points=0;
 	int i, N, nummoves;
 	qboolean looped;
-	edict_t *tgt0, *tgtlast, *target, *next;
+	edict_t *tgt0, *tgtlast=NULL, *target, *next;
 	edict_t *move;
 
 	move = NULL;
@@ -1772,7 +1772,7 @@ void SP_target_locator(edict_t *self)
 
 void use_target_anger(edict_t *self, edict_t *other, edict_t *activator)
 {
-	edict_t		*kill_me, *movetarget;
+	edict_t		*kill_me=NULL, *movetarget;
 	edict_t		*t;
 	vec3_t		vec;
 	float		dist, best_dist;
@@ -2589,7 +2589,7 @@ void target_attractor_think_single(edict_t *self)
 	int		i;
 	int		num_targets = 0;
 	
-	if (!self->spawnflags & ATTRACTOR_ON) return;
+	if (!(self->spawnflags & ATTRACTOR_ON)) return;
 
 	previous_target = self->target_ent;
 	target      = NULL;
@@ -2780,7 +2780,7 @@ void target_attractor_think(edict_t *self)
 	int		ent_start;
 	int		num_targets = 0;
 
-	if (!self->spawnflags & ATTRACTOR_ON) return;
+	if (!(self->spawnflags & ATTRACTOR_ON)) return;
 
 	if (self->moveinfo.speed != self->speed) {
 		if (self->speed > 0)
@@ -2793,7 +2793,7 @@ void target_attractor_think(edict_t *self)
 	ent_start = 1;
 	while(true)
 	{
-		if (self->spawnflags & (ATTRACTOR_PLAYER || ATTRACTOR_MONSTER))
+		if (self->spawnflags & (ATTRACTOR_PLAYER | ATTRACTOR_MONSTER))
 		{
 			target = NULL;
 			for(i=ent_start, ent=&g_edicts[ent_start];i<globals.num_edicts && !target; i++, ent++)
@@ -3613,7 +3613,7 @@ void use_target_failure (edict_t *self, edict_t *other, edict_t *activator)
 		gi.sound (activator, CHAN_VOICE|CHAN_RELIABLE, self->noise_index, 1, ATTN_NORM, 0);
 
 	self->target_ent = activator;
-	if (stricmp(vid_ref->string,"gl"))
+	if (strcmp(vid_ref->string,"gl"))
 	{
 		self->flags = 12;
 		self->think = target_failure_fade_lights;
@@ -4489,7 +4489,7 @@ void target_viewshake_think(edict_t *self)
 	self->target_ent->client->ps.viewangles[YAW] += self->ideal_yaw;
 	self->ideal_yaw *= -(1.0 - self->angle);
 
-	if (abs(self->ideal_yaw) < 0.01)
+	if (fabs(self->ideal_yaw) < 0.01)
 	{
 		if (self->count == 0)
 			G_FreeEdict(self);

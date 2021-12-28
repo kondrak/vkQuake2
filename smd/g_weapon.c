@@ -637,7 +637,7 @@ void Grenade_Evade (edict_t *monster)
 {
 	edict_t	*grenade;
 	vec3_t	grenade_vec;
-	float	grenade_dist, best_r, best_yaw, r;
+	float	grenade_dist=0.f, best_r, best_yaw=0.f, r;
 	float	yaw;
 	int		i;
 	vec3_t	forward;
@@ -1088,7 +1088,7 @@ fire_rocket
 
 void Rocket_Evade (edict_t *rocket, vec3_t	dir, float speed)
 {
-	float	rocket_dist, best_r, best_yaw, dist, r;
+	float	rocket_dist, best_r, best_yaw = 0.0, dist, r;
 	float	time;
 	float	dot;
 	float	yaw;

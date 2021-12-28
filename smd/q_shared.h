@@ -82,7 +82,7 @@ __inline int Q_vsnprintf (char *Dest, size_t Count, const char *Format, va_list 
 #endif
 
 //only use FMOD footsteps when not using custom engine
-#ifndef KMQUAKE2_ENGINE_MOD
+#if !defined(KMQUAKE2_ENGINE_MOD) && !defined(DISABLE_FMOD)
 #define FMOD_FOOTSTEPS 
 #endif
 //end Knightmare

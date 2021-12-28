@@ -265,7 +265,7 @@ only happens when a new game is started or a save game
 is loaded.
 ============
 */
-void ReadTextureSurfaceAssignments();
+void ReadTextureSurfaceAssignments(void);
 void InitGame (void)
 {
 	gi.dprintf("==== InitGame ====\n");
@@ -675,6 +675,8 @@ void WriteField2 (FILE *f, field_t *field, byte *base)
 			len = (int)strlen(mmove->mmoveStr)+1;
 			fwrite (mmove->mmoveStr, len, 1, f);
 		}
+		break;
+	default:
 		break;
 #endif
 	}
@@ -1160,7 +1162,7 @@ calling ReadLevel.
 No clients are connected yet.
 =================
 */
-void LoadTransitionEnts();
+void LoadTransitionEnts(void);
 void ReadLevel (char *filename)
 {
 	int		entnum;

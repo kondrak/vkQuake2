@@ -448,7 +448,7 @@ extern void WhatsIt(edict_t *ent);
 void G_SetStats (edict_t *ent)
 {
 	gitem_t		*item;
-	int			index, cells;
+	int			index, cells=0;
 	int			power_armor_type;
 
 	ent->client->ps.stats[STAT_CLOCK_TIMER] = CS_CLOCK_TIMER;		//CW++

@@ -47,8 +47,8 @@ void Text_BuildDisplay(texthnd_t *hnd)
 			text[MAX_LINES-2].text = "Use [ and ] to scroll";
 	}
 
-	p1 = hnd->buffer;
-	p3 = hnd->buffer+hnd->size-1;
+	p1 = (char*)hnd->buffer;
+	p3 = (char*)(hnd->buffer+hnd->size-1);
 	if(hnd->curline > 0)
 	{
 		// Scan for hnd->curline'th 0 byte, point to following character
@@ -296,7 +296,7 @@ void Do_Text_Display(edict_t *activator, int flags, char *message)
 						for(k=0; k<numitems && !in_pak; k++)
 						{
 							fread(&pakitem,1,sizeof(pak_item_t),f);
-							if(!stricmp(pakitem.name,textname))
+							if(!strcmp(pakitem.name,textname))
 							{
 								in_pak = true;
 								fseek(f,pakitem.start,SEEK_SET);
@@ -371,14 +371,14 @@ void Do_Text_Display(edict_t *activator, int flags, char *message)
 		memcpy(hnd->buffer,message,L);
 	}
 	
-	hnd->size = (int)strlen(hnd->buffer) + 1;
+	hnd->size = (int)strlen((const char*)hnd->buffer) + 1;
 	// Eliminate all <CR>'s so lines are delineated with <LF>'s only
-	p1 = hnd->buffer;
-	while(p1 < hnd->buffer+hnd->size)
+	p1 = (char*)hnd->buffer;
+	while(p1 < (char*)(hnd->buffer+hnd->size))
 	{
 		if(*p1 == 13)
 		{
-			for(p2=p1, p3=p1+1; p2<hnd->buffer+hnd->size; p2++, p3++)
+			for(p2=p1, p3=p1+1; p2 < (char*)(hnd->buffer+hnd->size); p2++, p3++)
 				*p2 = *p3;
 			hnd->size--;
 		}
@@ -387,7 +387,7 @@ void Do_Text_Display(edict_t *activator, int flags, char *message)
 	}
 	// Count number of lines and replace all line feeds with 0's
 	hnd->nlines = 1;
-	for(p1 = hnd->buffer; p1 < hnd->buffer+hnd->size; p1++)
+	for(p1 = (char*)hnd->buffer; p1 < (char*)(hnd->buffer+hnd->size); p1++)
 	{
 		if(*p1 == 10)
 		{
@@ -397,11 +397,11 @@ void Do_Text_Display(edict_t *activator, int flags, char *message)
 	}
 	// Line break stuff
 	line_length = 0;
-	p1 = hnd->buffer;
+	p1 = (char*)hnd->buffer;
 	alt = false;
 	centered = false;
 	right_justified = false;
-	while(p1 < hnd->buffer+hnd->size)
+	while(p1 < (char*)(hnd->buffer+hnd->size))
 	{
 		// Don't count control characters
 		if(line_length == 0) {
@@ -448,7 +448,7 @@ void Do_Text_Display(edict_t *activator, int flags, char *message)
 				// back up from current position to last space character and
 				// replace with a 0 (but don't go past previous 0)
 				p2 = p1;
-				while(p1 > hnd->buffer && *p1 != 0)
+				while(p1 > (char*)hnd->buffer && *p1 != 0)
 				{
 					if(*p1 == 32)
 					{
@@ -477,13 +477,13 @@ void Do_Text_Display(edict_t *activator, int flags, char *message)
 						}
 						memset(hnd->buffer,0,hnd->allocated);
 						memcpy(hnd->buffer,temp_buffer,hnd->size);
-						p1 = hnd->buffer + (p2-temp_buffer);
+						p1 = (char*)(hnd->buffer + (p2- (char*)temp_buffer));
 						p2 = p1;
 					//	free(temp_buffer);
 						gi.TagFree(temp_buffer);
 					}
 					p1 = p2-1;
-					p2 = hnd->buffer + hnd->size;
+					p2 = (char*)(hnd->buffer + hnd->size);
 					p3 = p2 - 2;
 					while(p3 >= p1) {
 						*p2 = *p3;
@@ -516,11 +516,11 @@ void Do_Text_Display(edict_t *activator, int flags, char *message)
 				memset(hnd->buffer,0,hnd->allocated);
 				memcpy(hnd->buffer,temp_buffer,hnd->size);
 				p2 = p1;
-				p1 = hnd->buffer + (p2-temp_buffer);
+				p1 = (char*)(hnd->buffer + (p2-(char*)temp_buffer));
 			//	free(temp_buffer);
 				gi.TagFree(temp_buffer);
 			}
-			p2 = hnd->buffer + hnd->size;
+			p2 = (char*)(hnd->buffer + hnd->size);
 			p3 = p2 - 1;
 			while(p3 >= p1) {
 				*p2 = *p3;
@@ -548,11 +548,11 @@ void Do_Text_Display(edict_t *activator, int flags, char *message)
 				memset(hnd->buffer,0,hnd->allocated);
 				memcpy(hnd->buffer,temp_buffer,hnd->size);
 				p2 = p1;
-				p1 = hnd->buffer + (p2-temp_buffer);
+				p1 = (char*)(hnd->buffer + (p2-(char*)temp_buffer));
 			//	free(temp_buffer);
 				gi.TagFree(temp_buffer);
 			}
-			p2 = hnd->buffer + hnd->size;
+			p2 = (char*)(hnd->buffer + hnd->size);
 			p3 = p2 - 2;
 			while(p3 >= p1) {
 				*p2 = *p3;
@@ -573,7 +573,7 @@ void Do_Text_Display(edict_t *activator, int flags, char *message)
 			if(*p2=='n') {
 				*p1 = 0;
 				p3 = p2 + 1;
-				while(p3 < hnd->buffer + hnd->size) {
+				while(p3 < (char*)(hnd->buffer + hnd->size)) {
 					*p2 = *p3;
 					p2++;
 					p3++;
@@ -586,7 +586,7 @@ void Do_Text_Display(edict_t *activator, int flags, char *message)
 			}
 		}
 		// If we're at a 0, check to see if subsequent words will fit on this line
-		if((!linebreak) && (*p1 == 0) && (p1 < hnd->buffer+hnd->size-1) && 
+		if((!linebreak) && (*p1 == 0) && (p1 < (char*)(hnd->buffer+hnd->size-1)) &&
 			(line_length < MAX_LINE_LENGTH) )
 		{
 			// Don't do this if 2 consecutive 0's are found (end of paragraph)
@@ -597,10 +597,10 @@ void Do_Text_Display(edict_t *activator, int flags, char *message)
 			{
 				p2++;
 				p2++;
-				if(*p2 != 0 && *p2 != '*' && *p2 != '\\' && p2 < hnd->buffer+hnd->size)
+				if(*p2 != 0 && *p2 != '*' && *p2 != '\\' && p2 < (char*)(hnd->buffer+hnd->size))
 				{
 					new_line_length = line_length+2;
-					while(p2 < hnd->buffer+hnd->size && *p2 != 32 && *p2 != 0)
+					while(p2 < (char*)(hnd->buffer+hnd->size) && *p2 != 32 && *p2 != 0)
 					{
 						new_line_length++;
 						p2++;
@@ -619,8 +619,8 @@ void Do_Text_Display(edict_t *activator, int flags, char *message)
 	}
 	// Finally, scan for a \a code (embedded audio). If present remove that line
 	// and play the sound
-	p1 = hnd->buffer;
-	while(p1 < hnd->buffer+hnd->size)
+	p1 = (char*)hnd->buffer;
+	while(p1 < (char*)(hnd->buffer+hnd->size))
 	{
 		if(*p1 == '\\')
 		{
@@ -633,7 +633,7 @@ void Do_Text_Display(edict_t *activator, int flags, char *message)
 				while(*p2 != 0)
 					p2++;
 				p2++;
-				memcpy(p1,p2,hnd->buffer+hnd->size-p2+1);
+				memcpy(p1,p2,(char*)hnd->buffer+hnd->size-p2+1);
 				hnd->nlines--;
 				// Found one (only one is allowed)
 				gi.sound (activator, CHAN_AUTO, gi.soundindex (sound), 1, ATTN_NORM, 0);

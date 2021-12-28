@@ -1818,7 +1818,7 @@ void misc_deadsoldier_flieson(edict_t *self)
 	self->s.sound = gi.soundindex ("infantry/inflies1.wav");
 }
 
-int PatchDeadSoldier ();
+int PatchDeadSoldier (void);
 void SP_misc_deadsoldier (edict_t *ent)
 {
 	if (deathmatch->value)
@@ -3911,10 +3911,14 @@ MISC_DEADSOLDIER MODEL PATCH
 #define MAX_SKINNAME	64
 #define DEADSOLDIER_MODEL "models/deadbods/dude/tris.md2"
 
+#ifdef _WIN32
 #include <direct.h>
+#else
+#include <sys/stat.h>
+#endif
 #include "pak.h"
 
-int PatchDeadSoldier ()
+int PatchDeadSoldier (void)
 {
 	cvar_t		*gamedir;
 	char		skins[NUM_SKINS][MAX_SKINNAME];	// skin entries
@@ -3926,7 +3930,7 @@ int PatchDeadSoldier ()
 	FILE		*outfile;
 	dmdl_t		model;				// model header
 	byte		*data;				// model data
-	int			datasize;			// model data size (bytes)
+	int			datasize = 0;		// model data size (bytes)
 	int			newoffset;			// model data offset (after skins)
 
 	// get game (moddir) name
@@ -3935,7 +3939,7 @@ int PatchDeadSoldier ()
 		return 0;	// we're in baseq2
 
 	sprintf (outfilename, "%s/%s", gamedir->string,DEADSOLDIER_MODEL);
-	if (outfile = fopen (outfilename, "rb"))
+	if ((outfile = fopen (outfilename, "rb")))
 	{
 		// output file already exists, move along
 		fclose (outfile);
@@ -3997,7 +4001,7 @@ int PatchDeadSoldier ()
 		for(k=0; k<numitems && !data; k++)
 		{
 			fread(&pakitem,1,sizeof(pak_item_t),fpak);
-			if (!stricmp(pakitem.name,DEADSOLDIER_MODEL))
+			if (!strcmp(pakitem.name,DEADSOLDIER_MODEL))
 			{
 				fseek(fpak,pakitem.start,SEEK_SET);
 				fread(&model, sizeof(dmdl_t), 1, fpak);

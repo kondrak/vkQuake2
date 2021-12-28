@@ -451,7 +451,7 @@ void actorGrenadeLauncher (edict_t *self)
 	if(aim[2] < 1.0) {
 		float	cosa, t, x, vx, y;
 		float	drop;
-		float	last_error, last_up, v_error;
+		float	last_error, last_up=0.f, v_error;
 		int		i;
 		VectorCopy(forward,target);	// save target point
 		// horizontal distance to target
@@ -563,7 +563,7 @@ void actorGrenadeLauncher (edict_t *self)
 		VectorMA(aim,delta,v1,aim);
 		VectorNormalize(aim);
 	}
-	fire_grenade (self, start, aim, 50, GRENADE_VELOCITY, 2.5, 90, false);
+	fire_grenade (self, start, aim, 50, (int)GRENADE_VELOCITY, 2.5, 90, false);
 
 	gi.positioned_sound(start,self,CHAN_WEAPON,gi.soundindex("weapons/grenlf1a.wav"),1,ATTN_NORM,0);
 

@@ -257,7 +257,7 @@ void trackchange_use (edict_t *self, edict_t *other, edict_t *activator)
 
 	// Adjust speed so that "distance" rotation and "height" movement are achieved
 	// simultaneously.
-	tt = fabs(self->viewheight) / self->speed;
+	tt = abs(self->viewheight) / self->speed;
 	tr = fabs(self->moveinfo.distance) / self->speed;
 	time = max(tt,tr);
 	time = 0.1 * ((int)(10.*time-0.5)+1);
@@ -522,7 +522,7 @@ void tracktrain_hide (edict_t *self)
 
 void tracktrain_think (edict_t *self)
 {
-	float	distance, speed, time;
+	float	distance, speed=0.f, time=0.f;
 	float	yaw, pitch;
 	vec3_t	forward, left, up, f1, l1, u1, v;
 	int		i;
@@ -1231,7 +1231,7 @@ edict_t *NextPathTrack(edict_t *train, edict_t *path)
 
 			if (!next)
 			{
-				float	dot;
+				float	dot = 0.f;
 
 				// Finally, check this path_track's target and target2
 				if(path->target)
@@ -1249,7 +1249,7 @@ edict_t *NextPathTrack(edict_t *train, edict_t *path)
 				if(path->target2 && !(path->spawnflags & SF_PATH_ALTPATH))
 				{
 					edict_t	*next2;
-					float	dot2;
+					float	dot2 = 0.f;
 					
 					next2 = G_PickTarget (path->target2);
 					if( next2 == path )
@@ -1277,7 +1277,7 @@ edict_t *NextPathTrack(edict_t *train, edict_t *path)
 	}
 	else	// Moving forward
 	{
-		float	dot;
+		float	dot = 0.f;
 
 		if(path->target)
 		{
@@ -1294,7 +1294,7 @@ edict_t *NextPathTrack(edict_t *train, edict_t *path)
 		if(path->target2 && !(path->spawnflags & SF_PATH_ALTPATH))
 		{
 			edict_t	*next2;
-			float	dot2;
+			float	dot2 = 0.0;
 
 			next2 = G_PickTarget (path->target2);
 			if( next2 == path )
@@ -1382,7 +1382,6 @@ edict_t *NextPathTrack(edict_t *train, edict_t *path)
 
 void LookAhead( edict_t *train, vec3_t point, float dist )
 {
-	float originalDist = dist;
 	float length;
 	vec3_t	v;
 	edict_t	*path;

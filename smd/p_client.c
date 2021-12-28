@@ -1401,7 +1401,7 @@ void PutClientInServer (edict_t *ent)
 	int					spawn_gunframe;
 	int					spawn_modelframe;
 	int					spawn_anim_end;
-	int					spawn_pm_flags;
+	int					spawn_pm_flags=0;
 	int					spawn_style;
 	int					spawn_health;
 	client_persistant_t	saved;
@@ -2333,7 +2333,7 @@ void ClientSpycam(edict_t *ent)
 					if(diff > 180)
 						diff -= 360;
 					camera->ideal_yaw += diff;
-					if((abs(diff) > 100) && camera->vehicle)
+					if((fabs(diff) > 100) && camera->vehicle)
 					{
 						vec3_t	angles;
 						vec3_t	end, f;
@@ -2371,7 +2371,6 @@ void ClientSpycam(edict_t *ent)
 				}
 				else if(is_actor)
 				{
-					int	weapon = camera->actor_weapon[camera->actor_current_weapon];
 					if(!camera->enemy)
 					{
 						edict_t	*target;
@@ -2554,13 +2553,13 @@ void ClientThink (edict_t *ent, usercmd_t *ucmd)
 			viewing = LookingAt(ent,0,intersect,&range);
 			if(viewing && viewing->classname)
 			{
-				if(!stricmp(viewing->classname,"crane_control"))
+				if(!strcmp(viewing->classname,"crane_control"))
 					crane_control_action(viewing,ent,intersect);
-				if(!stricmp(viewing->classname,"target_lock_digit"))
+				if(!strcmp(viewing->classname,"target_lock_digit"))
 					lock_digit_increment(viewing,ent);
-				if(!stricmp(viewing->classname,"func_trainbutton") && (viewing->spawnflags & 1))
+				if(!strcmp(viewing->classname,"func_trainbutton") && (viewing->spawnflags & 1))
 					trainbutton_use(viewing,ent,ent);
-				if(!stricmp(viewing->classname,"func_monitor") && range <= 100) {
+				if(!strcmp(viewing->classname,"func_monitor") && range <= 100) {
 					use_camera(viewing,ent,ent);
 					if(client->spycam && client->spycam->viewer == ent) {
 						client->old_owner_angles[0] = ucmd->angles[0];

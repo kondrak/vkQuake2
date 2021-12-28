@@ -886,7 +886,7 @@ void Cmd_Use_f (edict_t *ent)
 	}
 	index = ITEM_INDEX(it);
 #ifdef JETPACK_MOD
-	if(!stricmp(s,"jetpack"))
+	if(!strcmp(s,"jetpack"))
 	{
 		// Special case - turns on/off
 		if(!ent->client->jetpack)
@@ -908,7 +908,7 @@ void Cmd_Use_f (edict_t *ent)
 		return;
 	}
 #endif
-	if (!stricmp(s,"stasis generator"))
+	if (!strcmp(s,"stasis generator"))
 	{
 		// Special case - turn freeze off if already on
 		if(level.freeze)
@@ -1043,7 +1043,7 @@ void Cmd_InvUse_f (edict_t *ent)
 	}
 
 #ifdef JETPACK_MOD
-	if(!stricmp(it->classname,"item_jetpack"))
+	if(!strcmp(it->classname,"item_jetpack"))
 	{
 		if(!ent->client->jetpack)
 		{

@@ -218,7 +218,7 @@ static int CheckPowerArmor (edict_t *ent, vec3_t point, vec3_t normal, int damag
 	gclient_t	*client;
 	int			save;
 	int			power_armor_type;
-	int			index;
+	int			index=0;
 	int			damagePerCell;
 	int			pa_te_type;
 	int			power=0;
@@ -762,8 +762,8 @@ void T_Damage (edict_t *in_targ, edict_t *inflictor, edict_t *in_attacker, vec3_
 	gclient_t	*client;
 	int			take;
 	int			save;
-	int			asave;
-	int			psave;
+	int			asave=0;
+	int			psave=0;
 	int			te_sparks;
 	edict_t		*attacker;
 	edict_t		*targ;

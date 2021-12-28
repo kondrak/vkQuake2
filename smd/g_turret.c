@@ -663,7 +663,7 @@ void turret_breach_think (edict_t *self)
 	vec3_t		target;
 	qboolean	remote_monster;
 	qboolean	yaw_restrict;
-	float		yaw_r, yaw_0;
+	float		yaw_r, yaw_0=0.f;
 	int			i;
 
 	turret_turn(self);

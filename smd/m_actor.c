@@ -81,7 +81,15 @@ mframe_t actor_frames_stand [] =
 	ai_stand, 0, NULL,
 	ai_stand, 0, NULL
 };
+
 mmove_t actor_move_stand = {FRAME_stand01, FRAME_stand40, actor_frames_stand, NULL};
+mmove_t actor_move_crouch;
+mmove_t actor_move_crouchwalk;
+mmove_t actor_move_crouchwalk_back;
+mmove_t	actor_move_run;
+mmove_t	actor_move_run_back;
+mmove_t	actor_move_run_bad;
+mmove_t	actor_move_walk_back;
 
 void actor_stand (edict_t *self)
 {
@@ -123,9 +131,9 @@ mframe_t actor_frames_walk [] =
 	ai_walk, 10, NULL,
 	ai_walk, 10, NULL
 };
+
 mmove_t actor_move_walk = {FRAME_run1, FRAME_run6, actor_frames_walk, NULL};
 
-mmove_t actor_move_run;
 void actor_walk (edict_t *self)
 {
 	// prevent foolishness:
@@ -1009,7 +1017,7 @@ qboolean actor_checkattack (edict_t *self)
 	vec3_t		forward, right, start, end;
 	float		chance;
 	float		range;
-	float		goodchance, poorchance, lorange, hirange;
+	float		goodchance, poorchance, lorange=0.f, hirange=0.f;
 	trace_t		tr;
 	int			weapon;
 
@@ -1769,7 +1777,7 @@ qboolean InPak(char *basedir, char *gamedir, char *filename)
 					for(kk=0; kk<numitems && !found; kk++)
 					{
 						fread(&pakitem,1,sizeof(pak_item_t),f);
-						if(!stricmp(pakitem.name,filename))
+						if(!strcmp(pakitem.name,filename))
 							found = true;
 					}
 				}

@@ -571,6 +571,8 @@ void ED_ParseField (char *key, char *value, edict_t *ent)
 				break;
 			case F_IGNORE:
 				break;
+			default:
+				break;
 			}
 			return;
 		}
@@ -995,7 +997,7 @@ void G_FindTeams (void)
 
 void trans_ent_filename (char *);
 void ReadEdict (FILE *f, edict_t *ent);
-void LoadTransitionEnts()
+void LoadTransitionEnts(void)
 {
 	if(developer->value)
 		gi.dprintf("==== LoadTransitionEnts ====\n");
@@ -1198,6 +1200,7 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 
 	gi.dprintf ("%i entities inhibited\n", inhibit);
 
+#ifndef __APPLE__
 #ifdef DEBUG
 	i = 1;
 	ent = EDICT_NUM(i);
@@ -1206,6 +1209,7 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 			Com_DPrintf("Invalid entity %d\n", i);
 		i++, ent++;
 	}
+#endif
 #endif
 
 	G_FindTeams ();
@@ -1294,7 +1298,7 @@ void SpawnEntities (char *mapname, char *entities, char *spawnpoint)
 
 #endif
 
-extern char *single_statusbar =  //CW: made it external for [target_monitor] in g_target.c
+char *single_statusbar =  //CW: made it external for [target_monitor] in g_target.c
 "yb	-24 "
 
 // health

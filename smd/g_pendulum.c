@@ -299,7 +299,7 @@ deadstop:
 			// Then this sucker will still be in the way. Reverse rotation, slow, or stop
 			if(fabs(angles[ROLL]) > 2)
 			{
-				if(abs(angles[ROLL]) < 10)
+				if(fabs(angles[ROLL]) < 10)
 					self->spawnflags |= SF_PENDULUM_SLOW;
 				self->moveinfo.start_angles[ROLL] = angles[ROLL];
 				VectorClear(self->avelocity);

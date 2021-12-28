@@ -15,7 +15,7 @@ qboolean Jet_AvoidGround( edict_t *ent )
 	new_origin[1] = ent->s.origin[1];
 	new_origin[2] = ent->s.origin[2] + 0.5;
 	trace = gi.trace( ent->s.origin, ent->mins, ent->maxs, new_origin, ent, MASK_PLAYERSOLID );
-	if ( success=(trace.plane.normal[2]==0) )
+	if ( (success=(trace.plane.normal[2])==0) )
 		/*no ceiling?*/
 		ent->s.origin[2] += 0.5;
 		/*then make sure off ground*/

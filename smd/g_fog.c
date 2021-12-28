@@ -24,8 +24,8 @@
 void Fog_Init()	{}
 void Fog (vec3_t viewpoint)	{}
 void Fog_Off ()	{}
-void Fog_ConsoleFog ()	{}
-void GLFog ()	{}
+void Fog_ConsoleFog (void)	{}
+void GLFog (void)	{}
 void trig_fog_fade (edict_t *self)	{}
 void init_trigger_fog_delay (edict_t *self)	{}
 void fog_fade (edict_t *self)	{}

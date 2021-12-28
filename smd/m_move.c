@@ -97,12 +97,12 @@ qboolean SV_movestep (edict_t *ent, vec3_t move, qboolean relink)
 	trace_t		trace;
 	int			i;
 	float		stepsize;
-	float		jumpheight;
+	float		jumpheight=0.f;
 	vec3_t		test;
 	int			contents;
 
 	qboolean	canjump;
-	float		d1, d2;
+	float		d1=0.f, d2;
 	int			jump;		// 1=jump up, -1=jump down
 	vec3_t		forward, up;
 	vec3_t		dir;
@@ -705,7 +705,7 @@ void SV_NewChaseDir (edict_t *actor, edict_t *enemy, float dist)
 	}
 
 // try other directions
-	if ( ((rand()&3) & 1) ||  abs(deltay)>abs(deltax))
+	if ( ((rand()&3) & 1) ||  fabs(deltay)>fabs(deltax))
 	{
 		tdir=d[1];
 		d[1]=d[2];
@@ -786,9 +786,9 @@ qboolean SV_CloseEnough (edict_t *ent, edict_t *goal, float dist)
 M_MoveToGoal
 ======================
 */
-mmove_t actor_move_run;
+/*mmove_t actor_move_run;
 mmove_t actor_move_stand;
-mmove_t actor_move_walk;
+mmove_t actor_move_walk;*/
 void M_MoveToGoal (edict_t *ent, float dist)
 {
 	edict_t		*goal;

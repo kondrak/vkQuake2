@@ -13,6 +13,10 @@
 #include "km_cvar.h"
 #define JETPACK_MOD
 
+#ifndef _MAX_PATH
+#define _MAX_PATH 260
+#endif
+
 // the "gameversion" client command will print this plus compile date
 #define	GAMEVERSION	"lazarus_smd"
 
@@ -934,7 +938,7 @@ void ShiftItem(edict_t *ent, int direction);
 //
 // g_crane.c
 //
-void G_FindCraneParts();
+void G_FindCraneParts(void);
 void crane_control_action(edict_t *crane, edict_t *activator, vec3_t point);
 void Moving_Speaker_Think(edict_t *ent);
 //
@@ -943,10 +947,10 @@ void Moving_Speaker_Think(edict_t *ent);
 #define MAX_FOGS 16
 extern fog_t gfogs[MAX_FOGS];
 void Cmd_Fog_f(edict_t *ent);
-void Fog_Init();
+void Fog_Init(void);
 void Fog(vec3_t viewpoint);
-void Fog_Off();
-void Fog_SetFogParms();
+void Fog_Off(void);
+void Fog_SetFogParms(void);
 //
 // g_func.c
 //
@@ -1002,8 +1006,8 @@ void Jet_BecomeExplosion( edict_t *ent, int damage );
 //
 // g_lights.c
 //
-void Lights();
-void ToggleLights();
+void Lights(void);
+void ToggleLights(void);
 //
 // g_lock.c
 //
@@ -1089,13 +1093,13 @@ void ReflectTrail (int type, vec3_t start, vec3_t end);
 // g_sound.c (interface to FMOD)
 //
 qboolean FMOD_IsPlaying(edict_t *ent);
-void FMOD_Shutdown();
-void FMOD_Stop();
+void FMOD_Shutdown(void);
+void FMOD_Stop(void);
 void FMOD_StopSound(edict_t *ent, qboolean free);
 int FMOD_PlaySound(edict_t *ent);
-void FMOD_UpdateListenerPos();
+void FMOD_UpdateListenerPos(void);
 void FMOD_UpdateSpeakerPos(edict_t *speaker);
-qboolean FMOD_Init();
+qboolean FMOD_Init(void);
 //Knightmare- this is now handled client-side
 #ifdef FMOD_FOOTSTEPS
 void FootStep(edict_t *ent);
@@ -1108,10 +1112,10 @@ void target_playback_delayed_start (edict_t *ent);
 // g_spawn.c
 //
 void ED_CallSpawn (edict_t *ent);
-void G_FindTeams();
-void Cmd_ToggleHud ();
-void Hud_On();
-void Hud_Off();
+void G_FindTeams(void);
+void Cmd_ToggleHud (void);
+void Hud_On(void);
+void Hud_Off(void);
 //
 // g_svcmds.c
 //
@@ -1120,7 +1124,7 @@ qboolean SV_FilterPacket (char *from);
 //
 // g_thing.c
 //
-edict_t *SpawnThing();
+edict_t *SpawnThing(void);
 //
 // g_tracktrain.c
 //
@@ -1200,7 +1204,7 @@ void Grenade_Evade (edict_t *monster);
 // m_actor.c
 //
 void actor_attack (edict_t *actor);
-void actor_files ();
+void actor_files (void);
 void actor_fire (edict_t *actor);
 void actor_jump (edict_t *actor);
 void actor_moveit (edict_t *player, edict_t *actor);
@@ -1210,15 +1214,15 @@ void actor_salute (edict_t *actor);
 void actor_stand (edict_t *actor);
 void actor_walk (edict_t *actor);
 void actor_walk_back (edict_t *actor);
-mmove_t actor_move_crouch;
-mmove_t actor_move_crouchwalk;
-mmove_t actor_move_crouchwalk_back;
-mmove_t	actor_move_run;
-mmove_t	actor_move_run_back;
-mmove_t	actor_move_run_bad;
-mmove_t actor_move_stand;
-mmove_t actor_move_walk;
-mmove_t	actor_move_walk_back;
+extern mmove_t actor_move_crouch;
+extern mmove_t actor_move_crouchwalk;
+extern mmove_t actor_move_crouchwalk_back;
+extern mmove_t	actor_move_run;
+extern mmove_t	actor_move_run_back;
+extern mmove_t	actor_move_run_bad;
+extern mmove_t actor_move_stand;
+extern mmove_t actor_move_walk;
+extern mmove_t	actor_move_walk_back;
 //
 // m_medic.c
 //
@@ -1475,7 +1479,7 @@ struct gclient_s
 
 	int			machinegun_shots;	// for weapon raising
 
-	qboolean    backpedaling;  //<- CDawg added this
+	qboolean    backpedaling;  // <- CDawg added this
 
 	// animation vars
 	int			anim_end;

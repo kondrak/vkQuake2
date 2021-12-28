@@ -1671,7 +1671,7 @@ void SV_Physics_Step (edict_t *ent)
 	}
 	// If not a monster, then determine whether we're in water.
 	// (monsters take care of this in g_monster.c)
-	if (!(ent->svflags & SVF_MONSTER) && (ent->flags && FL_SWIM) ) {
+	if (!(ent->svflags & SVF_MONSTER) && (ent->flags & FL_SWIM) ) {
 		point[0] = (ent->absmax[0] + ent->absmin[0])/2;
 		point[1] = (ent->absmax[1] + ent->absmin[1])/2;
 		point[2] = ent->absmin[2] + 1;
@@ -1747,7 +1747,7 @@ void SV_Physics_Step (edict_t *ent)
 
 
 	// Lazarus: Floating stuff
-	if ((ent->movetype == MOVETYPE_PUSHABLE) && (ent->flags && FL_SWIM) && (ent->waterlevel)) {
+	if ((ent->movetype == MOVETYPE_PUSHABLE) && (ent->flags & FL_SWIM) && (ent->waterlevel)) {
 		float	waterlevel;
 		float	rider_mass, total_mass;
 		trace_t tr;
