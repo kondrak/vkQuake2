@@ -17,6 +17,9 @@
       location = "group:../rogue/macos/rogue.xcodeproj">
    </FileRef>
    <FileRef
+      location = "group:../smd/macos/smd.xcodeproj">
+   </FileRef>
+   <FileRef
       location = "group:../xatrix/macos/xatrix.xcodeproj">
    </FileRef>
    <FileRef

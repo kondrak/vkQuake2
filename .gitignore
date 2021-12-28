@@ -16,6 +16,7 @@
 *.lastbuildstate
 project.xcworkspace
 xcuserdata
+WorkspaceSettings.xcsettings
 macos/vkQuake2
 debugx64
 releasex64

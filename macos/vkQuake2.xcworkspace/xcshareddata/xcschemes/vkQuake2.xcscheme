@@ -85,6 +85,20 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "E295520021F618E100336DD3"
+               BuildableName = "smd.dylib"
+               BlueprintName = "smd"
+               ReferencedContainer = "container:../smd/macos/smd.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "E295520021F618E100336DD3"
                BuildableName = "xatrix.dylib"
                BlueprintName = "xatrix"
                ReferencedContainer = "container:../xatrix/macos/xatrix.xcodeproj">

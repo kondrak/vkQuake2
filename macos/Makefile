@@ -44,6 +44,7 @@ TARGETS=$(BUILDDIR)/quake2 \
 	$(BUILDDIR)/ref_vk.dylib \
 	$(BUILDDIR)/xatrix/game.dylib \
 	$(BUILDDIR)/rogue/game.dylib \
+	$(BUILDDIR)/smd/game.dylib \
 	$(BUILDDIR)/zaero/game.dylib
 
 debug:
@@ -56,6 +57,7 @@ debug:
 		debug/ctf \
 		debug/xatrix \
 		debug/rogue \
+		debug/smd \
 		debug/zaero
 	$(MAKE) targets BUILDDIR=debug CFLAGS="$(DEBUG_CFLAGS)"
 
@@ -69,6 +71,7 @@ release:
 		release/ctf \
 		release/xatrix \
 		release/rogue \
+		release/smd \
 		release/zaero
 	$(MAKE) targets BUILDDIR=release CFLAGS="$(RELEASE_CFLAGS)"
 
@@ -1167,6 +1170,295 @@ $(BUILDDIR)/rogue/q_shared.o :     ../rogue/q_shared.c
 	$(DO_SHLIB_CC)
 
 #############################################################################
+# SLIGHT MECHANICAL DESTRUCTION
+#############################################################################
+
+SMD_OBJS = \
+	$(BUILDDIR)/smd/g_ai.o \
+	$(BUILDDIR)/smd/g_camera.o \
+	$(BUILDDIR)/smd/g_chase.o \
+	$(BUILDDIR)/smd/g_cmds.o \
+	$(BUILDDIR)/smd/g_combat.o \
+	$(BUILDDIR)/smd/g_crane.o \
+	$(BUILDDIR)/smd/g_fog.o \
+	$(BUILDDIR)/smd/g_func.o \
+	$(BUILDDIR)/smd/g_items.o \
+	$(BUILDDIR)/smd/g_jetpack.o \
+	$(BUILDDIR)/smd/g_lights.o \
+	$(BUILDDIR)/smd/g_lock.o \
+	$(BUILDDIR)/smd/g_main.o \
+	$(BUILDDIR)/smd/g_misc.o \
+	$(BUILDDIR)/smd/g_model.o \
+	$(BUILDDIR)/smd/g_monster.o \
+	$(BUILDDIR)/smd/g_mtrain.o \
+	$(BUILDDIR)/smd/g_newai.o \
+	$(BUILDDIR)/smd/g_patchplayermodels.o \
+	$(BUILDDIR)/smd/g_pendulum.o \
+	$(BUILDDIR)/smd/g_phys.o \
+	$(BUILDDIR)/smd/g_reflect.o \
+	$(BUILDDIR)/smd/g_save.o \
+	$(BUILDDIR)/smd/g_sound.o \
+	$(BUILDDIR)/smd/g_spawn.o \
+	$(BUILDDIR)/smd/g_svcmds.o \
+	$(BUILDDIR)/smd/g_target.o \
+	$(BUILDDIR)/smd/g_thing.o \
+	$(BUILDDIR)/smd/g_tracktrain.o \
+	$(BUILDDIR)/smd/g_trigger.o \
+	$(BUILDDIR)/smd/g_turret.o \
+	$(BUILDDIR)/smd/g_utils.o \
+	$(BUILDDIR)/smd/g_vehicle.o \
+	$(BUILDDIR)/smd/g_weapon.o \
+	$(BUILDDIR)/smd/km_cvar.o \
+	$(BUILDDIR)/smd/m_actor_weap.o \
+	$(BUILDDIR)/smd/m_actor.o \
+	$(BUILDDIR)/smd/m_berserk.o \
+	$(BUILDDIR)/smd/m_boss2.o \
+	$(BUILDDIR)/smd/m_boss3.o \
+	$(BUILDDIR)/smd/m_boss31.o \
+	$(BUILDDIR)/smd/m_boss32.o \
+	$(BUILDDIR)/smd/m_brain.o \
+	$(BUILDDIR)/smd/m_chick.o \
+	$(BUILDDIR)/smd/m_flash.o \
+	$(BUILDDIR)/smd/m_flipper.o \
+	$(BUILDDIR)/smd/m_float.o \
+	$(BUILDDIR)/smd/m_flyer.o \
+	$(BUILDDIR)/smd/m_gladiator.o \
+	$(BUILDDIR)/smd/m_gunner.o \
+	$(BUILDDIR)/smd/m_hover.o \
+	$(BUILDDIR)/smd/m_infantry.o \
+	$(BUILDDIR)/smd/m_insane.o \
+	$(BUILDDIR)/smd/m_medic.o \
+	$(BUILDDIR)/smd/m_move.o \
+	$(BUILDDIR)/smd/m_mutant.o \
+	$(BUILDDIR)/smd/m_parasite.o \
+	$(BUILDDIR)/smd/m_sentrybot.o \
+	$(BUILDDIR)/smd/m_soldier.o \
+	$(BUILDDIR)/smd/m_supertank.o \
+	$(BUILDDIR)/smd/m_tank.o \
+	$(BUILDDIR)/smd/p_chase.o \
+	$(BUILDDIR)/smd/p_client.o \
+	$(BUILDDIR)/smd/p_hud.o \
+	$(BUILDDIR)/smd/p_menu.o \
+	$(BUILDDIR)/smd/p_text.o \
+	$(BUILDDIR)/smd/p_trail.o \
+	$(BUILDDIR)/smd/p_view.o \
+	$(BUILDDIR)/smd/p_weapon.o \
+	$(BUILDDIR)/smd/q_shared.o
+
+$(BUILDDIR)/smd/game.dylib : $(SMD_OBJS)
+	$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(SMD_OBJS)
+
+$(BUILDDIR)/smd/g_ai.o :         ../smd/g_ai.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_camera.o :     ../smd/g_camera.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_chase.o :      ../smd/g_chase.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_cmds.o :       ../smd/g_cmds.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_combat.o :     ../smd/g_combat.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_crane.o :      ../smd/g_crane.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_fog.o :        ../smd/g_fog.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_func.o :       ../smd/g_func.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_items.o :      ../smd/g_items.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_jetpack.o :    ../smd/g_jetpack.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_lights.o :     ../smd/g_lights.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_lock.o :       ../smd/g_lock.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_main.o :       ../smd/g_main.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_misc.o :       ../smd/g_misc.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_model.o :      ../smd/g_model.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_monster.o :    ../smd/g_monster.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_mtrain.o :     ../smd/g_mtrain.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_newai.o :      ../smd/g_newai.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_patchplayermodels.o :  ../smd/g_patchplayermodels.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_pendulum.o :   ../smd/g_pendulum.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_phys.o :       ../smd/g_phys.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_reflect.o :    ../smd/g_reflect.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_save.o :       ../smd/g_save.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_sound.o :      ../smd/g_sound.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_spawn.o :      ../smd/g_spawn.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_svcmds.o :     ../smd/g_svcmds.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_target.o :     ../smd/g_target.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_thing.o :      ../smd/g_thing.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_tracktrain.o : ../smd/g_tracktrain.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_trigger.o :    ../smd/g_trigger.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_turret.o :     ../smd/g_turret.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_utils.o :      ../smd/g_utils.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_vehicle.o :    ../smd/g_vehicle.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/g_weapon.o :     ../smd/g_weapon.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/km_cvar.o :      ../smd/km_cvar.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/m_actor_weap.o : ../smd/m_actor_weap.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/m_actor.o :      ../smd/m_actor.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/m_berserk.o :    ../smd/m_berserk.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/m_boss2.o :      ../smd/m_boss2.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/m_boss3.o :      ../smd/m_boss3.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/m_boss31.o :     ../smd/m_boss31.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/m_boss32.o :     ../smd/m_boss32.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/m_brain.o :      ../smd/m_brain.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/m_chick.o :      ../smd/m_chick.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/m_flash.o :      ../smd/m_flash.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/m_flipper.o :    ../smd/m_flipper.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/m_float.o :      ../smd/m_float.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/m_flyer.o :      ../smd/m_flyer.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/m_gladiator.o :  ../smd/m_gladiator.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/m_gunner.o :     ../smd/m_gunner.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/m_hover.o :      ../smd/m_hover.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/m_infantry.o :   ../smd/m_infantry.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/m_insane.o :     ../smd/m_insane.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/m_medic.o :      ../smd/m_medic.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/m_move.o :       ../smd/m_move.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/m_mutant.o :     ../smd/m_mutant.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/m_parasite.o :   ../smd/m_parasite.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/m_sentrybot.o :  ../smd/m_sentrybot.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/m_soldier.o :    ../smd/m_soldier.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/m_supertank.o :  ../smd/m_supertank.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/m_tank.o :       ../smd/m_tank.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/p_chase.o :      ../smd/p_chase.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/p_client.o :     ../smd/p_client.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/p_hud.o :        ../smd/p_hud.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/p_menu.o :       ../smd/p_menu.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/p_text.o :       ../smd/p_text.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/p_trail.o :      ../smd/p_trail.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/p_view.o :       ../smd/p_view.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/p_weapon.o :     ../smd/p_weapon.c
+	$(DO_SHLIB_CC)
+
+$(BUILDDIR)/smd/q_shared.o :     ../smd/q_shared.c
+	$(DO_SHLIB_CC)
+
+#############################################################################
 # ZAERO
 #############################################################################
 
@@ -1560,6 +1852,7 @@ clean2:
 	$(CTF_OBJS) \
 	$(XATRIX_OBJS) \
 	$(ROGUE_OBJS) \
+	$(SMD_OBJS) \
 	$(ZAERO_OBS) \
 	$(REF_VK_OBJS)
 
