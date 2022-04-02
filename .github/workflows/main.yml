@@ -176,12 +176,10 @@ jobs:
   Windows:
     env:
       VULKAN_SDK: c:\VulkanSDK\%VK_VERSION%
-    runs-on: windows-latest
+    runs-on: windows-2019
 
     steps:
     - uses: microsoft/setup-msbuild@v1.1
-      with:
-        vs-version: '[16.6,16.12)'
     - uses: actions/checkout@v2
 
     - name: Download Vulkan SDK
