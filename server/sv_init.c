@@ -391,6 +391,16 @@ another level:
 	map tram.cin+jail_e3
 ======================
 */
+
+int overlaping_strcpy(char *dst, char *src)
+{
+    while (*src)
+    {
+        *dst ++ = *src ++;
+    }
+    *dst = 0;
+}
+
 void SV_Map (qboolean attractloop, char *levelstring, qboolean loadgame)
 {
 	char	level[MAX_QPATH];
@@ -433,6 +443,7 @@ void SV_Map (qboolean attractloop, char *levelstring, qboolean loadgame)
 	// skip the end-of-unit flag if necessary
 	if (level[0] == '*')
     {
+#if 0
 #ifdef __APPLE__
         // stop XCode complaining about source and destination buffer overlap
         char tmp[MAX_QPATH] = {0};
@@ -440,6 +451,10 @@ void SV_Map (qboolean attractloop, char *levelstring, qboolean loadgame)
         strcpy (level, tmp);
 #else
 		strcpy (level, level+1);
+#endif
+#else
+	// XCode is correct; THE STRINGS MAY NOT OVERLAP.
+	overlaping_strcpy(level, level + 1);
 #endif
     }
 	l = (int)strlen(level);
