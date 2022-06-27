@@ -176,7 +176,7 @@ jobs:
   Windows:
     env:
       VULKAN_SDK: c:\VulkanSDK\%VK_VERSION%
-    runs-on: windows-2019
+    runs-on: windows-2022
 
     steps:
     - uses: microsoft/setup-msbuild@v1.1
