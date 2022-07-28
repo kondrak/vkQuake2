@@ -317,17 +317,22 @@ int main (int argc, char **argv)
 //		printf ("Linux Quake -- Version %0.3f\n", LINUX_VERSION);
 	}
 
-    oldtime = Sys_Milliseconds ();
-    while (1)
-    {
+	oldtime = Sys_Milliseconds ();
+	while (1)
+	{
 // find time spent rendering last frame
 		do {
+#if defined(__x86_64__)
+			__asm__ __volatile__("pause");
+#elif defined(__aarch64__)
+			__asm__ __volatile__("yield");
+#endif
 			newtime = Sys_Milliseconds ();
 			time = newtime - oldtime;
 		} while (time < 1);
-        Qcommon_Frame (time);
+		Qcommon_Frame (time);
 		oldtime = newtime;
-    }
+	}
 
 }
 
