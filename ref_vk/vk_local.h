@@ -327,6 +327,7 @@ typedef struct
 	uint32_t    sampler_descriptor_set_count;
 	int         swapchain_image_count;
 	qboolean    vk_khr_portability_subset_available;  // this extension must be enabled according to the specs if the device supports it
+	qboolean    vk_khr_portability_enumeration_available; // required by MoltenVK
 	qboolean    vk_khr_get_physical_device_properties2_available; // required by VK_KHR_portability_subset and VK_EXT_full_screen_exclusive
 	qboolean    vk_khr_get_surface_capabilities2_available; // required by VK_EXT_full_screen_exclusive
 	qboolean    vk_ext_debug_utils_supported;
@@ -394,7 +395,7 @@ void		Vkimp_BeginFrame( float camera_separation );
 void		Vkimp_EndFrame( void );
 int 		Vkimp_Init( void *hinstance, void *hWnd );
 void		Vkimp_Shutdown( void );
-int			Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen );
+int		Vkimp_SetMode( int *pwidth, int *pheight, int mode, qboolean fullscreen );
 void		Vkimp_AppActivate( qboolean active );
 void		Vkimp_EnableLogging( qboolean enable );
 void		Vkimp_LogNewFrame( void );
