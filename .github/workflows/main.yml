@@ -64,6 +64,7 @@ jobs:
           cache: true
       - name: Build vkQuake2 Debug
         run: |
+          ls -l $VULKAN_SDK
           cd macos
           make clean-xcode debug-xcode
           cd ..
