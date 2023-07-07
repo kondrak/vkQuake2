@@ -1750,13 +1750,12 @@ qboolean QVk_Init()
 		.preferredLargeHeapBlockSize = 0,
 		.pAllocationCallbacks = NULL,
 		.pDeviceMemoryCallbacks = NULL,
-		.frameInUseCount = 0,
 		.pHeapSizeLimit = NULL,
 		.pVulkanFunctions = NULL,
-		.pRecordSettings = NULL,
 		.instance = vk_instance,
 		// VMA ignores version patch, so compare version minors (assuming major is always 1) and choose the lower (safer) one
-		.vulkanApiVersion = VK_VERSION_MINOR(vk_device.properties.apiVersion) < VK_VERSION_MINOR(appInfo.apiVersion) ? vk_device.properties.apiVersion : appInfo.apiVersion
+		.vulkanApiVersion = VK_VERSION_MINOR(vk_device.properties.apiVersion) < VK_VERSION_MINOR(appInfo.apiVersion) ? vk_device.properties.apiVersion : appInfo.apiVersion,
+		.pTypeExternalMemoryHandleTypes = NULL
 	};
 
 	res = vmaCreateAllocator(&allocInfo, &vk_malloc);
