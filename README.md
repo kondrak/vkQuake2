@@ -1,7 +1,9 @@
 <p align="center"><img src="vkQuake2.png"></p>
 
 ### Build status
-[![Build Status](https://github.com/kondrak/vkQuake2/actions/workflows/main.yml/badge.svg)](https://github.com/kondrak/vkQuake2/actions?query=workflow%3ACI)
+[![Linux](https://github.com/kondrak/vkQuake2/actions/workflows/linux.yml/badge.svg)](https://github.com/kondrak/vkQuake2/actions/workflows/linux.yml)
+[![MacOS](https://github.com/kondrak/vkQuake2/actions/workflows/macos.yml/badge.svg)](https://github.com/kondrak/vkQuake2/actions/workflows/macos.yml)
+[![Windows](https://github.com/kondrak/vkQuake2/actions/workflows/windows.yml/badge.svg)](https://github.com/kondrak/vkQuake2/actions/workflows/windows.yml)
 
 Overview
 ===
