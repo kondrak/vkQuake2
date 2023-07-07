@@ -1,9 +1,7 @@
 <p align="center"><img src="vkQuake2.png"></p>
 
 ### Build status
-[![Build Status](https://img.shields.io/appveyor/build/kondrak/vkQuake2?logo=appveyor)](https://ci.appveyor.com/project/kondrak/vkquake2)
-[![Build Status](https://img.shields.io/travis/kondrak/vkQuake2?logo=travis)](https://travis-ci.org/kondrak/vkQuake2)
-[![Build Status](https://img.shields.io/github/workflow/status/kondrak/vkQuake2/CI?logo=github)](https://github.com/kondrak/vkQuake2/actions?query=workflow%3ACI)
+[![Build Status](https://github.com/kondrak/vkQuake2/actions/workflows/main.yml/badge.svg)](https://github.com/kondrak/vkQuake2/actions?query=workflow%3ACI)
 
 Overview
 ===
