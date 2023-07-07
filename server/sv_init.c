@@ -433,10 +433,10 @@ void SV_Map (qboolean attractloop, char *levelstring, qboolean loadgame)
 	// skip the end-of-unit flag if necessary
 	l = (int)strlen(level);
 	if (level[0] == '*')
-    {
+	{
 		memmove(level, level + 1, l);
 		--l;
-    }
+	}
 
 	if (l > 4 && !strcmp (level+l-4, ".cin") )
 	{
