@@ -276,7 +276,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cp $VULKAN_SDK/macOS/lib/libvulkan.1.dylib ./\nmkdir -p ${PROJECT_DIR}/../../macos/vkQuake2\ncp -f ${BUILT_PRODUCTS_DIR}/${EXECUTABLE_NAME} ${PROJECT_DIR}/../../macos/vkQuake2\n";
+			shellScript = "cp $VULKAN_SDK/lib/libvulkan.1.dylib ./\nmkdir -p ${PROJECT_DIR}/../../macos/vkQuake2\ncp -f ${BUILT_PRODUCTS_DIR}/${EXECUTABLE_NAME} ${PROJECT_DIR}/../../macos/vkQuake2\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -435,10 +435,10 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_PREFIX = "";
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/lib";
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/lib";
 				GCC_WARN_UNUSED_VARIABLE = NO;
-				HEADER_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/include";
-				LIBRARY_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/lib";
+				HEADER_SEARCH_PATHS = "$(VULKAN_SDK)/include";
+				LIBRARY_SEARCH_PATHS = "$(VULKAN_SDK)/lib";
 				OTHER_CFLAGS = (
 					"-D_DEBUG",
 					"-Wno-dangling-else",
@@ -461,10 +461,10 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_PREFIX = "";
-				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/lib";
+				FRAMEWORK_SEARCH_PATHS = "$(VULKAN_SDK)/lib";
 				GCC_WARN_UNUSED_VARIABLE = NO;
-				HEADER_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/include";
-				LIBRARY_SEARCH_PATHS = "$(VULKAN_SDK)/macOS/lib";
+				HEADER_SEARCH_PATHS = "$(VULKAN_SDK)/include";
+				LIBRARY_SEARCH_PATHS = "$(VULKAN_SDK)/lib";
 				OTHER_CFLAGS = "";
 				"OTHER_CFLAGS[arch=*]" = (
 					"-DNDEBUG",
