@@ -67,6 +67,7 @@ jobs:
         run: |
           export VULKAN_SDK=$GITHUB_WORKSPACE/vulkansdk-macos-$VK_VERSION
           cd macos
+          echo $VULKAN_SDK
           make clean-xcode debug-xcode
           cd ..
       - name: Upload vkQuake2 Debug artifacts
