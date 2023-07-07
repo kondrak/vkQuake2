@@ -16,12 +16,11 @@ jobs:
     - uses: microsoft/setup-msbuild@v1.1
     - uses: actions/checkout@v2
 
-    - name: Download Vulkan SDK
-      shell: powershell
-      run: curl -v -o VulkanSDK.exe https://sdk.lunarg.com/sdk/download/$env:VK_VERSION/windows/vulkan_sdk.exe?Human=true
     - name: Install Vulkan SDK
-      shell: cmd
-      run: .\VulkanSDK.exe /S
+      uses: humbletim/install-vulkan-sdk@v1.1.1
+      with:
+        version: $VK_VERSION
+        cache: true
     - name: Build vkQuake2 Debug (x86)
       run: msbuild quake2.sln /m /t:Rebuild /p:Configuration=Debug /p:Platform=x86
     - name: Upload vkQuake2 Debug (x86) artifacts
