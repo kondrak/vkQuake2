@@ -1,6 +1,6 @@
 name: CI
 env:
-  VK_VERSION: 1.2.170.0
+  VK_VERSION: 1.2.176.1
 on:
   push:
     branches:
