@@ -496,7 +496,7 @@
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
-				"LD_RUNPATH_SEARCH_PATHS[arch=*]" = $VULKAN_SDK/macOS/lib;
+				"LD_RUNPATH_SEARCH_PATHS[arch=*]" = $VULKAN_SDK/lib;
 				"OTHER_CFLAGS[arch=*]" = (
 					"-D_DEBUG",
 					"-Wno-dangling-else",
@@ -515,7 +515,7 @@
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
-				"LD_RUNPATH_SEARCH_PATHS[arch=*]" = $VULKAN_SDK/macOS/lib;
+				"LD_RUNPATH_SEARCH_PATHS[arch=*]" = $VULKAN_SDK/lib;
 				"OTHER_CFLAGS[arch=*]" = (
 					"-DNDEBUG",
 					"-Wno-dangling-else",

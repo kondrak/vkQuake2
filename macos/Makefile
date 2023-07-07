@@ -8,8 +8,8 @@ RELEASE_CFLAGS=$(BASE_CFLAGS) -DNDEBUG -O3
 DEBUG_CFLAGS=$(BASE_CFLAGS) -g -D_DEBUG
 LDFLAGS=-framework CoreAudio
 
-VKLDFLAGS=-L$(VULKAN_SDK)/macOS/lib -Xlinker -rpath -Xlinker $(VULKAN_SDK)/macOS/lib -lvulkan -lstdc++ -framework Cocoa -framework QuartzCore
-VKCFLAGS=-I$(VULKAN_SDK)/macOS/include
+VKLDFLAGS=-L$(VULKAN_SDK)/lib -Xlinker -rpath -Xlinker $(VULKAN_SDK)/lib -lvulkan -lstdc++ -framework Cocoa -framework QuartzCore
+VKCFLAGS=-I$(VULKAN_SDK)/include
 
 SHLIBCFLAGS=-fPIC -std=c99
 SHLIBCPPFLAGS=-fPIC -std=c++11
