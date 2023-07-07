@@ -55,6 +55,7 @@ static qboolean trackFinished = false;
 static cvar_t *cd_volume;
 static cvar_t *cd_loopcount;
 static cvar_t *cd_looptrack;
+static cvar_t *no_music;
 
 #ifdef __APPLE__
 static ma_uint32 periodSizeInFrames;
@@ -197,7 +198,8 @@ void Miniaudio_Init(void)
 	cd_volume = Cvar_Get("cd_volume", "1", CVAR_ARCHIVE);
 	cd_loopcount = Cvar_Get("cd_loopcount", "4", 0);
 	cd_looptrack = Cvar_Get("cd_looptrack", "11", 0);
-	enabled = true;
+	no_music = Cvar_Get("no_music", "0", 0);
+	enabled = no_music->value == 0;
 	paused = false;
 
 #ifdef __APPLE__
@@ -300,6 +302,9 @@ void Miniaudio_Stop(void)
 
 void Miniaudio_Update(void)
 {
+	if (no_music->value != 0)
+		return;
+
 	if (cd_volume->modified)
 	{
 		cd_volume->modified = false;
