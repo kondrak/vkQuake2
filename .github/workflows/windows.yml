@@ -49,33 +49,3 @@ jobs:
           !Quake2/**/*.pdb
           !Quake2/**/*.iobj
           !Quake2/**/*.ipdb
-    - name: Build vkQuake2 Debug (x86)
-      run: msbuild quake2.sln /m /t:Rebuild /p:Configuration=Debug /p:Platform=x86
-    - name: Upload vkQuake2 Debug (x86) artifacts
-      uses: actions/upload-artifact@v2.1.3
-      with:
-        name: vkQuake2-Windows-debug-x86
-        path: |
-          Quake2
-          !Quake2/**/*.obj
-          !Quake2/**/*.exp
-          !Quake2/**/*.ilk
-          !Quake2/**/*.lib
-          !Quake2/**/*.pdb
-          !Quake2/**/*.iobj
-          !Quake2/**/*.ipdb
-    - name: Build vkQuake2 Release (x86)
-      run: msbuild quake2.sln /m /t:Rebuild /p:Configuration=Release /p:Platform=x86
-    - name: Upload vkQuake2 Release (x86) artifacts
-      uses: actions/upload-artifact@v2.1.3
-      with:
-        name: vkQuake2-Windows-release-x86
-        path: |
-          Quake2
-          !Quake2/**/*.obj
-          !Quake2/**/*.exp
-          !Quake2/**/*.ilk
-          !Quake2/**/*.lib
-          !Quake2/**/*.pdb
-          !Quake2/**/*.iobj
-          !Quake2/**/*.ipdb
