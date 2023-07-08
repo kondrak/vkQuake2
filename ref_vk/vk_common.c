@@ -1573,6 +1573,7 @@ qboolean QVk_Init()
 
 	uint32_t extCount;
 	char **wantedExtensions;
+	VkInstanceCreateFlags createFlags = 0;
 	memset((char*)vk_config.supported_present_modes, 0, 256);
 	memset((char*)vk_config.extensions, 0, 256);
 	memset((char*)vk_config.layers, 0, 256);
@@ -1597,6 +1598,7 @@ qboolean QVk_Init()
 	vk_config.vk_khr_portability_subset_available = false;
 	vk_config.vk_khr_get_physical_device_properties2_available = false;
 	vk_config.vk_khr_get_surface_capabilities2_available = false;
+	vk_config.vk_khr_portability_enumeration_available = false;
 	vk_config.vk_ext_debug_utils_supported = false;
 	vk_config.vk_ext_debug_report_supported = false;
 	vk_config.vk_ext_full_screen_exclusive_available = false;
@@ -1618,6 +1620,9 @@ qboolean QVk_Init()
 
 	wantedExtensions = (char **)malloc(extCount * sizeof(const char *));
 	Vkimp_GetInstanceExtensions(wantedExtensions, NULL);
+
+	if (vk_config.vk_khr_portability_enumeration_available)
+		createFlags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 
 #if DEBUG_UTILS_AVAILABLE
 	if (vk_config.vk_ext_debug_utils_supported)
@@ -1666,6 +1671,7 @@ qboolean QVk_Init()
 	VkInstanceCreateInfo createInfo = {
 		.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
 		.pNext = NULL,
+		.flags = createFlags,
 		.pApplicationInfo = &appInfo,
 		.enabledLayerCount = 0,
 		.ppEnabledLayerNames = NULL,
