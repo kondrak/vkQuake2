@@ -299,6 +299,11 @@ int main (int argc, char **argv)
     {
 // find time spent rendering last frame
 		do {
+#if defined(__x86_64__)
+			__asm__ __volatile__("pause");
+#elif defined(__aarch64__)
+			__asm__ __volatile__("yield");
+#endif
 			newtime = Sys_Milliseconds ();
 			time = newtime - oldtime;
 		} while (time < 1);
