@@ -401,7 +401,7 @@ void R_DrawEntitiesOnList (void)
 ** Vk_DrawParticles
 **
 */
-void Vk_DrawParticles( int num_particles, const particle_t particles[], const unsigned colortable[768] )
+void Vk_DrawParticles( int num_particles, const particle_t particles[], const unsigned *colortable )
 {
 	const particle_t *p;
 	int				i;
