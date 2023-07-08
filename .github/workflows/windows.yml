@@ -8,8 +8,6 @@ on:
 
 jobs:
   Windows:
-    env:
-      VULKAN_SDK: c:\VulkanSDK\%VK_VERSION%
     runs-on: windows-2022
 
     steps:

@@ -18,15 +18,14 @@ jobs:
         run: |
           sudo apt-get -qq update
           sudo apt-get install -y make gcc g++ mesa-common-dev libglu1-mesa-dev libxxf86dga-dev libxxf86vm-dev libasound2-dev libx11-dev libxcb1-dev
-      - name: Download and Install Vulkan SDK
-        shell: bash
-        run: |
-          curl -L -v -o vulkansdk-linux-x86_64-$VK_VERSION.tar.gz -O https://sdk.lunarg.com/sdk/download/$VK_VERSION/linux/vulkan_sdk.tar.gz?Human=true
-          tar zxf vulkansdk-linux-x86_64-$VK_VERSION.tar.gz
+      - name: Install Vulkan SDK
+        uses: humbletim/install-vulkan-sdk@v1.1.1
+        with:
+          version: $VK_VERSION
+          cache: true
       - name: Build vkQuake2 Debug
         shell: bash
         run: |
-          export VULKAN_SDK=$GITHUB_WORKSPACE/$VK_VERSION/x86_64
           cd linux
           make clean debug
           cd ..
@@ -40,7 +39,6 @@ jobs:
       - name: Build vkQuake2 Release
         shell: bash
         run: |
-          export VULKAN_SDK=$GITHUB_WORKSPACE/$VK_VERSION/x86_64
           cd linux
           make clean release
           cd ..
