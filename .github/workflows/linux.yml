@@ -17,7 +17,7 @@ jobs:
         shell: bash
         run: |
           sudo apt-get -qq update
-          sudo apt-get install -y make gcc g++ mesa-common-dev libglu1-mesa-dev libxxf86dga-dev libxxf86vm-dev libasound2-dev libx11-dev libxcb1-dev
+          sudo apt-get install -y yad make gcc g++ mesa-common-dev libglu1-mesa-dev libxxf86dga-dev libxxf86vm-dev libasound2-dev libx11-dev libxcb1-dev
       - name: Install Vulkan SDK
         uses: humbletim/install-vulkan-sdk@v1.1.1
         with:
