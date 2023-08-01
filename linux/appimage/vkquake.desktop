@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Icon=vkquake
+Exec=quake2
+Terminal=false
+Type=Application
+Categories=Game;
+Name=vkquake
+GenericName=vkQuake2
+Comment=The official Quake 2 code v3.21 with Vulkan support and mission packs included

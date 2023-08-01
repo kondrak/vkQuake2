@@ -1,0 +1,75 @@
+#!/bin/bash
+
+VKQUAKE=${XDG_CONFIG_HOME:-$HOME/.config}/vkquake
+mkdir -p $VKQUAKE
+
+if [ -z ${APPDIR} ]; then
+export APPDIR=$PWD
+fi
+
+cp -r $APPDIR/usr/bin/{baseq2,ctf,rogue,smd,xatrix,zaero} "$VKQUAKE"/
+
+# create and run dialog
+rcmd=$($APPDIR/usr/bin/yad --form --center --borders=10 --window-icon="$APPDIR/usr/share/icons/vkquake.png" --title="vkQuake 2" --columns=1 --no-buttons --image-on-top \
+--image="$APPDIR/usr/share/icons/vkquake.png" \
+--field="  vkQuake2!":fbtn 'bash -c "echo baseq2 ; kill $(pgrep yad)"' \
+--field="  Demo!":fbtn 'bash -c "echo demo ; kill $(pgrep yad)"' \
+--field="  Capture the Flag!":fbtn 'bash -c "echo ctf ; kill $(pgrep yad)"' \
+--field="  Slight Mechanical Destruction!":fbtn 'bash -c "echo smd ; kill $(pgrep yad)"' \
+--field="  Quake II: Zaero!":fbtn 'bash -c "echo zaero ; kill $(pgrep yad)"' \
+--field="  The Reckoning!":fbtn 'bash -c "echo xatrix ; kill $(pgrep yad)"' \
+--field="  Ground Zero!":fbtn 'bash -c "echo rogue ; kill $(pgrep yad)"' \
+--field="  ""!":fbtn "" \
+--field="  Open Folder!":fbtn "xdg-open $VKQUAKE" \
+)
+echo $rcmd
+
+#functions
+MISSING_FILES(){
+	$APPDIR/usr/bin/yad --center --borders=5 --title="Missing Files" --image="$APPDIR/usr/share/icons/icon.png" --timeout=5 --text='<span font="12">Game files are missing\nAdd to the correct folder.</span>' --button="Open Folder":"xdg-open $VKQUAKE" --button="Exit"
+}	
+
+cp -a $APPDIR/usr/bin/{quake2,ref_glx.so,ref_vk.so} "$VKQUAKE/"
+
+# run command
+case $rcmd in
+    baseq2)
+    if [ ! -e "$VKQUAKE"/baseq2/pak0.pak ]; then MISSING_FILES; exit; fi
+    cd "$VKQUAKE" && ./quake2 
+    ;;
+    ctf)
+    if [ ! -e "$VKQUAKE/ctf/pak0.pak" ]; then MISSING_FILES; exit; fi
+    cd "$VKQUAKE" && ./quake2  
+    ;;
+    rogue)
+    if [ ! -e "$VKQUAKE/rogue/pak0.pak" ]; then MISSING_FILES; exit; fi
+    cd "$VKQUAKE" && ./quake2 +set game rogue
+    ;;
+    smd)
+    if [ ! -e "$VKQUAKE/smd/pak0.pak" ]; then MISSING_FILES; exit; fi
+    cd "$VKQUAKE" && ./quake2 +set game smd
+    ;;
+    xatrix)
+    if [ ! -e "$VKQUAKE/xatrix/pak0.pak" ]; then MISSING_FILES; exit; fi
+    cd "$VKQUAKE" && ./quake2 +set game xatrix
+    ;;
+    zaero)
+    if [ ! -e "$VKQUAKE/zaero/pak0.pak" ]; then MISSING_FILES; exit; fi
+    cd "$VKQUAKE" && ./quake2 +set game zaero
+    ;;
+    demo)
+    if [ -e "$VKQUAKE/baseq2/pak0.pak" ]; then exit; fi
+    ln -s $APPDIR/usr/bin/demo/players $VKQUAKE/baseq2
+    ln -s $APPDIR/usr/bin/demo/pak0.pak $VKQUAKE/baseq2
+    cd "$VKQUAKE" && ./quake2
+    for i in "$VKQUAKE"/baseq2/{pak0.pak,players}; do unlink $i; done
+    ;;
+    open)
+    xdg-open "$VKQUAKE"
+    ;;   
+    *)
+    exit
+    ;;
+esac
+
+exit 0

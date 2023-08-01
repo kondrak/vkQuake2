@@ -49,3 +49,14 @@ jobs:
           path: |
             linux/releasex64
             !linux/releasex64/**/*.o
+
+      - name: Build vkQuake2 appImage
+        shell: bash
+        run: |
+           linux/appimage/appimage.sh
+      - name: Upload vkQuake2 AppImage artifacts
+        uses: actions/upload-artifact@v2.1.3
+        with:
+          name: vkQuake2-AppImage
+          path: |
+            vkQuake.AppImage
