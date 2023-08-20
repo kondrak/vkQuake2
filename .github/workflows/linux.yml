@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install required packages
         shell: bash
@@ -30,7 +30,7 @@ jobs:
           make clean debug
           cd ..
       - name: Upload vkQuake2 Debug artifacts
-        uses: actions/upload-artifact@v2.1.3
+        uses: actions/upload-artifact@v3
         with:
           name: vkQuake2-Ubuntu-debug-x64
           path: |
@@ -43,7 +43,7 @@ jobs:
           make clean release
           cd ..
       - name: Upload vkQuake2 Release artifacts
-        uses: actions/upload-artifact@v2.1.3
+        uses: actions/upload-artifact@v3
         with:
           name: vkQuake2-Ubuntu-release-x64
           path: |
@@ -55,7 +55,7 @@ jobs:
         run: |
            linux/appimage/appimage.sh
       - name: Upload vkQuake2 AppImage artifacts
-        uses: actions/upload-artifact@v2.1.3
+        uses: actions/upload-artifact@v3
         with:
           name: vkQuake2-AppImage
           path: |
