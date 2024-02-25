@@ -20,6 +20,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // vk_rmain.c
 #include "vk_local.h"
+#ifdef _WIN32
+#include "../win32/vk_win.h"
+#endif
 
 viddef_t	vid;
 
@@ -1320,7 +1323,14 @@ void R_EndFrame( void )
 		Vk_PollRestart_f();
 
 	// restart Vulkan renderer without rebuilding the entire window
-	if (R_ShouldRestart())
+	if (R_ShouldRestart()
+#ifdef _WIN32
+		// Make sure that on Windows we restart the renderer only if the window is actually active.
+		// This fixes a bug when surface extents can be reported as {0, 0} if Alt-Tabbing in rapid succession.
+		// Also - one more reason not to use a 20+ year old windowing code!
+		&& vkw_state.appActive
+#endif
+		)
 	{
 		vk_restart = false;
 		vk_validation->modified = false;

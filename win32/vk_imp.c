@@ -97,6 +97,7 @@ qboolean VID_CreateWindow( int width, int height, qboolean fullscreen )
 	x = vid_xpos->value;
 	y = vid_ypos->value;
 
+	vkw_state.appActive = false;
 	vkw_state.hWnd = CreateWindowEx (
 		 exstyle, 
 		 WINDOW_CLASS_NAME,
@@ -428,6 +429,8 @@ void Vkimp_EndFrame (void)
 */
 void Vkimp_AppActivate( qboolean active )
 {
+	vkw_state.appActive = active;
+
 	if ( active )
 	{
 		SetForegroundWindow( vkw_state.hWnd );

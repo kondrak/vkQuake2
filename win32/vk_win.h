@@ -34,6 +34,7 @@ typedef struct
 	MONITORINFOEX monInfo;	// active monitor info
 
 	qboolean allowdisplaydepthchange;
+	qboolean appActive;	// is the app window currently active?
 	FILE *log_fp;
 } vkwstate_t;
 
