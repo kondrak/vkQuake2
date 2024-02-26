@@ -120,7 +120,7 @@ VkCommandBuffer *vk_commandbuffers = NULL;
 // command buffer double buffering fences
 VkFence vk_fences[NUM_CMDBUFFERS];
 // semaphore: signal when next image is available for rendering
-VkSemaphore vk_imageAvailableSemaphores[NUM_CMDBUFFERS];
+VkSemaphore vk_imageAvailableSemaphores[NUM_IMG_SEMAPHORES];
 // semaphore: signal when rendering to current command buffer is complete
 VkSemaphore vk_renderFinishedSemaphores[NUM_CMDBUFFERS];
 // tracker variables
@@ -129,6 +129,8 @@ VkCommandBuffer vk_activeCmdbuffer = VK_NULL_HANDLE;
 int vk_activeBufferIdx = 0;
 // index of currently acquired image
 uint32_t vk_imageIndex = 0;
+// index of currently used image semaphore
+uint32_t vk_imageSemaphoreIdx = 0;
 // index of currently used staging buffer
 int vk_activeStagingBuffer = 0;
 // started rendering frame?
@@ -1514,9 +1516,12 @@ void QVk_Shutdown( void )
 				vk_commandPool[i] = VK_NULL_HANDLE;
 			}
 
-			vkDestroySemaphore(vk_device.logical, vk_imageAvailableSemaphores[i], NULL);
 			vkDestroySemaphore(vk_device.logical, vk_renderFinishedSemaphores[i], NULL);
 			vkDestroyFence(vk_device.logical, vk_fences[i], NULL);
+		}
+		for (int i = 0; i < NUM_IMG_SEMAPHORES; ++i)
+		{
+			vkDestroySemaphore(vk_device.logical, vk_imageAvailableSemaphores[i], NULL);
 		}
 		if (vk_malloc != VK_NULL_HANDLE)
 			vmaDestroyAllocator(vk_malloc);
@@ -1806,12 +1811,16 @@ qboolean QVk_Init()
 	for (int i = 0; i < NUM_CMDBUFFERS; ++i)
 	{
 		VK_VERIFY(vkCreateFence(vk_device.logical, &fCreateInfo, NULL, &vk_fences[i]));
-		VK_VERIFY(vkCreateSemaphore(vk_device.logical, &sCreateInfo, NULL, &vk_imageAvailableSemaphores[i]));
 		VK_VERIFY(vkCreateSemaphore(vk_device.logical, &sCreateInfo, NULL, &vk_renderFinishedSemaphores[i]));
 
 		QVk_DebugSetObjectName((uint64_t)vk_fences[i], VK_OBJECT_TYPE_FENCE, va("Fence #%d", i));
-		QVk_DebugSetObjectName((uint64_t)vk_imageAvailableSemaphores[i], VK_OBJECT_TYPE_SEMAPHORE, va("Semaphore: image available #%d", i));
 		QVk_DebugSetObjectName((uint64_t)vk_renderFinishedSemaphores[i], VK_OBJECT_TYPE_SEMAPHORE, va("Semaphore: render finished #%d", i));
+	}
+	for (int i = 0; i < NUM_IMG_SEMAPHORES; ++i)
+	{
+		VK_VERIFY(vkCreateSemaphore(vk_device.logical, &sCreateInfo, NULL, &vk_imageAvailableSemaphores[i]));
+
+		QVk_DebugSetObjectName((uint64_t)vk_imageAvailableSemaphores[i], VK_OBJECT_TYPE_SEMAPHORE, va("Semaphore: image available #%d", i));
 	}
 	ri.Con_Printf(PRINT_ALL, "...created synchronization objects\n");
 
@@ -2000,7 +2009,7 @@ VkResult QVk_BeginFrame()
 	}
 #endif
 
-	VkResult result = vkAcquireNextImageKHR(vk_device.logical, vk_swapchain.sc, UINT32_MAX, vk_imageAvailableSemaphores[vk_activeBufferIdx], VK_NULL_HANDLE, &vk_imageIndex);
+	VkResult result = vkAcquireNextImageKHR(vk_device.logical, vk_swapchain.sc, UINT32_MAX, vk_imageAvailableSemaphores[vk_imageSemaphoreIdx], VK_NULL_HANDLE, &vk_imageIndex);
 	// for VK_OUT_OF_DATE_KHR and VK_SUBOPTIMAL_KHR it'd be fine to just rebuild the swapchain but let's take the easy way out and restart video system
 	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_SURFACE_LOST_KHR
 #ifdef FULL_SCREEN_EXCLUSIVE_ENABLED
@@ -2079,7 +2088,7 @@ VkResult QVk_EndFrame(qboolean force)
 	VkSubmitInfo submitInfo = {
 		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
 		.waitSemaphoreCount = 1,
-		.pWaitSemaphores = &vk_imageAvailableSemaphores[vk_activeBufferIdx],
+		.pWaitSemaphores = &vk_imageAvailableSemaphores[vk_imageSemaphoreIdx],
 		.signalSemaphoreCount = 1,
 		.pSignalSemaphores = &vk_renderFinishedSemaphores[vk_activeBufferIdx],
 		.pWaitDstStageMask = &waitStages,
@@ -2123,6 +2132,7 @@ VkResult QVk_EndFrame(qboolean force)
 	}
 
 	vk_activeBufferIdx = (vk_activeBufferIdx + 1) % NUM_CMDBUFFERS;
+	vk_imageSemaphoreIdx = (vk_imageSemaphoreIdx + 1) % NUM_IMG_SEMAPHORES;
 
 	vk_frameStarted = false;
 	return renderResult;

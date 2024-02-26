@@ -201,6 +201,8 @@ typedef enum
 // Vulkan constants: command and dynamic buffer count
 #define NUM_CMDBUFFERS 2
 #define NUM_DYNBUFFERS 2
+// Vulkan constants: number of image semaphores (introduced with VulkanSDK 1.3.275)
+#define NUM_IMG_SEMAPHORES (NUM_CMDBUFFERS+1)
 
 // check if the system supports either VK_EXT_DEBUG_UTILS or VK_EXT_DEBUG_REPORT
 #ifdef VK_EXT_DEBUG_UTILS_EXTENSION_NAME
