@@ -1,6 +1,6 @@
 name: Windows
 env:
-  VK_VERSION: 1.3.268.0
+  VK_VERSION: 1.3.275.0
 on:
   push:
     branches:
