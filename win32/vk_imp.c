@@ -97,7 +97,7 @@ qboolean VID_CreateWindow( int width, int height, qboolean fullscreen )
 	x = vid_xpos->value;
 	y = vid_ypos->value;
 
-	vkw_state.appActive = false;
+	vkw_state.appActive = true;
 	vkw_state.hWnd = CreateWindowEx (
 		 exstyle, 
 		 WINDOW_CLASS_NAME,
