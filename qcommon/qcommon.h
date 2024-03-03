@@ -25,7 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #define	VERSION		3.21
 
-#define VKQUAKE2_VERSION "1.5.9"
+#define VKQUAKE2_VERSION "1.5.10"
 
 #define	BASEDIRNAME	"baseq2"
 

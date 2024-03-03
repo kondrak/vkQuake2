@@ -591,8 +591,8 @@ void Con_DrawConsole (float frac)
 
 	Com_sprintf (version, sizeof(version), "vkQuake2 v%s", VKQUAKE2_VERSION);
 
-	for (x=0 ; x<15 ; x++)
-		re.DrawChar (viddef.width-122*vid_hudscale->value+x*8*vid_hudscale->value, lines-12*vid_hudscale->value, 128 + version[x] );
+	for (x=0 ; x<16 ; x++)
+		re.DrawChar (viddef.width-130*vid_hudscale->value+x*8*vid_hudscale->value, lines-12*vid_hudscale->value, 128 + version[x] );
 
 // draw the text
 	con.vislines = lines;
