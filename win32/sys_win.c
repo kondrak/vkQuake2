@@ -520,6 +520,15 @@ void *Sys_GetGameAPI (void *parms)
 	const char *debugdir = "debugx64";
 #endif
 
+#elif defined _M_ARM64
+	const char* gamename = "gameARM64.dll";
+
+#ifdef NDEBUG
+	const char* debugdir = "releaseARM64";
+#else
+	const char* debugdir = "debugARM64";
+#endif
+
 #elif defined _M_ALPHA
 	const char *gamename = "gameaxp.dll";
 
