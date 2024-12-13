@@ -12,6 +12,12 @@ DISABLE_LAYER_NV_OPTIMUS_1=1</LocalDebuggerEnvironment>
     <LocalDebuggerEnvironment>DISABLE_VK_LAYER_VALVE_steam_overlay_1=1
 DISABLE_LAYER_NV_OPTIMUS_1=1</LocalDebuggerEnvironment>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <LocalDebuggerWorkingDirectory>$(SolutionDir)Quake2\</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerEnvironment>DISABLE_VK_LAYER_VALVE_steam_overlay_1=1
+DISABLE_LAYER_NV_OPTIMUS_1=1</LocalDebuggerEnvironment>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LocalDebuggerWorkingDirectory>$(SolutionDir)Quake2\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
@@ -19,6 +25,12 @@ DISABLE_LAYER_NV_OPTIMUS_1=1</LocalDebuggerEnvironment>
 DISABLE_LAYER_NV_OPTIMUS_1=1</LocalDebuggerEnvironment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LocalDebuggerWorkingDirectory>$(SolutionDir)Quake2\</LocalDebuggerWorkingDirectory>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerEnvironment>DISABLE_VK_LAYER_VALVE_steam_overlay_1=1
+DISABLE_LAYER_NV_OPTIMUS_1=1</LocalDebuggerEnvironment>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <LocalDebuggerWorkingDirectory>$(SolutionDir)Quake2\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerEnvironment>DISABLE_VK_LAYER_VALVE_steam_overlay_1=1
