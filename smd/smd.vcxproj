@@ -109,7 +109,9 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <LinkIncremental>true</LinkIncremental>
-    <TargetName>gamex64</TargetName>
+    <TargetName>gameARM64</TargetName>
+    <OutDir>$(SolutionDir)Quake2\smd\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>	
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)Quake2\smd\</OutDir>
@@ -125,7 +127,9 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>gamex64</TargetName>
+    <TargetName>gameARM64</TargetName>
+    <OutDir>$(SolutionDir)Quake2\smd\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Midl>

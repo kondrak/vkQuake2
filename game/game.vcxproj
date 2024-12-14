@@ -100,8 +100,10 @@
     <OutDir>$(SolutionDir)Quake2\baseq2\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
-    <TargetName>$(ProjectName)x64</TargetName>
+    <TargetName>$(ProjectName)ARM64</TargetName>
     <LinkIncremental>true</LinkIncremental>
+    <IntDir>$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)Quake2\baseq2\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -115,8 +117,10 @@
     <OutDir>$(SolutionDir)Quake2\baseq2\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
-    <TargetName>$(ProjectName)x64</TargetName>
+    <TargetName>$(ProjectName)ARM64</TargetName>
     <LinkIncremental>false</LinkIncremental>
+    <IntDir>$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)Quake2\baseq2\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

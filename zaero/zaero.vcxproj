@@ -110,8 +110,10 @@
     <TargetName>gamex64</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
-    <TargetName>gamex64</TargetName>
+    <TargetName>gameARM64</TargetName>
     <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)Quake2\zaero\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>	
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(SolutionDir)Quake2\zaero\</OutDir>
@@ -126,8 +128,10 @@
     <TargetName>gamex64</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
-    <TargetName>gamex64</TargetName>
+    <TargetName>gameARM64</TargetName>
     <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)Quake2\zaero\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>	
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
