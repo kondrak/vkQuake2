@@ -495,6 +495,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "-";
+				ARCHS = (
+					arm64,
+					x86_64,
+				);
 				CODE_SIGN_STYLE = Automatic;
 				"LD_RUNPATH_SEARCH_PATHS[arch=*]" = $VULKAN_SDK/lib;
 				"OTHER_CFLAGS[arch=*]" = (
@@ -505,8 +509,8 @@
 					"-Wno-shorten-64-to-32",
 					"-Wno-pointer-sign",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.kondrak.vkquake2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				VALID_ARCHS = x86_64;
 			};
 			name = Debug;
 		};
@@ -514,6 +518,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "-";
+				ARCHS = (
+					arm64,
+					x86_64,
+				);
 				CODE_SIGN_STYLE = Automatic;
 				"LD_RUNPATH_SEARCH_PATHS[arch=*]" = $VULKAN_SDK/lib;
 				"OTHER_CFLAGS[arch=*]" = (
@@ -524,8 +532,8 @@
 					"-Wno-shorten-64-to-32",
 					"-Wno-pointer-sign",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.kondrak.vkquake2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				VALID_ARCHS = x86_64;
 			};
 			name = Release;
 		};
