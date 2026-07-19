@@ -1,6 +1,6 @@
 name: MacOS
 env:
-  VK_VERSION: 1.4.350.0
+  VK_VERSION: 1.4.350.1
 on:
   push:
     branches:
