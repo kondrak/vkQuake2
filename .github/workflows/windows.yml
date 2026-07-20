@@ -1,6 +1,4 @@
 name: Windows
-env:
-  VK_VERSION: 1.4.350.0
 on:
   push:
     branches:
@@ -17,7 +15,7 @@ jobs:
       - name: Install Vulkan SDK
         uses: jakoch/install-vulkan-sdk-action@v1.6.0
         with:
-          vulkan_version: $VK_VERSION
+          vulkan_version: 1.4.350.0
           install_runtime: false
           cache: true
           stripdown: true
