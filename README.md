@@ -44,11 +44,11 @@ For extra challenge I decided to base vkQuake2 on the original id Software code.
 Unfortunately, Linux code for Quake 2 has not aged well and for that reason only the Vulkan renderer is available for use at this time. Build steps assume that Ubuntu is the target distribution:
 - install required dependencies:
 ```
-sudo apt install make gcc g++ mesa-common-dev libglu1-mesa-dev libxxf86dga-dev libxxf86vm-dev libasound2-dev libx11-dev libxcb1-dev
+sudo apt install make gcc g++ mesa-common-dev libglu1-mesa-dev libxxf86dga-dev libxxf86vm-dev libasound2-dev libx11-dev libxcb1-dev libxext-dev
 ```
 - Install the latest [Vulkan SDK](https://vulkan.lunarg.com/) - the easiest way is to use [LunarG Ubuntu Packages](https://vulkan.lunarg.com/sdk/home#linux) - just follow the instructions and there will be no additional steps required. If you decide for a manual installation, make sure that proper environment variables are set afterwards by adding the following section to your `.bashrc` file (replace SDK version and location with the ones corresponding to your system):
 ```
-export VULKAN_SDK=/home/user/VulkanSDK/1.3.224.1/x86_64
+export VULKAN_SDK=/home/user/VulkanSDK/1.4.350.0/x86_64
 export PATH=$VULKAN_SDK/bin:$PATH
 export LD_LIBRARY_PATH=$VULKAN_SDK/lib:$LD_LIBRARY_PATH
 export VK_LAYER_PATH=$VULKAN_SDK/etc/explicit_layer.d
@@ -65,7 +65,7 @@ sudo apt install mesa-vulkan-drivers
 - open `macos/vkQuake2.xcworkspace` - it should build without any additional steps
 - alternatively, you can compile the game from the command line - modify your `.bash_profile` and add the following entries (replace SDK version and location with the ones corresponding to your system):
 ```
-export VULKAN_SDK=/home/user/VulkanSDK/1.3.224.1
+export VULKAN_SDK=/home/user/VulkanSDK/1.4.350.1
 export VK_ICD_FILENAMES=$VULKAN_SDK/share/vulkan/icd.d/MoltenVK_icd.json
 export VK_LAYER_PATH=$VULKAN_SDK/share/vulkan/explicit_layer.d
 ```
