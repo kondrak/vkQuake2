@@ -228,12 +228,6 @@ static VkResult createLogicalDevice()
 		.pQueueCreateInfos = queueCreateInfo
 	};
 
-#if VK_HEADER_VERSION > 101
-	const char *validationLayers[] = { "VK_LAYER_KHRONOS_validation" };
-#else
-	const char *validationLayers[] = { "VK_LAYER_LUNARG_standard_validation" };
-#endif
-
 	return vkCreateDevice(vk_device.physical, &deviceCreateInfo, NULL, &vk_device.logical);
 }
 
