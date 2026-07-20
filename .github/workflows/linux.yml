@@ -1,6 +1,4 @@
 name: Linux
-env:
-  VK_VERSION: 1.4.350.0
 on:
   push:
     branches:
@@ -19,10 +17,12 @@ jobs:
           sudo apt-get -qq update
           sudo apt-get install -y yad make gcc g++ mesa-common-dev libglu1-mesa-dev libxxf86dga-dev libxxf86vm-dev libasound2-dev libx11-dev libxcb1-dev libxext-dev
       - name: Install Vulkan SDK
-        uses: humbletim/install-vulkan-sdk@v1.2
+        uses: jakoch/install-vulkan-sdk-action@v1.6.0
         with:
-          version: $VK_VERSION
+          version: 1.4.350.0
+          install_runtime: false
           cache: true
+          stripdown: true
       - name: Build vkQuake2 Debug
         shell: bash
         run: |
