@@ -234,12 +234,6 @@ static VkResult createLogicalDevice()
 	const char *validationLayers[] = { "VK_LAYER_LUNARG_standard_validation" };
 #endif
 
-	if (vk_validation->value)
-	{
-		deviceCreateInfo.enabledLayerCount = sizeof(validationLayers)/sizeof(validationLayers[0]);
-		deviceCreateInfo.ppEnabledLayerNames = validationLayers;
-	}
-
 	return vkCreateDevice(vk_device.physical, &deviceCreateInfo, NULL, &vk_device.logical);
 }
 
