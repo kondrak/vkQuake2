@@ -1,6 +1,4 @@
 name: MacOS
-env:
-  VK_VERSION: 1.4.350.1
 on:
   push:
     branches:
@@ -14,10 +12,12 @@ jobs:
       - uses: actions/checkout@v7
       
       - name: Install Vulkan SDK
-        uses: humbletim/install-vulkan-sdk@0ef43dbc8af56d77bcb1e8b1ebbbaa8718ead524
+        uses: jakoch/install-vulkan-sdk-action@v1.6.0
         with:
-          version: $VK_VERSION
+          vulkan_version: 1.4.350.1
+          install_runtime: false
           cache: true
+          stripdown: true
       - name: Build vkQuake2 Debug
         run: |
           cd macos
