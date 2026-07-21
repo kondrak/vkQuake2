@@ -2090,7 +2090,7 @@ VkResult QVk_EndFrame(qboolean force)
 		.waitSemaphoreCount = 1,
 		.pWaitSemaphores = &vk_imageAvailableSemaphores[vk_imageSemaphoreIdx],
 		.signalSemaphoreCount = 1,
-		.pSignalSemaphores = &vk_renderFinishedSemaphores[vk_imageSemaphoreIdx],
+		.pSignalSemaphores = &vk_renderFinishedSemaphores[vk_imageIndex],
 		.pWaitDstStageMask = &waitStages,
 		.commandBufferCount = 1,
 		.pCommandBuffers = &vk_commandbuffers[vk_activeBufferIdx]
@@ -2102,7 +2102,7 @@ VkResult QVk_EndFrame(qboolean force)
 	VkPresentInfoKHR presentInfo = {
 		.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
 		.waitSemaphoreCount = 1,
-		.pWaitSemaphores = &vk_renderFinishedSemaphores[vk_imageSemaphoreIdx],
+		.pWaitSemaphores = &vk_renderFinishedSemaphores[vk_imageIndex],
 		.swapchainCount = 1,
 		.pSwapchains = &vk_swapchain.sc,
 		.pImageIndices = &vk_imageIndex,
