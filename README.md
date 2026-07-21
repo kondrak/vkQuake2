@@ -37,7 +37,7 @@ For extra challenge I decided to base vkQuake2 on the original id Software code.
 
 ## Windows
 - download and install the latest [Vulkan SDK](https://vulkan.lunarg.com/)
-- install [Visual Studio Community 2022](https://www.visualstudio.com/products/free-developer-offers-vs) with the latest Windows SDK and C++ MFC for build tools
+- install [Visual Studio Community 2022](https://www.visualstudio.com/products/free-developer-offers-vs) with the latest Windows SDK and C++ MFC for build tool and C++ MFC for x64/x86 in case you're using Visual Studio Community 2026
 - open `quake2.sln` and choose the target architecture (x86/x64) - it should build without any additional steps
 
 ## Linux
