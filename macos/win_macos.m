@@ -247,7 +247,7 @@ static int translateKey(NSEvent *keyEvent)
 }
 
 // handle window and system events
-void CocoaHandleEvents()
+void CocoaHandleEvents(void)
 {
 	@autoreleasepool {
 		if(window == nil) return;
@@ -389,16 +389,19 @@ void CocoaCreateWindow(int x, int y, int *w, int *h, qboolean fullscreen)
 }
 
 // destroy Cocoa window
-void CocoaDestroyWindow()
+void CocoaDestroyWindow(void)
 {
 	[window close];
 	window = nil;
 }
 
 // attach Metal view to the window - return it so we can use it when creating Vulkan surface
-const void *CocoaAddMetalView()
+const void *CocoaAddMetalView(void)
 {
-	MetalView *mv = [[MetalView alloc] initWithFrame:[[window contentView] frame]];
-	[[window contentView] addSubview:mv];
-	return (__bridge const void *)mv;
+	CAMetalLayer* layer = [CAMetalLayer layer];
+	[layer setContentsScale: [window backingScaleFactor] ];
+	
+	window.contentView.layer = layer;
+	window.contentView.wantsLayer = YES;
+	return (__bridge const void *)(layer);
 }

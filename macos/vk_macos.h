@@ -25,6 +25,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifndef __VK_MACOS_H__
 #define __VK_MACOS_H__
 
+#include <vulkan/vulkan_metal.h>
+
 typedef struct
 {
 	FILE *log_fp;

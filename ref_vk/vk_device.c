@@ -64,9 +64,11 @@ static void getBestPhysicalDevice(const VkPhysicalDevice *devices, int preferred
 		vkGetPhysicalDeviceProperties(devices[i], &deviceProperties);
 		vkGetPhysicalDeviceFeatures(devices[i], &deviceFeatures);
 		vkGetPhysicalDeviceQueueFamilyProperties(devices[i], &queueFamilyCount, NULL);
-
+		
 		if (queueFamilyCount == 0)
 			continue;
+		
+		ri.Con_Printf(PRINT_ALL, "...selected GPU %s\n", deviceProperties.deviceName);
 
 		// prefer discrete GPU but if it's the only one available then don't be picky
 		// also - if the user specifies a preferred device, select it
@@ -90,7 +92,8 @@ static void getBestPhysicalDevice(const VkPhysicalDevice *devices, int preferred
 			for (uint32_t j = 0; j < queueFamilyCount; ++j)
 			{
 				// check if this queue family has support for presentation
-				VkBool32 presentSupported;
+				
+				VkBool32 presentSupported = VK_FALSE;
 				VK_VERIFY(vkGetPhysicalDeviceSurfaceSupportKHR(devices[i], j, vk_surface, &presentSupported));
 
 				// good optimization would be to find a queue where presentIdx == gfxQueueIdx for less overhead
@@ -141,10 +144,12 @@ static qboolean selectPhysicalDevice(int preferredDeviceIdx)
 		return false;
 	}
 
-	ri.Con_Printf(PRINT_ALL, "...found %d Vulkan-capable device(s)\n", physicalDeviceCount);
-
-	VkPhysicalDevice *physicalDevices = (VkPhysicalDevice *)malloc(physicalDeviceCount * sizeof(VkPhysicalDevice));
+	VkPhysicalDevice *physicalDevices = malloc(physicalDeviceCount * sizeof(VkPhysicalDevice));
 	VK_VERIFY(vkEnumeratePhysicalDevices(vk_instance, &physicalDeviceCount, physicalDevices));
+	
+	ri.Con_Printf(PRINT_ALL, "...found %d Vulkan-capable device(s)\n", physicalDeviceCount);
+	
+	ri.Con_Printf(PRINT_ALL, "...now testing device 1\n");
 
 	getBestPhysicalDevice(physicalDevices, preferredDeviceIdx < physicalDeviceCount ? preferredDeviceIdx : -1, physicalDeviceCount);
 	free(physicalDevices);
@@ -159,7 +164,7 @@ static qboolean selectPhysicalDevice(int preferredDeviceIdx)
 }
 
 // internal helper
-static VkResult createLogicalDevice()
+static VkResult createLogicalDevice(void)
 {
 	// at least one queue (graphics and present combined) has to be present
 	uint32_t numQueues = 1;

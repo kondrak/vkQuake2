@@ -31,7 +31,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 
 #ifdef __APPLE__
-#  define VK_USE_PLATFORM_MACOS_MVK
+#  define VK_USE_PLATFORM_METAL_EXT
 #endif
 
 #include <stdio.h>
