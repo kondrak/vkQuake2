@@ -2174,8 +2174,8 @@ void QVk_BeginRenderpass(qvkrenderpasstype_t rpType)
 			.framebuffer = vk_framebuffers[RP_WORLD_WARP][vk_imageIndex],
 			.renderArea.offset = { 0, 0 },
 			.renderArea.extent = vk_swapchain.extent,
-			.clearValueCount = 1,
-			.pClearValues = clearColors
+			.clearValueCount = 0,
+			.pClearValues = NULL
 		}
 	};
 
