@@ -1552,7 +1552,7 @@ void QVk_Shutdown( void )
 ** This is responsible for initializing Vulkan.
 ** 
 */
-qboolean QVk_Init()
+qboolean QVk_Init(void)
 {
 	uint32_t instanceVersion = VK_API_VERSION_1_0;
 
@@ -1957,7 +1957,7 @@ qboolean QVk_Init()
 	return true;
 }
 
-VkResult QVk_BeginFrame()
+VkResult QVk_BeginFrame(void)
 {
 	// reset tracking variables
 	vk_state.current_pipeline = VK_NULL_HANDLE;

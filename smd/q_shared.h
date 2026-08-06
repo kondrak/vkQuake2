@@ -37,7 +37,9 @@
 #undef false
 #define FAR	// needed for jpeglib
 #define	DISABLE_FMOD
+#ifndef _mkdir
 #define _mkdir(a)	mkdir(a, 0777)
+#endif
 #endif // __APPLE__ || MACOSX
 
 #if defined __linux__ 

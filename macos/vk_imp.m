@@ -319,7 +319,7 @@ void Vkimp_GetInstanceExtensions(char **extensions, uint32_t *extCount)
 	if (extensions)
 	{
 		extensions[0] = VK_KHR_SURFACE_EXTENSION_NAME;
-		extensions[1] = VK_MVK_MACOS_SURFACE_EXTENSION_NAME;
+		extensions[1] = VK_EXT_METAL_SURFACE_EXTENSION_NAME;
 		// required by VK_EXT_full_screen_exclusive and VK_KHR_portability_subset
 		if (vk_config.vk_khr_get_physical_device_properties2_available)
 			extensions[numExts++] = VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME;
@@ -338,16 +338,18 @@ void Vkimp_GetInstanceExtensions(char **extensions, uint32_t *extCount)
 	}
 }
 
-VkResult Vkimp_CreateSurface()
+VkResult Vkimp_CreateSurface(void)
 {
-	VkMacOSSurfaceCreateInfoMVK surfaceCreateInfo = {
-		.sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK,
+	CAMetalLayer* layer = (__bridge CAMetalLayer *)(CocoaAddMetalView());
+	
+	VkMetalSurfaceCreateInfoEXT surfaceCreateInfo = {
+		.sType = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT,
 		.pNext = NULL,
 		.flags = 0,
-		.pView = CocoaAddMetalView()
+		.pLayer = layer
 	};
 	
-	return vkCreateMacOSSurfaceMVK(vk_instance, &surfaceCreateInfo, NULL, &vk_surface);
+	return vkCreateMetalSurfaceEXT(vk_instance, &surfaceCreateInfo, NULL, &vk_surface);
 }
 
 /*
